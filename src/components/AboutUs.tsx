@@ -42,7 +42,7 @@ export default function AboutUs() {
           <div className="lg:col-span-5 relative w-full flex justify-center">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#092320] w-full max-w-sm aspect-square">
               <img
-                src="/src/assets/images/connect.png"
+                src="/images/connect.png"
                 alt="Sri Dwar Divine Mission - Sacred Temple Devotion & Priestly Connection"
                 className="w-full h-full object-cover rounded-2xl hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
