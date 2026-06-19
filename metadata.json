@@ -1,0 +1,6 @@
+{
+  "name": "Sri Dwar",
+  "description": "Sri Dwar is a world-class premium faith-tech platform connecting devotees worldwide with sacred temples, online rituals, and personalized blessings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
