@@ -30,7 +30,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "The massive Harihara Lingam, bathed daily in water, milk, and bhang.",
     timings: "6:00 AM — 9:00 PM",
     rituals: ["Mahadipam Lighting", "Rudra Abhishek", "Sankalpa Puja", "Sringar Puja"],
-    imageUrl: "/images/deity_lingaraj_1781872903761.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_lingaraj_1781872903761.jpg",
     symbol: "🔱"
   },
   {
@@ -43,7 +43,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Revered as the manifestation of Adi Shakti, represented by a beautiful vermilion face with distinct golden eyes.",
     timings: "5:30 AM — 8:30 PM",
     rituals: ["Narkela (Coconut) Arpan", "Maha Snana & Shringar", "Prasad Offering", "Sandhya Dhupa"],
-    imageUrl: "/images/deity_maa_tarini_1781872917967.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_tarini_1781872917967.jpg",
     symbol: "🌸"
   },
   {
@@ -56,7 +56,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Two gemstone anthropomorphic deities representing Tara (wisdom) and Tarini (salvation).",
     timings: "5:00 AM — 8:00 PM",
     rituals: ["Mundan Sanskar Puja", "Shakti Abhishek", "Sankalpa Archana", "Sandhya Aarti"],
-    imageUrl: "/images/deity_tara_tarini_1781872931738.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_tara_tarini_1781872931738.jpg",
     symbol: "📿"
   },
   {
@@ -69,7 +69,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Maa Biraja, riding a lion and holding a trident which plunges into the crown of Mahishasura.",
     timings: "4:00 AM — 9:00 PM",
     rituals: ["Savitri Vrata Puja", "Sharadiya Rathayatra Puja", "Navratri Shringar", "Anna Bhoga Sadasya"],
-    imageUrl: "/images/deity_maa_biraja_1781874129633.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_biraja_1781874129633.jpg",
     symbol: "🕉️"
   },
   {
@@ -82,7 +82,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Represented by a rock sculpture resembling a trunk-like face with gold ornamentations.",
     timings: "5:00 AM — 9:00 PM",
     rituals: ["Nuakhai Offering", "Maha Snana & Pushpanjali", "Karuna Arati", "Alati Vesha"],
-    imageUrl: "/images/deity_maa_samaleswari_1781874145172.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_samaleswari_1781874145172.jpg",
     symbol: "🪔"
   },
   {
@@ -95,7 +95,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "The Goddess is depicted with eight hands (Ashtabhuja) holding weapons represents universal wisdom.",
     timings: "5:00 AM — 8:30 PM",
     rituals: ["Saraswati Puja Archana", "Vidyarambha Sanskar", "Akhanda Diya Seva", "Raja Parba Puja"],
-    imageUrl: "/images/deity_maa_sarala_1781874159752.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_sarala_1781874159752.jpg",
     symbol: "📒"
   },
   {
@@ -108,7 +108,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "The glowing stone Goddess seated in padmasana, carrying lotus and counting beads.",
     timings: "6:00 AM — 9:00 PM",
     rituals: ["Nabakalebara Prarthana", "Majana Ritual (Morning bath)", "Sankalpa Archana", "Sandhya Dhupa Bhoga"],
-    imageUrl: "/images/deity_maa_mangala_1781874172509.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_mangala_1781874172509.jpg",
     symbol: "🏮"
   },
   {
@@ -121,7 +121,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Revered as Dhabaleswar (The White Shiva Lingam). Symbol of absolute purity and forgiveness.",
     timings: "5:00 AM — 9:00 PM",
     rituals: ["Bada Osha Feast offering", "Rudra Abhishek Puja", "Jalaabhishek offering", "Panchamrut bath Puja"],
-    imageUrl: "/images/deity_dhabaleswar_1781874189204.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_dhabaleswar_1781874189204.jpg",
     symbol: "🔔"
   },
   {
@@ -134,7 +134,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A unique dark black granite Shiva Lingam, constantly bathed in soothing sandalwood paste.",
     timings: "4:30 AM — 9:00 PM",
     rituals: ["Chhamu Vesha Alati", "Suna Vesha Puja", "Maha Mrityunjaya Puja", "Roga Nibarana Sankalpa"],
-    imageUrl: "/images/deity_akhandaalamani_1781874203434.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_akhandaalamani_1781874203434.jpg",
     symbol: "🐚"
   },
   {
@@ -147,7 +147,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A beautiful black stone carving of Lord Vishnu, representing cosmic beauty (Nila Madhab).",
     timings: "5:00 AM — 8:30 PM",
     rituals: ["Saba Snana (Springwater bath)", "Tulsi Archana", "Maha-naivedya Bhoga", "Sandhya Dipam"],
-    imageUrl: "/images/deity_nilamadhab_1781874217698.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_nilamadhab_1781874217698.jpg",
     symbol: "👑"
   },
   {
@@ -160,7 +160,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Jagannath, Balabhadra and Subhadra shown standing with Kalki Avatar symbols.",
     timings: "5:30 AM — 8:30 PM",
     rituals: ["Malika Pathan Seva", "Bata Puja", "Nama Sankirtan Sadasya", "Sankalpa Bhoga"],
-    imageUrl: "/images/deity_chhatia_jagannath_1781874473437.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_chhatia_jagannath_1781874473437.jpg",
     symbol: "🌳"
   },
   {
@@ -173,7 +173,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A monumental standing figure of Lord Balaram carrying his sacred Plough (Halayudh).",
     timings: "5:00 AM — 9:00 PM",
     rituals: ["Ratha Snana Alati", "Tulasi Arpan Seva", "Balarama Sahasranama", "Dahi-Pakhila offering"],
-    imageUrl: "/images/deity_baladevjew_1781874491309.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_baladevjew_1781874491309.jpg",
     symbol: "🌾"
   },
   {
@@ -186,7 +186,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Chandrasekhar Shiva, the moon-crowned Lord of universe, situated in a pristine mountain cave atmosphere.",
     timings: "5:00 AM — 7:00 PM",
     rituals: ["Kavad Yatra Jala Abhishek", "Sankalpa Rudra Patra offering", "Chandana Vesha", "Giri Pradaksina lamp Seva"],
-    imageUrl: "/images/deity_kapilash_1781874508076.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kapilash_1781874508076.jpg",
     symbol: "🏔️"
   },
   {
@@ -199,7 +199,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "The sacred gold-plated Jyotirlinga, representing infinite light and detachment.",
     timings: "3:00 AM — 11:00 PM",
     rituals: ["Mangla Aarti (Pre-dawn)", "Bhog Aarti", "Saptarishi Aarti (7 priests)", "Shringar Aarti"],
-    imageUrl: "/images/deity_kashi_vishwanath_1781874522891.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kashi_vishwanath_1781874522891.jpg",
     symbol: "🕉️"
   },
   {
@@ -212,7 +212,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A triangular, natural stone humped lingam representing Shiva as the Bull in Mahabharata.",
     timings: "4:00 AM — 9:00 PM (May to Nov)",
     rituals: ["Pratah Abhishek", "Maha Abhishek Puja", "Shiva Sahasranama Patha", "Ganga Jal offering"],
-    imageUrl: "/images/deity_kedarnath_1781874538288.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kedarnath_1781874538288.jpg",
     symbol: "❄️"
   },
   {
@@ -225,7 +225,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Badrinarayan carved from a single black Shaligram stone, posture in meditation.",
     timings: "4:30 AM — 9:00 PM (May to Nov)",
     rituals: ["Maha Abhishek", "Geeta Path Offerings", "Kapoora Aarti", "Vishnu Sahasranama"],
-    imageUrl: "/images/deity_badrinath_1781874552955.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_badrinath_1781874552955.jpg",
     symbol: "🌅"
   },
   {
@@ -238,7 +238,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A holy cave containing three natural rock formations called 'Pindies'—Maha Kali, Maha Lakshmi and Maha Saraswati.",
     timings: "24 Hours (Open throughout)",
     rituals: ["Maha Atka Aarti (Twice daily)", "Chandi Patha Recitation", "Shishupala Archana", "Maha Prasad Offering"],
-    imageUrl: "/images/deity_vaishno_devi_1781874568865.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_vaishno_devi_1781874568865.jpg",
     symbol: "🦁"
   },
   {
@@ -251,7 +251,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Krishna as a sweet, dark child playing the flute, radiating divine romance.",
     timings: "7:45 AM — 9:30 PM",
     rituals: ["Shringar Aarti (Without Bells)", "Rajbhog Feast Puja", "Sandhya Aarti", "Phool Bangla Decoration"],
-    imageUrl: "/images/deity_banke_bihari_1781874587703.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_banke_bihari_1781874587703.jpg",
     symbol: "🪶"
   },
   {
@@ -264,7 +264,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Pran-Pratistha Radha Krishna deities representing absolute celestial love (Prem).",
     timings: "8:30 AM — 8:30 PM",
     rituals: ["Prem Dhuni Prayers", "Bhajanamela Sadasya", "Maha Aarti", "Dynamic Musical Fountain Show"],
-    imageUrl: "/images/deity_prem_mandir_krishna_1781874602481.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_prem_mandir_krishna_1781874602481.jpg",
     symbol: "🦚"
   },
   {
@@ -277,7 +277,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Revered as Mother Goddess Ganga. In Vedic lore, Lord Vishnu's footprint is locked in stone on these steps.",
     timings: "24 Hours (Aarti at Sunset)",
     rituals: ["Maha Ganga Evening Aarti", "Pitra Tarpan Puja", "Rudrabhishek on Riverbed", "Deep Daan (Floating diyas)"],
-    imageUrl: "/images/deity_haridwar_shiva_1781874619655.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_haridwar_shiva_1781874619655.jpg",
     symbol: "🌊"
   },
   {
@@ -290,7 +290,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Nine sacred blue flames, representing Goddesses Mahakali, Mahalakshmi, Mahasaraswati and sisters.",
     timings: "5:00 AM — 10:00 PM",
     rituals: ["Jwala Abhishek Puja", "Kheer Bhog Arpan", "Sringar Aarti (Midnight)", "Akhand Jyot Seva"],
-    imageUrl: "/images/deity_jwala_ji_1781874631955.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_jwala_ji_1781874631955.jpg",
     symbol: "🔥"
   },
   {
@@ -303,7 +303,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Somnath Swayambhu Mahadev Lingam, seated majestically over looking the Arabian Sea.",
     timings: "6:00 AM — 9:30 PM",
     rituals: ["Somnath Maha Abhishek", "Soma Aarti & Damru concert", "Samudra Snana Puja", "Mrityunjaya chanting"],
-    imageUrl: "/images/deity_somnath_shiva_1781874647893.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_somnath_shiva_1781874647893.jpg",
     symbol: "🔱"
   },
   {
@@ -316,7 +316,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Krishna manifest as Dwarkadhish, the King of Kings, draped in magnificent royal attire.",
     timings: "6:30 AM — 9:30 PM",
     rituals: ["Dhwaja Arohan (Flag custom)", "Suna Snana (Gold bath)", "Chhappan Bhog Offerings", "Sandhya Shringar"],
-    imageUrl: "/images/deity_dwarkadhish_1781874666725.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_dwarkadhish_1781874666725.jpg",
     symbol: "🚩"
   },
   {
@@ -329,7 +329,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A unique hollow lingam holding three small miniature lingams of Brahma, Vishnu, and Shiva.",
     timings: "5:30 AM — 9:00 PM",
     rituals: ["Trideva Shringar Puja", "Kalsarpa Shanti Puja", "Narayan Nagbali Puja", "Rudra Abhishek"],
-    imageUrl: "/images/deity_trimbakeshwar_1781874679788.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_trimbakeshwar_1781874679788.jpg",
     symbol: "🕉️"
   },
   {
@@ -342,7 +342,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A beautiful black stone Ganesha carved out of single rock, accompanied by Siddhi and Riddhi.",
     timings: "5:00 AM — 10:00 PM",
     rituals: ["Kakad Aarti (Pre-dawn)", "Atharvashirsha Chanting", "Modak Maha-Naivedya Offerings", "Sankashti Chaturthi Special Aarti"],
-    imageUrl: "/images/deity_siddhivinayak_1781874694879.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_siddhivinayak_1781874694879.jpg",
     symbol: "🐘"
   },
   {
@@ -355,7 +355,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "The Goddess carved from gemstone, carrying a club, shield, and a precious citrus fruit.",
     timings: "5:30 AM — 10:00 PM",
     rituals: ["Maha Puja & Abhishek", "Suna Vesha Puja", "Kumkum Archana", "Laxmi Sahasranama"],
-    imageUrl: "/images/deity_kolhapur_mahalakshmi_1781874711476.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kolhapur_mahalakshmi_1781874711476.jpg",
     symbol: "🌸"
   },
   {
@@ -368,7 +368,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Hanuman standing in a majestic warrior posture, with Shani Dev pressed submissively underneath his foot.",
     timings: "6:00 AM — 9:00 PM",
     rituals: ["Maruti Yajna Puja", "Shani-Shanti Oil Offering", "Hanuman Chalisa Chants", "Swarna Chola Alati"],
-    imageUrl: "/images/deity_kashtabhanjan_hanuman_1781874800576.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kashtabhanjan_hanuman_1781874800576.jpg",
     symbol: "🐒"
   },
   {
@@ -381,7 +381,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Worshipped as a natural spring flowing through a cleft in sacred schist bedrock (No physical statue).",
     timings: "5:30 AM — 8:00 PM",
     rituals: ["Tantrik Chandi Archana", "Maha Snana & Dhupa", "Sankalpa Bali-Puja", "Ambubachi Dhupa"],
-    imageUrl: "/images/deity_kamakhya_1781874819380.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kamakhya_1781874819380.jpg",
     symbol: "📿"
   },
   {
@@ -394,7 +394,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A unique Kali idol with dark eyes, silver crown, and an extending glowing golden tongue.",
     timings: "5:00 AM — 9:00 PM",
     rituals: ["Nitya Puja & Chandi Bhoga", "Maha Snana Alati", "Balipatha Prarthana", "Sandhya Arati"],
-    imageUrl: "/images/deity_kalighat_kali_1781874835951.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kalighat_kali_1781874835951.jpg",
     symbol: "🌺"
   },
   {
@@ -407,7 +407,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Maa Kali depicted as Bhavatarini, standing on the white basalt chest of Lord Shiva.",
     timings: "6:00 AM — 8:30 PM",
     rituals: ["Sama Snana & Alati", "Bhog Offering (Kedgeree & sweets)", "Ramakrishna Room Pilgrimage", "Sandhya Alati"],
-    imageUrl: "/images/deity_dakshineswar_kali_1781874854203.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_dakshineswar_kali_1781874854203.jpg",
     symbol: "🪷"
   },
   {
@@ -420,7 +420,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "A sacred Jyotirlinga, traditionally bound with sacred red threads connected to Gauri's temple opposite.",
     timings: "4:00 AM — 9:00 PM",
     rituals: ["Sravani Mela Chardham Kanwar Jala Yatra", "Rudrabhishek", "Sankalpa Rog-Moksha Puja", "Sringar offering"],
-    imageUrl: "/images/deity_akhandaalamani_1781874203434.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_akhandaalamani_1781874203434.jpg",
     symbol: "⚕️"
   }
 ];

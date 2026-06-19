@@ -132,7 +132,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 1501, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
       { amount: 5001, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
     ],
-    imageUrl: "/images/seva_badrivishal_1781879619365.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/seva_badrivishal_1781879619365.jpg"
   },
   {
     id: "seva-cow",
@@ -146,7 +146,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 1201, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
       { amount: 3500, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
     ],
-    imageUrl: "/images/seva_venkatesaya_1781879635982.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/seva_venkatesaya_1781879635982.jpg"
   },
   {
     id: "seva-diya",
@@ -160,7 +160,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 501, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
       { amount: 2101, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
     ],
-    imageUrl: "/images/seva_somnath_1781879651117.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/seva_somnath_1781879651117.jpg"
   },
   {
     id: "seva-gurukul",
@@ -174,7 +174,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 3001, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
       { amount: 10001, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
     ],
-    imageUrl: "/images/seva_dakshineswar_1781879664944.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/seva_dakshineswar_1781879664944.jpg"
   }
 ];
 
@@ -190,7 +190,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1101,
-    imageUrl: "/images/puja_3.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg"
   },
   {
     id: "puja-wealth-laxmi",
@@ -203,7 +203,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2101,
-    imageUrl: "/images/puja_1.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
   },
   {
     id: "puja-protection-sarala",
@@ -216,7 +216,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1501,
-    imageUrl: "/images/Maa.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Maa.jpg"
   },
   {
     id: "puja-career-ganesha",
@@ -229,7 +229,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1251,
-    imageUrl: "/images/puja_2.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg"
   },
   {
     id: "puja-marriage-milani",
@@ -242,7 +242,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: false,
     price: 1801,
-    imageUrl: "/images/puja.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/puja.jpg"
   }
 ];
 
@@ -273,7 +273,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "Directly sourced from the Ananda Bazar inside Puri Temple, certified by certified Kotha-bhoga Sevakas.",
     blessings: "Blessed with Tulsi leaves directly from the sanctum sanctorum.",
     price: 351,
-    imageUrl: "/images/prasad.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/prasad.jpg",
     rating: 5,
     deliveryTimeline: "3-5 Business Days across India and globe."
   },
@@ -286,7 +286,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "Includes lab test card confirming 100% genuine Elaeocarpus ganitrus seed structure.",
     blessings: "Bead is strung in premium pure copper capping for optimal electric-magnetic conductivity.",
     price: 499,
-    imageUrl: "/images/Bead 2.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Bead 2.jpg",
     rating: 4.8,
     deliveryTimeline: "4-6 Business Days."
   },
@@ -299,7 +299,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "100% natural, hand-rolled by village artisan women, charcoal-free and completely petroleum-free.",
     blessings: "Infused with pure Himalayan sandalwood extract oils.",
     price: 199,
-    imageUrl: "/images/incense.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/incense.jpg",
     rating: 4.9,
     deliveryTimeline: "2-4 Business Days."
   },
@@ -312,7 +312,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "Strictly pure items, packed in eco-friendly, biodegradable premium packaging.",
     blessings: "All items placed in Puja room ceremonies before box packing.",
     price: 899,
-    imageUrl: "/images/kit.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/kit.jpg",
     rating: 5,
     deliveryTimeline: "2-3 Business Days."
   }

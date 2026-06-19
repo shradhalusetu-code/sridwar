@@ -114,7 +114,7 @@ export default function SpiritualConsole({ onBookService }: SpiritualConsoleProp
       {/* Background Aerial image of Sakhi Gopal Temple with dark overlays */}
       <div className="absolute inset-0 pointer-events-none select-none z-0">
         <img
-          src="/images/sakhi_gopal_aerial_1781873914842.jpg"
+          src={import.meta.env.BASE_URL + "images/sakhi_gopal_aerial_1781873914842.jpg"}
           alt="Sakhi Gopal Temple Aerial View"
           className="w-full h-full object-cover object-center opacity-15 mix-blend-luminosity scale-105"
           referrerPolicy="no-referrer"
