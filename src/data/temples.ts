@@ -4,6 +4,7 @@
  */
 
 import { Temple } from "../types";
+import deityJagannath from "../assets/images/deity_jagannath_1781872890111.jpg";
 
 export const TEMPLES_LIST: Temple[] = [
   {
@@ -16,7 +17,7 @@ export const TEMPLES_LIST: Temple[] = [
     deityInfo: "Lord Jagannath, along with siblings Balabhadra and Subhadra. Made of sacred neem wood, representing the formless divine manifest in nature.",
     timings: "5:00 AM — 11:00 PM",
     rituals: ["Mangal Alati (Sudarshan Puja)", "Kotha Bhoga Offering", "Sahanamela Darshan", "Sandhya Alati & Vesha Changer"],
-    imageUrl: "/src/assets/images/deity_jagannath_1781872890111.jpg",
+    imageUrl: deityJagannath,
     symbol: "ॐ"
   },
   {

@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
+import deityJagannath from "../assets/images/deity_jagannath_1781872890111.jpg";
 import { Search, Compass, BookOpen, Clock, Heart, Sparkles, Check, Wifi, WifiOff, MapPin, ChevronRight } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 
@@ -287,7 +288,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               <div className="aspect-video w-full rounded-2xl bg-[#021816]/95 overflow-hidden relative border border-white/10 shadow-2xl flex items-center justify-center group">
                 {/* Deity Photo of Jagannath, Balabhadra and Subhadra */}
                 <img
-                  src="/src/assets/images/deity_jagannath_1781872890111.jpg"
+                  src={deityJagannath}
                   alt="Lord Jagannath, Balabhadra, and Devi Subhadra Live Darshan"
                   className="absolute inset-0 w-full h-full object-cover select-none brightness-[0.85] contrast-[1.05] transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
                   referrerPolicy="no-referrer"
