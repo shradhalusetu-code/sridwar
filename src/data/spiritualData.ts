@@ -286,7 +286,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "Includes lab test card confirming 100% genuine Elaeocarpus ganitrus seed structure.",
     blessings: "Bead is strung in premium pure copper capping for optimal electric-magnetic conductivity.",
     price: 499,
-    imageUrl: import.meta.env.BASE_URL + "images/bead_2.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/bead.jpg",
     rating: 4.8,
     deliveryTimeline: "4-6 Business Days."
   },
