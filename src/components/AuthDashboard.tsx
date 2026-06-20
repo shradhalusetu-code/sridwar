@@ -6,7 +6,9 @@
 import React, { useState, useEffect, FormEvent } from "react";
 import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
+import { TEMPLES_LIST } from "../data/temples";
 import SriDwarLogo from "./SriDwarLogo";
+import UpiPaymentPopup from "./UpiPaymentPopup";
 
 interface FamilyMember {
   name: string;
@@ -36,6 +38,15 @@ export default function AuthDashboard({
   const [userRashi, setUserRashi] = useState("Dhanu (Sagittarius)");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  // Dharmic ID generation step + temple-redevelopment contribution step
+  const [authStep, setAuthStep] = useState<"login" | "contribute">("login");
+  const [pendingLogin, setPendingLogin] = useState<{ name: string; email: string } | null>(null);
+  const [selectedTempleId, setSelectedTempleId] = useState("");
+  const [customMandapName, setCustomMandapName] = useState("");
+  const [customMandapAddress, setCustomMandapAddress] = useState("");
+  const [contributionAmount, setContributionAmount] = useState<number>(0);
+  const [isContributionPaymentOpen, setIsContributionPaymentOpen] = useState(false);
+
   // My Sacred Profile states
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
     { name: "Anjali Rana", relation: "Spouse" },
@@ -61,6 +72,14 @@ export default function AuthDashboard({
           console.error("Failed to parse saved profile", e);
         }
       }
+    } else {
+      // Reset the Dharmic ID generation flow back to the start after logout
+      setAuthStep("login");
+      setPendingLogin(null);
+      setSelectedTempleId("");
+      setCustomMandapName("");
+      setCustomMandapAddress("");
+      setContributionAmount(0);
     }
   }, [isLoggedIn]);
 
@@ -130,10 +149,44 @@ export default function AuthDashboard({
 
     setIsLoggingIn(true);
     setTimeout(() => {
-      onLoginSuccess(userNameField, userEmailField);
+      setPendingLogin({ name: userNameField, email: userEmailField });
       setIsLoggingIn(false);
+      setAuthStep("contribute");
     }, 1200);
   };
+
+  // Devotee tapped "Skip for Now" on the contribution step.
+  const handleSkipContribution = () => {
+    if (pendingLogin) onLoginSuccess(pendingLogin.name, pendingLogin.email);
+  };
+
+  // Devotee picked an amount and a temple/mandap — open the real UPI popup.
+  const handleProceedToContributionPayment = () => {
+    if (!contributionAmount || contributionAmount <= 0) return;
+    setIsContributionPaymentOpen(true);
+  };
+
+  // Called after "I Have Paid" is tapped in the UPI popup.
+  const finalizeContribution = async () => {
+    const templeName = selectedTempleId
+      ? TEMPLES_LIST.find((temple) => temple.id === selectedTempleId)?.name
+      : `${customMandapName}${customMandapAddress ? " — " + customMandapAddress : ""}`;
+
+    // Best-effort logging only — no dedicated Google Form configured for this yet.
+    console.log("[Temple Redevelopment Contribution]", {
+      name: pendingLogin?.name,
+      email: pendingLogin?.email,
+      templeName,
+      amount: contributionAmount
+    });
+
+    setIsContributionPaymentOpen(false);
+    if (pendingLogin) onLoginSuccess(pendingLogin.name, pendingLogin.email);
+  };
+
+  const selectedTempleName = selectedTempleId
+    ? TEMPLES_LIST.find((temple) => temple.id === selectedTempleId)?.name || "Selected Temple"
+    : customMandapName || "Custom Mandap";
 
   const simulatedHistory = [
     { name: "Puri Jagannath Shringar Aarti", date: "June 10, 2026", status: "Completed" },
@@ -159,6 +212,7 @@ export default function AuthDashboard({
               </p>
             </div>
 
+            {authStep === "login" && (
             <form onSubmit={handleGoogleLogin} className="space-y-4">
               
               {/* Devotee Name */}
@@ -251,6 +305,122 @@ export default function AuthDashboard({
                 <span>Google OAuth Secured for Shradhalu Pvt Ltd</span>
               </div>
             </form>
+            )}
+
+            {authStep === "contribute" && (
+              <div className="space-y-4 animate-fadeIn text-left">
+                <div className="text-center space-y-1">
+                  <div className="w-12 h-12 bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30 mb-2">
+                    <Award className="w-6 h-6 text-[#5EEAD4]" />
+                  </div>
+                  <h4 className="font-serif text-lg font-bold text-[#5EEAD4]">Your Dharmic ID is Ready!</h4>
+                  <p className="text-xs text-white/60">
+                    Would you like to contribute towards temple redevelopment before entering your dashboard?
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-white/80 mb-1">Choose a temple from our network</label>
+                  <select
+                    id="contribute-temple-select"
+                    value={selectedTempleId}
+                    onChange={(e) => {
+                      setSelectedTempleId(e.target.value);
+                      if (e.target.value) {
+                        setCustomMandapName("");
+                        setCustomMandapAddress("");
+                      }
+                    }}
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#5EEAD4] font-medium focus:outline-none focus:border-[#5EEAD4]"
+                  >
+                    <option value="">-- Select a temple --</option>
+                    {TEMPLES_LIST.map((temple) => (
+                      <option key={temple.id} value={temple.id}>{temple.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sanskrit-divider text-[10px]">or</div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-white/80 mb-1">Mention your own preferred Puja Mandap</label>
+                  <input
+                    id="contribute-custom-mandap-name"
+                    type="text"
+                    placeholder="Mandap / Temple name"
+                    value={customMandapName}
+                    onChange={(e) => {
+                      setCustomMandapName(e.target.value);
+                      if (e.target.value) setSelectedTempleId("");
+                    }}
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 focus:outline-none focus:border-[#5EEAD4]"
+                  />
+                  <input
+                    id="contribute-custom-mandap-address"
+                    type="text"
+                    placeholder="Mandap address / city"
+                    value={customMandapAddress}
+                    onChange={(e) => setCustomMandapAddress(e.target.value)}
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 focus:outline-none focus:border-[#5EEAD4]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-white/80 mb-1">Contribution Amount (₹)</label>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {[51, 101, 251].map((amt) => (
+                      <button
+                        key={amt}
+                        id={`contribute-amount-tier-${amt}`}
+                        type="button"
+                        onClick={() => setContributionAmount(amt)}
+                        className={`text-xs py-2 rounded-xl border font-bold transition-all ${
+                          contributionAmount === amt
+                            ? "bg-white/10 border-[#5EEAD4] text-[#5EEAD4] shadow-sm"
+                            : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"
+                        }`}
+                      >
+                        ₹{amt}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    id="contribute-custom-amount"
+                    type="number"
+                    min={1}
+                    placeholder="Or enter a custom amount"
+                    value={contributionAmount || ""}
+                    onChange={(e) => setContributionAmount(Math.max(0, Number(e.target.value)))}
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 focus:outline-none focus:border-[#5EEAD4]"
+                  />
+                </div>
+
+                <div className="flex items-start space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 24 hours of your contribution.</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <button
+                    id="contribute-skip-btn"
+                    type="button"
+                    onClick={handleSkipContribution}
+                    className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs border border-white/10 transition-all cursor-pointer"
+                  >
+                    Skip for Now
+                  </button>
+                  <button
+                    id="contribute-proceed-btn"
+                    type="button"
+                    onClick={handleProceedToContributionPayment}
+                    disabled={!contributionAmount || contributionAmount <= 0}
+                    className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-3 rounded-xl text-xs uppercase tracking-wide transition-all cursor-pointer"
+                  >
+                    Contribute ₹{contributionAmount || 0}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           
@@ -556,6 +726,18 @@ export default function AuthDashboard({
         )}
 
       </div>
+
+      {/* Real UPI Payment Popup for the temple-redevelopment contribution */}
+      {isContributionPaymentOpen && (
+        <UpiPaymentPopup
+          amount={contributionAmount}
+          note={`Temple Redevelopment Contribution - ${pendingLogin?.name || ""}`}
+          payeeLabel="Contribution To"
+          payeeValue={selectedTempleName}
+          onConfirm={finalizeContribution}
+          onClose={() => setIsContributionPaymentOpen(false)}
+        />
+      )}
     </section>
   );
 }

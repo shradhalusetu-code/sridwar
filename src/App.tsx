@@ -19,6 +19,7 @@ import AIAssistant from "./components/AIAssistant";
 import BookNowWizard from "./components/BookNowWizard";
 import SriDwarLogo from "./components/SriDwarLogo";
 import FAQs from "./components/FAQs";
+import UpiPaymentPopup from "./components/UpiPaymentPopup";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -31,6 +32,7 @@ export default function App() {
   // Cart, Booking wizards
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCartPaymentOpen, setIsCartPaymentOpen] = useState(false);
   const [isBookNowOpen, setIsBookNowOpen] = useState(false);
   const [isSevaModalOpen, setIsSevaModalOpen] = useState(false);
   
@@ -108,10 +110,14 @@ export default function App() {
     );
   };
 
-  const handleCartGPayCheckout = async () => {
+  // Opens the real UPI QR payment popup for the cart total.
+  const handleCartGPayCheckout = () => {
     if (cart.length === 0) return;
-    
-    // Simulate GPay for items
+    setIsCartPaymentOpen(true);
+  };
+
+  // Called after the devotee taps "I Have Paid" in the UPI popup.
+  const finalizeCartCheckout = async () => {
     const cartSummaryStr = cart.map(item => `${item.product.name} (x${item.quantity})`).join(", ");
     const totalAmount = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
@@ -127,10 +133,11 @@ export default function App() {
     setBookedItems(updatedBookings);
     localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
 
-    alert(`GPay Offering authorized! ₹${totalAmount} processed successfully. Holy items and consecrated Prasad have been assigned to your Gotra. Reference: ${refId}`);
-    
+    setIsCartPaymentOpen(false);
     setCart([]);
     setIsCartOpen(false);
+
+    alert(`🙏 Payment confirmed! ₹${totalAmount} recorded for order ${refId}. Your blessed Prasad & items will be shipped soon. An acknowledgement certificate will be shared with you on WhatsApp and Email within 24 hours.`);
   };
 
   const handleBookNowSuccess = (item: { pujaName: string; price: number; refId: string }) => {
@@ -611,12 +618,24 @@ export default function App() {
                 onClick={handleCartGPayCheckout}
                 className="w-full bg-[#1A73E8] hover:bg-[#1557B0] disabled:bg-white/5 disabled:text-white/20 text-white font-extrabold py-4 rounded-xl text-xs tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(26,115,232,0.4)] flex items-center justify-center space-x-2 border border-[#1A73E8]"
               >
-                <span>SECURE GPAY CHECKOUT NOW</span>
+                <span>PAY VIA UPI NOW</span>
               </button>
             </div>
 
           </div>
         </div>
+      )}
+
+      {/* Real UPI Payment Popup for Temple Bazaar cart checkout */}
+      {isCartPaymentOpen && (
+        <UpiPaymentPopup
+          amount={cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)}
+          note="Temple Bazaar Order"
+          payeeLabel="Order Items"
+          payeeValue={`${cart.length} item(s)`}
+          onConfirm={finalizeCartCheckout}
+          onClose={() => setIsCartPaymentOpen(false)}
+        />
       )}
 
     </div>
