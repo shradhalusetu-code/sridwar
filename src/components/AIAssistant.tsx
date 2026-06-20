@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { MessageSquare, Send, Sparkles, X, RefreshCw, Star, ArrowRight } from "lucide-react";
+import { Send, Sparkles, X, RefreshCw } from "lucide-react";
 
 interface AIAssistantProps {
   currentLanguage: string;
@@ -28,7 +28,6 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
   const handleSendMessage = async (userText: string) => {
     if (!userText.trim() || isLoading) return;
 
-    // Add user message to stack
     const updatedMessages = [...messages, { role: "user" as const, text: userText }];
     setMessages(updatedMessages);
     setInputText("");
@@ -44,13 +43,22 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
         })
       });
 
+      // ✅ Fix: Check if server responded OK before trying to read it
+      // On GitHub Pages, /api/assistant returns 404 — this catches it cleanly
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
       const data = await response.json();
       setMessages((prev) => [...prev, { role: "model" as const, text: data.text || "May the divine light guide your thoughts always." }]);
     } catch (err) {
-      console.error(err);
+      // ✅ Fix: Silently handle — show friendly offline message instead of crashing
       setMessages((prev) => [
         ...prev,
-        { role: "model" as const, text: "Hari Om! The connection with our sacred backend is currently offline. Please configure the required secret key in Settings." }
+        {
+          role: "model" as const,
+          text: "Hari Om! 🙏 Our AI Guide is currently in offline mode. For spiritual guidance, please visit us again shortly. May Lord Jagannath bless your path."
+        }
       ]);
     } finally {
       setIsLoading(false);
@@ -111,7 +119,6 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
                       : "bg-[#092320]/90 text-white border border-white/10 rounded-tl-none font-sans text-left"
                   }`}
                 >
-                  {/* Text rendered nicely */}
                   <p className="whitespace-pre-line">{msg.text}</p>
                 </div>
               </div>
