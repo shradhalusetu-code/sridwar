@@ -78,15 +78,8 @@ let cachedEnv: Record<string, string> | null = null;
  */
 async function fetchEnvConfig(): Promise<Record<string, string>> {
   if (cachedEnv) return cachedEnv;
-  try {
-    const res = await fetch("/api/config");
-    if (res.ok) {
-      cachedEnv = await res.json();
-      return cachedEnv || {};
-    }
-  } catch (error) {
-    console.warn("[Google Forms Sync]: Unable to load server side variables. Falling back to defaults.", error);
-  }
+  // Skip API call entirely on GitHub Pages — no server available
+  cachedEnv = {};
   return {};
 }
 
