@@ -28,6 +28,8 @@ export default function ContactUs() {
   setIsSyncing(true);
 
   try {
+    // ✅ FIX: Removed invalid `response.json()` — no response variable exists here.
+    // syncToGoogleForm submits directly to Google Forms and returns true/false.
     await syncToGoogleForm("customer_contact", {
       name,
       email,
@@ -35,17 +37,18 @@ export default function ContactUs() {
       type: queryType,
       details: comment
     });
-      const data = await response.json();
-      setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
 
-      // Sync seamlessly to Google Forms as requested
-      await syncToGoogleForm("devotee_support", {
-        name,
-        email,
-        phone,
-        details: comment || "No message detailed",
-        type: queryType
-      });
+    setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
+
+    // Also sync to devotee_support form
+    await syncToGoogleForm("devotee_support", {
+      name,
+      email,
+      phone,
+      details: comment || "No message detailed",
+      type: queryType
+    });
+
     } catch (err) {
       console.error(err);
       setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
