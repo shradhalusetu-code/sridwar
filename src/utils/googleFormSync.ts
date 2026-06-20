@@ -71,15 +71,13 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
 let cachedEnv: Record<string, string> | null = null;
 
 /**
- * ✅ FIX 2: fetchEnvConfig no longer crashes with "response is not defined"
- * Previously the code tried to use `response` outside a try/catch block.
- * Now it safely returns empty {} if the /api/config call fails (which it always
- * does on GitHub Pages). The DEFAULT_CONFIGS above handle everything instead.
+ * ✅ FIX: Removed /api/config fetch entirely.
+ * On GitHub Pages there is no backend server, so calling /api/config always
+ * caused a 404 error and a "response is not defined" crash.
+ * All form URLs and entry IDs are now hardcoded in DEFAULT_CONFIGS above.
  */
 async function fetchEnvConfig(): Promise<Record<string, string>> {
-  if (cachedEnv) return cachedEnv;
-  // Skip API call entirely on GitHub Pages — no server available
-  cachedEnv = {};
+  // Always return empty — DEFAULT_CONFIGS handles everything
   return {};
 }
 
