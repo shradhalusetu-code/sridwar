@@ -19,31 +19,24 @@ export default function ContactUs() {
   const [refId, setRefId] = useState("");
 
   const handleSendMessage = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !phone) {
-      alert("Please fill in all mandatory fields: Name, Email, and Phone Number.");
-      return;
-    }
+  e.preventDefault();
+  if (!name || !email || !phone) {
+    alert("Please fill in all mandatory fields: Name, Email, and Phone Number.");
+    return;
+  }
 
-    setIsSyncing(true);
+  setIsSyncing(true);
 
-    try {
-      const response = await fetch("/api/submit-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          formType: "customer_contact",
-          formData: {
-            name,
-            email,
-            phone,
-            queryType,
-            comment
-          }
-        })
-      });
+  try {
+    await syncToGoogleForm("customer_contact", {
+      name,
+      email,
+      phone,
+      type: queryType,
+      details: comment
+    });
       const data = await response.json();
-      setRefId(data.refId || `SDC-${Math.floor(100000 + Math.random() * 900000)}`);
+      setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
 
       // Sync seamlessly to Google Forms as requested
       await syncToGoogleForm("devotee_support", {

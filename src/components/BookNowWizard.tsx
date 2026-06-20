@@ -102,26 +102,19 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     
     // Simulating GPay safe payment redirect
     try {
-      const response = await fetch("/api/submit-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          formType: "puja_booking",
-          formData: {
-            pujaName,
-            price,
-            devoteeName,
-            phone,
-            email,
-            dob,
-            gotra: gotra || "Shiva Gotra",
-            rashi,
-            sankalpWish
-          }
-        })
-      });
+  await syncToGoogleForm("puja_booking", {
+    name: devoteeName,
+    email,
+    phone,
+    type: pujaName,
+    details: sankalpWish,
+    fee: price,
+    dob,
+    gotra: gotra || "Shiva Gotra",
+    rashi
+  });
       const data = await response.json();
-      setRefId(data.refId || `SDP-${Math.floor(100000 + Math.random() * 900000)}`);
+      setRefId(`SDP-${Math.floor(100000 + Math.random() * 900000)}`);
 
       // Sync seamlessly to Google Forms as requested
       await syncToGoogleForm("puja_booking", {

@@ -55,27 +55,22 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
     
     // Simulate real-time connection to sync with backend Google Sheets & Drive trigger
     try {
-      const response = await fetch("/api/submit-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          formType: "darshan_certificate",
-          formData: {
-            name,
-            temple,
-            age,
-            deity,
-            phone,
-            whatsapp,
-            email,
-            city,
-            feedback,
-            membershipContribution: membershipTier || 0
-          }
-        })
-      });
+  await syncToGoogleForm("darshan_certificate", {
+    name,
+    email,
+    phone,
+    type: "Darshan Certificate Request",
+    temple,
+    age,
+    deity,
+    whatsapp,
+    city,
+    feedback,
+    details: feedback,
+    contribution: membershipTier || 0
+  });
       const data = await response.json();
-      setRefId(data.refId || `SD-${Math.floor(100000 + Math.random() * 900000)}`);
+      setRefId(data.refId || `SD-${Math.floor(100000 + Math.random() * 900000)}`);setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
 
       // Sync seamlessly to Google Forms as requested
       await syncToGoogleForm("darshan_certificate", {
