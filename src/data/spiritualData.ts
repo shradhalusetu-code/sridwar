@@ -216,7 +216,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1501,
-    imageUrl: import.meta.env.BASE_URL + "images/Maa.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/maa.jpg"
   },
   {
     id: "puja-career-ganesha",
@@ -286,7 +286,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "Includes lab test card confirming 100% genuine Elaeocarpus ganitrus seed structure.",
     blessings: "Bead is strung in premium pure copper capping for optimal electric-magnetic conductivity.",
     price: 499,
-    imageUrl: import.meta.env.BASE_URL + "images/Bead 2.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/bead_2.jpg",
     rating: 4.8,
     deliveryTimeline: "4-6 Business Days."
   },
