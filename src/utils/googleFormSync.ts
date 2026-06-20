@@ -65,6 +65,22 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
       typeKey: "entry.943423993"
     },
     isEnabled: true
+  },
+  // ✅ Prasad & Prayer Testimony form
+  // Entry IDs decoded from prefilled link:
+  // entry.2059814953 = Name, entry.1921900509 = Location
+  // entry.151571055 = Service/Puja, entry.1483989486 = Story/Experience
+  // entry.1243420 = Rating
+  prasad_testimony: {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeLY5EcxgxlSAszhg9cxLLAvCIfBXKTJuCIkvnLNPV5zyuNKQ/formResponse",
+    mappedFields: {
+      nameKey: "entry.2059814953",
+      emailKey: "entry.1921900509",
+      phoneKey: "entry.151571055",
+      detailsKey: "entry.1483989486",
+      typeKey: "entry.1243420"
+    },
+    isEnabled: true
   }
 };
 
@@ -334,6 +350,14 @@ export async function syncToGoogleForm(
           formData.append(config.mappedFields.detailsKey, data.details);
         }
       }
+
+    } else if (formType === "prasad_testimony") {
+      // Testimony: name, location, service/puja, story, rating
+      formData.append(config.mappedFields.nameKey, data.name);
+      formData.append(config.mappedFields.emailKey, data.email || "");
+      formData.append(config.mappedFields.phoneKey, data.phone || "");
+      formData.append(config.mappedFields.detailsKey, data.details);
+      formData.append(config.mappedFields.typeKey, data.type || "5");
 
     } else if (formType === "devotee_support" || formType === "customer_contact") {
       const nameKey = formatEntryKey(env.ENTRY_INQUIRY_NAME) || formatEntryKey(env.ENTRY_SUPPORT_NAME) || config.mappedFields.nameKey;

@@ -6,7 +6,7 @@
 import { useState, FormEvent } from "react";
 import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
-import UpiPaymentPopup from "./UpiPaymentPopup";
+import UPIPaymentModal from "./UPIPaymentModal";
 
 export default function ContactUs() {
   const [name, setName] = useState("");
@@ -16,10 +16,11 @@ export default function ContactUs() {
   const [comment, setComment] = useState("");
   
   const [isSyncing, setIsSyncing] = useState(false);
+  const [donationAmount, setDonationAmount] = useState<number | null>(null);
+  const [showDonation, setShowDonation] = useState(false);
+  const [showUPI, setShowUPI] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [refId, setRefId] = useState("");
-  const [donationAmount, setDonationAmount] = useState<number | null>(null);
-  const [isPaymentPopupOpen, setIsPaymentPopupOpen] = useState(false);
 
   const handleSendMessage = async (e: FormEvent) => {
   e.preventDefault();
@@ -28,34 +29,17 @@ export default function ContactUs() {
     return;
   }
 
-  if (donationAmount !== null && (donationAmount < 5 || donationAmount > 1000)) {
-    alert("Contribution amount must be between ₹5 and ₹1000.");
-    return;
-  }
-
-  if (donationAmount && donationAmount >= 5) {
-    // Collect the UPI payment first — actual submission happens after
-    // the devotee taps "I Have Paid" in the popup.
-    setIsPaymentPopupOpen(true);
-    return;
-  }
-
-  await finalizeContactSubmission();
-  };
-
-  // Performs the actual Google Form sync + shows the confirmation screen.
-  // Called directly when the devotee skipped the contribution, or after the
-  // UPI payment popup's "I Have Paid" button is tapped.
-  const finalizeContactSubmission = async () => {
   setIsSyncing(true);
 
   try {
+    // ✅ FIX: Removed invalid `response.json()` — no response variable exists here.
+    // syncToGoogleForm submits directly to Google Forms and returns true/false.
     await syncToGoogleForm("customer_contact", {
       name,
       email,
       phone,
       type: queryType,
-      details: comment + (donationAmount ? ` | Contribution: ₹${donationAmount}` : "")
+      details: comment
     });
 
     setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
@@ -65,7 +49,7 @@ export default function ContactUs() {
       name,
       email,
       phone,
-      details: (comment || "No message detailed") + (donationAmount ? ` | Contribution: ₹${donationAmount}` : ""),
+      details: comment || "No message detailed",
       type: queryType
     });
 
@@ -73,10 +57,9 @@ export default function ContactUs() {
       console.error(err);
       setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
-      setIsPaymentPopupOpen(false);
       setTimeout(() => {
         setIsSyncing(false);
-        setIsSubmitted(true);
+        setShowDonation(true); // ✅ Show donation option after form submission
       }, 1000);
     }
   };
@@ -147,7 +130,70 @@ export default function ContactUs() {
 
           {/* Right Column: Submission Form with Sheets Real-Time Sync visualizer (cols 7) */}
           <div className="lg:col-span-7 bg-[#092320] border border-white/10 p-6 sm:p-8 rounded-3xl shadow-xl">
-            {!isSubmitted ? (
+            {showUPI && (
+              <UPIPaymentModal
+                isOpen={showUPI}
+                onClose={() => { setShowUPI(false); setIsSubmitted(true); setShowDonation(false); }}
+                onPaymentConfirmed={() => { setShowUPI(false); setIsSubmitted(true); setShowDonation(false); }}
+                amount={donationAmount}
+                bookingName="Sri Dwar Temple Donation"
+                devoteeName={name}
+                refId={refId}
+                allowCustomAmount={true}
+                minAmount={5}
+                maxAmount={1000}
+              />
+            )}
+
+            {showDonation && !isSubmitted ? (
+              <div className="text-center p-6 space-y-5 animate-slideUp">
+                <div className="w-12 h-12 bg-[#FFB347]/10 rounded-full flex items-center justify-center mx-auto border border-[#FFB347]/30">
+                  <span className="text-2xl">🙏</span>
+                </div>
+                <h4 className="font-serif text-lg font-bold text-white">Message Received!</h4>
+                <p className="text-xs text-white/60">Would you like to make a voluntary contribution to our temple projects?</p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[51, 101, 251].map((amt) => (
+                    <button
+                      key={amt}
+                      onClick={() => setDonationAmount(amt)}
+                      className={`text-xs py-2.5 rounded-xl border font-bold transition-all ${donationAmount === amt ? "bg-white/10 border-[#FFB347] text-[#FFB347]" : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"}`}
+                    >₹{amt}</button>
+                  ))}
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <span className="text-white/50 text-xs">₹</span>
+                  <input
+                    type="number"
+                    min={5}
+                    max={1000}
+                    placeholder="Custom amount (₹5–₹1000)"
+                    value={donationAmount || ""}
+                    onChange={(e) => setDonationAmount(Math.min(1000, Math.max(5, Number(e.target.value))))}
+                    className="flex-1 text-xs px-3 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                  />
+                </div>
+
+                <div className="flex items-start space-x-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2 rounded-xl text-[10px] text-emerald-300 font-mono">
+                  <ShieldCheck className="w-3 h-3 shrink-0 mt-0.5" />
+                  <span>An acknowledgement certificate will be shared within 24 hours on your WhatsApp & Email. 🙏</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => { setIsSubmitted(true); setShowDonation(false); }}
+                    className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs border border-white/10 transition-all"
+                  >Skip Donation</button>
+                  <button
+                    onClick={() => { if (donationAmount && donationAmount >= 5) setShowUPI(true); else alert("Minimum donation is ₹5"); }}
+                    disabled={!donationAmount}
+                    className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-3 rounded-xl text-xs uppercase tracking-wide transition-all"
+                  >Donate ₹{donationAmount || 0} 🙏</button>
+                </div>
+              </div>
+            ) : !isSubmitted ? (
               <form onSubmit={handleSendMessage} className="space-y-4">
                 <h3 className="font-serif text-lg font-bold text-white mb-2">Devotee Registration & Support Lock</h3>
                 
@@ -229,47 +275,6 @@ export default function ContactUs() {
                   />
                 </div>
 
-                {/* Optional Devotee Contribution to Temple Seva */}
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                  <span className="block text-xs font-bold text-white/95 mb-2 text-left">
-                    🙏 Optional Contribution to Temple Seva (₹5 – ₹1000)
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      id="donation-skip-btn"
-                      type="button"
-                      onClick={() => setDonationAmount(null)}
-                      className={`text-left p-3 rounded-xl border text-xs font-medium transition-all ${
-                        donationAmount === null
-                          ? "bg-white/10 border-[#5EEAD4] text-[#5EEAD4] shadow-sm"
-                          : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"
-                      }`}
-                    >
-                      <span className="block font-bold">Skip for Now</span>
-                      <span className="block text-[10px] text-white/40">Continue without contributing</span>
-                    </button>
-                    <div className="p-3 rounded-xl border border-white/10 bg-black/20">
-                      <label className="block text-[10px] font-bold text-white/60 mb-1">Enter Amount (₹5 – ₹1000)</label>
-                      <input
-                        id="donation-amount-input"
-                        type="number"
-                        min={5}
-                        max={1000}
-                        placeholder="e.g. 51"
-                        value={donationAmount ?? ""}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          setDonationAmount(raw === "" ? null : Number(raw));
-                        }}
-                        className="w-full text-xs px-2 py-1.5 rounded-lg border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4]"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-white/40 mt-2 text-left">
-                    An acknowledgement certificate will be shared with you on WhatsApp & Email within 24 hours of your contribution.
-                  </p>
-                </div>
-
                 {/* Simulated Google spreadsheet syncing visual status panel */}
                 <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
@@ -312,12 +317,6 @@ export default function ContactUs() {
                   Dear <strong>{name}</strong>, your message on <span className="font-bold">{queryType}</span> has been written directly to Shradhalu Private Limited's secure Google Cloud Drive records. Our Pandit desk has received your phone number: <strong>{phone}</strong> and email: <strong>{email}</strong>, and will contact you shortly!
                 </div>
 
-                {donationAmount && (
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs leading-relaxed text-white/80">
-                    🙏 Thank you for your contribution of <strong className="text-[#FFB347]">₹{donationAmount}</strong> towards temple seva. An acknowledgement certificate will be shared with you on WhatsApp and Email within 24 hours.
-                  </div>
-                )}
-
                 {/* Spreadsheet confirm */}
                 <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -338,18 +337,6 @@ export default function ContactUs() {
         </div>
 
       </div>
-
-      {/* Real UPI Payment Popup — shown only if a contribution amount was entered */}
-      {isPaymentPopupOpen && donationAmount && (
-        <UpiPaymentPopup
-          amount={donationAmount}
-          note={`Devotee Contribution - ${name}`}
-          payeeLabel="Contribution"
-          payeeValue="Temple Seva Support"
-          onConfirm={finalizeContactSubmission}
-          onClose={() => setIsPaymentPopupOpen(false)}
-        />
-      )}
     </section>
   );
 }

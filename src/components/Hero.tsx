@@ -7,8 +7,8 @@ import { useState, FormEvent } from "react";
 import { Award, Compass, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Calendar } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
-import UpiPaymentPopup from "./UpiPaymentPopup";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import UPIPaymentModal from "./UPIPaymentModal";
 // @ts-ignore
 import aerialJagannathPuri from "../assets/images/aerial_jagannath_puri_hero_1781871848760.jpg";
 
@@ -36,7 +36,8 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
   const [feedback, setFeedback] = useState("");
   const [membershipTier, setMembershipTier] = useState<number | null>(null);
   const [refId, setRefId] = useState("");
-  const [isPaymentPopupOpen, setIsPaymentPopupOpen] = useState(false);
+  const [showUPI, setShowUPI] = useState(false);
+  const [upiAmount, setUpiAmount] = useState<number | null>(null);
 
   const t = TRANSLATIONS[currentLanguage];
 
@@ -53,22 +54,8 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
       return;
     }
 
-    // If the devotee picked a contribution tier, collect the UPI payment
-    // first — the actual submission happens after they tap "I Have Paid".
-    if (membershipTier && membershipTier > 0) {
-      setIsPaymentPopupOpen(true);
-      return;
-    }
-
-    await finalizeCertificateSubmission();
-  };
-
-  // Performs the actual Google Form sync + shows the confirmation screen.
-  // Called directly when no contribution was selected, or after the UPI
-  // payment popup's "I Have Paid" button is tapped.
-  const finalizeCertificateSubmission = async () => {
     setIsSubmitting(true);
-
+    
     try {
       await syncToGoogleForm("darshan_certificate", {
         name,
@@ -84,13 +71,18 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
         feedback,
         contribution: membershipTier || undefined
       });
+      setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
     } catch (err) {
       console.error(err);
-    } finally {
       setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
+    } finally {
       setIsSubmitting(false);
-      setIsPaymentPopupOpen(false);
       setIsSubmitted(true);
+      // ✅ Show UPI if user selected a contribution tier
+      if (membershipTier) {
+        setUpiAmount(membershipTier);
+        setShowUPI(true);
+      }
     }
   };
 
@@ -394,7 +386,7 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
                   <span className="block text-xs font-bold text-white/95 mb-2 text-left animate-pulse">
                     🙏 Optional Darshan Membership Contribution
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
                       id="membership-tier-none"
                       type="button"
@@ -435,20 +427,6 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
                     >
                       <span className="block font-bold text-[#FFB347]">₹51 — Supporter</span>
                       <span className="block text-[10px] text-white/40">Help digitize more temples</span>
-                    </button>
-
-                    <button
-                      id="membership-tier-101"
-                      type="button"
-                      onClick={() => setMembershipTier(101)}
-                      className={`text-left p-3 rounded-xl border text-xs font-medium transition-all sm:col-span-1 ${
-                        membershipTier === 101
-                          ? "bg-white/10 border-[#5EEAD4] text-[#5EEAD4] shadow-sm"
-                          : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"
-                      }`}
-                    >
-                      <span className="block font-bold text-[#FFB347]">₹101 — Patron</span>
-                      <span className="block text-[10px] text-white/40">Sponsor a priest's daily wages</span>
                     </button>
                   </div>
                 </div>
@@ -537,18 +515,16 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
         </div>
       )}
 
-      {/* Real UPI Payment Popup — shown only if a contribution tier was selected */}
-      {isPaymentPopupOpen && membershipTier && (
-        <UpiPaymentPopup
-          amount={membershipTier}
-          note={`Darshan Certificate Contribution - ${name}`}
-          payeeLabel="Contribution For"
-          payeeValue="Darshan Certificate Seva"
-          onConfirm={finalizeCertificateSubmission}
-          onClose={() => setIsPaymentPopupOpen(false)}
-        />
-      )}
-
+    {/* UPI Payment Modal for Darshan Certificate contribution */}
+    <UPIPaymentModal
+      isOpen={showUPI}
+      onClose={() => setShowUPI(false)}
+      onPaymentConfirmed={() => setShowUPI(false)}
+      amount={upiAmount}
+      bookingName="Darshan Certificate Contribution"
+      devoteeName={name}
+      refId={refId}
+    />
     </div>
   );
 }

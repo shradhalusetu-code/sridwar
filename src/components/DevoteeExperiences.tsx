@@ -19,6 +19,7 @@ import {
   Feather
 } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
+import { syncToGoogleForm } from "../utils/googleFormSync";
 
 interface Testimonial {
   id: string;
@@ -160,9 +161,22 @@ export default function DevoteeExperiences() {
     setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
   };
 
-  const handleSubmitReview = (e: FormEvent) => {
+  const handleSubmitReview = async (e: FormEvent) => {
     e.preventDefault();
     if (!newName || !newLocation || !newService || !newStory) return;
+
+    // ✅ Sync to Google Forms first
+    try {
+      await syncToGoogleForm("prasad_testimony", {
+        name: newName,
+        email: newLocation,   // location goes into email field (entry.1921900509)
+        phone: newService,    // service goes into phone field (entry.151571055)
+        details: newStory,
+        type: String(newRating)
+      });
+    } catch (err) {
+      console.error("Testimony sync error:", err);
+    }
 
     const newReview: Testimonial = {
       id: "review_" + Date.now(),
