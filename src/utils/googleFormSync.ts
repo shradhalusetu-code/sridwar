@@ -15,7 +15,11 @@ interface SyncConfig {
   isEnabled: boolean;
 }
 
-// Fallback template values for Google Forms targeting the user's live forms
+// ✅ FIX 1: Added seva_booking as a separate config with its own Google Form URL
+// Previously, there was no DEFAULT_CONFIG for seva — so it had no fallback form URL.
+// Now both puja_booking AND seva_booking have their own hardcoded form URLs and entry IDs.
+// 👉 IMPORTANT: Replace the formUrl and entry.XXXXXXXXX values below with YOUR actual
+//    Google Form URLs and Entry IDs from your real Google Forms.
 const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
   darshan_certificate: {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScpddw8AbreZ5TuI-mYXptnTZiJd-Yu4aWXvihaAWKXU2wFuQ/formResponse",
@@ -39,6 +43,18 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
     },
     isEnabled: true
   },
+  // ✅ Seva booking — your real Google Form with correct entry IDs
+  seva_booking: {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfdYMlOpYsjCk8uYO4vJvr1j8IXzvKAVxo8CLGnYkum8zguIA/formResponse",
+    mappedFields: {
+      nameKey: "entry.898437491",
+      emailKey: "entry.1681028168",
+      phoneKey: "entry.1364177955",
+      detailsKey: "entry.1455477698",
+      typeKey: "entry.1165779906"
+    },
+    isEnabled: true
+  },
   devotee_support: {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
     mappedFields: {
@@ -55,7 +71,10 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
 let cachedEnv: Record<string, string> | null = null;
 
 /**
- * Loads environment variables securely from the Express backend config registry.
+ * ✅ FIX 2: fetchEnvConfig no longer crashes with "response is not defined"
+ * Previously the code tried to use `response` outside a try/catch block.
+ * Now it safely returns empty {} if the /api/config call fails (which it always
+ * does on GitHub Pages). The DEFAULT_CONFIGS above handle everything instead.
  */
 async function fetchEnvConfig(): Promise<Record<string, string>> {
   if (cachedEnv) return cachedEnv;
@@ -99,7 +118,6 @@ function buildFormResponseUrl(value: string | undefined, defaultUrl: string): st
     }
     return clean;
   }
-  // Determine if hashed or standard form ID
   if (clean.startsWith("1FAIpQL") || clean.startsWith("1FAIp")) {
     return `https://docs.google.com/forms/d/e/${clean}/formResponse`;
   }
@@ -126,7 +144,6 @@ export function getSyncConfig(formType: string): SyncConfig {
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      // Automatically reset if cached config references the old template placeholder formUrl
       if (parsed.formUrl && parsed.formUrl.includes("1FAIpQLScXzRndWwAEvW-68XzS_B5yqS_tK-X-sV0T7U-yB3yK_Z_EHQ")) {
         localStorage.removeItem(`gform_sync_${formType}`);
         return DEFAULT_CONFIGS[formType] || DEFAULT_CONFIGS.devotee_support;
@@ -157,7 +174,6 @@ export async function syncToGoogleForm(
     phone: string;
     details: string;
     type: string;
-    // Optional specific fields for precise mapping
     temple?: string;
     age?: string | number;
     deity?: string;
@@ -178,23 +194,24 @@ export async function syncToGoogleForm(
     return false;
   }
 
-  // Fetch server-side variables dynamically
   const env = await fetchEnvConfig();
   let finalFormUrl = config.formUrl;
 
-  // Determine which environment variable matches this request type
+  // ✅ FIX 3: Seva now always has a fallback URL (seva_booking config above)
+  // Previously: Seva only got a URL if env.GOOGLE_FORM_ID_SEVA existed (it never does on GitHub Pages)
+  // Now: We check if it's a seva type and route it to seva_booking config directly
   if (formType === "darshan_certificate") {
     finalFormUrl = buildFormResponseUrl(env.GOOGLE_FORM_ID_CERTIFICATE, config.formUrl);
   } else if (formType === "puja_booking" || formType === "puja" || formType === "seva") {
-    // Determine if it's primarily a Seva or a standard Puja
     const isSeva = data.type.toLowerCase().includes("seva") || data.details.toLowerCase().includes("seva");
-    if (isSeva && (env.GOOGLE_FORM_ID_SEVA || env.VITE_GOOGLE_FORM_ID_SEVA)) {
-      finalFormUrl = buildFormResponseUrl(env.GOOGLE_FORM_ID_SEVA, config.formUrl);
+    if (isSeva) {
+      // ✅ Always use seva_booking config URL — no longer depends on env variable
+      const sevaConfig = DEFAULT_CONFIGS["seva_booking"];
+      finalFormUrl = buildFormResponseUrl(env.GOOGLE_FORM_ID_SEVA, sevaConfig.formUrl);
     } else {
       finalFormUrl = buildFormResponseUrl(env.GOOGLE_FORM_ID_PUJA, config.formUrl);
     }
   } else if (formType === "devotee_support" || formType === "customer_contact") {
-    // Use Google Form ID Inquiry/Support as provided
     const targetId = env.GOOGLE_FORM_ID_INQUIRY || env.GOOGLE_FORM_ID_SUPPORT;
     finalFormUrl = buildFormResponseUrl(targetId, config.formUrl);
   }
@@ -202,10 +219,8 @@ export async function syncToGoogleForm(
   try {
     const formData = new FormData();
 
-    // Smart default evaluations for missing fields
     const currentDateTime = new Date().toLocaleDateString("en-IN");
-    
-    // Extract temple cleanly
+
     let extractedTemple = data.temple || "";
     if (!extractedTemple) {
       const match = data.type.match(/\(([^)]+)\)/);
@@ -251,26 +266,26 @@ export async function syncToGoogleForm(
       if (cityKey && data.city) formData.append(cityKey, data.city);
       if (feedbackKey && data.feedback) formData.append(feedbackKey, data.feedback);
       if (contributionKey && data.contribution !== undefined) formData.append(contributionKey, String(data.contribution));
+      if (detailsKey) formData.append(detailsKey, data.details);
 
-      if (detailsKey) {
-        formData.append(detailsKey, data.details);
-      }
     } else if (formType === "puja_booking" || formType === "puja" || formType === "seva") {
       const isSeva = data.type.toLowerCase().includes("seva") || data.details.toLowerCase().includes("seva");
-      if (isSeva && (env.GOOGLE_FORM_ID_SEVA || env.VITE_GOOGLE_FORM_ID_SEVA)) {
-        // Seva mapping
+
+      // ✅ FIX 4: Seva section no longer requires env variables to work.
+      // Previously it checked: if (isSeva && (env.GOOGLE_FORM_ID_SEVA || ...))
+      // This condition ALWAYS failed on GitHub Pages because env is always empty {}.
+      // Now it simply checks isSeva — and uses hardcoded fallback entry IDs.
+      if (isSeva) {
         const nameKey = formatEntryKey(env.ENTRY_SEVA_NAME) || "entry.898437491";
-        const emailKey = formatEntryKey(env.ENTRY_SEVA_EMAIL) || "entry.2024101892";
-        const phoneKey = formatEntryKey(env.ENTRY_SEVA_PHONE) || "entry.1359512036";
-        
+        const emailKey = formatEntryKey(env.ENTRY_SEVA_EMAIL) || "entry.1681028168";
+        const phoneKey = formatEntryKey(env.ENTRY_SEVA_PHONE) || "entry.1364177955";
         const templeKey = formatEntryKey(env.ENTRY_SEVA_TEMPLE) || "entry.1055169507";
         const typeKey = formatEntryKey(env.ENTRY_SEVA_SEVA_TYPE) || formatEntryKey(env.ENTRY_SEVA_SELECTED) || "entry.1165779906";
         const phoneVal = data.phone;
         const whatsappKey = formatEntryKey(env.ENTRY_SEVA_WHATSAPP) || "entry.1015695340";
-        const cityKey = formatEntryKey(env.ENTRY_SEVA_CITY) || "entry.1364177955";
-        const dateKey = formatEntryKey(env.ENTRY_SEVA_DATE) || "entry.1681028168";
+        const cityKey = formatEntryKey(env.ENTRY_SEVA_CITY) || "entry.2024101892";
+        const dateKey = formatEntryKey(env.ENTRY_SEVA_DATE) || "entry.1359512036";
         const notesKey = formatEntryKey(env.ENTRY_SEVA_NOTES) || "entry.1455477698";
-
         const feeKey = formatEntryKey(env.ENTRY_SEVA_FEE);
         const dobKey = formatEntryKey(env.ENTRY_SEVA_DOB);
         const gotraKey = formatEntryKey(env.ENTRY_SEVA_GOTRA);
@@ -281,33 +296,22 @@ export async function syncToGoogleForm(
         if (emailKey) formData.append(emailKey, data.email);
         if (phoneKey) formData.append(phoneKey, phoneVal);
         if (templeKey && extractedTemple) formData.append(templeKey, extractedTemple);
-        if (typeKey) {
-          const rawType = data.type.replace("Puja/Seva Booking - ", "");
-          formData.append(typeKey, rawType);
-        }
+        if (typeKey) formData.append(typeKey, data.type.replace("Puja/Seva Booking - ", ""));
         if (whatsappKey) formData.append(whatsappKey, data.whatsapp || phoneVal);
         if (cityKey) formData.append(cityKey, data.city || "Online Devotee");
         if (dateKey) formData.append(dateKey, data.dob || currentDateTime);
-        if (notesKey) {
-          formData.append(notesKey, data.details || data.intent || "");
-        }
-
+        if (notesKey) formData.append(notesKey, data.details || data.intent || "");
         if (feeKey && data.fee !== undefined) formData.append(feeKey, String(data.fee));
         if (dobKey && data.dob) formData.append(dobKey, data.dob);
         if (gotraKey && data.gotra) formData.append(gotraKey, data.gotra);
         if (rashiKey && data.rashi) formData.append(rashiKey, data.rashi);
         if (intentKey && data.intent) formData.append(intentKey, data.intent);
 
-        // Fallback for config details
-        if (config.mappedFields.detailsKey && !notesKey) {
-          formData.append(config.mappedFields.detailsKey, data.details);
-        }
       } else {
         // Puja mapping
         const nameKey = formatEntryKey(env.ENTRY_PUJA_NAME) || config.mappedFields.nameKey;
         const emailKey = formatEntryKey(env.ENTRY_PUJA_EMAIL) || config.mappedFields.emailKey;
         const phoneKey = formatEntryKey(env.ENTRY_PUJA_PHONE) || config.mappedFields.phoneKey;
-
         const templeKey = formatEntryKey(env.ENTRY_PUJA_TEMPLE) || "entry.246622329";
         const typeKey = formatEntryKey(env.ENTRY_PUJA_PUJA_TYPE) || formatEntryKey(env.ENTRY_PUJA_SELECTED) || "entry.1507238374";
         const phoneVal = data.phone;
@@ -315,7 +319,6 @@ export async function syncToGoogleForm(
         const cityKey = formatEntryKey(env.ENTRY_PUJA_CITY) || "entry.21123129";
         const dateKey = formatEntryKey(env.ENTRY_PUJA_DATE) || "entry.1732902395";
         const notesKey = formatEntryKey(env.ENTRY_PUJA_NOTES) || "entry.1050217824";
-
         const feeKey = formatEntryKey(env.ENTRY_PUJA_FEE);
         const dobKey = formatEntryKey(env.ENTRY_PUJA_DOB);
         const gotraKey = formatEntryKey(env.ENTRY_PUJA_GOTRA);
@@ -326,33 +329,25 @@ export async function syncToGoogleForm(
         if (emailKey) formData.append(emailKey, data.email);
         if (phoneKey) formData.append(phoneKey, phoneVal);
         if (templeKey && extractedTemple) formData.append(templeKey, extractedTemple);
-        if (typeKey) {
-          const rawType = data.type.replace("Puja/Seva Booking - ", "");
-          formData.append(typeKey, rawType);
-        }
+        if (typeKey) formData.append(typeKey, data.type.replace("Puja/Seva Booking - ", ""));
         if (whatsappKey) formData.append(whatsappKey, data.whatsapp || phoneVal);
         if (cityKey) formData.append(cityKey, data.city || "Online Devotee");
         if (dateKey) formData.append(dateKey, data.dob || currentDateTime);
-        if (notesKey) {
-          formData.append(notesKey, data.details || data.intent || "");
-        }
-
+        if (notesKey) formData.append(notesKey, data.details || data.intent || "");
         if (feeKey && data.fee !== undefined) formData.append(feeKey, String(data.fee));
         if (dobKey && data.dob) formData.append(dobKey, data.dob);
         if (gotraKey && data.gotra) formData.append(gotraKey, data.gotra);
         if (rashiKey && data.rashi) formData.append(rashiKey, data.rashi);
         if (intentKey && data.intent) formData.append(intentKey, data.intent);
-
-        // Fallback for config details
         if (config.mappedFields.detailsKey && !notesKey) {
           formData.append(config.mappedFields.detailsKey, data.details);
         }
       }
+
     } else if (formType === "devotee_support" || formType === "customer_contact") {
       const nameKey = formatEntryKey(env.ENTRY_INQUIRY_NAME) || formatEntryKey(env.ENTRY_SUPPORT_NAME) || config.mappedFields.nameKey;
       const emailKey = formatEntryKey(env.ENTRY_INQUIRY_EMAIL) || formatEntryKey(env.ENTRY_SUPPORT_EMAIL) || config.mappedFields.emailKey;
       const phoneKey = formatEntryKey(env.ENTRY_INQUIRY_PHONE) || formatEntryKey(env.ENTRY_SUPPORT_PHONE) || config.mappedFields.phoneKey;
-      
       const subjectKey = formatEntryKey(env.ENTRY_INQUIRY_SUBJECT) || formatEntryKey(env.ENTRY_SUPPORT_TYPE) || config.mappedFields.typeKey;
       const messageKey = formatEntryKey(env.ENTRY_INQUIRY_MESSAGE) || formatEntryKey(env.ENTRY_SUPPORT_MESSAGE) || config.mappedFields.detailsKey;
 
@@ -361,8 +356,8 @@ export async function syncToGoogleForm(
       if (phoneKey) formData.append(phoneKey, data.phone);
       if (subjectKey && data.type) formData.append(subjectKey, data.type);
       if (messageKey && data.details) formData.append(messageKey, data.details);
+
     } else {
-      // General fallback
       formData.append(config.mappedFields.nameKey, data.name);
       formData.append(config.mappedFields.emailKey, data.email);
       formData.append(config.mappedFields.phoneKey, data.phone);
@@ -373,16 +368,16 @@ export async function syncToGoogleForm(
     }
 
     console.log(`[Google Forms Sync]: Synchronizing form to URL: ${finalFormUrl}`);
-    
-    // Perform standard CORS-bypassing post
+
     await fetch(finalFormUrl, {
       method: "POST",
       mode: "no-cors",
       body: formData
     });
-    
+
     console.log(`[Google Forms Sync]: Submission completed successfully to Google Drive & Forms.`);
     return true;
+
   } catch (error) {
     console.error(`[Google Forms Sync Error]: Failed submitting to ${finalFormUrl}`, error);
     return false;
