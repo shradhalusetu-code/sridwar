@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect, FormEvent } from "react";
-import { Check, Calendar, CreditCard, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
+import { Check, Calendar, CreditCard, ChevronRight, Download, RefreshCw, ShieldCheck, Database, QrCode, Smartphone } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import { buildUpiQrImageUrl, buildUpiLink, PAYEE_NAME } from "../utils/upiConfig";
 
 interface BookNowWizardProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface BookNowWizardProps {
 }
 
 export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, onSuccess }: BookNowWizardProps) {
-  const [step, setStep] = useState(1); // 1: Details, 2: GPay Checkout, 3: Success Certificate
+  const [step, setStep] = useState(1); // 1: Details, 2: UPI QR Payment, 3: Success Certificate
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Form Fields
@@ -97,42 +98,33 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     setStep(2);
   };
 
-  const handleSimulatePayment = async () => {
+  // Called when the devotee taps "I Have Paid" after scanning the UPI QR code.
+  // This is a self-declaration step — there is no backend on GitHub Pages to
+  // verify the payment automatically, so we trust the devotee's confirmation
+  // and log the booking (with amount) to your Google Form/Sheet for your records.
+  const handleConfirmPayment = async () => {
     setIsProcessingPayment(true);
-    
-    // Simulating GPay safe payment redirect
-    try {
-  await syncToGoogleForm("puja_booking", {
-    name: devoteeName,
-    email,
-    phone,
-    type: pujaName,
-    details: sankalpWish,
-    fee: price,
-    dob,
-    gotra: gotra || "Shiva Gotra",
-    rashi
-  });
-      const data = await response.json();
-      setRefId(`SDP-${Math.floor(100000 + Math.random() * 900000)}`);
+    const generatedRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
 
-      // Sync seamlessly to Google Forms as requested
+    try {
       await syncToGoogleForm("puja_booking", {
         name: devoteeName,
         email,
         phone,
-        details: `Puja: ${pujaName} | Dakshina: ₹${price} | DOB: ${dob || 'N/A'} | Gotra: ${gotra || 'Shiva Gotra'} | Rashi: ${rashi} | Wish: ${sankalpWish || 'None'}`,
+        details: `Puja: ${pujaName} | Dakshina: ₹${price} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Payment Ref: ${generatedRefId} | Payment Method: UPI (self-confirmed)`,
         type: `Puja/Seva Booking - ${pujaName}`,
         fee: price,
         dob,
-        gotra,
+        gotra: gotra || "Shiva Gotra",
         rashi,
         intent: sankalpWish
       });
     } catch (err) {
-      console.error(err);
-      setRefId(`SDP-${Math.floor(100000 + Math.random() * 900000)}`);
+      console.error("Google Form sync failed", err);
+      // We still let the devotee proceed — their payment is already done via UPI,
+      // we don't want to block them just because the background log failed.
     } finally {
+      setRefId(generatedRefId);
       setTimeout(() => {
         setIsProcessingPayment(false);
         setStep(3);
@@ -140,9 +132,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
           pujaName,
           sankalpaName: devoteeName,
           price,
-          refId
+          refId: generatedRefId
         });
-      }, 1500);
+      }, 800);
     }
   };
 
@@ -177,7 +169,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
           <ChevronRight className="w-4 h-4 text-white/20" />
           <div className="flex items-center space-x-2">
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 2 ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>2</span>
-            <span className={`${step >= 2 ? "text-[#FFB347] font-bold" : "text-white/40"}`}>GPay Gateway</span>
+            <span className={`${step >= 2 ? "text-[#FFB347] font-bold" : "text-white/40"}`}>UPI Payment</span>
           </div>
           <ChevronRight className="w-4 h-4 text-white/20" />
           <div className="flex items-center space-x-2">
@@ -353,26 +345,26 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
             </form>
           )}
 
-          {/* STEP 2: GPay Gateway Payment Screen Simulation */}
+          {/* STEP 2: Real UPI QR Code Payment Screen */}
           {step === 2 && (
-            <div className="text-center p-6 space-y-6" id="gpay-modal-simulation">
-              <div className="bg-[#1A73E8] p-4 text-white text-left rounded-3xl flex items-center justify-between shadow-md">
+            <div className="text-center p-6 space-y-5" id="upi-payment-screen">
+              <div className="bg-[#5F259F] p-4 text-white text-left rounded-3xl flex items-center justify-between shadow-md">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-lg text-[#1A73E8]">
-                    G
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-lg text-[#5F259F]">
+                    <Smartphone className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold">Google Pay</h4>
-                    <p className="text-[10px] opacity-90">Secure Devotional Gateway</p>
+                    <h4 className="text-sm font-bold">Pay via any UPI App</h4>
+                    <p className="text-[10px] opacity-90">GPay, PhonePe, Paytm, BHIM — all supported</p>
                   </div>
                 </div>
-                <CreditCard className="w-6 h-6 shrink-0" />
+                <QrCode className="w-6 h-6 shrink-0" />
               </div>
 
               <div className="space-y-2 text-left bg-[#021816] p-5 rounded-2xl border border-white/5 text-white">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-white/50 uppercase tracking-wide font-mono">Merchant:</span>
-                  <span className="font-bold text-white">Shradhalu Private Limited — Sri Dwar</span>
+                  <span className="text-white/50 uppercase tracking-wide font-mono">Receiving Account:</span>
+                  <span className="font-bold text-white">{PAYEE_NAME}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-white/50 uppercase tracking-wide font-mono font-medium">Sacred Service:</span>
@@ -388,24 +380,51 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                 </div>
               </div>
 
+              {/* Real scannable UPI QR Code */}
+              <div className="bg-white p-4 rounded-2xl inline-block shadow-lg">
+                <img
+                  src={buildUpiQrImageUrl(price, `${pujaName} - ${devoteeName}`)}
+                  alt={`UPI QR code to pay ₹${price}`}
+                  width={220}
+                  height={220}
+                  className="block"
+                />
+              </div>
+
               <p className="text-[11px] text-white/60 font-sans leading-relaxed">
-                Clicking pay will execute a fully-valid simulated payments container check. The transaction is fully secured by Google sandbox technology for Shradhalu Private Ltd.
+                📱 Open any UPI app and scan the code above to pay <strong className="text-[#FFB347]">₹{price}</strong>.
+                On a phone, you can also{" "}
+                <a
+                  href={buildUpiLink(price, `${pujaName} - ${devoteeName}`)}
+                  className="text-[#5EEAD4] underline font-semibold"
+                >
+                  tap here to pay directly
+                </a>{" "}
+                in your UPI app.
               </p>
+
+              <div className="bg-amber-950/30 border border-amber-500/30 text-amber-200 text-[10px] rounded-xl p-2.5 text-left leading-relaxed">
+                ⚠️ After paying, please tap "I Have Paid" below. Our team manually verifies UPI payments before
+                dispatching your Prasad and certificate — keep your payment screenshot handy just in case.
+              </div>
 
               <div className="flex flex-col space-y-2">
                 <button
-                  id="gpay-pay-button"
-                  onClick={handleSimulatePayment}
+                  id="upi-confirm-payment-button"
+                  onClick={handleConfirmPayment}
                   disabled={isProcessingPayment}
-                  className="w-full bg-[#1A73E8] hover:bg-[#1557B0] text-white font-bold py-3 px-5 rounded-2xl text-xs transition-all duration-300 shadow flex items-center justify-center space-x-2 cursor-pointer uppercase tracking-wider"
+                  className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-3 px-5 rounded-2xl text-xs transition-all duration-300 shadow flex items-center justify-center space-x-2 cursor-pointer uppercase tracking-wider"
                 >
                   {isProcessingPayment ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                      <span>Securing Temple Connection...</span>
+                      <RefreshCw className="w-4 h-4 animate-spin text-[#021816]" />
+                      <span>Confirming Sankalpa...</span>
                     </>
                   ) : (
-                    <span>Authorize Payment of ₹{price}</span>
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>I Have Paid ₹{price}</span>
+                    </>
                   )}
                 </button>
 
