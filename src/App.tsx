@@ -20,10 +20,14 @@ import BookNowWizard from "./components/BookNowWizard";
 import SriDwarLogo from "./components/SriDwarLogo";
 import FAQs from "./components/FAQs";
 import UpiPaymentPopup from "./components/UpiPaymentPopup";
+import SacredResources from "./components/SacredResources";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
-import { ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X } from "lucide-react";
+import {
+  ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
+  Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin
+} from "lucide-react";
 
 export default function App() {
   const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
@@ -280,20 +284,29 @@ export default function App() {
         )}
       </main>
 
+      {/* 3a. SACRED DAILY DEVOTION TOOLS (Mantra / Aarti / Chalisa / Sun & Moon Timings) */}
+      <SacredResources />
+
       {/* 3. COHESIVE SECURE PLATFORM FOOTER */}
       <footer id="corporate-footer" className="bg-[#021816] text-white pt-16 pb-8 border-t border-white/10 text-left relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* ── Row 1: Brand + Links ───────────────────────────────────────────── */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            
-            {/* Logo details block */}
+
+            {/* Logo / brand block */}
             <div className="space-y-4">
               <SriDwarLogo variant="colored" iconSize="xl" showTagline={true} className="" />
               <p className="text-xs text-white/60 font-sans leading-relaxed">
                 A globally scalable faith-tech ecosystem bridging holy distances with verified ancient rituals, live aartis, and authenticated certifications.
               </p>
-              <span className="text-[10px] font-mono text-[#FFB347] uppercase font-bold tracking-wider">
+              <span className="text-[10px] font-mono text-[#FFB347] uppercase font-bold tracking-wider block">
                 Shradhalu Private Limited
               </span>
+              <div className="flex items-start space-x-2 text-[11px] text-white/55 leading-relaxed pt-1">
+                <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0 mt-0.5" />
+                <span>Shradhalu Pvt Ltd, Ground Floor, Sobra, Maa Biraja Khetra, Jajpur, Odisha, 755019</span>
+              </div>
             </div>
 
             {/* Navigation links */}
@@ -304,10 +317,29 @@ export default function App() {
                 <li><button onClick={() => setCurrentPage("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
                 <li><button onClick={() => setCurrentPage("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
                 <li><button onClick={() => setCurrentPage("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
+                <li><button onClick={() => setCurrentPage("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
+                <li><button onClick={() => setCurrentPage("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
+                <li><button onClick={() => setCurrentPage("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setCurrentPage("home");
+                      setTimeout(() => {
+                        document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
+                      }, 150);
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    Explore Shrines
+                  </button>
+                </li>
+                <li><button onClick={() => setCurrentPage("login")} className="hover:text-white transition-colors">Darshan Certificate</button></li>
+                <li><button onClick={() => setCurrentPage("login")} className="hover:text-white transition-colors">Receive Prasad</button></li>
+                <li><button onClick={() => setCurrentPage("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
               </ul>
             </div>
 
-            {/* Corporate compliance details */}
+            {/* Corporate compliance */}
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Legal & Compliance</h4>
               <ul className="space-y-2 text-xs text-white/60">
@@ -321,40 +353,242 @@ export default function App() {
               </ul>
             </div>
 
-            {/* Social Grid connection details provided by user */}
+            {/* Social links */}
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Social Linkages</h4>
-              <div className="grid grid-cols-2 gap-3 text-xs text-white/60">
-                <a href="https://www.linkedin.com/company/sri-dwar" target="_blank" rel="noopener noreferrer" className="hover:text-white flex items-center space-x-1 transition-colors">
-                  <span>LinkedIn</span>
-                  <ChevronRight className="w-3 h-3 text-[#5EEAD4]" />
+
+              <div className="flex flex-wrap gap-2.5">
+                <a
+                  href="https://www.linkedin.com/company/sri-dwar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  title="LinkedIn"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <Linkedin className="w-4 h-4" />
                 </a>
-                <a href="https://www.instagram.com/sri_dwar/" target="_blank" rel="noopener noreferrer" className="hover:text-white flex items-center space-x-1 transition-colors">
-                  <span>Instagram</span>
-                  <ChevronRight className="w-3 h-3 text-[#5EEAD4]" />
+                <a
+                  href="https://www.instagram.com/sri_dwar/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  title="Instagram"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <Instagram className="w-4 h-4" />
                 </a>
-                <a href="https://www.youtube.com/@SriDwar" target="_blank" rel="noopener noreferrer" className="hover:text-white flex items-center space-x-1 transition-colors">
-                  <span>YouTube</span>
-                  <ChevronRight className="w-3 h-3 text-[#5EEAD4]" />
+                <a
+                  href="https://www.youtube.com/@SriDwar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube"
+                  title="YouTube"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <Youtube className="w-4 h-4" />
                 </a>
-                <a href="https://x.com/Sri_Dwar" target="_blank" rel="noopener noreferrer" className="hover:text-white flex items-center space-x-1 transition-colors">
-                  <span>Twitter / X</span>
-                  <ChevronRight className="w-3 h-3 text-[#5EEAD4]" />
+                <a
+                  href="https://x.com/Sri_Dwar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter / X"
+                  title="Twitter / X"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <Twitter className="w-4 h-4" />
                 </a>
-                <a href="https://www.facebook.com/sridwar" target="_blank" rel="noopener noreferrer" className="hover:text-white flex items-center space-x-1 col-span-2 transition-colors">
-                  <span>Facebook Profile</span>
-                  <ChevronRight className="w-3 h-3 text-[#5EEAD4]" />
+                <a
+                  href="https://www.facebook.com/sridwar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  title="Facebook"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://wa.me/919777645062"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  title="WhatsApp: +91 97776 45062"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </a>
+                <a
+                  href="mailto:puja@sridwar.com"
+                  aria-label="Email"
+                  title="puja@sridwar.com"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
+                >
+                  <Mail className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
           </div>
 
-          {/* Underbar Copyright statement */}
-          <div className="pt-8 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[10px] text-white/40 font-mono">
-            <p>{t.copyright}</p>
-            <p className="mt-2 sm:mt-0">Sri Dwar © 2026. All Blessings Secured.</p>
+          {/* ── Row 2: Platform Disclaimer ────────────────────────────────────── */}
+          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-6 sm:p-8 space-y-3">
+            <div className="flex items-center space-x-2 mb-1">
+              <Heart className="w-4 h-4 text-[#FFB347] fill-[#FFB347]/30 shrink-0" />
+              <span className="text-[10px] font-mono font-bold text-[#FFB347]/80 uppercase tracking-widest">About Sri Dwar</span>
+            </div>
+            <p className="text-[12px] text-white/65 leading-relaxed">
+              Sri Dwar is a digital platform that supports millions of people on their spiritual and devotional journey. It helps devotees strengthen their connection with the Divine by providing meaningful guidance and making daily worship simple, accessible, and convenient.
+            </p>
+            <p className="text-[12px] text-white/65 leading-relaxed">
+              With Sri Dwar, you can worship anytime, anywhere — directly from your mobile phone, completely free of charge. In just a few clicks, you can create a beautiful digital temple, choose your preferred deities, and perform your daily prayers with devotion, all from the comfort of your phone.
+            </p>
+            <p className="text-[12px] text-white/65 leading-relaxed">
+              Sri Dwar is designed to make spirituality a part of everyday life, enabling devotees to stay connected to their faith wherever they are.
+            </p>
           </div>
+
+          {/* ── Row 3: Government Initiative Badges ───────────────────────────── */}
+          <div className="mb-10">
+            <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest text-center mb-5">
+              Recognised by Government of India Initiatives
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+
+              {/* Digital India */}
+              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#0A1F0A", borderColor: "#FF6B2B40" }}>
+                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
+                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
+                </div>
+                <div className="w-5 h-5 rounded-full border-2 border-[#FF6B2B] flex items-center justify-center mb-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
+                </div>
+                <span className="block text-[11px] font-black leading-tight text-[#FF6B2B]">Digital India</span>
+                <span className="block text-[8px] text-white/40 mt-0.5">Power to Empower</span>
+              </div>
+
+              {/* Startup India */}
+              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#0A1510", borderColor: "#FF993340" }}>
+                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
+                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
+                </div>
+                <div className="w-5 h-5 rounded-full border-2 border-[#FF9933] flex items-center justify-center mb-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
+                </div>
+                <span className="block text-[11px] font-black leading-tight text-[#FF9933]">Startup India</span>
+                <span className="block text-[8px] text-white/40 mt-0.5">Recognised</span>
+              </div>
+
+              {/* Make in India */}
+              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#061506", borderColor: "#13880840" }}>
+                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
+                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
+                </div>
+                <div className="w-5 h-5 rounded-full border-2 border-[#138808] flex items-center justify-center mb-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
+                </div>
+                <span className="block text-[11px] font-black leading-tight text-[#138808]">Make in India</span>
+                <span className="block text-[8px] text-white/40 mt-0.5">Proudly Built Here</span>
+              </div>
+
+              {/* GeM */}
+              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#050B1A", borderColor: "#1A73E840" }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1 text-base" style={{ background: "#1A73E822" }}>🛒</div>
+                <span className="block text-[11px] font-black leading-tight text-[#1A73E8]">GeM</span>
+                <span className="block text-[8px] text-white/40 mt-0.5">Govt e-Marketplace</span>
+              </div>
+
+              {/* DPIIT */}
+              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#05090F", borderColor: "#0056A840" }}>
+                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
+                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
+                </div>
+                <div className="w-5 h-5 rounded-full border-2 border-[#0056A8] flex items-center justify-center mb-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0056A8]" />
+                </div>
+                <span className="block text-[11px] font-black leading-tight text-[#0056A8]">DPIIT</span>
+                <span className="block text-[8px] text-white/40 mt-0.5">Dept. for Promotion of Industry</span>
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Row 4: Coming Soon — Mobile Apps ─────────────────────────────── */}
+          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="text-base">📱</span>
+              <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Coming Soon</span>
+            </div>
+            <p className="text-[11px] text-white/50 mb-4 leading-relaxed">
+              Experience the full power of Sri Dwar on your phone — live darshans, one-tap puja booking, daily prayers, and personalised spiritual guidance. Available soon on Android and iOS.
+            </p>
+            <div className="flex flex-wrap gap-3">
+
+              {/* Google Play badge */}
+              <div className="flex items-center space-x-3 bg-[#0A1A18] border border-white/10 rounded-2xl px-4 py-3 min-w-[155px] cursor-not-allowed opacity-80 hover:opacity-100 hover:border-[#5EEAD4]/30 transition-all">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#1A1A2E]">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <path d="M3.18 1.44A1 1 0 0 0 2 2.43v19.14a1 1 0 0 0 1.55.83l17-9.57a1 1 0 0 0 0-1.66L3.55 1.6a1 1 0 0 0-.37-.16z" fill="#00D26A"/>
+                    <path d="M2 21.57V2.43L13.06 12 2 21.57z" fill="#00B0FF" fillOpacity="0.7"/>
+                    <path d="M3.18 1.44l9.88 10.56L20.18 12 3.55 1.6a1 1 0 0 0-.37-.16z" fill="#FFD400" fillOpacity="0.9"/>
+                    <path d="M3.18 22.56l9.88-10.56 7.12.44L3.55 22.4a1 1 0 0 1-.37.16z" fill="#FF3D00" fillOpacity="0.9"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className="block text-[8px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                  <span className="block text-xs font-bold text-white">Google Play</span>
+                  <span className="block text-[8px] text-white/30">Android</span>
+                </div>
+              </div>
+
+              {/* App Store badge */}
+              <div className="flex items-center space-x-3 bg-[#0A1A18] border border-white/10 rounded-2xl px-4 py-3 min-w-[155px] cursor-not-allowed opacity-80 hover:opacity-100 hover:border-[#5EEAD4]/30 transition-all">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#1C1C1E]">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className="block text-[8px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                  <span className="block text-xs font-bold text-white">App Store</span>
+                  <span className="block text-[8px] text-white/30">iOS &amp; iPadOS</span>
+                </div>
+              </div>
+
+            </div>
+            <p className="text-[10px] font-mono text-[#FFB347]/50 mt-3">⭐ Follow us on WhatsApp to be the first to know when we launch</p>
+          </div>
+
+          {/* ── Row 5: Legal links strip ──────────────────────────────────────── */}
+          <div className="pt-6 border-t border-white/8 mb-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
+              {[
+                { label: "Privacy Policy", href: "https://docs.google.com/document/d/1HbohYx4LSsV94e-27KIndNvRpHRWb-i3/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
+                { label: "Legal Compliance", href: "https://docs.google.com/document/d/1EKWQtLbVwI64Ay6GLbPV6X88myp5a8cb/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
+                { label: "Terms of Use", href: "https://docs.google.com/document/d/1XGh8uRc6G7dS-Sk_pzJ65NF-7ujmAu7X/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
+                { label: "Refund Policy", href: "https://docs.google.com/document/d/14mUCy9177qRHZELh1Mk6pFHuji9J5Dez/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
+              ].map(({ label, href }, i, arr) => (
+                <span key={label} className="flex items-center">
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4]"
+                  >
+                    {label}
+                  </a>
+                  {i < arr.length - 1 && <span className="mx-2 text-white/20 text-[10px] select-none">·</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Row 6: Copyright bar ──────────────────────────────────────────── */}
+          <div className="pt-4 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[10px] text-white/40 font-mono gap-2">
+            <p>{t.copyright}</p>
+            <p>Sri Dwar © {new Date().getFullYear()} · Shradhalu Private Limited · All Blessings Secured 🙏</p>
+          </div>
+
         </div>
       </footer>
 
