@@ -20,6 +20,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   const [selectedTempleId, setSelectedTempleId] = useState(TEMPLES_LIST[0].id);
   const [searchPhrase, setSearchPhrase] = useState("");
   const [offlineMode, setOfflineMode] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
 
   const selectedTemple = TEMPLES_LIST.find((t) => t.id === selectedTempleId) || TEMPLES_LIST[0];
 
@@ -111,29 +112,74 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
 
             {/* Mobile/Tablet Temple Dropdown - replaces the long scrollable list on smaller screens */}
             <div className="relative lg:hidden">
-              <select
+              <button
+                type="button"
                 id="temple-select-mobile"
-                value={selectedTempleId}
-                onChange={(e) => setSelectedTempleId(e.target.value)}
-                className="w-full text-xs pl-4 pr-10 py-3.5 rounded-2xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#092320] text-white shadow-sm appearance-none truncate"
+                onClick={() => setMobileDropdownOpen((open) => !open)}
+                className="w-full flex items-center justify-between text-left pl-4 pr-4 py-3.5 rounded-2xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#092320] text-white shadow-sm"
               >
-                {filteredTemples.length > 0 ? (
-                  filteredTemples.map((templeObj) => (
-                    <option key={templeObj.id} value={templeObj.id} className="bg-[#092320] text-white">
-                      {templeObj.symbol} {templeObj.name} — {templeObj.city}, {templeObj.state}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No holy shrines match your query.</option>
-                )}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-3.5 w-4 h-4 text-white/40 pointer-events-none" />
+                <div className="flex items-center space-x-2.5 truncate">
+                  <span className="text-sm font-serif select-none" style={{ color: "#FFB347" }}>
+                    {selectedTemple.symbol}
+                  </span>
+                  <div className="truncate">
+                    <span className="block font-bold truncate text-white text-xs">{selectedTemple.name}</span>
+                    <span className="block text-[10px] text-white/55 truncate">
+                      {selectedTemple.city}, {selectedTemple.state}
+                    </span>
+                  </div>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-white/40 flex-shrink-0 transition-transform ${mobileDropdownOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {mobileDropdownOpen && (
+                <>
+                  {/* Invisible backdrop closes the dropdown on outside tap */}
+                  <div className="fixed inset-0 z-20" onClick={() => setMobileDropdownOpen(false)} />
+
+                  <div className="absolute left-0 right-0 mt-2 z-30 max-h-72 overflow-y-auto bg-[#092320] rounded-2xl border border-white/10 shadow-2xl p-2 space-y-1">
+                    {filteredTemples.length > 0 ? (
+                      filteredTemples.map((templeObj) => (
+                        <button
+                          key={templeObj.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTempleId(templeObj.id);
+                            setMobileDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between text-left p-3 rounded-xl text-xs transition-all ${
+                            selectedTempleId === templeObj.id
+                              ? "bg-gradient-to-r from-[#FFB347]/20 to-[#F27D26]/20 border border-[#FFB347] text-white shadow-md font-semibold"
+                              : "text-white/75 hover:bg-white/5 hover:text-[#5EEAD4]"
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 truncate">
+                            <span className="text-sm font-serif select-none" style={{ color: selectedTempleId === templeObj.id ? "#FFB347" : "#5EEAD4" }}>
+                              {templeObj.symbol}
+                            </span>
+                            <div className="truncate">
+                              <span className="block font-bold truncate text-white">{templeObj.name}</span>
+                              <span className="block text-[10px] text-white/55 truncate">
+                                {templeObj.city}, {templeObj.state}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-center text-xs text-white/45 py-6">No holy shrines match your query.</p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* List selector (desktop / large screens only) */}
             <div 
               id="temple-list-drawer"
-              className="hidden lg:flex flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[380px]"
+              className="hidden lg:block flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[380px]"
             >
               {filteredTemples.length > 0 ? (
                 filteredTemples.map((templeObj) => (
