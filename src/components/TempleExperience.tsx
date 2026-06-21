@@ -7,7 +7,7 @@ import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
 import deityJagannath from "../assets/images/deity_jagannath_1781872890111.jpg";
-import { Search, Compass, BookOpen, Clock, Heart, Sparkles, Check, Wifi, WifiOff, MapPin, ChevronRight } from "lucide-react";
+import { Search, Compass, BookOpen, Clock, Heart, Sparkles, Check, Wifi, WifiOff, MapPin, ChevronRight, ChevronDown } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 
 interface TempleExperienceProps {
@@ -109,10 +109,31 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-white/40" />
             </div>
 
-            {/* List selector */}
+            {/* Mobile/Tablet Temple Dropdown - replaces the long scrollable list on smaller screens */}
+            <div className="relative lg:hidden">
+              <select
+                id="temple-select-mobile"
+                value={selectedTempleId}
+                onChange={(e) => setSelectedTempleId(e.target.value)}
+                className="w-full text-xs pl-4 pr-10 py-3.5 rounded-2xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#092320] text-white shadow-sm appearance-none truncate"
+              >
+                {filteredTemples.length > 0 ? (
+                  filteredTemples.map((templeObj) => (
+                    <option key={templeObj.id} value={templeObj.id} className="bg-[#092320] text-white">
+                      {templeObj.symbol} {templeObj.name} — {templeObj.city}, {templeObj.state}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No holy shrines match your query.</option>
+                )}
+              </select>
+              <ChevronDown className="absolute right-3.5 top-3.5 w-4 h-4 text-white/40 pointer-events-none" />
+            </div>
+
+            {/* List selector (desktop / large screens only) */}
             <div 
               id="temple-list-drawer"
-              className="flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[380px]"
+              className="hidden lg:flex flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[380px]"
             >
               {filteredTemples.length > 0 ? (
                 filteredTemples.map((templeObj) => (
