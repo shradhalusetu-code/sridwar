@@ -21,6 +21,7 @@ import SriDwarLogo from "./components/SriDwarLogo";
 import FAQs from "./components/FAQs";
 import UpiPaymentPopup from "./components/UpiPaymentPopup";
 import SacredResources from "./components/SacredResources";
+import HolisticWellness from "./components/HolisticWellness";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -51,6 +52,9 @@ export default function App() {
 
   // Active Selected Temple Modal details for full page reviews
   const [activeExploreTemple, setActiveExploreTemple] = useState<Temple | null>(null);
+
+  // Inline legal document reader — null = closed
+  const [activeLegalDoc, setActiveLegalDoc] = useState<null | "privacy" | "legal" | "terms" | "refund">(null);
 
   const t = TRANSLATIONS[currentLanguage];
 
@@ -246,6 +250,12 @@ export default function App() {
                 setIsBookNowOpen(true);
               }}
             />
+            <HolisticWellness
+              onBookService={(serviceName, price) => {
+                setWizardDefaults({ pujaName: serviceName, price });
+                setIsBookNowOpen(true);
+              }}
+            />
           </div>
         )}
 
@@ -313,13 +323,13 @@ export default function App() {
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
               <ul className="space-y-2 text-xs text-white/60 font-medium">
-                <li><button onClick={() => setCurrentPage("home")} className="hover:text-white transition-colors">Home Portal</button></li>
-                <li><button onClick={() => setCurrentPage("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
-                <li><button onClick={() => setCurrentPage("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
-                <li><button onClick={() => setCurrentPage("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
-                <li><button onClick={() => setCurrentPage("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
-                <li><button onClick={() => setCurrentPage("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
-                <li><button onClick={() => setCurrentPage("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
+                <li><button onClick={() => { setCurrentPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Home Portal</button></li>
+                <li><button onClick={() => { setCurrentPage("seva"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Seva Hub</button></li>
+                <li><button onClick={() => { setCurrentPage("puja"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Online Puja</button></li>
+                <li><button onClick={() => { setCurrentPage("products"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Temple Bazaar</button></li>
+                <li><button onClick={() => { setCurrentPage("about"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Our Divine Mission</button></li>
+                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Devotee Care</button></li>
+                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">My Dharmic ID</button></li>
                 <li>
                   <button
                     onClick={() => {
@@ -333,9 +343,9 @@ export default function App() {
                     Explore Shrines
                   </button>
                 </li>
-                <li><button onClick={() => setCurrentPage("login")} className="hover:text-white transition-colors">Darshan Certificate</button></li>
-                <li><button onClick={() => setCurrentPage("login")} className="hover:text-white transition-colors">Receive Prasad</button></li>
-                <li><button onClick={() => setCurrentPage("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
+                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Darshan Certificate</button></li>
+                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Receive Prasad</button></li>
+                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
               </ul>
             </div>
 
@@ -419,9 +429,11 @@ export default function App() {
                   <MessageCircle className="w-4 h-4" />
                 </a>
                 <a
-                  href="mailto:puja@sridwar.com"
-                  aria-label="Email"
-                  title="puja@sridwar.com"
+                  href="https://mail.google.com/mail/?view=cm&to=puja@sridwar.com&su=Sri%20Dwar%20Inquiry"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Email via Gmail"
+                  title="Email: puja@sridwar.com"
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Mail className="w-4 h-4" />
@@ -456,59 +468,116 @@ export default function App() {
             <div className="flex flex-wrap justify-center gap-3">
 
               {/* Digital India */}
-              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#0A1F0A", borderColor: "#FF6B2B40" }}>
-                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
-                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
-                </div>
-                <div className="w-5 h-5 rounded-full border-2 border-[#FF6B2B] flex items-center justify-center mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B2B]" />
-                </div>
-                <span className="block text-[11px] font-black leading-tight text-[#FF6B2B]">Digital India</span>
-                <span className="block text-[8px] text-white/40 mt-0.5">Power to Empower</span>
-              </div>
+              <a href="https://www.digitalindia.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#FF6B2B]/60 hover:bg-[#0F2810] transition-all"
+                style={{ background: "#0A1F0A", borderColor: "#FF6B2B40" }}>
+                {/* Digital India wordmark SVG */}
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Digital India">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Ashoka Chakra simplified */}
+                  <circle cx="40" cy="16" r="7" fill="none" stroke="#0047AB" strokeWidth="1.5"/>
+                  <circle cx="40" cy="16" r="1.5" fill="#0047AB"/>
+                  {/* 8 spokes */}
+                  {[0,45,90,135,180,225,270,315].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180;
+                    return <line key={i} x1={40 + 2*Math.cos(rad)} y1={16 + 2*Math.sin(rad)} x2={40 + 6*Math.cos(rad)} y2={16 + 6*Math.sin(rad)} stroke="#0047AB" strokeWidth="1"/>;
+                  })}
+                  {/* Text */}
+                  <text x="40" y="29" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FF6B2B" fontFamily="Arial,sans-serif">DIGITAL INDIA</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Power to Empower</text>
+                </svg>
+              </a>
 
               {/* Startup India */}
-              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#0A1510", borderColor: "#FF993340" }}>
-                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
-                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
-                </div>
-                <div className="w-5 h-5 rounded-full border-2 border-[#FF9933] flex items-center justify-center mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF9933]" />
-                </div>
-                <span className="block text-[11px] font-black leading-tight text-[#FF9933]">Startup India</span>
-                <span className="block text-[8px] text-white/40 mt-0.5">Recognised</span>
-              </div>
+              <a href="https://www.startupindia.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#FF9933]/60 hover:bg-[#0F1A0A] transition-all"
+                style={{ background: "#0A1510", borderColor: "#FF993340" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Startup India">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Rocket icon */}
+                  <path d="M40 7 C40 7 36 14 36 18 L40 20 L44 18 C44 14 40 7 40 7Z" fill="#FF9933"/>
+                  <path d="M36 18 L34 22 L40 20 L46 22 L44 18Z" fill="#138808"/>
+                  <circle cx="40" cy="15" r="2" fill="white" opacity="0.9"/>
+                  {/* Text */}
+                  <text x="40" y="29" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FF9933" fontFamily="Arial,sans-serif">STARTUP INDIA</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Recognised</text>
+                </svg>
+              </a>
 
               {/* Make in India */}
-              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#061506", borderColor: "#13880840" }}>
-                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
-                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
-                </div>
-                <div className="w-5 h-5 rounded-full border-2 border-[#138808] flex items-center justify-center mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#138808]" />
-                </div>
-                <span className="block text-[11px] font-black leading-tight text-[#138808]">Make in India</span>
-                <span className="block text-[8px] text-white/40 mt-0.5">Proudly Built Here</span>
-              </div>
+              <a href="https://www.makeinindia.com" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#138808]/60 hover:bg-[#061A06] transition-all"
+                style={{ background: "#061506", borderColor: "#13880840" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Make in India">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Lion head (simplified Make in India lion silhouette) */}
+                  <ellipse cx="40" cy="13" rx="6" ry="5" fill="#FF9933"/>
+                  {/* Mane */}
+                  {[0,36,72,108,144,180,216,252,288,324].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180;
+                    return <ellipse key={i} cx={40 + 8*Math.cos(rad)} cy={13 + 8*Math.sin(rad)} rx="2.5" ry="1.5" fill="#FF9933" transform={`rotate(${deg},${40 + 8*Math.cos(rad)},${13 + 8*Math.sin(rad)})`}/>;
+                  })}
+                  <ellipse cx="40" cy="13" rx="5" ry="4" fill="#FF9933"/>
+                  <circle cx="38" cy="12" r="1" fill="#5C3000"/>
+                  <circle cx="42" cy="12" r="1" fill="#5C3000"/>
+                  <path d="M38 15 Q40 17 42 15" stroke="#5C3000" strokeWidth="0.8" fill="none"/>
+                  {/* Text */}
+                  <text x="40" y="27" textAnchor="middle" fontSize="5.5" fontWeight="800" fill="#138808" fontFamily="Arial,sans-serif">MAKE IN INDIA</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Proudly Built Here</text>
+                </svg>
+              </a>
 
               {/* GeM */}
-              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#050B1A", borderColor: "#1A73E840" }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1 text-base" style={{ background: "#1A73E822" }}>🛒</div>
-                <span className="block text-[11px] font-black leading-tight text-[#1A73E8]">GeM</span>
-                <span className="block text-[8px] text-white/40 mt-0.5">Govt e-Marketplace</span>
-              </div>
+              <a href="https://gem.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#1A73E8]/60 hover:bg-[#06101F] transition-all"
+                style={{ background: "#050B1A", borderColor: "#1A73E840" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="GeM - Government e-Marketplace">
+                  {/* GeM logo - stylised gem/diamond */}
+                  <polygon points="40,6 52,13 52,23 40,30 28,23 28,13" fill="none" stroke="#1A73E8" strokeWidth="1.5"/>
+                  <polygon points="40,6 52,13 40,17" fill="#1A73E8" opacity="0.6"/>
+                  <polygon points="40,17 52,13 52,23" fill="#1A73E8" opacity="0.4"/>
+                  <polygon points="40,30 52,23 40,17" fill="#1A73E8" opacity="0.7"/>
+                  <polygon points="28,23 40,17 40,30" fill="#1A73E8" opacity="0.5"/>
+                  <polygon points="28,13 40,6 40,17" fill="#1A73E8" opacity="0.3"/>
+                  <polygon points="28,23 28,13 40,17" fill="#1A73E8" opacity="0.45"/>
+                  {/* GeM text */}
+                  <text x="40" y="0" textAnchor="middle" fontSize="0" fill="none"/>
+                  {/* Overlay "GeM" acronym */}
+                  <text x="40" y="19" textAnchor="middle" fontSize="7" fontWeight="900" fill="white" fontFamily="Arial,sans-serif">GeM</text>
+                  <text x="40" y="34" textAnchor="middle" fontSize="3.8" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Govt e-Marketplace</text>
+                </svg>
+              </a>
 
               {/* DPIIT */}
-              <div className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px]" style={{ background: "#05090F", borderColor: "#0056A840" }}>
-                <div className="flex w-full h-[3px] rounded-full overflow-hidden mb-2">
-                  <div className="flex-1 bg-[#FF9933]" /><div className="flex-1 bg-white/90" /><div className="flex-1 bg-[#138808]" />
-                </div>
-                <div className="w-5 h-5 rounded-full border-2 border-[#0056A8] flex items-center justify-center mb-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0056A8]" />
-                </div>
-                <span className="block text-[11px] font-black leading-tight text-[#0056A8]">DPIIT</span>
-                <span className="block text-[8px] text-white/40 mt-0.5">Dept. for Promotion of Industry</span>
-              </div>
+              <a href="https://dpiit.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#0056A8]/60 hover:bg-[#06090F] transition-all"
+                style={{ background: "#05090F", borderColor: "#0056A840" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="DPIIT - Dept for Promotion of Industry">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Ashoka Chakra */}
+                  <circle cx="40" cy="15" r="7" fill="none" stroke="#0056A8" strokeWidth="1.5"/>
+                  <circle cx="40" cy="15" r="1.5" fill="#0056A8"/>
+                  {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180;
+                    return <line key={i} x1={40 + 2*Math.cos(rad)} y1={15 + 2*Math.sin(rad)} x2={40 + 6*Math.cos(rad)} y2={15 + 6*Math.sin(rad)} stroke="#0056A8" strokeWidth="0.8"/>;
+                  })}
+                  {/* Text */}
+                  <text x="40" y="28" textAnchor="middle" fontSize="7" fontWeight="900" fill="#0056A8" fontFamily="Arial,sans-serif">DPIIT</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="3.5" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Dept. for Promotion of Industry</text>
+                </svg>
+              </a>
 
             </div>
           </div>
@@ -562,21 +631,22 @@ export default function App() {
           {/* ── Row 5: Legal links strip ──────────────────────────────────────── */}
           <div className="pt-6 border-t border-white/8 mb-4">
             <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
-              {[
-                { label: "Privacy Policy", href: "https://docs.google.com/document/d/1HbohYx4LSsV94e-27KIndNvRpHRWb-i3/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
-                { label: "Legal Compliance", href: "https://docs.google.com/document/d/1EKWQtLbVwI64Ay6GLbPV6X88myp5a8cb/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
-                { label: "Terms of Use", href: "https://docs.google.com/document/d/1XGh8uRc6G7dS-Sk_pzJ65NF-7ujmAu7X/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
-                { label: "Refund Policy", href: "https://docs.google.com/document/d/14mUCy9177qRHZELh1Mk6pFHuji9J5Dez/edit?usp=sharing&ouid=101793474525393877706&rtpof=true&sd=true" },
-              ].map(({ label, href }, i, arr) => (
-                <span key={label} className="flex items-center">
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4]"
+              {(
+                [
+                  { label: "Privacy Policy",   key: "privacy" },
+                  { label: "Legal Compliance", key: "legal"   },
+                  { label: "Terms of Use",     key: "terms"   },
+                  { label: "Refund Policy",    key: "refund"  },
+                ] as { label: string; key: "privacy" | "legal" | "terms" | "refund" }[]
+              ).map(({ label, key }, i, arr) => (
+                <span key={key} className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setActiveLegalDoc(key)}
+                    className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4] cursor-pointer bg-transparent border-none p-0"
                   >
                     {label}
-                  </a>
+                  </button>
                   {i < arr.length - 1 && <span className="mx-2 text-white/20 text-[10px] select-none">·</span>}
                 </span>
               ))}
@@ -871,6 +941,258 @@ export default function App() {
           onClose={() => setIsCartPaymentOpen(false)}
         />
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          INLINE LEGAL DOCUMENT READER
+          Opens when a user clicks Privacy Policy / Legal Compliance /
+          Terms of Use / Refund Policy in the footer.
+          No external navigation — full document text rendered inside the page.
+         ═══════════════════════════════════════════════════════════════════════ */}
+      {activeLegalDoc && (() => {
+        // ── tiny section helper ──────────────────────────────────────────────
+        const DocSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+          <div className="space-y-2 pb-5 border-b border-white/8 last:border-0 last:pb-0">
+            <h4 className="text-sm font-bold text-[#FFB347] font-serif">{title}</h4>
+            <div className="text-[13px] text-white/72 leading-relaxed">{children}</div>
+          </div>
+        );
+
+        // ── document content map ─────────────────────────────────────────────
+        const DOCS: Record<string, { icon: string; title: string; content: React.ReactNode }> = {
+          privacy: {
+            icon: "🔒",
+            title: "Privacy Policy",
+            content: (
+              <>
+                <DocSection title="1. Introduction">
+                  Sri Dwar ("we", "our", or "us"), operated by Shradhalu Private Limited, is committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit sridwar.com or use our services.
+                </DocSection>
+                <DocSection title="2. Information We Collect">
+                  We collect information you provide when you register for a Dharmic ID, book a puja, make a donation, or contact our support desk — including your full name, email address, phone number (including WhatsApp), city, gotra details, deity preferences, and payment reference information. We do not store raw UPI or banking credentials on our servers.
+                </DocSection>
+                <DocSection title="3. How We Use Your Information">
+                  We use collected information to: (a) process puja bookings and send seva confirmations; (b) coordinate between you and our verified pandits; (c) deliver prasad and physical products to your shipping address; (d) send acknowledgement certificates via WhatsApp and Email within 24 hours; (e) improve our platform experience; and (f) comply with applicable Indian laws. We will never sell your personal data to third parties.
+                </DocSection>
+                <DocSection title="4. Google Services">
+                  Sri Dwar uses Google Forms and Google Sheets for real-time synchronisation of devotee records, and Google Drive for secure document storage. Data transferred to Google services is governed by Google's Privacy Policy. We use UPI infrastructure for payment facilitation but do not store card or bank account details.
+                </DocSection>
+                <DocSection title="5. Data Retention">
+                  We retain your personal information for as long as your account is active or as needed to provide services and comply with legal obligations. You may request deletion of your data at any time by writing to <span className="text-[#5EEAD4]">puja@sridwar.com</span>.
+                </DocSection>
+                <DocSection title="6. Cookies & Analytics">
+                  Our platform may use essential cookies to maintain session state and remember your language preference. We may also use anonymised analytics to understand usage patterns. You can control cookie settings in your browser at any time.
+                </DocSection>
+                <DocSection title="7. Security">
+                  We implement industry-standard security measures including HTTPS encryption, access controls, and periodic security reviews. No system is 100% secure, but we take every reasonable precaution to protect your data.
+                </DocSection>
+                <DocSection title="8. Children's Privacy">
+                  Our platform is not directed at children under 13. We do not knowingly collect personal information from children. If you believe your child has provided us information, please contact us immediately.
+                </DocSection>
+                <DocSection title="9. Contact Us">
+                  For privacy-related queries: <span className="text-[#5EEAD4] font-medium">puja@sridwar.com</span> · WhatsApp: <span className="text-[#5EEAD4]">+91 97776 45062</span>
+                </DocSection>
+              </>
+            ),
+          },
+          legal: {
+            icon: "⚖️",
+            title: "Legal Compliance",
+            content: (
+              <>
+                <DocSection title="1. Corporate Identity">
+                  Sri Dwar is a product of <strong className="text-white">Shradhalu Private Limited</strong>, incorporated under the Companies Act, 2013, with CIN: <span className="text-[#FFB347] font-mono">U62099OD2026PTC054237</span>. Our registered office is located in Odisha, India — Sobra, Maa Biraja Khetra, Jajpur, Odisha 755019.
+                </DocSection>
+                <DocSection title="2. Regulatory Framework">
+                  Shradhalu Private Limited operates in compliance with: (a) the Information Technology Act, 2000 and its amendments; (b) the IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021; (c) the Consumer Protection (E-Commerce) Rules, 2020; (d) the Foreign Exchange Management Act (FEMA), 1999, for cross-border transactions; and (e) all applicable GST and taxation laws of India.
+                </DocSection>
+                <DocSection title="3. DPIIT Recognition">
+                  Shradhalu Private Limited is recognised under the <strong className="text-white">Startup India Initiative</strong> by the Department for Promotion of Industry and Internal Trade (DPIIT), Government of India. This recognition enables us to avail applicable startup benefits and regulatory exemptions under Indian law.
+                </DocSection>
+                <DocSection title="4. Payment Compliance">
+                  All digital payments on Sri Dwar are facilitated through UPI (Unified Payments Interface), regulated by the Reserve Bank of India (RBI) and the National Payments Corporation of India (NPCI). We operate as a collection merchant and do not hold or manage escrow accounts. Payment verification is conducted manually by our finance team within 24–48 hours.
+                </DocSection>
+                <DocSection title="5. Intellectual Property">
+                  All content on Sri Dwar — including but not limited to our brand identity, platform design, puja content, ritual scripts, deity imagery, and software code — is the intellectual property of Shradhalu Private Limited or its licensed partners. Unauthorised reproduction, distribution, or modification is prohibited and may attract civil and criminal liability.
+                </DocSection>
+                <DocSection title="6. Dispute Resolution">
+                  Any disputes arising from use of the Sri Dwar platform shall be subject to the exclusive jurisdiction of courts in Bhubaneswar, Odisha, India. We encourage amicable resolution before escalation. Raise a complaint at <span className="text-[#5EEAD4]">puja@sridwar.com</span>.
+                </DocSection>
+                <DocSection title="7. Grievance Officer">
+                  In accordance with the IT Rules 2021, our designated Grievance Officer is reachable at <span className="text-[#5EEAD4] font-medium">puja@sridwar.com</span>. We acknowledge grievances within 24 hours and resolve within 15 working days.
+                </DocSection>
+              </>
+            ),
+          },
+          terms: {
+            icon: "📋",
+            title: "Terms of Use",
+            content: (
+              <>
+                <DocSection title="1. Acceptance of Terms">
+                  By accessing or using the Sri Dwar platform (sridwar.com), you agree to be bound by these Terms of Use. If you do not agree with any part of these terms, you must not use our platform. These Terms constitute a legally binding agreement between you and Shradhalu Private Limited.
+                </DocSection>
+                <DocSection title="2. Services Offered">
+                  Sri Dwar provides: (a) online puja booking with verified pandits; (b) live and on-demand temple darshan streaming; (c) prasad delivery and the Temple Bazaar marketplace; (d) Dharmic ID generation and digital certificates; (e) donation facilitation for temples and mandaps; and (f) AI-powered spiritual guidance via our Margadarshak assistant. All services are subject to availability.
+                </DocSection>
+                <DocSection title="3. User Responsibilities">
+                  You agree to: (a) provide accurate information during registration; (b) use the platform only for lawful, spiritual, and personal purposes; (c) not misrepresent your identity or gotra details; (d) not attempt to hack, reverse-engineer, or exploit our platform; and (e) respect the sanctity of all ritual content and priest communications. Misuse may result in permanent suspension.
+                </DocSection>
+                <DocSection title="4. Puja Bookings">
+                  Puja bookings are subject to pandit availability and the temple calendar. Upon successful payment, you will receive a confirmation reference ID. Sri Dwar coordinates with our pandit network to perform the requested seva on your behalf on a Sankalpa basis. Certificate and prasad delivery timelines are estimates and may vary due to logistics.
+                </DocSection>
+                <DocSection title="5. Donations">
+                  Donations made through Sri Dwar are voluntary contributions toward temple redevelopment, annadanam, and priest welfare. We provide acknowledgement certificates within 24 hours via WhatsApp and Email. Donations are not eligible for 80G tax benefits unless explicitly stated otherwise.
+                </DocSection>
+                <DocSection title="6. Disclaimer of Warranties">
+                  Sri Dwar provides its platform "as is" and "as available." We do not warrant uninterrupted access, error-free operation, or that the platform will be free of viruses. Spiritual outcomes of pujas and sevas are matters of personal faith; Sri Dwar makes no guarantees regarding their efficacy.
+                </DocSection>
+                <DocSection title="7. Limitation of Liability">
+                  Shradhalu Private Limited shall not be liable for any indirect, incidental, or consequential damages arising from your use of Sri Dwar, including loss of data, disruption in puja services due to force majeure, or delays in prasad delivery due to courier issues.
+                </DocSection>
+                <DocSection title="8. Modifications">
+                  We reserve the right to modify these Terms at any time. Continued use of the platform after notification of changes constitutes your acceptance of the revised Terms. Material changes will be communicated via email or WhatsApp.
+                </DocSection>
+                <DocSection title="9. Governing Law">
+                  These Terms are governed by the laws of India. Any disputes shall be subject to the jurisdiction of courts in Bhubaneswar, Odisha.
+                </DocSection>
+              </>
+            ),
+          },
+          refund: {
+            icon: "↩️",
+            title: "Refund Policy",
+            content: (
+              <>
+                <DocSection title="1. Overview">
+                  At Sri Dwar, we strive to ensure every devotee has a seamless and blessed experience. This Refund Policy outlines the circumstances under which refunds or service credits may be issued for services purchased on our platform. Please read this carefully before making a payment.
+                </DocSection>
+                <DocSection title="2. Puja Booking Cancellations">
+                  <ul className="list-disc list-inside space-y-1 mt-1">
+                    <li><strong className="text-white">More than 48 hours before</strong> the scheduled puja — full refund or service credit.</li>
+                    <li><strong className="text-white">24–48 hours before</strong> — 25% service fee deducted, remainder refunded.</li>
+                    <li><strong className="text-white">Within 24 hours</strong> — non-refundable, as pandits and logistics are already engaged.</li>
+                    <li>Where Sri Dwar is at fault for non-performance, a full refund or re-scheduling will be offered.</li>
+                  </ul>
+                </DocSection>
+                <DocSection title="3. Temple Bazaar & Prasad Orders">
+                  Physical products (prasad boxes, rudraksha malas, brass diyas, etc.) cannot be returned once dispatched, for hygiene and sanctity reasons. If you receive a damaged or incorrect item, please write to <span className="text-[#5EEAD4]">puja@sridwar.com</span> within 48 hours of delivery with a photograph. We will arrange a replacement or credit at no additional cost.
+                </DocSection>
+                <DocSection title="4. Donations">
+                  Donations toward temple redevelopment, annadanam, or priest welfare are <strong className="text-white">non-refundable</strong>, as they are forwarded to the respective temple trust or mandap committee immediately upon payment verification.
+                </DocSection>
+                <DocSection title="5. Dharmic ID & Certificates">
+                  Fees paid for Dharmic ID generation and digital certificate issuance are non-refundable once the certificate has been dispatched via WhatsApp/Email. If a certificate was not received within 48 hours of submission, contact our support desk and we will re-send it at no charge.
+                </DocSection>
+                <DocSection title="6. Payment Verification Delays">
+                  UPI payments are manually verified and may take up to 24 hours to confirm. If a payment was debited but not confirmed within this window, please share your UPI transaction reference at <span className="text-[#5EEAD4]">puja@sridwar.com</span> for expedited resolution.
+                </DocSection>
+                <DocSection title="7. Refund Process">
+                  Approved refunds are processed to the original UPI account or bank account within 7–10 working days. A confirmation will be sent to your registered WhatsApp/Email once the refund is initiated.
+                </DocSection>
+                <DocSection title="8. How to Request a Refund">
+                  Email <span className="text-[#5EEAD4] font-medium">puja@sridwar.com</span> with your booking Reference ID, registered phone number, and reason for the refund request. Our team will respond within 24 business hours. You can also reach us on WhatsApp: <span className="text-[#5EEAD4]">+91 97776 45062</span>.
+                </DocSection>
+              </>
+            ),
+          },
+        };
+
+        const doc = DOCS[activeLegalDoc];
+
+        return (
+          <div
+            id="legal-doc-modal"
+            className="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] flex justify-center items-start p-4 py-10 overflow-y-auto animate-fadeIn"
+            onClick={(e) => { if (e.target === e.currentTarget) setActiveLegalDoc(null); }}
+          >
+            <div className="bg-[#092320] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden text-white my-auto">
+
+              {/* ── Sticky header ── */}
+              <div className="sticky top-0 z-10 bg-[#021816] border-b border-white/10 px-6 py-5 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFB347]/15 flex items-center justify-center text-xl shrink-0">
+                    {doc.icon}
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-serif text-base font-bold text-white">{doc.title}</h3>
+                    <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5">
+                      Shradhalu Private Limited · Sri Dwar
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  id="close-legal-doc"
+                  onClick={() => setActiveLegalDoc(null)}
+                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/12 border border-white/10 flex items-center justify-center text-white/55 hover:text-white transition-all cursor-pointer shrink-0"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* ── Tab switcher so user can jump between docs ── */}
+              <div className="flex gap-2 px-6 pt-5 pb-1 flex-wrap">
+                {(
+                  [
+                    { key: "privacy", icon: "🔒", label: "Privacy" },
+                    { key: "legal",   icon: "⚖️", label: "Legal"   },
+                    { key: "terms",   icon: "📋", label: "Terms"   },
+                    { key: "refund",  icon: "↩️", label: "Refund"  },
+                  ] as { key: "privacy" | "legal" | "terms" | "refund"; icon: string; label: string }[]
+                ).map(({ key, icon, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveLegalDoc(key)}
+                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
+                      activeLegalDoc === key
+                        ? "bg-[#FFB347]/15 border-[#FFB347]/40 text-[#FFB347]"
+                        : "bg-white/5 border-white/10 text-white/45 hover:text-white/70 hover:border-white/20"
+                    }`}
+                  >
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Last-updated pill ── */}
+              <div className="px-6 pt-4 pb-2">
+                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/8 rounded-full px-3 py-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#5EEAD4] animate-pulse shrink-0" />
+                  <span className="text-[10px] font-mono text-white/40">
+                    Last updated: June 2026 · Shradhalu Private Limited
+                  </span>
+                </div>
+              </div>
+
+              {/* ── Document body ── */}
+              <div
+                className="px-6 pb-6 space-y-0 overflow-y-auto text-left"
+                style={{ maxHeight: "60vh" }}
+              >
+                {doc.content}
+              </div>
+
+              {/* ── Footer row ── */}
+              <div className="border-t border-white/10 px-6 py-4 flex items-center justify-between bg-[#021816]/60">
+                <p className="text-[10px] font-mono text-white/30">
+                  © {new Date().getFullYear()} Shradhalu Private Limited. All rights reserved.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveLegalDoc(null)}
+                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-2 px-5 rounded-xl text-xs uppercase tracking-wider cursor-pointer transition-all"
+                >
+                  Close
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

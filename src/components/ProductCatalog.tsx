@@ -9,6 +9,7 @@ import { Product } from "../types";
 import { ShoppingBasket, Star, ShieldCheck, Heart, Clock, Store } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import UPIPaymentModal from "./UPIPaymentModal";
+import IndiaTempleMap from "./IndiaTempleMap";
 
 interface ProductCatalogProps {
   onAddToCart: (product: Product) => void;
@@ -30,6 +31,11 @@ export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProp
     <section id="product-catalog-section" className="py-20 bg-[#021816] text-white text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* India Temple Map (static image) */}
+        <div className="mb-16">
+          <IndiaTempleMap />
+        </div>
+
         {/* Title Block */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Temple bazaar store</span>
