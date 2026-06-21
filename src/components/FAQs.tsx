@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { HelpCircle, ChevronDown, ChevronUp, Search, Info, HelpCircleIcon } from "lucide-react";
+import { HelpCircle, ChevronDown, Search, Info, HelpCircleIcon } from "lucide-react";
 
 interface FAQItem {
   id: string;
@@ -140,17 +140,74 @@ const FAQ_DATA: FAQItem[] = [
     category: "Rituals",
     question: "What is Chandi Archana and when is it recommended?",
     answer: "Chandi Archana is a potent ritual dedicated to Goddess Durga (Maa Chandi) to eliminate enemy blockages, long-standing courtroom hurdles, and physical fears. It is highly recommended during Navratris, Ashtamis, or periods when Mars or Saturn are causing heavy planetary friction."
+  },
+  {
+    id: "faq-22",
+    category: "Platform",
+    question: "What is your cancellation and refund policy if my plans change after booking a Puja?",
+    answer: "We understand devotional plans can shift. Cancellations made more than 48 hours before the scheduled Sankalpa are eligible for a full refund to your original payment method or as Sri Dwar wallet credit, processed within 5-7 business days. Cancellations within 48 hours of the ritual may carry a partial priest-engagement fee, since temple slots and Acharya time are reserved exclusively in your name."
+  },
+  {
+    id: "faq-23",
+    category: "Platform",
+    question: "How can I track the real-time status of my Puja, from booking confirmation to Prasad delivery?",
+    answer: "Your Devotee Workspace includes a dedicated Order Timeline for every booking, showing live milestones: Sankalpa Confirmed, Priest Assigned, Ritual Performed, Prasad Dispatched, and Out for Delivery. You will also receive automated WhatsApp and email updates at each stage, along with the courier's live tracking link once Prasad ships."
+  },
+  {
+    id: "faq-24",
+    category: "Rituals",
+    question: "How far in advance should I book a Puja, especially around major festivals like Diwali or Navratri?",
+    answer: "We recommend booking at least 5-7 days ahead for standard rituals. During high-demand festival windows such as Navratri, Diwali, or Maha Shivratri, temple Acharya slots fill quickly, so booking 2-3 weeks in advance is strongly advised to secure your preferred date, time, and priest availability."
+  },
+  {
+    id: "faq-25",
+    category: "Account",
+    question: "Can I gift a Puja booking to a friend or family member living in another city or country?",
+    answer: "Yes. During checkout, select 'Gift this Sankalpa' and enter the recipient's name and contact details. They will receive a personalized notification confirming the ritual performed in their honor, along with access to the Live Darshan stream and recording, even if the Prasad ships to your own address instead."
+  },
+  {
+    id: "faq-26",
+    category: "Platform",
+    question: "In which languages can I communicate with customer support and receive Sankalpa confirmations?",
+    answer: "Our Devotee Support desk currently assists in English, Hindi, Odia, Telugu, and Tamil over chat, email, and WhatsApp. Sankalpa confirmations and ritual notifications can also be requested in Sanskrit transliteration alongside your chosen regional language."
+  },
+  {
+    id: "faq-27",
+    category: "Rituals",
+    question: "Will I receive an official donation receipt for Annadanam or Gurukul Dan sponsorships for tax purposes?",
+    answer: "Yes. Charitable sevas like Annadanam and Gurukul Dan, when routed through our registered partner trusts, generate an official donation receipt sent to your registered email within 7 working days, which may be eligible for tax exemption under applicable regional charitable-donation provisions. We recommend confirming eligibility with your tax advisor."
+  },
+  {
+    id: "faq-28",
+    category: "Platform",
+    question: "Is there a dedicated Sri Dwar mobile app, or do I need to use the website only?",
+    answer: "Sri Dwar is fully accessible through your mobile browser with no installation required, optimized for a smooth booking, live-streaming, and Devotee Workspace experience. A dedicated native app for iOS and Android is currently in development for added offline access and push notifications."
+  },
+  {
+    id: "faq-29",
+    category: "Platform",
+    question: "How are Live Darshan timings adjusted for devotees watching from different countries and time zones?",
+    answer: "All scheduled ritual and Live Darshan times are originally set in Indian Standard Time (IST) to match temple sanctum hours. Your Devotee Workspace automatically converts and displays these timings in your local time zone, and reminder notifications account for the conversion so you never miss the live stream."
+  },
+  {
+    id: "faq-30",
+    category: "Rituals",
+    question: "What happens if my assigned priest is unavailable on the scheduled ritual date?",
+    answer: "In rare cases of priest unavailability due to illness or unforeseen temple duties, our temple coordination team immediately assigns an equally certified Acharya of the same lineage and tradition to perform your ritual at the original scheduled time, ensuring your Sankalpa is never delayed."
+  },
+  {
+    id: "faq-31",
+    category: "Platform",
+    question: "Do you offer bulk or corporate CSR puja packages for organizations and community groups?",
+    answer: "Yes. We support bulk Sankalpa bookings for corporate CSR initiatives, community welfare drives, and group family functions, including consolidated billing, dedicated account management, and customized Annadanam or Gurukul Dan sponsorship bundles. Reach out to our Devotee Support team to set up a tailored organizational plan."
   }
 ];
 
 export default function FAQs() {
-  const [openId, setOpenId] = useState<string | null>("faq-1");
+  const [selectedFaqId, setSelectedFaqId] = useState<string | null>("faq-1");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
-
-  const toggleAccordion = (id: string) => {
-    setOpenId(openId === id ? null : id);
-  };
 
   const categories = ["All", "Rituals", "Prasad", "Platform", "Account"];
 
@@ -161,6 +218,14 @@ export default function FAQs() {
     const matchesCategory = activeCategory === "All" || item.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const selectedFaq = filteredFAQs.find((item) => item.id === selectedFaqId) || filteredFAQs[0] || null;
+
+  const categoryBadgeClass = (category: string) =>
+    category === "Rituals" ? "bg-orange-950/80 text-orange-400 border border-orange-500/10" :
+    category === "Prasad" ? "bg-yellow-950/80 text-yellow-400 border border-yellow-500/10" :
+    category === "Platform" ? "bg-teal-980 text-[#5EEAD4] border border-[#5EEAD4]/10" :
+    "bg-neutral-900 text-neutral-400 border border-neutral-800";
 
   return (
     <section 
@@ -222,63 +287,82 @@ export default function FAQs() {
           </div>
         </div>
 
-        {/* Collapsible Accordion entries */}
-        <div id="faq-list-container" className="space-y-3.5">
-          {filteredFAQs.length > 0 ? (
-            filteredFAQs.map((faq) => {
-              const isOpen = openId === faq.id;
-              return (
-                <div 
-                  key={faq.id}
-                  id={`accordion-item-${faq.id}`}
-                  className={`bg-[#092320]/80 rounded-2xl border transition-all overflow-hidden ${
-                    isOpen 
-                      ? "border-[#FFB347] shadow-[0_0_15px_rgba(255,179,71,0.08)] bg-[#092421]" 
-                      : "border-white/10 hover:border-white/20"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleAccordion(faq.id)}
-                    className="w-full flex items-center justify-between px-5 py-4 text-left font-serif text-[15px] font-bold text-white uppercase tracking-wider bg-transparent border-none cursor-pointer group"
-                  >
-                    <div className="flex items-center space-x-3.5">
-                      <span className={`text-xs font-mono font-bold uppercase py-0.5 px-2.5 rounded-lg shrink-0 ${
-                        faq.category === "Rituals" ? "bg-orange-950/80 text-orange-400 border border-orange-500/10" :
-                        faq.category === "Prasad" ? "bg-yellow-950/80 text-yellow-400 border border-yellow-500/10" :
-                        faq.category === "Platform" ? "bg-teal-980 text-[#5EEAD4] border border-[#5EEAD4]/10" :
-                        "bg-neutral-900 text-neutral-400 border border-neutral-800"
-                      }`}>
+        {/* Question Dropdown Selector (desktop + mobile) */}
+        <div className="relative mb-4">
+          <button
+            type="button"
+            id="faq-select-trigger"
+            onClick={() => setDropdownOpen((open) => !open)}
+            className="w-full flex items-center justify-between gap-3 text-left px-5 py-4 rounded-2xl border border-white/10 bg-[#092320] hover:border-white/20 focus:outline-none focus:border-[#5EEAD4] transition-all"
+          >
+            <div className="flex items-center space-x-3.5 min-w-0">
+              {selectedFaq && (
+                <span className={`text-xs font-mono font-bold uppercase py-0.5 px-2.5 rounded-lg shrink-0 ${categoryBadgeClass(selectedFaq.category)}`}>
+                  {selectedFaq.category}
+                </span>
+              )}
+              <span className="font-serif text-sm sm:text-[15px] font-bold text-white tracking-wide truncate">
+                {selectedFaq ? selectedFaq.question : "No matching questions"}
+              </span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-white/40 shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {dropdownOpen && (
+            <>
+              {/* Invisible backdrop closes the dropdown on outside click */}
+              <div className="fixed inset-0 z-20" onClick={() => setDropdownOpen(false)} />
+
+              <div
+                id="faq-list-container"
+                className="absolute left-0 right-0 mt-2 z-30 max-h-96 overflow-y-auto bg-[#092320] rounded-2xl border border-white/10 shadow-2xl p-2 space-y-1"
+              >
+                {filteredFAQs.length > 0 ? (
+                  filteredFAQs.map((faq) => (
+                    <button
+                      key={faq.id}
+                      type="button"
+                      id={`faq-option-${faq.id}`}
+                      onClick={() => {
+                        setSelectedFaqId(faq.id);
+                        setDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 text-left p-3 rounded-xl text-xs transition-all ${
+                        selectedFaq?.id === faq.id
+                          ? "bg-gradient-to-r from-[#FFB347]/20 to-[#F27D26]/20 border border-[#FFB347] text-white shadow-md font-semibold"
+                          : "text-white/75 hover:bg-white/5 hover:text-[#5EEAD4]"
+                      }`}
+                    >
+                      <span className={`text-[10px] font-mono font-bold uppercase py-0.5 px-2 rounded-lg shrink-0 ${categoryBadgeClass(faq.category)}`}>
                         {faq.category}
                       </span>
-                      <span className="group-hover:text-[#5EEAD4] transition-colors leading-snug">{faq.question}</span>
-                    </div>
-                    {isOpen ? (
-                      <ChevronUp className="w-4 h-4 text-[#FFB347] shrink-0 ml-3" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-white/40 shrink-0 ml-3 group-hover:text-[#FFB347]/80 transition-colors" />
-                    )}
-                  </button>
+                      <span className="truncate">{faq.question}</span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-center text-xs text-white/45 py-6">No matching spiritual topics or ritual questions found.</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
 
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-5 pb-5 pt-1.5 text-xs sm:text-sm text-white/80 font-sans leading-relaxed border-t border-white/5 flex items-start space-x-2.5">
-                          <Info className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
-                          <p className="text-left font-normal text-white/85">{faq.answer}</p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })
+        {/* Selected Answer Panel */}
+        <AnimatePresence mode="wait">
+          {selectedFaq ? (
+            <motion.div
+              key={selectedFaq.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="bg-[#092421] rounded-2xl border border-[#FFB347] shadow-[0_0_15px_rgba(255,179,71,0.08)] px-5 py-5"
+            >
+              <div className="flex items-start space-x-2.5">
+                <Info className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
+                <p className="text-left font-normal text-xs sm:text-sm text-white/85 leading-relaxed">{selectedFaq.answer}</p>
+              </div>
+            </motion.div>
           ) : (
             <div className="bg-[#092320]/40 rounded-2xl border border-white/5 p-8 text-center space-y-2">
               <span className="text-2xl block text-white/30">🕉️</span>
@@ -294,7 +378,7 @@ export default function FAQs() {
               </button>
             </div>
           )}
-        </div>
+        </AnimatePresence>
 
         {/* Micro-legal disclaimer for trust-building */}
         <div className="mt-8 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[11px] text-white/55 font-sans leading-relaxed">
