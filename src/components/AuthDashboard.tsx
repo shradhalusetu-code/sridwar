@@ -8,7 +8,7 @@ import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Lay
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import SriDwarLogo from "./SriDwarLogo";
-import UpiPaymentPopup from "./UpiPaymentPopup";
+import UPIPaymentModal from "./UPIPaymentModal";
 
 interface FamilyMember {
   name: string;
@@ -729,7 +729,7 @@ export default function AuthDashboard({
 
       {/* Real UPI Payment Popup for the temple-redevelopment contribution */}
       {isContributionPaymentOpen && (
-        <UpiPaymentPopup
+        <UPIPaymentModal
           amount={contributionAmount}
           note={`Temple Redevelopment Contribution - ${pendingLogin?.name || ""}`}
           payeeLabel="Contribution To"

@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useState } from "react";
 import { SPIRITUAL_PRODUCTS } from "../data/spiritualData";
 import { Product } from "../types";
 import { ShoppingBasket, Star, ShieldCheck, Heart, Clock, Store } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import UPIPaymentModal from "./UPIPaymentModal";
 
 interface ProductCatalogProps {
   onAddToCart: (product: Product) => void;
@@ -14,6 +16,16 @@ interface ProductCatalogProps {
 }
 
 export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProps) {
+  const [showUPI, setShowUPI] = useState(false);
+  const [upiProduct, setUpiProduct] = useState<{ name: string; price: number } | null>(null);
+  const [upiRefId, setUpiRefId] = useState("");
+
+  const handleBuyNow = (product: Product) => {
+    setUpiProduct({ name: product.name, price: product.price });
+    setUpiRefId("SDB-" + Math.floor(100000 + Math.random() * 900000));
+    setShowUPI(true);
+  };
+
   return (
     <section id="product-catalog-section" className="py-20 bg-[#021816] text-white text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,20 +130,27 @@ export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProp
 
                 {/* Buy Button */}
                 <div className="p-5 pt-0">
-                  <button
-                    id={`add-to-cart-btn-${prod.id}`}
-                    onClick={() => onAddToCart(prod)}
-                    className={`w-full font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest flex items-center justify-center space-x-1.5 shadow cursor-pointer ${
-                      quantityInCart > 0 
-                        ? "bg-emerald-600 text-white hover:bg-[#07534D]" 
-                        : "bg-[#FFB347] text-[#021816] hover:bg-[#F27D26]"
-                    }`}
-                  >
-                    <ShoppingBasket className="w-3.5 h-3.5 text-[#021816]" />
-                    <span>
-                      {quantityInCart > 0 ? `IN BASKET (${quantityInCart})` : "ADD TO BAZAAR BASKET"}
-                    </span>
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      id={`buy-now-btn-${prod.id}`}
+                      onClick={() => handleBuyNow(prod)}
+                      className="w-full font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest flex items-center justify-center space-x-1.5 shadow cursor-pointer bg-[#FFB347] text-[#021816] hover:bg-[#F27D26]"
+                    >
+                      <span>BUY NOW — PAY VIA UPI 🙏</span>
+                    </button>
+                    <button
+                      id={`add-to-cart-btn-${prod.id}`}
+                      onClick={() => onAddToCart(prod)}
+                      className={`w-full font-extrabold py-2.5 rounded-xl text-xs transition-all tracking-widest flex items-center justify-center space-x-1.5 shadow cursor-pointer border ${
+                        quantityInCart > 0
+                          ? "bg-emerald-600 text-white hover:bg-[#07534D] border-emerald-500"
+                          : "bg-white/5 text-white hover:bg-white/10 border-white/10"
+                      }`}
+                    >
+                      <ShoppingBasket className="w-3.5 h-3.5" />
+                      <span>{quantityInCart > 0 ? `IN BASKET (${quantityInCart})` : "ADD TO BASKET"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -139,6 +158,22 @@ export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProp
         </div>
 
       </div>
+
+      {/* UPI Payment Modal for Temple Bazaar */}
+      {upiProduct && (
+        <UPIPaymentModal
+          isOpen={showUPI}
+          onClose={() => setShowUPI(false)}
+          onPaymentConfirmed={() => {
+            setShowUPI(false);
+            setUpiProduct(null);
+          }}
+          amount={upiProduct.price}
+          bookingName={upiProduct.name}
+          devoteeName="Devotee"
+          refId={upiRefId}
+        />
+      )}
     </section>
   );
 }

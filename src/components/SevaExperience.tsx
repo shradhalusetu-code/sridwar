@@ -7,6 +7,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Users, MessageSquare, Send, Sparkles, AlertCircle, RefreshCw, Utensils, Flame, BookOpen } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import UPIPaymentModal from "./UPIPaymentModal";
 
 const renderSevaIcon = (id: string) => {
   switch (id) {
@@ -34,6 +35,10 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
     { name: "Preeti Goyal", msg: "So peaceful to watch the Mahapuja happening live at Badrinath.", location: "London, UK" }
   ]);
   const [inputMessage, setInputMessage] = useState("");
+  const [showUPI, setShowUPI] = useState(false);
+  const [upiAmount, setUpiAmount] = useState(0);
+  const [upiSevaName, setUpiSevaName] = useState("");
+  const [upiRefId, setUpiRefId] = useState("");
   const [tickerIndex, setTickerIndex] = useState(0);
 
   // Global scrolling bookings simulated live ticker
@@ -160,10 +165,15 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
 
                   <button
                     id={`sponsor-btn-${seva.id}`}
-                    onClick={() => onSponsorSeva(seva.name, seva.donationTiers[0].amount)}
+                    onClick={() => {
+                      setUpiSevaName(seva.name);
+                      setUpiAmount(seva.donationTiers[0].amount);
+                      setUpiRefId("SDV-" + Math.floor(100000 + Math.random() * 900000));
+                      setShowUPI(true);
+                    }}
                     className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow"
                   >
-                    SPONSOR SEVA
+                    SPONSOR SEVA 🙏
                   </button>
                 </div>
               ))}
@@ -247,6 +257,19 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         </div>
 
       </div>
+      {/* UPI Payment Modal for Seva Sponsorship */}
+      <UPIPaymentModal
+        isOpen={showUPI}
+        onClose={() => setShowUPI(false)}
+        onPaymentConfirmed={() => {
+          setShowUPI(false);
+          onSponsorSeva(upiSevaName, upiAmount);
+        }}
+        amount={upiAmount}
+        bookingName={upiSevaName}
+        devoteeName="Devotee"
+        refId={upiRefId}
+      />
     </section>
   );
 }

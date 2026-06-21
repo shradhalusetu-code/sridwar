@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import UPIPaymentModal from "./UPIPaymentModal";
 
 interface Testimonial {
   id: string;
@@ -177,6 +178,11 @@ export default function DevoteeExperiences() {
     } catch (err) {
       console.error("Testimony sync error:", err);
     }
+
+    // ✅ Show optional UPI contribution after testimony submission
+    const newRef = "SDT-" + Math.floor(100000 + Math.random() * 900000);
+    setTestimonyRefId(newRef);
+    setShowUPI(true);
 
     const newReview: Testimonial = {
       id: "review_" + Date.now(),
@@ -513,6 +519,19 @@ export default function DevoteeExperiences() {
           </div>
         )}
       </AnimatePresence>
+      {/* Optional UPI contribution after testimony */}
+      <UPIPaymentModal
+        isOpen={showUPI}
+        onClose={() => setShowUPI(false)}
+        onPaymentConfirmed={() => setShowUPI(false)}
+        amount={null}
+        bookingName="Optional Contribution — Temple Support"
+        devoteeName={newName}
+        refId={testimonyRefId}
+        allowCustomAmount={true}
+        minAmount={5}
+        maxAmount={1000}
+      />
     </section>
   );
 }
