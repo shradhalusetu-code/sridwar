@@ -134,6 +134,8 @@ export default function DevoteeExperiences() {
   const [newStory, setNewStory] = useState("");
   const [newRating, setNewRating] = useState(5);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
+  const [showUPI, setShowUPI] = useState(false);
+  const [testimonyRefId, setTestimonyRefId] = useState("");
 
   // Load from localStorage or defaults
   useEffect(() => {
