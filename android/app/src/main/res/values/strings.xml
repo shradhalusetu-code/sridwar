@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sri Dwar</string>
+    <string name="title_activity_main">Sri Dwar</string>
+    <string name="package_name">com.shradhalu.sridwar</string>
+    <string name="custom_url_scheme">com.shradhalu.sridwar</string>
+</resources>

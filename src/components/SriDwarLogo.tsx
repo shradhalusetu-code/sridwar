@@ -5,7 +5,7 @@
 
 import React from "react";
 // @ts-ignore
-import logoImgSrc from "../assets/images/sri_dwar_logo_1781768992775.jpg";
+import logoImgSrc from "../assets/images/sridwar-logo.png";
 
 interface SriDwarLogoProps {
   className?: string; // Additional classes for outer wrapper
@@ -48,24 +48,16 @@ export default function SriDwarLogo({
 
     const isCentered = className.includes("justify-center") || className.includes("mx-auto");
     const justifyClass = isCentered ? "justify-center" : "justify-start";
-    const isDarkBackground = variant === "colored";
 
     return (
       <div 
         className={`inline-flex items-center ${justifyClass} transition-all duration-300 ${className}`}
-        style={{ mixBlendMode: isDarkBackground ? "screen" : "multiply" }}
       >
         <img
           src={logoImgSrc}
           alt="Sri Dwar Logo"
           referrerPolicy="no-referrer"
-          className={`${selectedHeight} w-auto object-contain select-none transition-all duration-300`}
-          style={{
-            filter: isDarkBackground 
-              ? "invert(1) contrast(1.4) brightness(1.2) saturate(1.15)" 
-              : "contrast(1.05)",
-            mixBlendMode: isDarkBackground ? "screen" : "multiply"
-          }}
+          className={`${selectedHeight} w-auto object-contain select-none transition-all duration-300 drop-shadow-[0_2px_10px_rgba(242,116,32,0.25)]`}
         />
       </div>
     );
