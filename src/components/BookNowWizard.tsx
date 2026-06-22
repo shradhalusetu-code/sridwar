@@ -7,6 +7,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { Check, Calendar, CreditCard, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
 
 interface BookNowWizardProps {
   isOpen: boolean;
@@ -212,6 +213,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     onChange={(e) => setPrice(Number(e.target.value))}
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left"
                   />
+                  {isDiscountActive() && (
+                    <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 50% OFF already applied · {DISCOUNT_DEADLINE_LABEL}</p>
+                  )}
                 </div>
               </div>
 

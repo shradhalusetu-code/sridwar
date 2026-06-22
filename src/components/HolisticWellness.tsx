@@ -9,6 +9,7 @@ import {
   ChevronRight, Star, Clock, Users, Award, Leaf, Heart,
   Flame, Moon, Sun, Wind, Droplets, Zap, Shield, BookOpen
 } from "lucide-react";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -420,13 +421,27 @@ function ServiceCard({
       <div className="mt-auto px-5 py-4 border-t border-white/8 flex items-center justify-between">
         <div>
           <span className="text-[10px] text-white/35 font-mono">Starting from</span>
-          <p className="text-base font-black text-white">
-            ₹{service.price.toLocaleString("en-IN")}
-          </p>
+          {isDiscountActive() ? (
+            <div className="flex items-center space-x-2">
+              <p className="text-[11px] text-white/40 line-through font-mono">
+                ₹{service.price.toLocaleString("en-IN")}
+              </p>
+              <p className="text-base font-black text-white">
+                ₹{getDiscountedPrice(service.price).toLocaleString("en-IN")}
+              </p>
+            </div>
+          ) : (
+            <p className="text-base font-black text-white">
+              ₹{service.price.toLocaleString("en-IN")}
+            </p>
+          )}
+          {isDiscountActive() && (
+            <span className="block text-[9px] font-mono font-bold text-[#FFB347]">50% OFF · {DISCOUNT_DEADLINE_LABEL}</span>
+          )}
         </div>
         <button
           type="button"
-          onClick={() => onBook(service.title, service.price)}
+          onClick={() => onBook(service.title, getDiscountedPrice(service.price))}
           className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer"
           style={{
             background: service.categoryColor,

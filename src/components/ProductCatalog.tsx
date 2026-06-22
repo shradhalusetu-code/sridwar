@@ -10,6 +10,7 @@ import { ShoppingBasket, Star, ShieldCheck, Heart, Clock, Store } from "lucide-r
 import SacredIcon from "./SacredIcon";
 import UPIPaymentModal from "./UPIPaymentModal";
 import IndiaTempleMap from "./IndiaTempleMap";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
 
 interface ProductCatalogProps {
   onAddToCart: (product: Product) => void;
@@ -22,7 +23,7 @@ export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProp
   const [upiRefId, setUpiRefId] = useState("");
 
   const handleBuyNow = (product: Product) => {
-    setUpiProduct({ name: product.name, price: product.price });
+    setUpiProduct({ name: product.name, price: getDiscountedPrice(product.price) });
     setUpiRefId("SDB-" + Math.floor(100000 + Math.random() * 900000));
     setShowUPI(true);
   };
@@ -92,8 +93,21 @@ export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProp
 
                     {/* Price structure */}
                     <div className="flex items-baseline justify-between">
-                      <span className="text-lg font-black font-serif text-[#FFB347]">₹{prod.price} INR</span>
-                      <span className="text-[10px] text-[#5EEAD4] font-mono">Free sacred Thread</span>
+                      <div>
+                        {isDiscountActive() ? (
+                          <>
+                            <span className="text-[10px] text-white/35 line-through font-mono block">₹{prod.price} INR</span>
+                            <span className="text-lg font-black font-serif text-[#FFB347]">₹{getDiscountedPrice(prod.price)} INR</span>
+                          </>
+                        ) : (
+                          <span className="text-lg font-black font-serif text-[#FFB347]">₹{prod.price} INR</span>
+                        )}
+                      </div>
+                      {isDiscountActive() ? (
+                        <span className="text-[10px] text-[#5EEAD4] font-mono">50% OFF 🎉</span>
+                      ) : (
+                        <span className="text-[10px] text-[#5EEAD4] font-mono">Free sacred Thread</span>
+                      )}
                     </div>
 
                     {/* Temple Story segment */}

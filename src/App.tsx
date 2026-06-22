@@ -25,6 +25,7 @@ import HolisticWellness from "./components/HolisticWellness";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "./utils/discount";
 import {
   ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
   Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin
@@ -127,7 +128,7 @@ export default function App() {
   // Called after the devotee taps "I Have Paid" in the UPI popup.
   const finalizeCartCheckout = async () => {
     const cartSummaryStr = cart.map(item => `${item.product.name} (x${item.quantity})`).join(", ");
-    const totalAmount = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+    const totalAmount = cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0);
 
     const refId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
     const newBooking = {
@@ -169,7 +170,10 @@ export default function App() {
         currentLanguage={currentLanguage}
         onLanguageChange={setCurrentLanguage}
         currentPage={currentPage}
-        onNavigate={setCurrentPage}
+        onNavigate={(page) => {
+          window.scrollTo({ top: 0, behavior: "instant" });
+          setCurrentPage(page);
+        }}
         cart={cart}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenBookNow={() => {
@@ -246,7 +250,7 @@ export default function App() {
           <div className="animate-fadeIn">
             <OnlinePuja
               onBookNowClick={(pujaName, price) => {
-                setWizardDefaults({ pujaName, price: Math.round(price * 0.5) });
+                setWizardDefaults({ pujaName, price });
                 setIsBookNowOpen(true);
               }}
             />
@@ -323,13 +327,13 @@ export default function App() {
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
               <ul className="space-y-2 text-xs text-white/60 font-medium">
-                <li><button onClick={() => { setCurrentPage("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Home Portal</button></li>
-                <li><button onClick={() => { setCurrentPage("seva"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Seva Hub</button></li>
-                <li><button onClick={() => { setCurrentPage("puja"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Online Puja</button></li>
-                <li><button onClick={() => { setCurrentPage("products"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Temple Bazaar</button></li>
-                <li><button onClick={() => { setCurrentPage("about"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Our Divine Mission</button></li>
-                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Devotee Care</button></li>
-                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">My Dharmic ID</button></li>
+                <li><button onClick={() => { setCurrentPage("home"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Home Portal</button></li>
+                <li><button onClick={() => { setCurrentPage("seva"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Seva Hub</button></li>
+                <li><button onClick={() => { setCurrentPage("puja"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Online Puja</button></li>
+                <li><button onClick={() => { setCurrentPage("products"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Temple Bazaar</button></li>
+                <li><button onClick={() => { setCurrentPage("about"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Our Divine Mission</button></li>
+                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Devotee Care</button></li>
+                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">My Dharmic ID</button></li>
                 <li>
                   <button
                     onClick={() => {
@@ -343,9 +347,9 @@ export default function App() {
                     Explore Shrines
                   </button>
                 </li>
-                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Darshan Certificate</button></li>
-                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Receive Prasad</button></li>
-                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
+                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Darshan Certificate</button></li>
+                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Receive Prasad</button></li>
+                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
               </ul>
             </div>
 
@@ -460,14 +464,126 @@ export default function App() {
             </p>
           </div>
 
-          {/* ── Row 3: Government Initiative Recognition — Pending Approval ───── */}
-          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-6 sm:p-8 text-center">
-            <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest mb-3">
-              Government of India Initiatives
+          {/* ── Row 3: Government Initiative Badges ───────────────────────────── */}
+          <div className="mb-10">
+            <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest text-center mb-5">
+              Recognised by Government of India Initiatives
             </p>
-            <p className="text-[12px] text-white/55 leading-relaxed max-w-xl mx-auto">
-              Sri Dwar has applied for recognition under the <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM (Government e-Marketplace)</strong>, and <strong className="text-white/75">Digital India</strong> initiatives. These applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
-            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+
+              {/* Digital India */}
+              <a href="https://www.digitalindia.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#FF6B2B]/60 hover:bg-[#0F2810] transition-all"
+                style={{ background: "#0A1F0A", borderColor: "#FF6B2B40" }}>
+                {/* Digital India wordmark SVG */}
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Digital India">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Ashoka Chakra simplified */}
+                  <circle cx="40" cy="16" r="7" fill="none" stroke="#0047AB" strokeWidth="1.5"/>
+                  <circle cx="40" cy="16" r="1.5" fill="#0047AB"/>
+                  {/* 8 spokes */}
+                  {[0,45,90,135,180,225,270,315].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180;
+                    return <line key={i} x1={40 + 2*Math.cos(rad)} y1={16 + 2*Math.sin(rad)} x2={40 + 6*Math.cos(rad)} y2={16 + 6*Math.sin(rad)} stroke="#0047AB" strokeWidth="1"/>;
+                  })}
+                  {/* Text */}
+                  <text x="40" y="29" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FF6B2B" fontFamily="Arial,sans-serif">DIGITAL INDIA</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Power to Empower</text>
+                </svg>
+              </a>
+
+              {/* Startup India */}
+              <a href="https://www.startupindia.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#FF9933]/60 hover:bg-[#0F1A0A] transition-all"
+                style={{ background: "#0A1510", borderColor: "#FF993340" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Startup India">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Rocket icon */}
+                  <path d="M40 7 C40 7 36 14 36 18 L40 20 L44 18 C44 14 40 7 40 7Z" fill="#FF9933"/>
+                  <path d="M36 18 L34 22 L40 20 L46 22 L44 18Z" fill="#138808"/>
+                  <circle cx="40" cy="15" r="2" fill="white" opacity="0.9"/>
+                  {/* Text */}
+                  <text x="40" y="29" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FF9933" fontFamily="Arial,sans-serif">STARTUP INDIA</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Recognised</text>
+                </svg>
+              </a>
+
+              {/* Make in India */}
+              <a href="https://www.makeinindia.com" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#138808]/60 hover:bg-[#061A06] transition-all"
+                style={{ background: "#061506", borderColor: "#13880840" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Make in India">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Lion head (simplified Make in India lion silhouette) */}
+                  <ellipse cx="40" cy="13" rx="6" ry="5" fill="#FF9933"/>
+                  {/* Mane */}
+                  {[0,36,72,108,144,180,216,252,288,324].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180;
+                    return <ellipse key={i} cx={40 + 8*Math.cos(rad)} cy={13 + 8*Math.sin(rad)} rx="2.5" ry="1.5" fill="#FF9933" transform={`rotate(${deg},${40 + 8*Math.cos(rad)},${13 + 8*Math.sin(rad)})`}/>;
+                  })}
+                  <ellipse cx="40" cy="13" rx="5" ry="4" fill="#FF9933"/>
+                  <circle cx="38" cy="12" r="1" fill="#5C3000"/>
+                  <circle cx="42" cy="12" r="1" fill="#5C3000"/>
+                  <path d="M38 15 Q40 17 42 15" stroke="#5C3000" strokeWidth="0.8" fill="none"/>
+                  {/* Text */}
+                  <text x="40" y="27" textAnchor="middle" fontSize="5.5" fontWeight="800" fill="#138808" fontFamily="Arial,sans-serif">MAKE IN INDIA</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Proudly Built Here</text>
+                </svg>
+              </a>
+
+              {/* GeM */}
+              <a href="https://gem.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#1A73E8]/60 hover:bg-[#06101F] transition-all"
+                style={{ background: "#050B1A", borderColor: "#1A73E840" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="GeM - Government e-Marketplace">
+                  {/* GeM logo - stylised gem/diamond */}
+                  <polygon points="40,6 52,13 52,23 40,30 28,23 28,13" fill="none" stroke="#1A73E8" strokeWidth="1.5"/>
+                  <polygon points="40,6 52,13 40,17" fill="#1A73E8" opacity="0.6"/>
+                  <polygon points="40,17 52,13 52,23" fill="#1A73E8" opacity="0.4"/>
+                  <polygon points="40,30 52,23 40,17" fill="#1A73E8" opacity="0.7"/>
+                  <polygon points="28,23 40,17 40,30" fill="#1A73E8" opacity="0.5"/>
+                  <polygon points="28,13 40,6 40,17" fill="#1A73E8" opacity="0.3"/>
+                  <polygon points="28,23 28,13 40,17" fill="#1A73E8" opacity="0.45"/>
+                  {/* GeM text */}
+                  <text x="40" y="0" textAnchor="middle" fontSize="0" fill="none"/>
+                  {/* Overlay "GeM" acronym */}
+                  <text x="40" y="19" textAnchor="middle" fontSize="7" fontWeight="900" fill="white" fontFamily="Arial,sans-serif">GeM</text>
+                  <text x="40" y="34" textAnchor="middle" fontSize="3.8" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Govt e-Marketplace</text>
+                </svg>
+              </a>
+
+              {/* DPIIT */}
+              <a href="https://dpiit.gov.in" target="_blank" rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#0056A8]/60 hover:bg-[#06090F] transition-all"
+                style={{ background: "#05090F", borderColor: "#0056A840" }}>
+                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="DPIIT - Dept for Promotion of Industry">
+                  {/* Tricolour bar */}
+                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
+                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
+                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
+                  {/* Ashoka Chakra */}
+                  <circle cx="40" cy="15" r="7" fill="none" stroke="#0056A8" strokeWidth="1.5"/>
+                  <circle cx="40" cy="15" r="1.5" fill="#0056A8"/>
+                  {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180;
+                    return <line key={i} x1={40 + 2*Math.cos(rad)} y1={15 + 2*Math.sin(rad)} x2={40 + 6*Math.cos(rad)} y2={15 + 6*Math.sin(rad)} stroke="#0056A8" strokeWidth="0.8"/>;
+                  })}
+                  {/* Text */}
+                  <text x="40" y="28" textAnchor="middle" fontSize="7" fontWeight="900" fill="#0056A8" fontFamily="Arial,sans-serif">DPIIT</text>
+                  <text x="40" y="35" textAnchor="middle" fontSize="3.5" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Dept. for Promotion of Industry</text>
+                </svg>
+              </a>
+
+            </div>
           </div>
 
           {/* ── Row 4: Coming Soon — Mobile Apps ─────────────────────────────── */}
@@ -599,7 +715,7 @@ export default function App() {
                     key={idx}
                     id={`quick-seva-btn-${idx}`}
                     onClick={() => {
-                      setWizardDefaults({ pujaName: `Sponsorship donation: ${item.name}`, price: item.price });
+                      setWizardDefaults({ pujaName: `Sponsorship donation: ${item.name}`, price: getDiscountedPrice(item.price) });
                       setIsSevaModalOpen(false);
                       setIsBookNowOpen(true);
                     }}
@@ -612,7 +728,12 @@ export default function App() {
                         <span className="block text-[10px] text-white/50">Perform on your Gotra Sankalpa</span>
                       </div>
                     </div>
-                    <span className="text-xs font-black font-serif text-[#FFB347]">₹{item.price}</span>
+                    <div className="text-right">
+                      {isDiscountActive() && (
+                        <span className="block text-[9px] text-white/35 line-through font-mono">₹{item.price}</span>
+                      )}
+                      <span className="text-xs font-black font-serif text-[#FFB347]">₹{getDiscountedPrice(item.price)}</span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -750,7 +871,14 @@ export default function App() {
                         />
                         <div className="truncate text-left">
                           <span className="block font-bold text-white truncate">{item.product.name}</span>
-                          <span className="block text-[10px] text-[#FFB347] font-bold font-serif mt-0.5">₹{item.product.price} INR</span>
+                          {isDiscountActive() ? (
+                            <span className="flex items-center space-x-1.5 mt-0.5">
+                              <span className="text-[9px] text-white/35 line-through font-mono">₹{item.product.price}</span>
+                              <span className="text-[10px] text-[#FFB347] font-bold font-serif">₹{getDiscountedPrice(item.product.price)} INR</span>
+                            </span>
+                          ) : (
+                            <span className="block text-[10px] text-[#FFB347] font-bold font-serif mt-0.5">₹{item.product.price} INR</span>
+                          )}
                         </div>
                       </div>
 
@@ -791,13 +919,24 @@ export default function App() {
               </div>
             </div>
 
-            {/* Cart Footer Checkout Actions */}
             <div className="pt-6 border-t border-white/10 space-y-4">
               <div className="flex justify-between items-center text-sm">
-                <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
-                <span className="text-lg font-black font-serif text-[#FFB347]">
-                  ₹{cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)} INR
-                </span>
+                <div>
+                  <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
+                  {isDiscountActive() && (
+                    <span className="block text-[9px] font-mono text-[#FFB347]">🎉 50% OFF · {DISCOUNT_DEADLINE_LABEL}</span>
+                  )}
+                </div>
+                <div className="text-right">
+                  {isDiscountActive() && (
+                    <span className="block text-[10px] text-white/35 line-through font-mono">
+                      ₹{cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)} INR
+                    </span>
+                  )}
+                  <span className="text-lg font-black font-serif text-[#FFB347]">
+                    ₹{cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)} INR
+                  </span>
+                </div>
               </div>
 
               <div className="text-[10px] text-white/70 bg-[#021816]/60 p-3 rounded-2xl border border-white/10 text-left">
@@ -821,7 +960,7 @@ export default function App() {
       {/* Real UPI Payment Popup for Temple Bazaar cart checkout */}
       {isCartPaymentOpen && (
         <UpiPaymentPopup
-          amount={cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)}
+          amount={cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)}
           note="Temple Bazaar Order"
           payeeLabel="Order Items"
           payeeValue={`${cart.length} item(s)`}

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ON_LINE_PUJAS } from "../data/spiritualData";
 import { ShieldAlert, Heart, Briefcase, Award, TrendingUp, Sparkles, CheckCircle2, UserCheck, Video, HelpCircle } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
 
 interface OnlinePujaProps {
   onBookNowClick: (pujaName: string, price: number) => void;
@@ -98,10 +99,19 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                     <span className="block font-bold text-white">{puja.templeName}</span>
                   </div>
 
-                  {/* Pricing Float Badge (incorporates 50% promo discount) */}
+                  {/* Pricing Float Badge (Book-Before-July promo discount) */}
                   <div className="absolute top-4 right-4 bg-[#021816]/95 border border-[#FFB347]/45 text-[#FFB347] text-xs font-black font-serif px-3.5 py-2 rounded-2xl shadow-lg flex flex-col items-end spacing-y-0.5">
-                    <span className="text-[10px] line-through text-white/50 tracking-tight">₹{puja.price}</span>
-                    <span className="text-sm font-bold text-[#5EEAD4] tracking-normal">₹{Math.round(puja.price * 0.5)} <span className="text-[9px] font-sans font-bold text-[#FFB347] block text-right mt-0.5">50% OFF</span></span>
+                    {isDiscountActive() ? (
+                      <>
+                        <span className="text-[10px] line-through text-white/50 tracking-tight">₹{puja.price}</span>
+                        <span className="text-sm font-bold text-[#5EEAD4] tracking-normal">
+                          ₹{getDiscountedPrice(puja.price)}
+                          <span className="text-[9px] font-sans font-bold text-[#FFB347] block text-right mt-0.5">50% OFF · {DISCOUNT_DEADLINE_LABEL}</span>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-bold text-white tracking-normal">₹{puja.price}</span>
+                    )}
                   </div>
                 </div>
 
@@ -152,7 +162,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
               <div className="p-6 pt-0">
                 <button
                   id={`puja-book-btn-${puja.id}`}
-                  onClick={() => onBookNowClick(puja.name, puja.price)}
+                  onClick={() => onBookNowClick(puja.name, getDiscountedPrice(puja.price))}
                   className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-colors tracking-widest shadow cursor-pointer uppercase"
                 >
                   BOOK SANKALPA PUJA

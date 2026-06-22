@@ -8,6 +8,7 @@ import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Users, MessageSquare, Send, Sparkles, AlertCircle, RefreshCw, Utensils, Flame, BookOpen } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
 
 const renderSevaIcon = (id: string) => {
   switch (id) {
@@ -118,6 +119,11 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           {/* Active Seva Sponsorships List (cols 7) */}
           <div className="lg:col-span-7 space-y-6">
             <h3 className="font-serif text-xl font-bold text-white text-left mb-2">Sponsorship Services</h3>
+            {isDiscountActive() && (
+              <p className="text-[10px] font-mono text-[#FFB347]/80 text-left -mt-1 mb-2 uppercase tracking-wide">
+                🎉 50% OFF all sevas — {DISCOUNT_DEADLINE_LABEL}
+              </p>
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {FEATURED_SEVAS.map((seva) => (
@@ -150,7 +156,14 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                         </div>
                         <span className="text-[10px] uppercase font-mono tracking-wider text-white/50">Active Seva</span>
                       </div>
-                      <span className="text-xs font-bold text-[#FFB347] font-serif">₹{seva.donationTiers[0].amount}</span>
+                      {isDiscountActive() ? (
+                        <div className="flex flex-col items-end">
+                          <span className="text-[9px] line-through text-white/35 font-mono">₹{seva.donationTiers[0].amount}</span>
+                          <span className="text-xs font-bold text-[#FFB347] font-serif">₹{getDiscountedPrice(seva.donationTiers[0].amount)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-bold text-[#FFB347] font-serif">₹{seva.donationTiers[0].amount}</span>
+                      )}
                     </div>
 
                     <h4 className="text-base font-serif font-bold text-white mb-1">{seva.name}</h4>
@@ -167,13 +180,13 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                     id={`sponsor-btn-${seva.id}`}
                     onClick={() => {
                       setUpiSevaName(seva.name);
-                      setUpiAmount(seva.donationTiers[0].amount);
+                      setUpiAmount(getDiscountedPrice(seva.donationTiers[0].amount));
                       setUpiRefId("SDV-" + Math.floor(100000 + Math.random() * 900000));
                       setShowUPI(true);
                     }}
                     className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow"
                   >
-                    SPONSOR SEVA 🙏
+                    {isDiscountActive() ? `SPONSOR SEVA — 50% OFF 🙏` : "SPONSOR SEVA 🙏"}
                   </button>
                 </div>
               ))}
