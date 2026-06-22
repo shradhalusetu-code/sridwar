@@ -339,7 +339,7 @@ export default function App() {
                     onClick={() => {
                       setCurrentPage("home");
                       setTimeout(() => {
-                        document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
+                        document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "instant" });
                       }, 150);
                     }}
                     className="hover:text-white transition-colors"
@@ -464,126 +464,14 @@ export default function App() {
             </p>
           </div>
 
-          {/* ── Row 3: Government Initiative Badges ───────────────────────────── */}
-          <div className="mb-10">
-            <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest text-center mb-5">
-              Recognised by Government of India Initiatives
+          {/* ── Row 3: Government Initiative Recognition — Pending Approval ───── */}
+          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-6 sm:p-8 text-center">
+            <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest mb-3">
+              Government of India Initiatives
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
-
-              {/* Digital India */}
-              <a href="https://www.digitalindia.gov.in" target="_blank" rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#FF6B2B]/60 hover:bg-[#0F2810] transition-all"
-                style={{ background: "#0A1F0A", borderColor: "#FF6B2B40" }}>
-                {/* Digital India wordmark SVG */}
-                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Digital India">
-                  {/* Tricolour bar */}
-                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
-                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
-                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
-                  {/* Ashoka Chakra simplified */}
-                  <circle cx="40" cy="16" r="7" fill="none" stroke="#0047AB" strokeWidth="1.5"/>
-                  <circle cx="40" cy="16" r="1.5" fill="#0047AB"/>
-                  {/* 8 spokes */}
-                  {[0,45,90,135,180,225,270,315].map((deg, i) => {
-                    const rad = (deg * Math.PI) / 180;
-                    return <line key={i} x1={40 + 2*Math.cos(rad)} y1={16 + 2*Math.sin(rad)} x2={40 + 6*Math.cos(rad)} y2={16 + 6*Math.sin(rad)} stroke="#0047AB" strokeWidth="1"/>;
-                  })}
-                  {/* Text */}
-                  <text x="40" y="29" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FF6B2B" fontFamily="Arial,sans-serif">DIGITAL INDIA</text>
-                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Power to Empower</text>
-                </svg>
-              </a>
-
-              {/* Startup India */}
-              <a href="https://www.startupindia.gov.in" target="_blank" rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#FF9933]/60 hover:bg-[#0F1A0A] transition-all"
-                style={{ background: "#0A1510", borderColor: "#FF993340" }}>
-                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Startup India">
-                  {/* Tricolour bar */}
-                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
-                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
-                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
-                  {/* Rocket icon */}
-                  <path d="M40 7 C40 7 36 14 36 18 L40 20 L44 18 C44 14 40 7 40 7Z" fill="#FF9933"/>
-                  <path d="M36 18 L34 22 L40 20 L46 22 L44 18Z" fill="#138808"/>
-                  <circle cx="40" cy="15" r="2" fill="white" opacity="0.9"/>
-                  {/* Text */}
-                  <text x="40" y="29" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FF9933" fontFamily="Arial,sans-serif">STARTUP INDIA</text>
-                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Recognised</text>
-                </svg>
-              </a>
-
-              {/* Make in India */}
-              <a href="https://www.makeinindia.com" target="_blank" rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#138808]/60 hover:bg-[#061A06] transition-all"
-                style={{ background: "#061506", borderColor: "#13880840" }}>
-                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="Make in India">
-                  {/* Tricolour bar */}
-                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
-                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
-                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
-                  {/* Lion head (simplified Make in India lion silhouette) */}
-                  <ellipse cx="40" cy="13" rx="6" ry="5" fill="#FF9933"/>
-                  {/* Mane */}
-                  {[0,36,72,108,144,180,216,252,288,324].map((deg, i) => {
-                    const rad = (deg * Math.PI) / 180;
-                    return <ellipse key={i} cx={40 + 8*Math.cos(rad)} cy={13 + 8*Math.sin(rad)} rx="2.5" ry="1.5" fill="#FF9933" transform={`rotate(${deg},${40 + 8*Math.cos(rad)},${13 + 8*Math.sin(rad)})`}/>;
-                  })}
-                  <ellipse cx="40" cy="13" rx="5" ry="4" fill="#FF9933"/>
-                  <circle cx="38" cy="12" r="1" fill="#5C3000"/>
-                  <circle cx="42" cy="12" r="1" fill="#5C3000"/>
-                  <path d="M38 15 Q40 17 42 15" stroke="#5C3000" strokeWidth="0.8" fill="none"/>
-                  {/* Text */}
-                  <text x="40" y="27" textAnchor="middle" fontSize="5.5" fontWeight="800" fill="#138808" fontFamily="Arial,sans-serif">MAKE IN INDIA</text>
-                  <text x="40" y="35" textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Proudly Built Here</text>
-                </svg>
-              </a>
-
-              {/* GeM */}
-              <a href="https://gem.gov.in" target="_blank" rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#1A73E8]/60 hover:bg-[#06101F] transition-all"
-                style={{ background: "#050B1A", borderColor: "#1A73E840" }}>
-                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="GeM - Government e-Marketplace">
-                  {/* GeM logo - stylised gem/diamond */}
-                  <polygon points="40,6 52,13 52,23 40,30 28,23 28,13" fill="none" stroke="#1A73E8" strokeWidth="1.5"/>
-                  <polygon points="40,6 52,13 40,17" fill="#1A73E8" opacity="0.6"/>
-                  <polygon points="40,17 52,13 52,23" fill="#1A73E8" opacity="0.4"/>
-                  <polygon points="40,30 52,23 40,17" fill="#1A73E8" opacity="0.7"/>
-                  <polygon points="28,23 40,17 40,30" fill="#1A73E8" opacity="0.5"/>
-                  <polygon points="28,13 40,6 40,17" fill="#1A73E8" opacity="0.3"/>
-                  <polygon points="28,23 28,13 40,17" fill="#1A73E8" opacity="0.45"/>
-                  {/* GeM text */}
-                  <text x="40" y="0" textAnchor="middle" fontSize="0" fill="none"/>
-                  {/* Overlay "GeM" acronym */}
-                  <text x="40" y="19" textAnchor="middle" fontSize="7" fontWeight="900" fill="white" fontFamily="Arial,sans-serif">GeM</text>
-                  <text x="40" y="34" textAnchor="middle" fontSize="3.8" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Govt e-Marketplace</text>
-                </svg>
-              </a>
-
-              {/* DPIIT */}
-              <a href="https://dpiit.gov.in" target="_blank" rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center px-4 py-3 rounded-2xl border text-center min-w-[108px] hover:border-[#0056A8]/60 hover:bg-[#06090F] transition-all"
-                style={{ background: "#05090F", borderColor: "#0056A840" }}>
-                <svg viewBox="0 0 80 36" width="72" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="DPIIT - Dept for Promotion of Industry">
-                  {/* Tricolour bar */}
-                  <rect x="0" y="0" width="26.6" height="4" fill="#FF9933"/>
-                  <rect x="26.6" y="0" width="26.6" height="4" fill="#FFFFFF" opacity="0.9"/>
-                  <rect x="53.3" y="0" width="26.7" height="4" fill="#138808"/>
-                  {/* Ashoka Chakra */}
-                  <circle cx="40" cy="15" r="7" fill="none" stroke="#0056A8" strokeWidth="1.5"/>
-                  <circle cx="40" cy="15" r="1.5" fill="#0056A8"/>
-                  {[0,30,60,90,120,150,180,210,240,270,300,330].map((deg, i) => {
-                    const rad = (deg * Math.PI) / 180;
-                    return <line key={i} x1={40 + 2*Math.cos(rad)} y1={15 + 2*Math.sin(rad)} x2={40 + 6*Math.cos(rad)} y2={15 + 6*Math.sin(rad)} stroke="#0056A8" strokeWidth="0.8"/>;
-                  })}
-                  {/* Text */}
-                  <text x="40" y="28" textAnchor="middle" fontSize="7" fontWeight="900" fill="#0056A8" fontFamily="Arial,sans-serif">DPIIT</text>
-                  <text x="40" y="35" textAnchor="middle" fontSize="3.5" fill="rgba(255,255,255,0.45)" fontFamily="Arial,sans-serif">Dept. for Promotion of Industry</text>
-                </svg>
-              </a>
-
-            </div>
+            <p className="text-[12px] text-white/55 leading-relaxed max-w-xl mx-auto">
+              Sri Dwar has applied for recognition under the <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM (Government e-Marketplace)</strong>, and <strong className="text-white/75">Digital India</strong> initiatives. These applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
+            </p>
           </div>
 
           {/* ── Row 4: Coming Soon — Mobile Apps ─────────────────────────────── */}
