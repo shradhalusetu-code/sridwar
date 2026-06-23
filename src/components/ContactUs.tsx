@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
@@ -22,12 +22,19 @@ export default function ContactUs() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [refId, setRefId] = useState("");
 
+  // ✅ Instant double-submit lock — updates immediately with no render
+  // delay, unlike isSyncing, which left a brief window where a second
+  // click/tap could fire the Google Form sync twice.
+  const isSubmittingRef = useRef(false);
+
   const handleSendMessage = async (e: FormEvent) => {
   e.preventDefault();
+  if (isSubmittingRef.current) return;
   if (!name || !email || !phone) {
     alert("Please fill in all mandatory fields: Name, Email, and Phone Number.");
     return;
   }
+  isSubmittingRef.current = true;
 
   setIsSyncing(true);
 
@@ -57,6 +64,7 @@ export default function ContactUs() {
       console.error(err);
       setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
+      isSubmittingRef.current = false;
       setTimeout(() => {
         setIsSyncing(false);
         setShowDonation(true); // ✅ Show donation option after form submission

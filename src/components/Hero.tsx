@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { Award, Compass, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Calendar } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
@@ -22,6 +22,11 @@ interface HeroProps {
 export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpenProducts }: HeroProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ Instant double-submit lock — updates immediately with no render
+  // delay, unlike isSubmitting, which left a brief window where a second
+  // click/tap could fire the Google Form sync twice.
+  const isSubmittingRef = useRef(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   // Form fields
@@ -49,10 +54,12 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
 
   const handleSubmitCertificate = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current) return;
     if (!name || !temple || !phone || !email || !city) {
       alert("Please fill in all mandatory fields: Name, Temple, Phone, Email, and City.");
       return;
     }
+    isSubmittingRef.current = true;
 
     setIsSubmitting(true);
     
@@ -77,6 +84,7 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
       setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
       setIsSubmitted(true);
       // ✅ Show UPI if user selected a contribution tier
       if (membershipTier) {
@@ -99,7 +107,7 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
   ];
 
   return (
-    <div id="hero-wrapper" className="relative min-h-screen flex flex-col justify-between pt-28 pb-12 bg-[#021816] text-white overflow-hidden">
+    <div id="hero-wrapper" className="relative flex flex-col justify-between pt-28 pb-12 bg-[#021816] text-white" style={{minHeight: '100svh', overflowX: 'clip'}}>
       
       {/* Cinematic Sacred Banner: aerial Puri Jagannath Temple feel with teal overlays and golden lighting */}
       <div 

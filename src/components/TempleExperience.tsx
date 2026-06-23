@@ -44,10 +44,14 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   ];
 
   return (
-    <section 
-      id="temple-experience-section" 
-      className="py-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
-    >
+    <section
+  id="temple-experience-section"
+  className="py-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
+  style={{
+    touchAction: "pan-y",
+    WebkitOverflowScrolling: "touch",
+  }}
+>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Block Section */}
@@ -180,6 +184,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
             <div 
               id="temple-list-drawer"
               className="hidden lg:block flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[380px]"
+              style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
             >
               {filteredTemples.length > 0 ? (
                 filteredTemples.map((templeObj) => (
@@ -324,7 +329,10 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
 
         {/* VIRTUAL LIVE DARSHAN ROOM SECTION */}
         <div id="live-darshan-section" className="mt-24 pt-16 border-t border-white/10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#092320]/85 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md">
+          <div
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#092320]/85 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md"
+            style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
+          >
             
             {/* Spiritual symbol background decoration */}
             <div className="absolute top-4 right-6 text-white/5 font-serif text-8xl pointer-events-none select-none">
@@ -363,7 +371,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
 
                 {/* Ambient sanctuary glow & smoke layers */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 pointer-events-none" />
-                <div className="absolute inset-0 bg-yellow-600/5 mix-blend-color-burn pointer-events-none" />
+                <div className="absolute inset-0 bg-yellow-600/5 pointer-events-none opacity-20" />
 
                 {/* High tech/mystic gold security scanning/overlay effect */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.18)_50%),_linear-gradient(90deg,_rgba(255,179,71,0.02),_rgba(94,234,212,0.01),_rgba(255,179,71,0.02))] bg-[length:100%_4px,_6px_100%] pointer-events-none opacity-40" />

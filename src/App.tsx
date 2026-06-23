@@ -73,6 +73,24 @@ export default function App() {
       setBookedItems(JSON.parse(cachedBooked));
     }
   }, []);
+    // Handle Android back button
+  useEffect(() => {
+    const setupBackButton = async () => {
+      const { App: CapApp } = await import('@capacitor/app');
+      const handler = await CapApp.addListener('backButton', () => {
+        if (currentPage !== 'home') {
+          setCurrentPage('home');
+        } else {
+          CapApp.exitApp();
+        }
+      });
+      return handler;
+    };
+
+    let handler: any;
+    setupBackButton().then(h => { handler = h; });
+    return () => { if (handler) handler.remove(); };
+  }, [currentPage]);
 
   const handleLoginSuccess = (name: string, email: string) => {
     setIsLoggedIn(true);
@@ -163,7 +181,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#021816] text-white overflow-x-hidden font-sans">
+    <div className="flex flex-col min-h-full bg-[#021816] text-white font-sans" style={{overflowX: 'clip'}}>
       
       {/* 1. STICKY HEADER NAVIGATION */}
       <Navbar
@@ -187,7 +205,7 @@ export default function App() {
       />
 
       {/* 2. DYNAMIC PAGES VIEW */}
-      <main className="flex-grow pt-8">
+      <main className="flex-grow pt-20">
         {currentPage === "home" && (
           <div className="space-y-0">
             {/* Cinematic Entrance */}
@@ -202,7 +220,7 @@ export default function App() {
             />
             
             {/* Spotlight and lists */}
-            <TempleExperience
+           <TempleExperience
               onBookPuja={(templeName, deity) => {
                 setWizardDefaults({ pujaName: `${deity} Sankalpa offering (${templeName})`, price: 751 });
                 setIsBookNowOpen(true);
@@ -553,7 +571,37 @@ export default function App() {
 
         </div>
       </footer>
-
+{/* BOTTOM NAVIGATION BAR */}
+      <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: '#021816',
+        borderTop: '1px solid rgba(255,255,255,0.1)',
+        display: 'flex', justifyContent: 'space-around',
+        padding: '8px 0 20px',
+        zIndex: 100
+      }}>
+        {[
+          { id:'home', icon:'🏛️', label:'Home' },
+          { id:'puja', icon:'🪔', label:'Puja' },
+          { id:'seva', icon:'🤲', label:'Seva' },
+          { id:'products', icon:'🛍️', label:'Shop' },
+          { id:'login', icon:'👤', label:'Profile' },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => {
+            setCurrentPage(tab.id);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }}
+            style={{
+              color: currentPage === tab.id ? '#FFB347' : 'rgba(255,255,255,0.5)',
+              background: 'none', border: 'none', fontSize: '10px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+              cursor: 'pointer', padding: '4px 8px'
+            }}>
+            <span style={{fontSize:'22px'}}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </nav>
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
       <AIAssistant currentLanguage={currentLanguage} />
 

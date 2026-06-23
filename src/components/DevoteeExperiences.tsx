@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   ChevronLeft, 
@@ -134,6 +134,10 @@ export default function DevoteeExperiences() {
   const [newStory, setNewStory] = useState("");
   const [newRating, setNewRating] = useState(5);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
+
+  // ✅ Instant double-submit lock — this form had no guard at all before,
+  // so a double-tap/click would fire the Google Form sync twice.
+  const isSubmittingRef = useRef(false);
   const [showUPI, setShowUPI] = useState(false);
   const [testimonyRefId, setTestimonyRefId] = useState("");
 
@@ -166,7 +170,9 @@ export default function DevoteeExperiences() {
 
   const handleSubmitReview = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current) return;
     if (!newName || !newLocation || !newService || !newStory) return;
+    isSubmittingRef.current = true;
 
     // ✅ Sync to Google Forms first
     try {
@@ -179,6 +185,8 @@ export default function DevoteeExperiences() {
       });
     } catch (err) {
       console.error("Testimony sync error:", err);
+    } finally {
+      isSubmittingRef.current = false;
     }
 
     // ✅ Show optional UPI contribution after testimony submission

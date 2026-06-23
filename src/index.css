@@ -6,7 +6,6 @@
   --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Custom spiritual color palettes mapped to tailwind utilities */
   --color-sacred-gold: #FFB347;
   --color-sacred-gold-hover: #F27D26;
   --color-saffron: #FF9933;
@@ -19,11 +18,39 @@
   --color-spiritual-cream: #092320;
 }
 
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  /* REMOVED overscroll-behavior: none from here — it was blocking Android scroll passthrough */
+}
+
+/* Only apply overscroll lock to the page root, not every element */
+html, body {
+  overscroll-behavior-y: none;
+}
+
+html {
+  height: 100%;
+  overflow: auto;
+}
+
+body {
+  min-height: 100%;
+  padding-bottom: 80px;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
 @layer base {
   html, body {
     scroll-behavior: smooth;
     background-color: #021816;
     color: #FFFFFF;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -90,3 +117,25 @@
   border-bottom: 1px solid rgba(255, 179, 71, 0.3);
   margin: 0 1rem;
 }
+
+/* Android WebView scroll fix */
+html, body, #root {
+  height: auto !important;
+  min-height: 100% !important;
+}
+
+#root {
+  display: block !important;
+}
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ANDROID CAPACITOR SCROLL FIX
+ * These rules ONLY apply when the page is running inside the Android app.
+ * The class "capacitor-android" is added to <body> by main.tsx at runtime
+ * ONLY when window.Capacitor exists (i.e. inside the APK).
+ * On your GitHub Pages website this class is NEVER added, so none of
+ * these rules will ever fire there. Your website is 100% safe.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+

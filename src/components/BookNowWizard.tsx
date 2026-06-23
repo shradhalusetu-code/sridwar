@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { Check, Calendar, CreditCard, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
@@ -34,6 +34,13 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   
   const [refId, setRefId] = useState("");
   const [showUPI, setShowUPI] = useState(false);
+
+  // ✅ Instant double-submit lock. Unlike isProcessingPayment (a React state
+  // value), this ref updates immediately with no render delay — so a second
+  // rapid tap/click is blocked even in the brief moment before the button
+  // visually becomes disabled. This is what was causing duplicate Google
+  // Form entries for a single booking attempt.
+  const isSubmittingRef = useRef(false);
   const [hasAutofilled, setHasAutofilled] = useState(false);
 
   // Sync state when props change (especially when reopened)
@@ -101,6 +108,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   };
 
   const handleSimulatePayment = async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+
     setIsProcessingPayment(true);
     try {
       await syncToGoogleForm("puja_booking", {
@@ -121,6 +131,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       setRefId(`SDP-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setIsProcessingPayment(false);
+      isSubmittingRef.current = false;
       // ✅ Show UPI QR instead of fake GPay
       setShowUPI(true);
     }
