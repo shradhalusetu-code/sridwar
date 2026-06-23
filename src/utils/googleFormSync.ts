@@ -171,6 +171,28 @@ export function saveSyncConfig(formType: string, config: SyncConfig) {
 }
 
 /**
+ * Deduplication guard — prevents the same form from being submitted twice
+ * within a 5-second window. This blocks both React StrictMode's double-invoke
+ * in development AND any accidental double-call in the codebase.
+ * Key = formType + name + phone so distinct users are never blocked.
+ */
+const _recentSubmissions = new Map<string, number>();
+
+function _isDuplicate(formType: string, data: { name: string; phone: string }): boolean {
+  const key = `${formType}|${data.name.trim().toLowerCase()}|${data.phone.trim()}`;
+  const lastTime = _recentSubmissions.get(key);
+  const now = Date.now();
+  if (lastTime && now - lastTime < 5000) {
+    console.log(`[Google Forms Sync]: Duplicate blocked for ${formType} (${now - lastTime}ms since last submit)`);
+    return true;
+  }
+  _recentSubmissions.set(key, now);
+  // Clean up old entries so the Map doesn't grow forever
+  _recentSubmissions.forEach((t, k) => { if (now - t > 10000) _recentSubmissions.delete(k); });
+  return false;
+}
+
+/**
  * Programmatically posts the data to Google Forms with dynamic environmental overrides.
  */
 export async function syncToGoogleForm(
@@ -195,6 +217,9 @@ export async function syncToGoogleForm(
     intent?: string;
   }
 ) {
+  // Deduplication: drop the same submission if fired again within 5 seconds
+  if (_isDuplicate(formType, data)) return false;
+
   const config = getSyncConfig(formType);
   if (!config.isEnabled) {
     console.log(`[Google Forms Sync]: Skipping, disabled for ${formType}`);

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   ChevronLeft, 
@@ -134,10 +134,6 @@ export default function DevoteeExperiences() {
   const [newStory, setNewStory] = useState("");
   const [newRating, setNewRating] = useState(5);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
-
-  // ✅ Instant double-submit lock — this form had no guard at all before,
-  // so a double-tap/click would fire the Google Form sync twice.
-  const isSubmittingRef = useRef(false);
   const [showUPI, setShowUPI] = useState(false);
   const [testimonyRefId, setTestimonyRefId] = useState("");
 
@@ -170,9 +166,7 @@ export default function DevoteeExperiences() {
 
   const handleSubmitReview = async (e: FormEvent) => {
     e.preventDefault();
-    if (isSubmittingRef.current) return;
     if (!newName || !newLocation || !newService || !newStory) return;
-    isSubmittingRef.current = true;
 
     // ✅ Sync to Google Forms first
     try {
@@ -185,8 +179,6 @@ export default function DevoteeExperiences() {
       });
     } catch (err) {
       console.error("Testimony sync error:", err);
-    } finally {
-      isSubmittingRef.current = false;
     }
 
     // ✅ Show optional UPI contribution after testimony submission
@@ -238,7 +230,7 @@ export default function DevoteeExperiences() {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         
         {/* Header styling */}
-        <div className="text-center space-y-3 mb-12">
+        <div className="text-center space-y-2 mb-6">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
             <Users className="w-3.5 h-3.5 text-[#5EEAD4]" />
             <span className="text-[10px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
@@ -373,7 +365,7 @@ export default function DevoteeExperiences() {
         </div>
 
         {/* Action Button: Share Testimonial */}
-        <div className="mt-12 text-center" id="devotee-experiences-action">
+        <div className="mt-8 text-center" id="devotee-experiences-action">
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#FFB347] to-[#e08e2f] text-[#021816] font-bold text-sm tracking-wide shadow-xl hover:opacity-95 transition-all hover:scale-[1.02] cursor-pointer"

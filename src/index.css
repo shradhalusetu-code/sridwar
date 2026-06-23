@@ -152,3 +152,42 @@ body.capacitor-android [class*="overflow-y-auto"] {
 body.capacitor-android nav[style*="position: fixed"] {
   touch-action: manipulation;
 }
+
+/* ─── Website-only compact spacing (Android APK unaffected) ─────────────── */
+body:not(.capacitor-android) #hero-wrapper {
+  min-height: 78vh;
+  padding-top: 0.5rem;
+  padding-bottom: 1rem;
+}
+body:not(.capacitor-android) #trust-bar-section {
+  margin-top: 0.75rem;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+body:not(.capacitor-android) #corporate-footer {
+  padding-top: 2rem;
+  padding-bottom: 1.25rem;
+}
+body:not(.capacitor-android) #temple-experience-section,
+body:not(.capacitor-android) #seva-dashboard-section,
+body:not(.capacitor-android) #devotee-experiences-section,
+body:not(.capacitor-android) #about-us-section,
+body:not(.capacitor-android) #sacred-daily-tools {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+/* Android APK — preserve pre-refactor hero sizing (website uses compact rules above) */
+body.capacitor-android #hero-wrapper {
+  min-height: 100svh;
+  padding-top: 7rem;
+  padding-bottom: 3rem;
+}
+body.capacitor-android #hero-main-container {
+  padding-top: 2rem;
+}
+body.capacitor-android #trust-bar-section {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}

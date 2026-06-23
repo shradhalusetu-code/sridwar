@@ -44,18 +44,15 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   ];
 
   return (
-    <section
-  id="temple-experience-section"
-  className="py-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
-  style={{
-    touchAction: "pan-y",
-    WebkitOverflowScrolling: "touch",
-  }}
->
+    <section 
+      id="temple-experience-section" 
+      className="py-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
+      
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Block Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6">
           <div className="text-left space-y-2">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Revered shrines network</span>
             <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight">
@@ -328,7 +325,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
         </div>
 
         {/* VIRTUAL LIVE DARSHAN ROOM SECTION */}
-        <div id="live-darshan-section" className="mt-24 pt-16 border-t border-white/10">
+        <div id="live-darshan-section" className="mt-6 pt-6 border-t border-white/10">
           <div
             className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#092320]/85 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md"
             style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
@@ -371,7 +368,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
 
                 {/* Ambient sanctuary glow & smoke layers */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/35 pointer-events-none" />
-                <div className="absolute inset-0 bg-yellow-600/5 pointer-events-none opacity-20" />
+                <div className="absolute inset-0 bg-yellow-600/5 mix-blend-color-burn pointer-events-none" />
 
                 {/* High tech/mystic gold security scanning/overlay effect */}
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.18)_50%),_linear-gradient(90deg,_rgba(255,179,71,0.02),_rgba(94,234,212,0.01),_rgba(255,179,71,0.02))] bg-[length:100%_4px,_6px_100%] pointer-events-none opacity-40" />
@@ -445,8 +442,8 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
         </div>
 
         {/* HOW IT WORKS SECTION (7-step journey) */}
-        <div className="mt-24 pt-16 border-t border-white/10">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="mt-6 pt-6 border-t border-white/10">
+          <div className="text-center max-w-2xl mx-auto mb-8">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Dharmic pathways</span>
             <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
               Your 7-Step Spiritual Journey

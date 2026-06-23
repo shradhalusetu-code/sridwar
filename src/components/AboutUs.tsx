@@ -8,7 +8,7 @@ import SacredIcon from "./SacredIcon";
 
 export default function AboutUs() {
   return (
-    <section id="about-us-section" className="py-24 bg-[#021816] text-white text-left">
+    <section id="about-us-section" className="py-12 bg-[#021816] text-white text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Banner Grid */}

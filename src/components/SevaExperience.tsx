@@ -29,12 +29,23 @@ interface SevaExperienceProps {
   onSponsorSeva: (sevaName: string, price: number) => void;
 }
 
+const INITIAL_CHAT_MESSAGES = [
+  { name: "Ananya Misra", msg: "Har Har Mahadev! Booked Rudrabhishek for my parents' anniversary.", location: "Bhubaneswar, Odisha" },
+  { name: "Rajesh K.", msg: "Chanting Sri Ram Jai Ram. Sponsored cow feeding at Varanasi.", location: "San Jose, CA" },
+  { name: "Preeti Goyal", msg: "So peaceful to watch the Mahapuja happening live at Badrinath.", location: "London, UK" },
+  { name: "Dr. Amit Varma", msg: "Sponsored Ayodhya Gausala seva from Chicago — verified photos received within hours!", location: "Chicago, USA" },
+  { name: "Sandeep Patnaik", msg: "Chhappan Bhog at Puri on my daughter's birthday. Live stream was divine.", location: "Cuttack, Odisha" },
+  { name: "Meera Nair", msg: "Gifted Sanskrit Gurukul book kits — children holding stamped kits in the photos!", location: "Ernakulam, Kerala" },
+  { name: "Vikram Aditya", msg: "Shani Taila Abhishekam live audio was pristine. Sacred thread arrived sealed.", location: "Mumbai, MH" },
+  { name: "Rohan Sharma", msg: "Kashi Rudrabhishek Sankalpa with father's gotra brought immense peace to our family.", location: "New Delhi" },
+  { name: "Rajeshwari D.", msg: "Maa Kamakhya Archana — priest reciting my Gotra over the spring was deeply moving.", location: "Pune, MH" },
+  { name: "Swati Sen", msg: "Om Namah Shivaya 🙏 Lighting Akhanda Diya for my mother's health.", location: "Kolkata, WB" },
+  { name: "Srinivas Rao", msg: "Jai Jagannath! Puri Vishesh Seva booked — certificate on WhatsApp within 24 hrs.", location: "Hyderabad, TS" },
+  { name: "Preeya Patel", msg: "Annadanam sponsorship at Kashi — may all sadhus be fed today.", location: "London, UK" },
+];
+
 export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
-  const [chatMessages, setChatMessages] = useState<Array<{ name: string; msg: string; location: string }>>([
-    { name: "Ananya Misra", msg: "Har Har Mahadev! Booked Rudrabhishek for my parents' anniversary.", location: "Bhubaneswar, Odisha" },
-    { name: "Rajesh K.", msg: "Chanting Sri Ram Jai Ram. Sponsored cow feeding at Varanasi.", location: "San Jose, CA" },
-    { name: "Preeti Goyal", msg: "So peaceful to watch the Mahapuja happening live at Badrinath.", location: "London, UK" }
-  ]);
+  const [chatMessages, setChatMessages] = useState<Array<{ name: string; msg: string; location: string }>>(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   const [showUPI, setShowUPI] = useState(false);
   const [upiAmount, setUpiAmount] = useState(0);
@@ -92,7 +103,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Global Live Ticker Bar */}
-        <div id="booking-ticker-bar" className="bg-[#FFB347]/10 border border-[#FFB347]/30 py-3 rounded-2xl mb-12 flex items-center justify-between px-6 overflow-hidden">
+        <div id="booking-ticker-bar" className="bg-[#FFB347]/10 border border-[#FFB347]/30 py-3 rounded-2xl mb-6 flex items-center justify-between px-6 overflow-hidden">
           <div className="flex items-center space-x-2 text-[#FFB347] uppercase tracking-widest font-mono text-[10px] font-bold shrink-0 text-left">
             <span className="w-2.5 h-2.5 bg-[#FFB347] rounded-full animate-ping" />
             <span>Devotional Ticker</span>
@@ -104,7 +115,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         </div>
 
         {/* Header Block */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-6">
           <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono">Sacred community giving</span>
           <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
             Seva Hub & Live Devotional Dashboard
@@ -194,10 +205,10 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           </div>
 
           {/* Live Virtual Video + Live Devotee Chat Dashboard Area (cols 5) */}
-          <div className="lg:col-span-5 flex flex-col justify-between bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white">
+          <div className="lg:col-span-5 flex flex-col h-full bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white">
             
             {/* Live Video placeholder with Live blinking dot overlay */}
-            <div className="relative aspect-video bg-[#021816] overflow-hidden flex items-center justify-center">
+            <div className="relative aspect-video bg-[#021816] overflow-hidden flex items-center justify-center shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&q=80&w=1000"
                 alt="Ayodhya Gausala Aerial View"
@@ -218,35 +229,33 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
             </div>
 
             {/* Interactive Chat Console */}
-            <div className="p-4 flex-grow flex flex-col justify-between min-h-[280px]">
-              <div>
-                <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
-                  <span className="text-xs font-bold text-white/80">Prabhuji prayer Chat Rooms</span>
-                  <div className="flex items-center space-x-1 text-[10px] font-mono text-emerald-400 font-bold">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                    <span>8,495 Devotees online</span>
-                  </div>
-                </div>
-
-                {/* Messages Box */}
-                <div 
-                  id="chat-messages-container"
-                  className="space-y-2.5 max-h-[180px] overflow-y-auto mb-4 pr-1 scrollbar-thin text-left"
-                >
-                  {chatMessages.map((msg, i) => (
-                    <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-bold text-[#5EEAD4]">{msg.name}</span>
-                        <span className="text-[9px] text-white/40 font-mono font-medium">{msg.location}</span>
-                      </div>
-                      <p className="text-white/80 font-sans">{msg.msg}</p>
-                    </div>
-                  ))}
+            <div className="p-4 flex flex-col flex-1 min-h-[320px]">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3 shrink-0">
+                <span className="text-xs font-bold text-white/80">Prabhuji prayer Chat Rooms</span>
+                <div className="flex items-center space-x-1 text-[10px] font-mono text-emerald-400 font-bold">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  <span>8,495 Devotees online</span>
                 </div>
               </div>
 
+              {/* Messages Box — fills space down to the input */}
+              <div 
+                id="chat-messages-container"
+                className="flex-1 min-h-0 overflow-y-auto space-y-2.5 mb-3 pr-1 scrollbar-thin text-left"
+              >
+                {chatMessages.map((msg, i) => (
+                  <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="font-bold text-[#5EEAD4]">{msg.name}</span>
+                      <span className="text-[9px] text-white/40 font-mono font-medium">{msg.location}</span>
+                    </div>
+                    <p className="text-white/80 font-sans">{msg.msg}</p>
+                  </div>
+                ))}
+              </div>
+
               {/* Chat Send Form */}
-              <form onSubmit={handleSendMessage} className="flex space-x-2">
+              <form onSubmit={handleSendMessage} className="flex space-x-2 shrink-0">
                 <input
                   id="chat-input-box"
                   type="text"

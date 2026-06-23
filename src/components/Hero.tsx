@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useRef, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { Award, Compass, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Calendar } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
@@ -14,19 +14,15 @@ import aerialJagannathPuri from "../assets/images/aerial_jagannath_puri_hero_178
 
 interface HeroProps {
   currentLanguage: Language;
+  isAndroidApp?: boolean;
   onNavigate: (page: string) => void;
   onOpenBookNow: () => void;
   onOpenProducts: () => void;
 }
 
-export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpenProducts }: HeroProps) {
+export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate, onOpenBookNow, onOpenProducts }: HeroProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ✅ Instant double-submit lock — updates immediately with no render
-  // delay, unlike isSubmitting, which left a brief window where a second
-  // click/tap could fire the Google Form sync twice.
-  const isSubmittingRef = useRef(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   // Form fields
@@ -54,12 +50,10 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
 
   const handleSubmitCertificate = async (e: FormEvent) => {
     e.preventDefault();
-    if (isSubmittingRef.current) return;
     if (!name || !temple || !phone || !email || !city) {
       alert("Please fill in all mandatory fields: Name, Temple, Phone, Email, and City.");
       return;
     }
-    isSubmittingRef.current = true;
 
     setIsSubmitting(true);
     
@@ -84,7 +78,6 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
       setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setIsSubmitting(false);
-      isSubmittingRef.current = false;
       setIsSubmitted(true);
       // ✅ Show UPI if user selected a contribution tier
       if (membershipTier) {
@@ -107,7 +100,15 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
   ];
 
   return (
-    <div id="hero-wrapper" className="relative flex flex-col justify-between pt-28 pb-12 bg-[#021816] text-white" style={{minHeight: '100svh', overflowX: 'clip'}}>
+    <div
+      id="hero-wrapper"
+      className={`relative flex flex-col justify-between bg-[#021816] text-white ${isAndroidApp ? "pt-28 pb-12" : "pt-2 pb-6"}`}
+      style={{
+        minHeight: isAndroidApp ? "100svh" : undefined,
+        overflowX: isAndroidApp ? "clip" : "hidden",
+        touchAction: "pan-y",
+      }}
+    >
       
       {/* Cinematic Sacred Banner: aerial Puri Jagannath Temple feel with teal overlays and golden lighting */}
       <div 
@@ -123,11 +124,11 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
       <div className="absolute top-1/3 right-10 w-32 h-32 bg-teal-mid/10 rounded-full filter blur-2xl animate-pulse delay-700" />
 
       {/* Hero Central Content */}
-      <div id="hero-main-container" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex items-center pt-8 z-10">
+      <div id="hero-main-container" className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex items-center z-10 ${isAndroidApp ? "pt-8" : "pt-0"}`}>
         <div className="w-full flex justify-center text-center">
           
           {/* Headline and Copy (Centered layout) */}
-          <div className="flex flex-col items-center space-y-6 max-w-4xl mx-auto text-center">
+          <div className={`flex flex-col items-center max-w-4xl mx-auto text-center ${isAndroidApp ? "space-y-6" : "space-y-3"}`}>
             
             {/* Saffron & Teal Badge */}
             <div className="inline-flex items-center space-x-2 bg-white/5 border border-[#5EEAD4]/20 px-3.5 py-1.5 rounded-full text-[#5EEAD4] text-xs font-semibold uppercase tracking-widest animate-fadeIn mx-auto">
@@ -135,9 +136,16 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
               <span>World's First Premium Faith-Tech Platform</span>
             </div>
 
-            {/* Headline */}
+            {/* Headline — single line on Android APK; split tagline on website */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-white leading-tight text-center">
-              {t.tagline}
+              {isAndroidApp ? (
+                t.tagline
+              ) : (
+                <>
+                  <span className="block">Faith Beyond Distance.</span>
+                  <span className="block text-[#FFB347] mt-1">Blessings Beyond Borders.</span>
+                </>
+              )}
             </h1>
 
             {/* Sub-headline */}
@@ -146,7 +154,7 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
             </p>
 
             {/* CTA Option Blocks */}
-            <div className="flex flex-wrap gap-4 pt-2 justify-center">
+            <div className={`flex flex-wrap justify-center ${isAndroidApp ? "gap-4 pt-2" : "gap-3 pt-1"}`}>
               <button
                 id="hero-receive-certificate-cta"
                 onClick={handleOpenCertificateModal}
@@ -197,7 +205,7 @@ export default function Hero({ currentLanguage, onNavigate, onOpenBookNow, onOpe
       </div>
 
       {/* Floating animated statistics card - Trust Bar Section */}
-      <div id="trust-bar-section" className="relative mt-12 bg-[#092320]/80 py-6 z-10 w-full border-t border-b border-white/10 shadow-lg backdrop-blur-md">
+      <div id="trust-bar-section" className={`relative bg-[#092320]/80 z-10 w-full border-t border-b border-white/10 shadow-lg backdrop-blur-md ${isAndroidApp ? "mt-12 py-6" : "mt-4 py-3"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-4 text-center items-center">
             {trustStats.map((stat, i) => (

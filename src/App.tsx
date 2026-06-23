@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TempleExperience from "./components/TempleExperience";
-import SpiritualConsole from "./components/SpiritualConsole";
 import SevaExperience from "./components/SevaExperience";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import OnlinePuja from "./components/OnlinePuja";
@@ -32,18 +31,12 @@ import {
 } from "lucide-react";
 
 export default function App() {
+  // True only inside the Android APK — main.tsx adds this class via Capacitor detection.
+  // On localhost or GitHub Pages this is always false, so the bottom nav stays hidden.
+  const isAndroidApp = typeof document !== "undefined" && document.body.classList.contains("capacitor-android");
+
   const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
   const [currentPage, setCurrentPage] = useState<string>("home");
-
-  // ✅ Detect if running inside the actual Android app (Capacitor sets this
-  // class on <body> in main.tsx — see index.css comments). This is checked
-  // via state + useEffect (not read directly during render) because the
-  // class is only added after the page loads, and server/static rendering
-  // has no access to `document` at all.
-  const [isNativeApp, setIsNativeApp] = useState(false);
-  useEffect(() => {
-    setIsNativeApp(document.body.classList.contains("capacitor-android"));
-  }, []);
   
   // Cart, Booking wizards
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -68,6 +61,11 @@ export default function App() {
   const [activeLegalDoc, setActiveLegalDoc] = useState<null | "privacy" | "legal" | "terms" | "refund">(null);
 
   const t = TRANSLATIONS[currentLanguage];
+
+  const handleNavigate = (page: string) => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    setCurrentPage(page);
+  };
 
   // Load sample book on launch or sync with localStorage for durable persistence
   useEffect(() => {
@@ -191,17 +189,14 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#021816] text-white font-sans">
+    <div className="flex flex-col min-h-full bg-[#021816] text-white font-sans" style={{overflowX: 'hidden', touchAction: 'pan-y'}}>
       
       {/* 1. STICKY HEADER NAVIGATION */}
       <Navbar
         currentLanguage={currentLanguage}
         onLanguageChange={setCurrentLanguage}
         currentPage={currentPage}
-        onNavigate={(page) => {
-          window.scrollTo({ top: 0, behavior: "instant" });
-          setCurrentPage(page);
-        }}
+        onNavigate={handleNavigate}
         cart={cart}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenBookNow={() => {
@@ -221,7 +216,8 @@ export default function App() {
             {/* Cinematic Entrance */}
             <Hero
               currentLanguage={currentLanguage}
-              onNavigate={setCurrentPage}
+              isAndroidApp={isAndroidApp}
+              onNavigate={handleNavigate}
               onOpenBookNow={() => {
                 setWizardDefaults({ pujaName: "Vighnaharta Ganesha Success Puja", price: 626 });
                 setIsBookNowOpen(true);
@@ -230,36 +226,26 @@ export default function App() {
             />
             
             {/* Spotlight and lists */}
-           <TempleExperience
+            <TempleExperience
               onBookPuja={(templeName, deity) => {
                 setWizardDefaults({ pujaName: `${deity} Sankalpa offering (${templeName})`, price: 751 });
                 setIsBookNowOpen(true);
               }}
               onExploreTemple={(temple) => setActiveExploreTemple(temple)}
-              onNavigate={setCurrentPage}
+              onNavigate={handleNavigate}
             />
 
-            {/* Chants/Horoscope console */}
-            <SpiritualConsole
-              onBookService={(serviceName) => {
-                setWizardDefaults({ pujaName: `${serviceName} Vedic Guidance`, price: 1050 });
-                setIsBookNowOpen(true);
-              }}
-            />
+            {/* Web: Seva Hub on seva page only. Android APK: keep Seva Hub on home (pre-refactor layout). */}
+            {isAndroidApp && (
+              <SevaExperience
+                onSponsorSeva={(sevaName, price) => {
+                  setWizardDefaults({ pujaName: `Sponsorship donation: ${sevaName}`, price });
+                  setIsBookNowOpen(true);
+                }}
+              />
+            )}
 
-            {/* Giving and feed */}
-            <SevaExperience
-              onSponsorSeva={(sevaName, price) => {
-                setWizardDefaults({ pujaName: `Sponsorship donation: ${sevaName}`, price });
-                setIsBookNowOpen(true);
-              }}
-            />
-
-            {/* Testimonials and customer reviews carousel */}
             <DevoteeExperiences />
-
-            {/* Collapsible FAQ accordion questions */}
-            <FAQs />
           </div>
         )}
 
@@ -303,6 +289,7 @@ export default function App() {
         {currentPage === "about" && (
           <div className="animate-fadeIn">
             <AboutUs />
+            <SacredResources />
           </div>
         )}
 
@@ -326,15 +313,12 @@ export default function App() {
         )}
       </main>
 
-      {/* 3a. SACRED DAILY DEVOTION TOOLS (Mantra / Aarti / Chalisa / Sun & Moon Timings) */}
-      <SacredResources />
-
       {/* 3. COHESIVE SECURE PLATFORM FOOTER */}
-      <footer id="corporate-footer" className="bg-[#021816] text-white pt-16 pb-8 border-t border-white/10 text-left relative z-10">
+      <footer id="corporate-footer" className="bg-[#021816] text-white pt-10 pb-6 border-t border-white/10 text-left relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* ── Row 1: Brand + Links ───────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
 
             {/* Logo / brand block */}
             <div className="space-y-4">
@@ -355,17 +339,17 @@ export default function App() {
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
               <ul className="space-y-2 text-xs text-white/60 font-medium">
-                <li><button onClick={() => { setCurrentPage("home"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Home Portal</button></li>
-                <li><button onClick={() => { setCurrentPage("seva"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Seva Hub</button></li>
-                <li><button onClick={() => { setCurrentPage("puja"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Online Puja</button></li>
-                <li><button onClick={() => { setCurrentPage("products"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Temple Bazaar</button></li>
-                <li><button onClick={() => { setCurrentPage("about"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Our Divine Mission</button></li>
-                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Devotee Care</button></li>
-                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">My Dharmic ID</button></li>
+                <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
+                <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
+                <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
+                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
+                <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
+                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
+                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
                 <li>
                   <button
                     onClick={() => {
-                      setCurrentPage("home");
+                      handleNavigate("home");
                       setTimeout(() => {
                         document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "instant" });
                       }, 150);
@@ -375,9 +359,9 @@ export default function App() {
                     Explore Shrines
                   </button>
                 </li>
-                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Darshan Certificate</button></li>
-                <li><button onClick={() => { setCurrentPage("login"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Receive Prasad</button></li>
-                <li><button onClick={() => { setCurrentPage("contact"); window.scrollTo({ top: 0, behavior: "instant" }); }} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
+                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">Darshan Certificate</button></li>
+                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">Receive Prasad</button></li>
+                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
               </ul>
             </div>
 
@@ -475,80 +459,76 @@ export default function App() {
 
           </div>
 
-          {/* ── Row 2: Platform Disclaimer ────────────────────────────────────── */}
-          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-6 sm:p-8 space-y-3">
-            <div className="flex items-center space-x-2 mb-1">
-              <Heart className="w-4 h-4 text-[#FFB347] fill-[#FFB347]/30 shrink-0" />
-              <span className="text-[10px] font-mono font-bold text-[#FFB347]/80 uppercase tracking-widest">About Sri Dwar</span>
-            </div>
-            <p className="text-[12px] text-white/65 leading-relaxed">
-              Sri Dwar is a digital platform that supports millions of people on their spiritual and devotional journey. It helps devotees strengthen their connection with the Divine by providing meaningful guidance and making daily worship simple, accessible, and convenient.
-            </p>
-            <p className="text-[12px] text-white/65 leading-relaxed">
-              With Sri Dwar, you can worship anytime, anywhere — directly from your mobile phone, completely free of charge. In just a few clicks, you can create a beautiful digital temple, choose your preferred deities, and perform your daily prayers with devotion, all from the comfort of your phone.
-            </p>
-            <p className="text-[12px] text-white/65 leading-relaxed">
-              Sri Dwar is designed to make spirituality a part of everyday life, enabling devotees to stay connected to their faith wherever they are.
-            </p>
-          </div>
+          {/* ── Row 2: About Sri Dwar + Govt Initiative + Mobile App (merged) ── */}
+          <div className="mb-8 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
 
-          {/* ── Row 3: Government Initiative Recognition — Pending Approval ───── */}
-          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-6 sm:p-8 text-center">
-            <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest mb-3">
-              Government of India Initiatives
-            </p>
-            <p className="text-[12px] text-white/55 leading-relaxed max-w-xl mx-auto">
-              Sri Dwar has applied for recognition under the <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM (Government e-Marketplace)</strong>, and <strong className="text-white/75">Digital India</strong> initiatives. These applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
-            </p>
-          </div>
-
-          {/* ── Row 4: Coming Soon — Mobile Apps ─────────────────────────────── */}
-          <div className="mb-10 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
-            <div className="flex items-center space-x-2 mb-3">
-              <span className="text-base">📱</span>
-              <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Coming Soon</span>
-            </div>
-            <p className="text-[11px] text-white/50 mb-4 leading-relaxed">
-              Experience the full power of Sri Dwar on your phone — live darshans, one-tap puja booking, daily prayers, and personalised spiritual guidance. Available soon on Android and iOS.
-            </p>
-            <div className="flex flex-wrap gap-3">
-
-              {/* Google Play badge */}
-              <div className="flex items-center space-x-3 bg-[#0A1A18] border border-white/10 rounded-2xl px-4 py-3 min-w-[155px] cursor-not-allowed opacity-80 hover:opacity-100 hover:border-[#5EEAD4]/30 transition-all">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#1A1A2E]">
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                    <path d="M3.18 1.44A1 1 0 0 0 2 2.43v19.14a1 1 0 0 0 1.55.83l17-9.57a1 1 0 0 0 0-1.66L3.55 1.6a1 1 0 0 0-.37-.16z" fill="#00D26A"/>
-                    <path d="M2 21.57V2.43L13.06 12 2 21.57z" fill="#00B0FF" fillOpacity="0.7"/>
-                    <path d="M3.18 1.44l9.88 10.56L20.18 12 3.55 1.6a1 1 0 0 0-.37-.16z" fill="#FFD400" fillOpacity="0.9"/>
-                    <path d="M3.18 22.56l9.88-10.56 7.12.44L3.55 22.4a1 1 0 0 1-.37.16z" fill="#FF3D00" fillOpacity="0.9"/>
-                  </svg>
+              {/* About Sri Dwar */}
+              <div className="space-y-2 text-left">
+                <div className="flex items-center space-x-2">
+                  <Heart className="w-4 h-4 text-[#FFB347] fill-[#FFB347]/30 shrink-0" />
+                  <span className="text-[10px] font-mono font-bold text-[#FFB347]/80 uppercase tracking-widest">About Sri Dwar</span>
                 </div>
-                <div>
-                  <span className="block text-[8px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
-                  <span className="block text-xs font-bold text-white">Google Play</span>
-                  <span className="block text-[8px] text-white/30">Android</span>
-                </div>
+                <p className="text-[11px] text-white/65 leading-relaxed">
+                  Sri Dwar is a digital platform supporting millions on their spiritual journey — making daily worship simple, accessible, and convenient from your phone, free of charge.
+                </p>
+                <p className="text-[11px] text-white/55 leading-relaxed">
+                  Create a digital temple, choose your deities, and perform daily prayers with devotion wherever you are.
+                </p>
               </div>
 
-              {/* App Store badge */}
-              <div className="flex items-center space-x-3 bg-[#0A1A18] border border-white/10 rounded-2xl px-4 py-3 min-w-[155px] cursor-not-allowed opacity-80 hover:opacity-100 hover:border-[#5EEAD4]/30 transition-all">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#1C1C1E]">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                  </svg>
+              {/* Government of India Initiatives */}
+              <div className="space-y-2 text-left lg:border-x lg:border-white/8 lg:px-6">
+                <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest">
+                  Government of India Initiatives
+                </p>
+                <p className="text-[11px] text-white/55 leading-relaxed">
+                  Sri Dwar has applied for recognition under <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM</strong>, and <strong className="text-white/75">Digital India</strong>. Applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
+                </p>
+              </div>
+
+              {/* Mobile App — Coming Soon */}
+              <div className="space-y-3 text-left">
+                <div className="flex items-center space-x-2">
+                  <span className="text-base">📱</span>
+                  <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Coming Soon</span>
                 </div>
-                <div>
-                  <span className="block text-[8px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
-                  <span className="block text-xs font-bold text-white">App Store</span>
-                  <span className="block text-[8px] text-white/30">iOS &amp; iPadOS</span>
+                <p className="text-[10px] text-white/50 leading-relaxed">
+                  Live darshans, one-tap puja booking, daily prayers, and personalised guidance — on Android and iOS.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center space-x-2 bg-[#0A1A18] border border-white/10 rounded-xl px-3 py-2 min-w-[130px] cursor-not-allowed opacity-80">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#1A1A2E]">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                        <path d="M3.18 1.44A1 1 0 0 0 2 2.43v19.14a1 1 0 0 0 1.55.83l17-9.57a1 1 0 0 0 0-1.66L3.55 1.6a1 1 0 0 0-.37-.16z" fill="#00D26A"/>
+                        <path d="M2 21.57V2.43L13.06 12 2 21.57z" fill="#00B0FF" fillOpacity="0.7"/>
+                        <path d="M3.18 1.44l9.88 10.56L20.18 12 3.55 1.6a1 1 0 0 0-.37-.16z" fill="#FFD400" fillOpacity="0.9"/>
+                        <path d="M3.18 22.56l9.88-10.56 7.12.44L3.55 22.4a1 1 0 0 1-.37.16z" fill="#FF3D00" fillOpacity="0.9"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="block text-[7px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                      <span className="block text-[11px] font-bold text-white">Google Play</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-[#0A1A18] border border-white/10 rounded-xl px-3 py-2 min-w-[130px] cursor-not-allowed opacity-80">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#1C1C1E]">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="block text-[7px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                      <span className="block text-[11px] font-bold text-white">App Store</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
             </div>
-            <p className="text-[10px] font-mono text-[#FFB347]/50 mt-3">⭐ Follow us on WhatsApp to be the first to know when we launch</p>
           </div>
 
-          {/* ── Row 5: Legal links strip ──────────────────────────────────────── */}
+          {/* ── Row 3: Legal links strip ──────────────────────────────────────── */}
           <div className="pt-6 border-t border-white/8 mb-4">
             <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
               {(
@@ -581,42 +561,37 @@ export default function App() {
 
         </div>
       </footer>
-{/* BOTTOM NAVIGATION BAR */}
-      {/* This bottom tab bar is an Android-app-only UI pattern. It must
-          never render on the website (desktop or mobile browser) — only
-          inside the actual Capacitor Android app. */}
-      {isNativeApp && (
-        <nav style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: '#021816',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex', justifyContent: 'space-around',
-          padding: '8px 0 20px',
-          zIndex: 100
-        }}>
-          {[
-            { id:'home', icon:'🏛️', label:'Home' },
-            { id:'puja', icon:'🪔', label:'Puja' },
-            { id:'seva', icon:'🤲', label:'Seva' },
-            { id:'products', icon:'🛍️', label:'Shop' },
-            { id:'login', icon:'👤', label:'Profile' },
-          ].map(tab => (
-            <button key={tab.id} onClick={() => {
-              setCurrentPage(tab.id);
-              window.scrollTo({ top: 0, behavior: 'instant' });
-            }}
-              style={{
-                color: currentPage === tab.id ? '#FFB347' : 'rgba(255,255,255,0.5)',
-                background: 'none', border: 'none', fontSize: '10px',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                cursor: 'pointer', padding: '4px 8px'
-              }}>
-              <span style={{fontSize:'22px'}}>{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      )}
+{/* BOTTOM NAVIGATION BAR — Android app only, hidden on website */}
+      {isAndroidApp && <nav style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: '#021816',
+        borderTop: '1px solid rgba(255,255,255,0.1)',
+        display: 'flex', justifyContent: 'space-around',
+        padding: '8px 0 20px',
+        zIndex: 100
+      }}>
+        {[
+          { id:'home', icon:'🏛️', label:'Home' },
+          { id:'puja', icon:'🪔', label:'Puja' },
+          { id:'seva', icon:'🤲', label:'Seva' },
+          { id:'products', icon:'🛍️', label:'Shop' },
+          { id:'login', icon:'👤', label:'Profile' },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => {
+            setCurrentPage(tab.id);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          }}
+            style={{
+              color: currentPage === tab.id ? '#FFB347' : 'rgba(255,255,255,0.5)',
+              background: 'none', border: 'none', fontSize: '10px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+              cursor: 'pointer', padding: '4px 8px'
+            }}>
+            <span style={{fontSize:'22px'}}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </nav>}
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
       <AIAssistant currentLanguage={currentLanguage} />
 
