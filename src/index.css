@@ -1,60 +1,72 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
+/* ─── Design Tokens ──────────────────────────────────────────────────────── */
 @theme {
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-sacred-gold: #FFB347;
-  --color-sacred-gold-hover: #F27D26;
-  --color-saffron: #FF9933;
-  --color-saffron-light: #FFB366;
-  --color-teal-deep: #0F766E;
-  --color-teal-mid: #14B8A6;
-  --color-teal-light: #20DFCB;
-  --color-teal-glow: #5EEAD4;
-  --color-temple-ivory: #021816;
-  --color-spiritual-cream: #092320;
+  --color-sacred-gold:      #FFB347;
+  --color-sacred-gold-hover:#F27D26;
+  --color-saffron:          #FF9933;
+  --color-saffron-light:    #FFB366;
+  --color-teal-deep:        #0F766E;
+  --color-teal-mid:         #14B8A6;
+  --color-teal-light:       #20DFCB;
+  --color-teal-glow:        #5EEAD4;
+  --color-temple-ivory:     #021816;
+  --color-spiritual-cream:  #092320;
 }
 
+/* ─── Reset / Global ─────────────────────────────────────────────────────── */
+/*
+  Only cosmetic touch tweaks here — nothing that blocks scroll.
+  user-select: none stops text-highlight on tap (fine for an app-style site).
+  No overscroll-behavior, no overflow, no height — those live only on html/body below.
+*/
 * {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
-  /* REMOVED overscroll-behavior: none from here — it was blocking Android scroll passthrough */
 }
 
-/* Only apply overscroll lock to the page root, not every element */
-html, body {
-  overscroll-behavior-y: none;
-}
+/* ─── Page Scroll Foundation ─────────────────────────────────────────────── */
+/*
+  One place, one set of rules.  No !important needed here because nothing
+  above competes with these selectors.
 
+  - html: natural height, scrolls on the html element (standard browser behaviour)
+  - body: at least full viewport tall so background colour fills; overflow-x clipped
+  - #root: just a plain block — let content determine its height naturally
+
+  scroll-behavior is intentionally OMITTED.  smooth-scroll + rapid mouse-wheel
+  ticks causes the "stuck / stuttering" effect you described — each tick queues
+  a new animation that cancels the last, making the page feel frozen.
+  If you want smooth anchor-link jumps later, add it only to the anchor click
+  handler in JS, not globally in CSS.
+*/
 html {
   height: 100%;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;           /* wheel, keyboard, scrollbar-drag all work */
+  overscroll-behavior-y: none; /* no bounce/pull-to-refresh in the browser */
+  background-color: #021816;
+  color: #FFFFFF;
 }
 
 body {
-  min-height: 100%;
-  padding-bottom: 80px;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  position: relative;
+  min-height: 100%;           /* fills the viewport even when content is short */
+  overflow-x: hidden;
+  background-color: #021816;
+  color: #FFFFFF;
 }
 
-@layer base {
-  html, body {
-    scroll-behavior: smooth;
-    background-color: #021816;
-    color: #FFFFFF;
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+#root {
+  display: block;
 }
 
-/* Glassmorphism custom classes */
+/* ─── Glassmorphism ──────────────────────────────────────────────────────── */
 .glass-panel {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
@@ -67,37 +79,18 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.glow-diya {
-  box-shadow: 0 0 25px 5px rgba(255, 179, 71, 0.35);
-}
+/* ─── Glow Helpers ───────────────────────────────────────────────────────── */
+.glow-diya { box-shadow: 0 0 25px 5px rgba(255, 179, 71, 0.35); }
+.glow-teal { box-shadow: 0 10px 35px -10px rgba(94, 234, 212, 0.3); }
+.glow-gold { box-shadow: 0 0 20px 0 rgba(255, 179, 71, 0.35); }
 
-.glow-teal {
-  box-shadow: 0 10px 35px -10px rgba(94, 234, 212, 0.3);
-}
+/* ─── Scrollbar (desktop browsers) ──────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #021816; }
+::-webkit-scrollbar-thumb { background: #14B8A6; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #FFB347; }
 
-.glow-gold {
-  box-shadow: 0 0 20px 0 rgba(255, 179, 71, 0.35);
-}
-
-/* Scrollbar customizations */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #021816;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #14B8A6;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #FFB347;
-}
-
-/* Sanskrit separator accent */
+/* ─── Sanskrit Divider ───────────────────────────────────────────────────── */
 .sanskrit-divider {
   display: flex;
   align-items: center;
@@ -109,7 +102,6 @@ body {
   letter-spacing: 0.25em;
   margin: 1.5rem 0;
 }
-
 .sanskrit-divider::before,
 .sanskrit-divider::after {
   content: "";
@@ -118,24 +110,45 @@ body {
   margin: 0 1rem;
 }
 
-/* Android WebView scroll fix */
-html, body, #root {
-  height: auto !important;
-  min-height: 100% !important;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANDROID APP ONLY — these rules are 100% invisible to your website.
+   The class "capacitor-android" is added to <body> by main.tsx ONLY when
+   window.Capacitor is present, which happens only inside the Android APK.
+   Your GitHub Pages / localhost site will never have this class.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-#root {
-  display: block !important;
+/* Android needs a bottom gap for the navigation bar */
+body.capacitor-android {
+  padding-bottom: 80px;
 }
 
 /*
- * ─────────────────────────────────────────────────────────────────────────────
- * ANDROID CAPACITOR SCROLL FIX
- * These rules ONLY apply when the page is running inside the Android app.
- * The class "capacitor-android" is added to <body> by main.tsx at runtime
- * ONLY when window.Capacitor exists (i.e. inside the APK).
- * On your GitHub Pages website this class is NEVER added, so none of
- * these rules will ever fire there. Your website is 100% safe.
- * ─────────────────────────────────────────────────────────────────────────────
- */
+  backdrop-blur elements (Live Darshan panel, glass cards) create a new
+  compositing layer on Android WebView that intercepts finger swipes.
+  translateZ(0) promotes them to their own GPU layer the right way,
+  and touch-action: pan-y tells the WebView "vertical swipes = page scroll,
+  always — do not intercept them."
+*/
+body.capacitor-android [class*="backdrop-blur"] {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  touch-action: pan-y;
+}
 
+/*
+  Inner scrollable lists (temple drawer, etc.) should hand off to the page
+  scroll once they reach their own top or bottom edge.
+*/
+body.capacitor-android [class*="overflow-y-auto"] {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/*
+  Fixed bottom nav bar: only respond to taps, never intercept swipes
+  that are meant for content underneath.
+*/
+body.capacitor-android nav[style*="position: fixed"] {
+  touch-action: manipulation;
+}

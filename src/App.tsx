@@ -34,6 +34,16 @@ import {
 export default function App() {
   const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
   const [currentPage, setCurrentPage] = useState<string>("home");
+
+  // ✅ Detect if running inside the actual Android app (Capacitor sets this
+  // class on <body> in main.tsx — see index.css comments). This is checked
+  // via state + useEffect (not read directly during render) because the
+  // class is only added after the page loads, and server/static rendering
+  // has no access to `document` at all.
+  const [isNativeApp, setIsNativeApp] = useState(false);
+  useEffect(() => {
+    setIsNativeApp(document.body.classList.contains("capacitor-android"));
+  }, []);
   
   // Cart, Booking wizards
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -181,7 +191,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-[#021816] text-white font-sans" style={{overflowX: 'clip'}}>
+    <div className="flex flex-col min-h-screen bg-[#021816] text-white font-sans">
       
       {/* 1. STICKY HEADER NAVIGATION */}
       <Navbar
@@ -572,36 +582,41 @@ export default function App() {
         </div>
       </footer>
 {/* BOTTOM NAVIGATION BAR */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: '#021816',
-        borderTop: '1px solid rgba(255,255,255,0.1)',
-        display: 'flex', justifyContent: 'space-around',
-        padding: '8px 0 20px',
-        zIndex: 100
-      }}>
-        {[
-          { id:'home', icon:'🏛️', label:'Home' },
-          { id:'puja', icon:'🪔', label:'Puja' },
-          { id:'seva', icon:'🤲', label:'Seva' },
-          { id:'products', icon:'🛍️', label:'Shop' },
-          { id:'login', icon:'👤', label:'Profile' },
-        ].map(tab => (
-          <button key={tab.id} onClick={() => {
-            setCurrentPage(tab.id);
-            window.scrollTo({ top: 0, behavior: 'instant' });
-          }}
-            style={{
-              color: currentPage === tab.id ? '#FFB347' : 'rgba(255,255,255,0.5)',
-              background: 'none', border: 'none', fontSize: '10px',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-              cursor: 'pointer', padding: '4px 8px'
-            }}>
-            <span style={{fontSize:'22px'}}>{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      {/* This bottom tab bar is an Android-app-only UI pattern. It must
+          never render on the website (desktop or mobile browser) — only
+          inside the actual Capacitor Android app. */}
+      {isNativeApp && (
+        <nav style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#021816',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex', justifyContent: 'space-around',
+          padding: '8px 0 20px',
+          zIndex: 100
+        }}>
+          {[
+            { id:'home', icon:'🏛️', label:'Home' },
+            { id:'puja', icon:'🪔', label:'Puja' },
+            { id:'seva', icon:'🤲', label:'Seva' },
+            { id:'products', icon:'🛍️', label:'Shop' },
+            { id:'login', icon:'👤', label:'Profile' },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => {
+              setCurrentPage(tab.id);
+              window.scrollTo({ top: 0, behavior: 'instant' });
+            }}
+              style={{
+                color: currentPage === tab.id ? '#FFB347' : 'rgba(255,255,255,0.5)',
+                background: 'none', border: 'none', fontSize: '10px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                cursor: 'pointer', padding: '4px 8px'
+              }}>
+              <span style={{fontSize:'22px'}}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      )}
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
       <AIAssistant currentLanguage={currentLanguage} />
 
