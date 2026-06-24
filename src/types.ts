@@ -40,6 +40,8 @@ export interface Puja {
   prasadIncluded: boolean;
   price: number;
   imageUrl: string;
+  duration?: string;
+  materialsIncluded?: string[];
 }
 
 export interface Product {

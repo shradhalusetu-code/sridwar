@@ -260,18 +260,16 @@ export default function Navbar({
           id="mobile-drawer-overlay"
           className="fixed inset-0 z-50 bg-[#021816]/70 backdrop-blur-md flex justify-end animate-fadeIn"
         >
-          <div className="w-4/5 max-w-sm bg-[#04201e] border-l border-white/10 h-full shadow-2xl flex flex-col justify-between p-6 animate-slideLeft text-white">
+          <div className="w-4/5 max-w-sm bg-[#04201e] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-white overflow-hidden">
+            {/* Scrollable inner content */}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-6 flex flex-col justify-between"
+              onTouchMove={e => e.stopPropagation()}
+            >
             <div>
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-6 border-b border-white/10">
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-[#FFB347] to-[#F27D26] flex items-center justify-center p-0.5 shadow-[0_0_12px_rgba(255,179,71,0.3)]">
-                    <span className="text-base font-serif text-[#021816] font-bold">श्री</span>
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-base font-serif font-bold text-[#5EEAD4]">Sri Dwar</span>
-                    <span className="text-[8px] tracking-widest font-mono text-[#FFB347] uppercase font-bold">Faith Beyond Distance</span>
-                  </div>
+                <div className="flex items-center">
+                  <SriDwarLogo variant="colored" iconSize="sm" showTagline={true} />
                 </div>
                 <button
                   id="close-mobile-menu"
@@ -408,6 +406,7 @@ export default function Navbar({
               <p className="text-[9px] text-white/40 mt-4 text-center">
                 Shradhalu Private Limited
               </p>
+            </div>
             </div>
           </div>
         </div>

@@ -22,13 +22,21 @@
 /* ─── Reset / Global ─────────────────────────────────────────────────────── */
 /*
   Only cosmetic touch tweaks here — nothing that blocks scroll.
-  user-select: none stops text-highlight on tap (fine for an app-style site).
+  user-select is intentionally NOT set here so users can copy text normally.
   No overscroll-behavior, no overflow, no height — those live only on html/body below.
 */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/*
+  Suppress the iOS long-press callout (Save Image, Open Link…) on the Android
+  APK only — where it causes accidental popups during scrolling.
+  On the website (desktop + iPhone browser) we leave it at the browser default
+  so that the normal "Copy / Look Up" menu still appears for users.
+*/
+body.capacitor-android * {
   -webkit-touch-callout: none;
-  user-select: none;
 }
 
 /* ─── Page Scroll Foundation ─────────────────────────────────────────────── */
