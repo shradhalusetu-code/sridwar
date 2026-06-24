@@ -57,7 +57,7 @@ export default function SriDwarLogo({
           src={logoImgSrc}
           alt="Sri Dwar Logo"
           referrerPolicy="no-referrer"
-          className={`${selectedHeight} w-auto object-contain select-none transition-all duration-300 drop-shadow-[0_2px_10px_rgba(242,116,32,0.25)]`}
+          className={`${selectedHeight} w-auto object-contain select-none transition-all duration-300 drop-shadow-[0_2px_10px_rgba(242,116,32,0.25)] brightness-0 invert`}
         />
       </div>
     );
