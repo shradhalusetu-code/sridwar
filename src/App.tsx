@@ -280,10 +280,6 @@ export default function App() {
 
         {currentPage === "products" && (
           <div className="animate-fadeIn">
-            <ProductCatalog
-              onAddToCart={handleAddToCart}
-              cart={cart}
-            />
             <TemplateBazaar onNavigate={handleNavigate} />
           </div>
         )}

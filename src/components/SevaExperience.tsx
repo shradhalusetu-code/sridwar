@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag } from "lucide-react";
+import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, X } from "lucide-react";
+import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 
 // ─── Market-researched prices with 50% off applied ─────────────────────────
@@ -232,9 +233,19 @@ const LIVE_TICKERS = [
 export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
+  const [showUPI, setShowUPI] = useState(false);
+  const [showDetailsForm, setShowDetailsForm] = useState(false);
+  const [upiAmount, setUpiAmount] = useState(0);
+  const [upiSevaName, setUpiSevaName] = useState("");
+  const [upiRefId, setUpiRefId] = useState("");
   const [tickerIndex, setTickerIndex] = useState(0);
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+
+  // User details form state
+  const [devoteeName, setDevoteeName] = useState("");
+  const [devoteePhone, setDevoteePhone] = useState("");
+  const [devoteeGotra, setDevoteeGotra] = useState("");
 
   useEffect(() => {
     const t = setInterval(() => setTickerIndex((p) => (p + 1) % LIVE_TICKERS.length), 4500);
@@ -247,8 +258,29 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   }, []);
 
   const handleSponsor = (name: string, amount: number) => {
-    // Opens the Puja Sankalpa Portal (BookNowWizard) via App.tsx onSponsorSeva
-    onSponsorSeva(name, amount);
+    setUpiSevaName(name);
+    setUpiAmount(amount);
+    setUpiRefId("SDV-" + Math.floor(100000 + Math.random() * 900000));
+    setShowDetailsForm(true); // Show details form first
+  };
+
+  const handleDetailsSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!devoteeName.trim() || !devoteePhone.trim()) {
+      alert("Please enter your name and phone number to proceed.");
+      return;
+    }
+    // Sync devotee details to Sri Dwar Technology (seva_booking form)
+    syncToGoogleForm("seva_booking", {
+      name: devoteeName.trim(),
+      email: "",
+      phone: devoteePhone.trim(),
+      details: `Seva: ${upiSevaName} | Amount: ₹${upiAmount} | Gotra: ${devoteeGotra || "Not provided"} | Ref: ${upiRefId}`,
+      type: `Seva Sponsorship — ${upiSevaName}`,
+      gotra: devoteeGotra || undefined,
+    });
+    setShowDetailsForm(false);
+    setShowUPI(true);
   };
 
   const handleSendMessage = (e: FormEvent) => {
@@ -366,8 +398,8 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           </div>
 
           {/* RIGHT: Live Feed + Chat — col-span-5, sticky top */}
-          <div className="lg:col-span-5 lg:sticky lg:top-6">
-            <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white">
+          <div className="lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0">
+            <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white min-h-[520px]">
 
               {/* Live Feed header */}
               <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
@@ -406,7 +438,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
               </div>
 
               {/* Devotee Chat */}
-              <div className="px-4 pb-4 flex flex-col min-h-0">
+              <div className="px-4 pb-4 flex flex-col flex-1 min-h-0">
                 <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3 shrink-0">
                   <span className="text-xs font-bold text-white/80">Prabhuji Prayer Chat Rooms</span>
                   <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold">
@@ -418,8 +450,8 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                 {/* Messages */}
                 <div
                   id="chat-messages-container"
-                  className="overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
-                  style={{ maxHeight: "260px", minHeight: "180px" }}
+                  className="flex-1 overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
+                  style={{ minHeight: "160px", maxHeight: "320px" }}
                 >
                   {chatMessages.map((msg, i) => (
                     <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
@@ -459,6 +491,96 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
       </div>
 
 
+      {/* ── Step 1: Devotee Details Form ── */}
+      {showDetailsForm && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl overflow-hidden my-auto">
+
+            {/* Header */}
+            <div className="bg-[#021816] px-5 py-4 flex items-center justify-between border-b border-white/10">
+              <div>
+                <h3 className="font-serif text-sm font-bold text-white">Devotee Details</h3>
+                <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider">{upiSevaName}</p>
+              </div>
+              <button
+                onClick={() => setShowDetailsForm(false)}
+                className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleDetailsSubmit} className="p-5 space-y-4">
+              <p className="text-xs text-white/60 leading-relaxed">
+                🙏 Please enter your details so our pandits can perform the seva in your name and Gotra.
+              </p>
+
+              {/* Seva summary */}
+              <div className="bg-[#021816] rounded-2xl p-3 border border-white/10 flex items-center justify-between">
+                <span className="text-xs text-white/60 font-mono">{upiSevaName}</span>
+                <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{upiAmount}</span>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={devoteeName}
+                  onChange={(e) => setDevoteeName(e.target.value)}
+                  placeholder="e.g. Anand Satpathy"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">WhatsApp / Phone *</label>
+                <input
+                  type="tel"
+                  required
+                  value={devoteePhone}
+                  onChange={(e) => setDevoteePhone(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                />
+              </div>
+
+              {/* Gotra (optional) */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">Gotra <span className="text-white/40 font-normal">(Optional)</span></label>
+                <input
+                  type="text"
+                  value={devoteeGotra}
+                  onChange={(e) => setDevoteeGotra(e.target.value)}
+                  placeholder="e.g. Kashyap, Bharadwaj"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                />
+                <p className="text-[10px] text-white/30 mt-1 font-mono">Used by pandits for Sankalpa recitation</p>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs tracking-widest uppercase transition-all shadow"
+              >
+                Proceed to Payment →
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 2: UPI Payment Modal ── */}
+      <UPIPaymentModal
+        isOpen={showUPI}
+        onClose={() => setShowUPI(false)}
+        onPaymentConfirmed={() => { setShowUPI(false); onSponsorSeva(upiSevaName, upiAmount); }}
+        amount={upiAmount}
+        bookingName={upiSevaName}
+        devoteeName={devoteeName || "Devotee"}
+        refId={upiRefId}
+      />
     </section>
   );
 }

@@ -2,16 +2,21 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  *
- * TemplateBazaar — Sri Dwar Sacred Store
- * A curated marketplace for temple prasad, puja kits, and sacred items.
- * Flow: Browse → Select → Enter Devotee Details → UPI Payment
+ * TemplateBazaar — Sri Dwar Sacred Marketplace & Temple Bazaar Store
+ * Unified section combining sacred products + services.
+ * Flow: Browse → Puja Sankalpa Portal → Complete Your Sacred Offering (UPI)
  */
 
 import { useState, FormEvent } from "react";
-import { ShoppingBag, X, Star, Package, Truck, ShieldCheck, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ShoppingBag, X, Star, Package, Truck, ShieldCheck,
+  Tag, ChevronDown, ChevronUp, Flame, BookOpen, Heart
+} from "lucide-react";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
-import { validateName, validatePhone, validateEmail, validatePincode } from "../utils/formValidation";
+import SriDwarLogo from "./SriDwarLogo";
+
+// ─── Product catalogue ─────────────────────────────────────────────────────
 interface BazaarItem {
   id: string;
   name: string;
@@ -22,9 +27,11 @@ interface BazaarItem {
   imageUrl: string | null;
   badge?: string;
   includes?: string[];
+  isService?: boolean; // true = seva/puja service (no shipping address needed)
 }
 
 const BAZAAR_ITEMS: BazaarItem[] = [
+  // ── Physical Products ──────────────────────────────────────────────────
   {
     id: "bazaar-puri-prasad",
     name: "Jagannath Puri Mahaprasad Kit",
@@ -90,79 +97,144 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     badge: "Handcrafted",
     includes: ["6-inch Brass Idol", "Energisation Certificate", "Red Velvet Base"],
   },
+
+  // ── Seva / Puja Services (no delivery, isService=true) ─────────────────
+  {
+    id: "bazaar-rudrabhishek",
+    name: "Rudrabhishek Puja Service",
+    description: "Live Rudrabhishek at Kashi Vishwanath or Lingaraj Mandir — performed in your name & Gotra with live photo confirmation.",
+    price: 1100,
+    mrp: 2200,
+    category: "Puja Services",
+    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg",
+    badge: "Live Puja",
+    isService: true,
+    includes: ["Performed in your Gotra", "Live Photo Proof", "WhatsApp Confirmation", "Digital Certificate"],
+  },
+  {
+    id: "bazaar-navagraha",
+    name: "Navagraha Shanti Homa",
+    description: "Nine-planet pacification homa to remove planetary doshas — performed by Jyotish-trained Acharyas at Ujjain Mahakaleshwar.",
+    price: 4000,
+    mrp: 8000,
+    category: "Puja Services",
+    imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg",
+    badge: "50% OFF",
+    isService: true,
+    includes: ["Jyotish-trained Acharya", "All Herbal Samidha included", "Video Confirmation", "Digital Certificate"],
+  },
+  {
+    id: "bazaar-annadanam",
+    name: "Annadanam Sponsorship",
+    description: "Sponsor hot meals for 35+ pilgrims at Jagannath Puri — the most auspicious seva in Odisha's temple tradition.",
+    price: 900,
+    mrp: 1800,
+    category: "Puja Services",
+    imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg",
+    badge: "High Impact",
+    isService: true,
+    includes: ["Feeds 35+ pilgrims", "Performed at Puri Temple", "Photo Report", "WhatsApp Receipt"],
+  },
 ];
 
 const CATEGORIES = ["All", ...Array.from(new Set(BAZAAR_ITEMS.map(i => i.category)))];
 
+const RASHI_OPTIONS = [
+  "Mesh (Aries)", "Vrishabh (Taurus)", "Mithun (Gemini)", "Karka (Cancer)",
+  "Simha (Leo)", "Kanya (Virgo)", "Tula (Libra)", "Vrishchik (Scorpio)",
+  "Dhanu (Sagittarius)", "Makar (Capricorn)", "Kumbh (Aquarius)", "Meen (Pisces)",
+];
+
 interface TemplateBazaarProps {
   onNavigate?: (page: string) => void;
-  /** Called when the user taps "Buy Now" — opens the Puja Sankalpa Portal (BookNowWizard).
-   *  Wire this in App.tsx the same way onSponsorSeva is wired for SevaExperience:
-   *  onOpenBookNow={(itemName, price) => { setWizardDefaults({ pujaName: `Temple Bazaar: ${itemName}`, price }); setIsBookNowOpen(true); }}
-   */
-  onOpenBookNow?: (itemName: string, price: number) => void;
 }
 
-export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBazaarProps) {
+export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
-  // Details form state — used only when onOpenBookNow is not provided (fallback)
-  const [showDetailsForm, setShowDetailsForm] = useState(false);
+  // Sankalpa Portal (step 1) state
+  const [showSankalpa, setShowSankalpa] = useState(false);
   const [selectedItem, setSelectedItem] = useState<BazaarItem | null>(null);
-  const [devoteeName, setDevoteeName] = useState("");
-  const [devoteePhone, setDevoteePhone] = useState("");
-  const [devoteeEmail, setDevoteeEmail] = useState("");
+
+  // Form fields
+  const [devoteeName, setDevoteeName]       = useState("");
+  const [devoteePhone, setDevoteePhone]     = useState("");
+  const [devoteeEmail, setDevoteeEmail]     = useState("");
+  const [devoteeGotra, setDevoteeGotra]     = useState("");
+  const [devoteeRashi, setDevoteeRashi]     = useState("Mesh (Aries)");
+  const [sankalpaIntent, setSankalpaIntent] = useState("");
+  // Physical product delivery fields (only shown for non-service items)
   const [devoteeAddress, setDevoteeAddress] = useState("");
   const [devoteePincode, setDevoteePincode] = useState("");
 
-  // UPI payment state — used only in fallback mode
-  const [showUPI, setShowUPI] = useState(false);
-  const [refId, setRefId] = useState("");
+  // UPI payment (step 2) state
+  const [showUPI, setShowUPI]   = useState(false);
+  const [refId, setRefId]       = useState("");
 
   const filteredItems = selectedCategory === "All"
     ? BAZAAR_ITEMS
     : BAZAAR_ITEMS.filter(i => i.category === selectedCategory);
 
+  // ── Open Sankalpa Portal ────────────────────────────────────────────────
   const handleBuyNow = (item: BazaarItem) => {
-    if (onOpenBookNow) {
-      // ✅ Primary path: open the Puja Sankalpa Portal (BookNowWizard) via App.tsx
-      onOpenBookNow(`Temple Bazaar: ${item.name}`, item.price);
-    } else {
-      // Fallback: local delivery details form + UPI modal (used when prop not wired)
-      setSelectedItem(item);
-      setRefId("SDB-" + Math.floor(100000 + Math.random() * 900000));
-      setShowDetailsForm(true);
-    }
+    setSelectedItem(item);
+    setRefId((item.isService ? "SDV-" : "SDB-") + Math.floor(100000 + Math.random() * 900000));
+    setShowSankalpa(true);
   };
 
-  const handleDetailsSubmit = (e: FormEvent) => {
+  // ── Submit Sankalpa Portal → go to payment ──────────────────────────────
+  const handleSankalpaSubmit = (e: FormEvent) => {
     e.preventDefault();
-
-    // ── Global validation ──────────────────────────────────────────────────
-    const nameErr    = validateName(devoteeName);
-    const phoneErr   = validatePhone(devoteePhone);
-    const emailErr   = validateEmail(devoteeEmail);
-    const pincodeErr = validatePincode(devoteePincode);
-    if (nameErr)    { alert(nameErr);    return; }
-    if (phoneErr)   { alert(phoneErr);   return; }
-    if (emailErr)   { alert(emailErr);   return; }
-    if (!devoteeAddress.trim() || devoteeAddress.trim().length < 5) {
-      alert("Please enter a valid delivery address."); return;
+    if (!devoteeName.trim() || !devoteePhone.trim()) {
+      alert("Please enter your name and WhatsApp number to proceed.");
+      return;
     }
-    if (pincodeErr) { alert(pincodeErr); return; }
-    // ──────────────────────────────────────────────────────────────────────
+    if (!selectedItem?.isService && (!devoteeAddress.trim() || !devoteePincode.trim())) {
+      alert("Please enter your delivery address and PIN code.");
+      return;
+    }
 
+    // Sync to seva_booking Google Form
     syncToGoogleForm("seva_booking", {
-      name: devoteeName.trim(),
-      email: devoteeEmail.trim(),
-      phone: devoteePhone.trim(),
-      details: `Item: ${selectedItem?.name} | Amount: ₹${selectedItem?.price} | Address: ${devoteeAddress.trim()} | Pincode: ${devoteePincode.trim()} | Ref: ${refId}`,
-      type: `Temple Bazaar Order — ${selectedItem?.name}`,
-      city: devoteeAddress.trim(),
+      name:         devoteeName.trim(),
+      email:        devoteeEmail.trim(),
+      phone:        devoteePhone.trim(),
+      gotra:        devoteeGotra || undefined,
+      rashi:        devoteeRashi || undefined,
+      intent:       sankalpaIntent.trim() || undefined,
+      type:         selectedItem?.isService
+                      ? `Puja Service — ${selectedItem?.name}`
+                      : `Temple Bazaar Order — ${selectedItem?.name}`,
+      details:      `Item: ${selectedItem?.name} | ` +
+                    `Amount: ₹${selectedItem?.price} | ` +
+                    `Gotra: ${devoteeGotra || "Not provided"} | ` +
+                    `Rashi: ${devoteeRashi} | ` +
+                    (selectedItem?.isService
+                      ? `Intent: ${sankalpaIntent || "General blessings"}`
+                      : `Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
+                    ` | Ref: ${refId}`,
+      fee:          selectedItem?.price,
+      city:         selectedItem?.isService ? "Online Devotee" : devoteeAddress.trim(),
+      whatsapp:     devoteePhone.trim(),
     });
-    setShowDetailsForm(false);
+
+    setShowSankalpa(false);
     setShowUPI(true);
+  };
+
+  // ── After payment confirmed ─────────────────────────────────────────────
+  const handlePaymentConfirmed = () => {
+    setShowUPI(false);
+    const msg = selectedItem?.isService
+      ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a WhatsApp confirmation within 2 hours. Ref: ${refId}`
+      : `🙏 Order confirmed! Your ${selectedItem?.name} will be shipped within 3–5 working days. Ref: ${refId}`;
+    alert(msg);
+    // Reset form fields
+    setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");
+    setDevoteeGotra(""); setDevoteeRashi("Mesh (Aries)");
+    setSankalpaIntent(""); setDevoteeAddress(""); setDevoteePincode("");
+    setSelectedItem(null);
   };
 
   return (
@@ -173,14 +245,17 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Header */}
+        {/* ── Section Header ───────────────────────────────────────────── */}
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono uppercase">Sacred Marketplace</span>
+          <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono uppercase">
+            Sacred Marketplace
+          </span>
           <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
             Temple Bazaar Store
           </h2>
           <p className="text-xs text-white/70 mt-2 leading-relaxed">
-            Authentic prasad, puja essentials, and sacred items — sourced directly from temples across India and delivered to your doorstep.
+            Authentic prasad, puja kits, sacred items & live puja services — sourced from temples across India,
+            performed in your Gotra, delivered to your doorstep.
           </p>
           <div className="inline-flex items-center gap-2 mt-3 bg-red-500/15 border border-red-400/30 text-red-300 text-xs font-bold px-4 py-1.5 rounded-full">
             <Tag className="w-3.5 h-3.5" />
@@ -188,7 +263,7 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
           </div>
         </div>
 
-        {/* Category Filter */}
+        {/* ── Category Filter ──────────────────────────────────────────── */}
         <div className="flex flex-wrap gap-2 justify-center mb-8">
           {CATEGORIES.map(cat => (
             <button
@@ -205,7 +280,7 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
           ))}
         </div>
 
-        {/* Items Grid */}
+        {/* ── Items Grid ───────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredItems.map(item => (
             <div
@@ -228,6 +303,13 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
                 {item.badge && (
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
                     {item.badge}
+                  </span>
+                )}
+                {/* Service badge */}
+                {item.isService && (
+                  <span className="absolute top-2 right-2 bg-[#FFB347] text-[#021816] text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide flex items-center gap-1">
+                    <Flame className="w-2.5 h-2.5" />
+                    Live Seva
                   </span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#092320]/90 to-transparent p-2">
@@ -253,8 +335,7 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
                       What's included
                       {expandedItem === item.id
                         ? <ChevronUp className="w-3 h-3" />
-                        : <ChevronDown className="w-3 h-3" />
-                      }
+                        : <ChevronDown className="w-3 h-3" />}
                     </button>
                     {expandedItem === item.id && (
                       <ul className="mt-1.5 space-y-0.5">
@@ -269,7 +350,7 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
                   </div>
                 )}
 
-                {/* Price + Buy */}
+                {/* Price + CTA */}
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10">
                   <div>
                     <span className="block text-[10px] line-through text-white/30 font-mono">₹{item.mrp}</span>
@@ -279,8 +360,9 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
                     onClick={() => handleBuyNow(item)}
                     className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[10px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5"
                   >
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                    Buy Now
+                    {item.isService
+                      ? <><Flame className="w-3.5 h-3.5" /> Book Seva</>
+                      : <><ShoppingBag className="w-3.5 h-3.5" /> Buy Now</>}
                   </button>
                 </div>
               </div>
@@ -288,12 +370,12 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
           ))}
         </div>
 
-        {/* Trust badges */}
+        {/* ── Trust Badges ─────────────────────────────────────────────── */}
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: <Truck className="w-5 h-5 text-[#FFB347]" />, title: "Free Shipping", desc: "On all orders above ₹499" },
-            { icon: <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />, title: "Temple Verified", desc: "All items sourced from registered temples" },
-            { icon: <Package className="w-5 h-5 text-emerald-400" />, title: "Secure Packaging", desc: "Ritually sealed before dispatch" },
+            { icon: <Truck className="w-5 h-5 text-[#FFB347]" />,          title: "Free Shipping",     desc: "On all product orders above ₹499" },
+            { icon: <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />,    title: "Temple Verified",   desc: "All items sourced from registered temples" },
+            { icon: <Heart className="w-5 h-5 text-pink-400" fill="currentColor" />, title: "Seva Guarantee",   desc: "Live photo proof for every puja service" },
           ].map((badge, i) => (
             <div key={i} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
               {badge.icon}
@@ -307,47 +389,72 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
 
       </div>
 
-      {/* ── Step 1: Delivery Details Form ── */}
-      {showDetailsForm && selectedItem && (
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 1: Puja Sankalpa Portal
+      ══════════════════════════════════════════════════════════════════ */}
+      {showSankalpa && selectedItem && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl overflow-hidden my-auto">
 
-            <div className="bg-[#021816] px-5 py-4 flex items-center justify-between border-b border-white/10">
-              <div>
-                <h3 className="font-serif text-sm font-bold text-white">Delivery Details</h3>
-                <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider truncate max-w-[180px]">{selectedItem.name}</p>
+            {/* Modal Header with Logo */}
+            <div className="bg-[#021816] px-5 py-4 border-b border-white/10">
+              {/* Sri Dwar Brand Logo */}
+              <div className="flex justify-center mb-3">
+                <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
               </div>
-              <button
-                onClick={() => setShowDetailsForm(false)}
-                className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-serif text-sm font-bold text-white">Puja Sankalpa Portal</h3>
+                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 truncate max-w-[200px]">
+                    {selectedItem.name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSankalpa(false)}
+                  className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 ml-2"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleDetailsSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleSankalpaSubmit} className="p-5 space-y-4">
+
+              {/* Item + price summary */}
               <div className="bg-[#021816] rounded-2xl p-3 border border-white/10 flex items-center justify-between">
-                <span className="text-xs text-white/60 font-mono truncate max-w-[160px]">{selectedItem.name}</span>
-                <span className="text-sm font-extrabold text-[#FFB347] font-serif shrink-0">₹{selectedItem.price}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  {selectedItem.isService
+                    ? <Flame className="w-4 h-4 text-[#FFB347] shrink-0" />
+                    : <ShoppingBag className="w-4 h-4 text-[#5EEAD4] shrink-0" />}
+                  <span className="text-xs text-white/70 font-mono truncate">{selectedItem.name}</span>
+                </div>
+                <div className="text-right shrink-0 ml-2">
+                  <span className="block text-[9px] line-through text-white/30 font-mono">₹{selectedItem.mrp}</span>
+                  <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{selectedItem.price}</span>
+                </div>
               </div>
 
+              <p className="text-[11px] text-white/60 leading-relaxed">
+                🙏 Please enter your Sankalpa details so our pandits can perform this {selectedItem.isService ? "seva" : "offering"} in your name and Gotra.
+              </p>
+
+              {/* Full Name */}
               <div>
                 <label className="block text-xs font-bold text-white/80 mb-1">Full Name *</label>
                 <input
-                  type="text"
-                  required
+                  type="text" required
                   value={devoteeName}
                   onChange={e => setDevoteeName(e.target.value)}
-                  placeholder="e.g. Anand Satpathy"
+                  placeholder="e.g. Anand Kumar Satpathy"
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                 />
               </div>
 
+              {/* WhatsApp */}
               <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">WhatsApp / Phone *</label>
+                <label className="block text-xs font-bold text-white/80 mb-1">WhatsApp Number *</label>
                 <input
-                  type="tel"
-                  required
+                  type="tel" required
                   value={devoteePhone}
                   onChange={e => setDevoteePhone(e.target.value)}
                   placeholder="e.g. 9876543210"
@@ -355,72 +462,118 @@ export default function TemplateBazaar({ onNavigate, onOpenBookNow }: TemplateBa
                 />
               </div>
 
+              {/* Email (optional) */}
               <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">Email Address *</label>
+                <label className="block text-xs font-bold text-white/80 mb-1">
+                  Email <span className="text-white/40 font-normal">(Optional)</span>
+                </label>
                 <input
                   type="email"
-                  required
                   value={devoteeEmail}
                   onChange={e => setDevoteeEmail(e.target.value)}
-                  placeholder="e.g. name@gmail.com"
+                  placeholder="e.g. anand@email.com"
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                 />
               </div>
 
+              {/* Gotra + Rashi */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-white/80 mb-1">
+                    Gotra <span className="text-white/40 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={devoteeGotra}
+                    onChange={e => setDevoteeGotra(e.target.value)}
+                    placeholder="e.g. Kashyap"
+                    className="w-full text-xs px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-white/80 mb-1">Rashi (Moon Sign)</label>
+                  <select
+                    value={devoteeRashi}
+                    onChange={e => setDevoteeRashi(e.target.value)}
+                    className="w-full text-xs px-2.5 py-2.5 rounded-xl bg-[#021816] border border-white/10 text-[#5EEAD4] font-medium focus:outline-none focus:border-[#5EEAD4]"
+                  >
+                    {RASHI_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Sankalpa / Intention */}
               <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">Delivery Address *</label>
+                <label className="block text-xs font-bold text-white/80 mb-1 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                  Sankalpa Intention <span className="text-white/40 font-normal">(Optional)</span>
+                </label>
                 <textarea
-                  required
                   rows={2}
-                  value={devoteeAddress}
-                  onChange={e => setDevoteeAddress(e.target.value)}
-                  placeholder="House No., Street, City, State"
+                  value={sankalpaIntent}
+                  onChange={e => setSankalpaIntent(e.target.value)}
+                  placeholder="e.g. For the health and prosperity of my family..."
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
                 />
+                <p className="text-[10px] text-white/30 mt-1 font-mono">The pandit will recite this during Sankalpa</p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">PIN Code *</label>
-                <input
-                  type="text"
-                  required
-                  maxLength={6}
-                  value={devoteePincode}
-                  onChange={e => setDevoteePincode(e.target.value.replace(/\D/g, ""))}
-                  placeholder="e.g. 751001"
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
-                />
-              </div>
+              {/* Delivery fields — only for physical products */}
+              {!selectedItem.isService && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-white/80 mb-1">Delivery Address *</label>
+                    <textarea
+                      required rows={2}
+                      value={devoteeAddress}
+                      onChange={e => setDevoteeAddress(e.target.value)}
+                      placeholder="House No., Street, City, State"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-white/80 mb-1">PIN Code *</label>
+                    <input
+                      type="text" required maxLength={6}
+                      value={devoteePincode}
+                      onChange={e => setDevoteePincode(e.target.value.replace(/\D/g, ""))}
+                      placeholder="e.g. 751001"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                    />
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">
+                    🚚 Ships within 3–5 working days after payment confirmation.
+                  </p>
+                </>
+              )}
 
-              <p className="text-[10px] text-white/40 font-mono">
-                🚚 Your order will be shipped within 3–5 working days after payment confirmation.
-              </p>
+              {selectedItem.isService && (
+                <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[10px] text-emerald-300 font-mono">
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>Live photo proof + WhatsApp confirmation sent within 2 hours of seva completion. 🙏</span>
+                </div>
+              )}
 
               <button
                 type="submit"
-                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs tracking-widest uppercase transition-all shadow"
+                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
               >
-                Proceed to Payment →
+                <Flame className="w-4 h-4" />
+                Proceed to Sacred Offering →
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* ── Step 2: UPI Payment Modal ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 2: Complete Your Sacred Offering (UPI Payment)
+      ══════════════════════════════════════════════════════════════════ */}
       {selectedItem && (
         <UPIPaymentModal
           isOpen={showUPI}
           onClose={() => setShowUPI(false)}
-          onPaymentConfirmed={() => {
-            setShowUPI(false);
-            alert(`🙏 Order confirmed! Your ${selectedItem.name} will be shipped to ${devoteeAddress} within 3–5 days. Ref: ${refId}`);
-            setDevoteeName("");
-            setDevoteePhone("");
-            setDevoteeEmail("");
-            setDevoteeAddress("");
-            setDevoteePincode("");
-          }}
+          onPaymentConfirmed={handlePaymentConfirmed}
           amount={selectedItem.price}
           bookingName={selectedItem.name}
           devoteeName={devoteeName || "Devotee"}
