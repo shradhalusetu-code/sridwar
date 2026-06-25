@@ -7,6 +7,7 @@ import { useState, FormEvent } from "react";
 import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 
 export default function ContactUs() {
   const [name, setName] = useState("");
@@ -24,10 +25,15 @@ export default function ContactUs() {
 
   const handleSendMessage = async (e: FormEvent) => {
   e.preventDefault();
-  if (!name || !email || !phone) {
-    alert("Please fill in all mandatory fields: Name, Email, and Phone Number.");
-    return;
-  }
+
+  // ── Global validation ────────────────────────────────────────────────────
+  const nameErr  = validateName(name);
+  const emailErr = validateEmail(email);
+  const phoneErr = validatePhone(phone);
+  if (nameErr)  { alert(nameErr);  return; }
+  if (emailErr) { alert(emailErr); return; }
+  if (phoneErr) { alert(phoneErr); return; }
+  // ────────────────────────────────────────────────────────────────────────
 
   setIsSyncing(true);
 
@@ -189,7 +195,7 @@ export default function ContactUs() {
                 <h3 className="font-serif text-lg font-bold text-white mb-2">Devotee Registration & Support Lock</h3>
                 
                 <p className="text-xs text-white/70">
-                  Submit this digital registry form to declare gotra inquiries. Mandatory fields are synced in real-time with our private Google drive records.
+                  Submit this digital registry form to declare gotra inquiries. Mandatory fields are synced in real-time with our secure Sri Dwar Technology records.
                 </p>
 
                 {/* Name */}
@@ -266,10 +272,10 @@ export default function ContactUs() {
                   />
                 </div>
 
-                {/* Simulated Google spreadsheet syncing visual status panel */}
+                {/* Sri Dwar Technology sync status panel */}
                 <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
-                  <span>Google Sheets Secure Handshake: Registered & Listening</span>
+                  <span>Powered by Sri Dwar Technology</span>
                 </div>
 
                 {/* Submit action */}
@@ -305,7 +311,7 @@ export default function ContactUs() {
                 </div>
 
                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs leading-relaxed text-white/80">
-                  Dear <strong>{name}</strong>, your message on <span className="font-bold">{queryType}</span> has been written directly to Shradhalu Private Limited's secure Google Cloud Drive records. Our Pandit desk has received your phone number: <strong>{phone}</strong> and email: <strong>{email}</strong>, and will contact you shortly!
+                  Dear <strong>{name}</strong>, your message on <span className="font-bold">{queryType}</span> has been written directly to Shradhalu Private Limited's secure Sri Dwar Technology records. Our Pandit desk has received your phone number: <strong>{phone}</strong> and email: <strong>{email}</strong>, and will contact you shortly!
                 </div>
 
                 {/* Spreadsheet confirm */}

@@ -21,6 +21,7 @@ import {
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { validateName, validateTextMinLength } from "../utils/formValidation";
 
 interface Testimonial {
   id: string;
@@ -166,7 +167,17 @@ export default function DevoteeExperiences() {
 
   const handleSubmitReview = async (e: FormEvent) => {
     e.preventDefault();
-    if (!newName || !newLocation || !newService || !newStory) return;
+
+    // ── Global validation ────────────────────────────────────────────────────
+    const nameErr     = validateName(newName);
+    const locationErr = validateTextMinLength(newLocation, "Location", 2);
+    const serviceErr  = newService.trim() ? null : "Please select or name the service/puja received.";
+    const storyErr    = validateTextMinLength(newStory, "Your testimony", 30);
+    if (nameErr)     { alert(nameErr);     return; }
+    if (locationErr) { alert(locationErr); return; }
+    if (serviceErr)  { alert(serviceErr);  return; }
+    if (storyErr)    { alert(storyErr);    return; }
+    // ────────────────────────────────────────────────────────────────────────
 
     // ✅ Sync to Google Forms first
     try {

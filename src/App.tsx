@@ -11,6 +11,7 @@ import SevaExperience from "./components/SevaExperience";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import OnlinePuja from "./components/OnlinePuja";
 import ProductCatalog from "./components/ProductCatalog";
+import TemplateBazaar from "./components/TemplateBazaar";
 import AboutUs from "./components/AboutUs";
 import ContactUs from "./components/ContactUs";
 import AuthDashboard from "./components/AuthDashboard";
@@ -210,7 +211,7 @@ export default function App() {
       />
 
       {/* 2. DYNAMIC PAGES VIEW */}
-      <main className="flex-grow pt-20">
+      <main className={`flex-grow ${isAndroidApp ? "pt-0" : "pt-16"}`}>
         {currentPage === "home" && (
           <div className="space-y-0">
             {/* Cinematic Entrance */}
@@ -283,6 +284,7 @@ export default function App() {
               onAddToCart={handleAddToCart}
               cart={cart}
             />
+            <TemplateBazaar onNavigate={handleNavigate} />
           </div>
         )}
 
@@ -371,8 +373,8 @@ export default function App() {
               <ul className="space-y-2 text-xs text-white/60">
                 <li className="font-bold text-white">Shradhalu Private Ltd</li>
                 <li className="font-mono text-[10px] text-[#FFB347]">CIN: U62099OD2026PTC054237</li>
-                <li>Secured Payments: Standard Google Pay Container</li>
-                <li>Database: Google Cloud Spreadsheet secured records</li>
+                <li>Secured Payments: Sri Dwar Technology Payment Gateway</li>
+                <li>Database: Sri Dwar Technology secured records</li>
                 <li className="pt-2 text-[10px] text-white/40 leading-relaxed italic border-t border-white/5 mt-2">
                   Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & Shradhalu Private Ltd.
                 </li>
@@ -926,8 +928,8 @@ export default function App() {
                 <DocSection title="3. How We Use Your Information">
                   We use collected information to: (a) process puja bookings and send seva confirmations; (b) coordinate between you and our verified pandits; (c) deliver prasad and physical products to your shipping address; (d) send acknowledgement certificates via WhatsApp and Email within 24 hours; (e) improve our platform experience; and (f) comply with applicable Indian laws. We will never sell your personal data to third parties.
                 </DocSection>
-                <DocSection title="4. Google Services">
-                  Sri Dwar uses Google Forms and Google Sheets for real-time synchronisation of devotee records, and Google Drive for secure document storage. Data transferred to Google services is governed by Google's Privacy Policy. We use UPI infrastructure for payment facilitation but do not store card or bank account details.
+                <DocSection title="4. Sri Dwar Technology Services">
+                  Sri Dwar uses its proprietary Sri Dwar Technology platform for real-time synchronisation of devotee records and secure document storage. Data processed through Sri Dwar Technology services is governed by Shradhalu Private Limited's Privacy Policy. We use UPI infrastructure for payment facilitation but do not store card or bank account details.
                 </DocSection>
                 <DocSection title="5. Data Retention">
                   We retain your personal information for as long as your account is active or as needed to provide services and comply with legal obligations. You may request deletion of your data at any time by writing to <span className="text-[#5EEAD4]">puja@sridwar.com</span>.

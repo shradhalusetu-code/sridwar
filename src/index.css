@@ -94,25 +94,19 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ANDROID APP ONLY — these rules are 100% invisible to your website.
-   The class "capacitor-android" is added to <body> by main.tsx ONLY when
-   window.Capacitor is present, which happens only inside the Android APK.
+   ANDROID APP ONLY — invisible to your website.
+   "capacitor-android" is added to <body> by main.tsx only inside the APK.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── Safe area CSS variables (used by spacing rules below) ─────────────── */
 body.capacitor-android {
-  --safe-top:    env(safe-area-inset-top,    0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left:   env(safe-area-inset-left,   0px);
-  --safe-right:  env(safe-area-inset-right,  0px);
-  --navbar-h: 64px;
-
   /* Bottom gap for Android navigation bar */
   padding-bottom: 80px;
 
-  /* Prevent horizontal scroll & rubber-band on Android */
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
+  /*
+    DO NOT add overscroll-behavior or -webkit-overflow-scrolling here.
+    Those properties fight with Capacitor's WebView scroll handler
+    and cause the page to freeze.
+  */
 }
 
 /* ─── Navbar: push down by status bar height ────────────────────────────── */
@@ -203,26 +197,22 @@ body.capacitor-android #mobile-drawer-overlay .overflow-y-auto {
 }
 
 /*
-  backdrop-blur elements create a new compositing layer on Android WebView
-  that intercepts finger swipes. translateZ(0) promotes them to their own
-  GPU layer correctly, and touch-action: pan-y ensures vertical swipes
-  always scroll the page.
+  REMOVED — these 3 blocks caused scroll freeze on Android WebView:
+
+  ✗ body.capacitor-android [class*="backdrop-blur"] {
+      transform: translateZ(0);       ← creates GPU layers blocking touch
+      touch-action: pan-y;            ← conflicts with Capacitor scroll handler
+    }
+
+  ✗ body.capacitor-android [class*="overflow-y-auto"] {
+      touch-action: pan-y;            ← same conflict
+    }
+
+  ✗ body.capacitor-android { -webkit-overflow-scrolling: touch; }
+      ← iOS-only property, breaks Android WebView
+
+  Capacitor's WebView handles scrolling natively — we must not override it.
 */
-body.capacitor-android [class*="backdrop-blur"] {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  touch-action: pan-y;
-}
-
-body.capacitor-android [class*="overflow-y-auto"] {
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-}
-
-body.capacitor-android nav[style*="position: fixed"] {
-  touch-action: manipulation;
-}
 
 /* ─── Website-only compact spacing (Android APK unaffected) ─────────────── */
 body:not(.capacitor-android) #hero-wrapper {

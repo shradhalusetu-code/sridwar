@@ -290,7 +290,7 @@ export default function AuthDashboard({
                 {isLoggingIn ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    <span>Synchronizing Google Account...</span>
+                    <span>Connecting to Sri Dwar...</span>
                   </>
                 ) : (
                   <>
@@ -302,7 +302,7 @@ export default function AuthDashboard({
 
               <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-[#5EEAD4] bg-white/5 py-1.5 rounded-lg border border-white/10">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4]" />
-                <span>Google OAuth Secured for Shradhalu Pvt Ltd</span>
+                <span>Powered by Sri Dwar Technology</span>
               </div>
             </form>
             )}

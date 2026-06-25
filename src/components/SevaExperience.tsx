@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag } from "lucide-react";
-import UPIPaymentModal from "./UPIPaymentModal";
+import { syncToGoogleForm } from "../utils/googleFormSync";
 
 // ─── Market-researched prices with 50% off applied ─────────────────────────
 // Market avg → Sri Dwar price (50% off market avg, rounded to auspicious ₹)
@@ -232,10 +232,6 @@ const LIVE_TICKERS = [
 export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
-  const [showUPI, setShowUPI] = useState(false);
-  const [upiAmount, setUpiAmount] = useState(0);
-  const [upiSevaName, setUpiSevaName] = useState("");
-  const [upiRefId, setUpiRefId] = useState("");
   const [tickerIndex, setTickerIndex] = useState(0);
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -251,10 +247,8 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   }, []);
 
   const handleSponsor = (name: string, amount: number) => {
-    setUpiSevaName(name);
-    setUpiAmount(amount);
-    setUpiRefId("SDV-" + Math.floor(100000 + Math.random() * 900000));
-    setShowUPI(true);
+    // Opens the Puja Sankalpa Portal (BookNowWizard) via App.tsx onSponsorSeva
+    onSponsorSeva(name, amount);
   };
 
   const handleSendMessage = (e: FormEvent) => {
@@ -464,16 +458,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         </div>
       </div>
 
-      {/* UPI Modal */}
-      <UPIPaymentModal
-        isOpen={showUPI}
-        onClose={() => setShowUPI(false)}
-        onPaymentConfirmed={() => { setShowUPI(false); onSponsorSeva(upiSevaName, upiAmount); }}
-        amount={upiAmount}
-        bookingName={upiSevaName}
-        devoteeName="Devotee"
-        refId={upiRefId}
-      />
+
     </section>
   );
 }

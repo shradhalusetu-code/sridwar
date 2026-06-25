@@ -7,7 +7,9 @@ import { useState, useEffect, useRef, FormEvent } from "react";
 import { Check, Calendar, CreditCard, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
-import { isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
+import SriDwarLogo from "./SriDwarLogo";
+import { isDiscountActive, DISCOUNT_DEADLINE_LABEL, DISCOUNT_TAG } from "../utils/discount";
+import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
 
 interface BookNowWizardProps {
   isOpen: boolean;
@@ -100,10 +102,19 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
   const handleNextToPayment = (e: FormEvent) => {
     e.preventDefault();
-    if (!devoteeName || !phone || !email) {
-      alert("Please fill in all mandatory fields: Devotee Name, Phone Number, and Email.");
-      return;
-    }
+
+    // ── Global validation ──────────────────────────────────────────────────
+    const nameErr  = validateName(devoteeName);
+    const phoneErr = validatePhone(phone);
+    const emailErr = validateEmail(email);
+    const dobErr   = validateDOB(dob, false); // optional but must be valid if provided
+
+    if (nameErr)  { alert(nameErr);  return; }
+    if (phoneErr) { alert(phoneErr); return; }
+    if (emailErr) { alert(emailErr); return; }
+    if (dobErr)   { alert(dobErr);   return; }
+    // ──────────────────────────────────────────────────────────────────────
+
     setStep(2);
   };
 
@@ -150,8 +161,14 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         
         {/* Banner header inside custom popup */}
         <div className="bg-[#021816] text-white px-6 py-5 flex items-center justify-between border-b border-white/10">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5 text-[#FFB347] animate-bounce" />
+          <div className="flex items-center space-x-3">
+            <SriDwarLogo
+              iconSize="sm"
+              showTagline={false}
+              variant="colored"
+              useImageOnly={true}
+              className="shrink-0"
+            />
             <div>
               <h3 className="font-serif text-base font-bold text-left">Puja Sankalpa Portal</h3>
               <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider text-left">Vedas Authenticated Rites</p>
@@ -225,7 +242,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left"
                   />
                   {isDiscountActive() && (
-                    <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 50% OFF already applied · {DISCOUNT_DEADLINE_LABEL}</p>
+                    <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 {DISCOUNT_TAG} already applied · {DISCOUNT_DEADLINE_LABEL}</p>
                   )}
                 </div>
               </div>
@@ -340,7 +357,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               {/* Real-time Google Forms sync notation */}
               <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10">
                 <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
-                <span>Synchronizing dynamically with Shradhalu Pvt Ltd. Google Workspace: Connected</span>
+                <span>Powered by Sri Dwar Technology</span>
               </div>
 
               {/* Action */}
@@ -457,10 +474,10 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                 </div>
               </div>
 
-              {/* Google Drive sync confirmation check log */}
+              {/* Sri Dwar Technology sync confirmation reference */}
               <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/20 py-2 rounded-xl border border-emerald-500/20">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Google Drive Cloud Sync Reference: {refId}</span>
+                <span>Powered by Sri Dwar Technology Reference: {refId}</span>
               </div>
 
               {/* Actions: Download blessed PDF button */}

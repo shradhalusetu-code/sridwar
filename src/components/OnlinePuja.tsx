@@ -319,7 +319,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                 {/* ── Accordion Body with smooth animation ── */}
                 <div
                   style={{
-                    maxHeight: isOpen ? `${pujas.length * 200}px` : "0px",
+                    maxHeight: isOpen ? `${pujas.length * 400}px` : "0px",
                     transition: "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                     overflow: "hidden",
                   }}
@@ -470,7 +470,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
 
               <div
                 style={{
-                  maxHeight: openSections["other"] ? `${otherPujas.length * 200}px` : "0px",
+                  maxHeight: openSections["other"] ? `${otherPujas.length * 400}px` : "0px",
                   transition: "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                   overflow: "hidden",
                 }}

@@ -9,6 +9,8 @@ import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
+import { TEMPLES_LIST } from "../data/temples";
 // @ts-ignore
 import aerialJagannathPuri from "../assets/images/aerial_jagannath_puri_hero_1781871848760.jpg";
 
@@ -50,10 +52,20 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
 
   const handleSubmitCertificate = async (e: FormEvent) => {
     e.preventDefault();
-    if (!name || !temple || !phone || !email || !city) {
-      alert("Please fill in all mandatory fields: Name, Temple, Phone, Email, and City.");
-      return;
-    }
+
+    // ── Global validation ──────────────────────────────────────────────────
+    const nameErr  = validateName(name);
+    const emailErr = validateEmail(email);
+    const phoneErr = validatePhone(phone);
+    const ageErr   = age ? validateAge(age, false) : null;
+
+    if (nameErr)  { alert(nameErr);  return; }
+    if (!temple)  { alert("Please select the temple you visited."); return; }
+    if (emailErr) { alert(emailErr); return; }
+    if (phoneErr) { alert(phoneErr); return; }
+    if (!city.trim() || city.trim().length < 2) { alert("Please enter your city."); return; }
+    if (ageErr)   { alert(ageErr);   return; }
+    // ──────────────────────────────────────────────────────────────────────
 
     setIsSubmitting(true);
     
@@ -283,16 +295,10 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-[#021816] border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white"
                     >
                       <option value="" className="bg-[#021816]">Select Temple...</option>
-                      <option value="Jagannath Temple - Puri" className="bg-[#021816]">Jagannath Temple — Puri</option>
-                      <option value="Lingaraj Temple - Bhubaneswar" className="bg-[#021816]">Lingaraj Temple — Bhubaneswar</option>
-                      <option value="Kashi Vishwanath Temple - Varanasi" className="bg-[#021816]">Kashi Vishwanath Temple — Varanasi</option>
-                      <option value="Kedarnath Temple - Kedarnath" className="bg-[#021816]">Kedarnath Temple — Kedarnath</option>
-                      <option value="Badrinath Temple - Badrinath" className="bg-[#021816]">Badrinath Temple — Badrinath</option>
-                      <option value="Vaishno Devi Temple - Katra" className="bg-[#021816]">Vaishno Devi Temple — Katra</option>
-                      <option value="Banke Bihari Temple - Vrindavan" className="bg-[#021816]">Banke Bihari Temple — Vrindavan</option>
-                      <option value="Prem Mandir - Vrindavan" className="bg-[#021816]">Prem Mandir — Vrindavan</option>
-                      <option value="Somnath Temple - Gujarat" className="bg-[#021816]">Somnath Temple — Prabhas Patan</option>
-                      <option value="Other Temple in India" className="bg-[#021816]">Other Temples — India</option>
+                      {TEMPLES_LIST.map((t) => (
+                        <option key={t.id} value={t.name} className="bg-[#021816]">{t.name}</option>
+                      ))}
+                      <option value="Other Temple in India" className="bg-[#021816]">Other Temple — India</option>
                     </select>
                   </div>
                 </div>
@@ -300,13 +306,15 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Age field */}
                   <div className="text-left">
-                    <label className="block text-xs font-bold text-white/80 mb-1">Age (Optional)</label>
+                    <label className="block text-xs font-bold text-white/80 mb-1">Age <span className="text-white/40 font-normal">(Optional · 16–100)</span></label>
                     <input
                       id="cert-form-age"
                       type="number"
+                      min={16}
+                      max={100}
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      placeholder="Age"
+                      placeholder="e.g. 34"
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                     />
                   </div>
@@ -450,7 +458,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 {/* Real-time sync tracker banner representation */}
                 <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
-                  <span>Google Forms & Drive Webhook Sync: Active</span>
+                  <span>Powered by Sri Dwar Technology</span>
                 </div>
 
                 {/* Action Buttons */}
@@ -512,7 +520,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 {/* Google Forms Drive Sync report log representation */}
                 <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 py-2 rounded-xl border border-emerald-900/40">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Google Spreadsheet Database: Synchronized Real-Time Successfully</span>
+                  <span>Powered by Sri Dwar Technology</span>
                 </div>
 
                 <div className="pt-2">
