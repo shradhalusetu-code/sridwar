@@ -7,6 +7,7 @@ import { useState, FormEvent } from "react";
 import { Award, Compass, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Calendar } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
+import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
@@ -219,17 +220,17 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       {/* Floating animated statistics card - Trust Bar Section */}
       <div id="trust-bar-section" className={`relative bg-[#092320]/80 z-10 w-full border-t border-b border-white/10 shadow-lg backdrop-blur-md ${isAndroidApp ? "mt-12 py-6" : "mt-4 py-3"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-4 text-center items-center">
+          <div className={`grid ${isAndroidApp ? "grid-cols-2" : "grid-cols-3"} sm:grid-cols-5 lg:grid-cols-9 gap-4 text-center items-stretch`}>
             {trustStats.map((stat, i) => (
               <div 
                 key={i} 
                 id={`stat-card-${i}`}
-                className="flex flex-col items-center p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm transition-transform hover:scale-105"
+                className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm transition-transform hover:scale-105"
               >
                 <span className="text-lg font-bold text-[#FFB347] font-serif filter drop-shadow">
                   {stat.value}
                 </span>
-                <span className="text-[10px] text-white/80 font-mono tracking-tight whitespace-nowrap mt-1">
+                <span className="text-[10px] text-white/80 font-mono tracking-tight leading-tight break-words mt-1">
                   {stat.label}
                 </span>
               </div>
@@ -240,13 +241,19 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
 
       {/* SPECIAL INTERACTIVE DARSHAN CERTIFICATE MODAL */}
       {isModalOpen && (
-        <div id="darshan-modal-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn">
+        <div id="darshan-modal-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn" style={{ touchAction: "pan-y" }}>
           <div className="bg-[#092320] border border-white/15 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden relative animate-slideUp text-white my-auto">
             
             {/* Modal Header */}
             <div className="bg-[#021816] text-white px-6 py-5 flex items-center justify-between border-b border-white/10">
-              <div className="flex items-center space-x-2">
-                <Award className="w-6 h-6 text-[#FFB347] animate-pulse" />
+              <div className="flex items-center space-x-3">
+                <SriDwarLogo
+                  iconSize="sm"
+                  showTagline={false}
+                  variant="colored"
+                  useImageOnly={true}
+                  className="shrink-0"
+                />
                 <div className="text-left">
                   <h3 className="font-serif text-lg font-bold tracking-tight text-white">Sri Dwar Darshan Register</h3>
                   <p className="text-[10px] font-mono text-[#FFB347] uppercase">Handsigned by Revered Pundits</p>

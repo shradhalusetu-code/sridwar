@@ -156,7 +156,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
   return (
     <>
-    <div id="booking-wizard-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn">
+    <div id="booking-wizard-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn" style={{ touchAction: "pan-y" }}>
       <div className="bg-[#092320] rounded-3xl w-full max-w-xl shadow-2xl border border-white/10 overflow-hidden relative animate-slideUp text-white my-auto">
         
         {/* Banner header inside custom popup */}

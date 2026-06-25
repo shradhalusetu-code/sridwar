@@ -236,16 +236,6 @@ export default function App() {
               onNavigate={handleNavigate}
             />
 
-            {/* Web: Seva Hub on seva page only. Android APK: keep Seva Hub on home (pre-refactor layout). */}
-            {isAndroidApp && (
-              <SevaExperience
-                onSponsorSeva={(sevaName, price) => {
-                  setWizardDefaults({ pujaName: `Sponsorship donation: ${sevaName}`, price });
-                  setIsBookNowOpen(true);
-                }}
-              />
-            )}
-
             <DevoteeExperiences />
           </div>
         )}

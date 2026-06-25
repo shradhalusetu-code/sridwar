@@ -48,9 +48,10 @@ export default function UpiPaymentPopup({
   return (
     <div
       id="upi-payment-popup-portal"
-      className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn"
+      style={{ touchAction: "pan-y" }}
     >
-      <div className="bg-[#092320] rounded-3xl w-full max-w-sm shadow-2xl border border-white/10 overflow-hidden text-white animate-slideUp">
+      <div className="bg-[#092320] rounded-3xl w-full max-w-sm shadow-2xl border border-white/10 overflow-hidden text-white animate-slideUp my-auto">
         {/* Header */}
         <div className="bg-[#5F259F] p-4 text-white flex items-center justify-between">
           <div className="flex items-center space-x-3">
