@@ -71,7 +71,9 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
       <button
         id="ai-floating-trigger"
         onClick={() => setIsOpen(!isOpen)}
+        id="ai-assistant-fab"
         className="fixed bottom-6 right-6 z-40 bg-[#092320]/95 backdrop-blur border border-white/20 text-[#5EEAD4] p-4 rounded-full shadow-2xl hover:bg-neutral-900 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center cursor-pointer group"
+        style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }}
         title="Consult AI Margadarshak Guide"
       >
         <Sparkles className="w-5 h-5 text-[#FFB347] animate-pulse group-hover:rotate-12 transition-transform" />
@@ -82,7 +84,9 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
       {isOpen && (
         <div
           id="ai-chat-card-overlay"
+          id="ai-chat-panel"
           className="fixed bottom-24 right-6 z-40 w-92 max-w-[calc(100vw-32px)] bg-[#092320]/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl flex flex-col justify-between overflow-hidden animate-slideUp text-left text-xs text-white"
+          style={{ bottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}
         >
           {/* Chat Header */}
           <div className="bg-[#021816]/95 text-white p-4 pb-3 flex items-center justify-between border-b border-white/10">

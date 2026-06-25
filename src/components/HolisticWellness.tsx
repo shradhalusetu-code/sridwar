@@ -538,7 +538,7 @@ export default function HolisticWellness({ onBookService }: HolisticWellnessProp
   };
 
   return (
-    <section className="bg-[#021816] text-white pt-16 pb-20 relative overflow-hidden">
+    <section id="holistic-wellness-section" className="bg-[#021816] text-white pt-16 pb-20 relative overflow-hidden" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
 
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

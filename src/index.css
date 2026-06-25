@@ -20,51 +20,26 @@
 }
 
 /* ─── Reset / Global ─────────────────────────────────────────────────────── */
-/*
-  Only cosmetic touch tweaks here — nothing that blocks scroll.
-  user-select is intentionally NOT set here so users can copy text normally.
-  No overscroll-behavior, no overflow, no height — those live only on html/body below.
-*/
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-/*
-  Suppress the iOS long-press callout (Save Image, Open Link…) on the Android
-  APK only — where it causes accidental popups during scrolling.
-  On the website (desktop + iPhone browser) we leave it at the browser default
-  so that the normal "Copy / Look Up" menu still appears for users.
-*/
 body.capacitor-android * {
   -webkit-touch-callout: none;
 }
 
 /* ─── Page Scroll Foundation ─────────────────────────────────────────────── */
-/*
-  One place, one set of rules.  No !important needed here because nothing
-  above competes with these selectors.
-
-  - html: natural height, scrolls on the html element (standard browser behaviour)
-  - body: at least full viewport tall so background colour fills; overflow-x clipped
-  - #root: just a plain block — let content determine its height naturally
-
-  scroll-behavior is intentionally OMITTED.  smooth-scroll + rapid mouse-wheel
-  ticks causes the "stuck / stuttering" effect you described — each tick queues
-  a new animation that cancels the last, making the page feel frozen.
-  If you want smooth anchor-link jumps later, add it only to the anchor click
-  handler in JS, not globally in CSS.
-*/
 html {
   height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;           /* wheel, keyboard, scrollbar-drag all work */
-  overscroll-behavior-y: none; /* no bounce/pull-to-refresh in the browser */
+  overflow-y: auto;
+  overscroll-behavior-y: none;
   background-color: #021816;
   color: #FFFFFF;
 }
 
 body {
-  min-height: 100%;           /* fills the viewport even when content is short */
+  min-height: 100%;
   overflow-x: hidden;
   background-color: #021816;
   color: #FFFFFF;
@@ -122,20 +97,116 @@ body {
    ANDROID APP ONLY — these rules are 100% invisible to your website.
    The class "capacitor-android" is added to <body> by main.tsx ONLY when
    window.Capacitor is present, which happens only inside the Android APK.
-   Your GitHub Pages / localhost site will never have this class.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Android needs a bottom gap for the navigation bar */
+/* ─── Safe area CSS variables (used by spacing rules below) ─────────────── */
 body.capacitor-android {
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+  --navbar-h: 64px;
+
+  /* Bottom gap for Android navigation bar */
   padding-bottom: 80px;
+
+  /* Prevent horizontal scroll & rubber-band on Android */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Navbar: push down by status bar height ────────────────────────────── */
+body.capacitor-android #main-navigation {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ─── Hero: account for taller navbar + status bar ─────────────────────── */
+body.capacitor-android #hero-wrapper {
+  min-height: 100svh;
+  padding-top: calc(env(safe-area-inset-top, 24px) + 7rem);
+  padding-bottom: 3rem;
+}
+body.capacitor-android #hero-main-container {
+  padding-top: 2rem;
+}
+body.capacitor-android #trust-bar-section {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+/* ─── All page sections: clear fixed navbar + status bar ────────────────── */
+body.capacitor-android #online-pujas-section,
+body.capacitor-android #product-catalog-section,
+body.capacitor-android #seva-dashboard-section,
+body.capacitor-android #temple-experience-section,
+body.capacitor-android #spiritualicity-console-section,
+body.capacitor-android #contact-us-section,
+body.capacitor-android #auth-dashboard-section,
+body.capacitor-android #about-us-section,
+body.capacitor-android #devotee-experiences-section,
+body.capacitor-android #sacred-daily-tools,
+body.capacitor-android #holistic-wellness-section,
+body.capacitor-android #faq-accordion-section {
+  padding-top: calc(env(safe-area-inset-top, 24px) + 80px);
+}
+
+/* ─── Reduce excessive vertical padding on small Android screens ─────────── */
+@media screen and (max-width: 430px) {
+  body.capacitor-android #online-pujas-section,
+  body.capacitor-android #product-catalog-section,
+  body.capacitor-android #seva-dashboard-section,
+  body.capacitor-android #temple-experience-section,
+  body.capacitor-android #spiritualicity-console-section {
+    padding-bottom: 40px;
+  }
+
+  body.capacitor-android #contact-us-section,
+  body.capacitor-android #auth-dashboard-section {
+    padding-bottom: 40px;
+  }
+
+  body.capacitor-android #devotee-experiences-section,
+  body.capacitor-android #holistic-wellness-section,
+  body.capacitor-android #sacred-daily-tools,
+  body.capacitor-android #faq-accordion-section {
+    padding-bottom: 32px;
+  }
+
+  /* Tighten grid gaps on narrow Android screens */
+  body.capacitor-android .gap-8 { gap: 1.25rem; }
+  body.capacitor-android .gap-6 { gap: 1rem; }
+  body.capacitor-android .mb-12 { margin-bottom: 1.5rem; }
+  body.capacitor-android .mb-10 { margin-bottom: 1.25rem; }
+  body.capacitor-android .mb-8  { margin-bottom: 1rem; }
+}
+
+/* ─── Very narrow screens (360px): tighten horizontal padding ───────────── */
+@media screen and (max-width: 380px) {
+  body.capacitor-android .max-w-7xl {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* ─── AI Assistant floating button: clear Android nav bar ──────────────── */
+body.capacitor-android #ai-assistant-fab {
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+body.capacitor-android #ai-chat-panel {
+  bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ─── Mobile drawer: account for status bar ─────────────────────────────── */
+body.capacitor-android #mobile-drawer-overlay .overflow-y-auto {
+  padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
 }
 
 /*
-  backdrop-blur elements (Live Darshan panel, glass cards) create a new
-  compositing layer on Android WebView that intercepts finger swipes.
-  translateZ(0) promotes them to their own GPU layer the right way,
-  and touch-action: pan-y tells the WebView "vertical swipes = page scroll,
-  always — do not intercept them."
+  backdrop-blur elements create a new compositing layer on Android WebView
+  that intercepts finger swipes. translateZ(0) promotes them to their own
+  GPU layer correctly, and touch-action: pan-y ensures vertical swipes
+  always scroll the page.
 */
 body.capacitor-android [class*="backdrop-blur"] {
   -webkit-backface-visibility: hidden;
@@ -144,19 +215,11 @@ body.capacitor-android [class*="backdrop-blur"] {
   touch-action: pan-y;
 }
 
-/*
-  Inner scrollable lists (temple drawer, etc.) should hand off to the page
-  scroll once they reach their own top or bottom edge.
-*/
 body.capacitor-android [class*="overflow-y-auto"] {
   overscroll-behavior: contain;
   touch-action: pan-y;
 }
 
-/*
-  Fixed bottom nav bar: only respond to taps, never intercept swipes
-  that are meant for content underneath.
-*/
 body.capacitor-android nav[style*="position: fixed"] {
   touch-action: manipulation;
 }
@@ -183,19 +246,4 @@ body:not(.capacitor-android) #about-us-section,
 body:not(.capacitor-android) #sacred-daily-tools {
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
-}
-
-/* Android APK — preserve pre-refactor hero sizing (website uses compact rules above) */
-body.capacitor-android #hero-wrapper {
-  min-height: 100svh;
-  padding-top: 7rem;
-  padding-bottom: 3rem;
-}
-body.capacitor-android #hero-main-container {
-  padding-top: 2rem;
-}
-body.capacitor-android #trust-bar-section {
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
 }

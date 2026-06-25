@@ -194,7 +194,7 @@ export default function AuthDashboard({
   ];
 
   return (
-    <section id="auth-dashboard-section" className="py-24 bg-[#021816] text-left text-white">
+    <section id="auth-dashboard-section" className="py-24 bg-[#021816] text-left text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Conditional Layout based on Logon Status */}

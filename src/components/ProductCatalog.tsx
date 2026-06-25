@@ -29,7 +29,7 @@ export default function ProductCatalog({ onAddToCart, cart }: ProductCatalogProp
   };
 
   return (
-    <section id="product-catalog-section" className="py-20 bg-[#021816] text-white text-left">
+    <section id="product-catalog-section" className="py-20 bg-[#021816] text-white text-left" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* India Temple Map (static image) */}

@@ -92,6 +92,7 @@ export default function Navbar({
             ? "bg-[#021816]/80 backdrop-blur-md py-3 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
             : "bg-[#021816]/20 backdrop-blur-sm py-5 border-b border-white/5 text-white"
         }`}
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">

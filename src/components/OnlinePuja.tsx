@@ -118,7 +118,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
   };
 
   return (
-    <section id="online-pujas-section" className="py-20 bg-[#021816] text-white">
+    <section id="online-pujas-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Title Block (unchanged) ─────────────────────────────────────────── */}

@@ -135,9 +135,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Receive a consecrated Prasad certificate and visual video capturing the cooked Mahaprasad being distributed lovingly to sadhus and devotees.",
     impactStat: "Over 15,000+ meals cooked daily by temple cooks.",
     donationTiers: [
-      { amount: 501, label: "Feed 10 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 10 visiting sadhus." },
-      { amount: 1501, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
-      { amount: 5001, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
+      { amount: 900, label: "Feed 10 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 10 visiting sadhus." },
+      { amount: 1800, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
+      { amount: 4500, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/seva_badrivishal_1781879619365.jpg"
   },
@@ -149,9 +149,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Fosters home peace, prosperity, and dissolves ancestors' karmic blockages. You will receive pictures with your name Sankalpa displayed at the Gaushala.",
     impactStat: "350+ native cows nurtured in green sanctuaries.",
     donationTiers: [
-      { amount: 251, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 5 cows." },
-      { amount: 1201, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
-      { amount: 3500, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
+      { amount: 1000, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 5 cows." },
+      { amount: 2000, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
+      { amount: 5000, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/seva_venkatesaya_1781879635982.jpg"
   },
@@ -163,9 +163,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "A copper diya will be lit on your behalf in front of Maa Tarini, continuously fueled with pure mustard/cow ghee.",
     impactStat: "12,000+ lamps glowing at the sacred shrine.",
     donationTiers: [
-      { amount: 151, label: "3-Day Continuous Diya", description: "A beautiful clay diya constantly fed with quality oils on your behalf." },
-      { amount: 501, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
-      { amount: 2101, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
+      { amount: 550, label: "3-Day Continuous Diya", description: "A beautiful clay diya constantly fed with quality oils on your behalf." },
+      { amount: 1100, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
+      { amount: 2200, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/seva_somnath_1781879651117.jpg"
   },
@@ -177,9 +177,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Sponsor textbooks, nutritious meals, clean accommodation, and spiritual training for young Vedic pandas.",
     impactStat: "80+ Gurukul children training in ancient scriptures.",
     donationTiers: [
-      { amount: 1001, label: "Vedic Scholar Kits", description: "Provides Sanskrit manuscripts, notebooks, sacred threads, and dress." },
-      { amount: 3001, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
-      { amount: 10001, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
+      { amount: 2100, label: "Vedic Scholar Kits", description: "Provides Sanskrit manuscripts, notebooks, sacred threads, and dress." },
+      { amount: 5000, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
+      { amount: 12000, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/seva_dakshineswar_1781879664944.jpg"
   }

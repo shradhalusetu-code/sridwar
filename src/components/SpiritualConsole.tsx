@@ -110,6 +110,7 @@ export default function SpiritualConsole({ onBookService }: SpiritualConsoleProp
     <section 
       id="spiritualicity-console-section" 
       className="py-20 bg-[#021816] text-white relative overflow-hidden"
+      style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
     >
       {/* Background Aerial image of Sakhi Gopal Temple with dark overlays */}
       <div className="absolute inset-0 pointer-events-none select-none z-0">
