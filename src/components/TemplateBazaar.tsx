@@ -393,11 +393,19 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
           STEP 1: Puja Sankalpa Portal
       ══════════════════════════════════════════════════════════════════ */}
       {showSankalpa && selectedItem && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl overflow-hidden my-auto">
+        <div
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4"
+          style={{ touchAction: "pan-y" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSankalpa(false); }}
+        >
+          <div
+            className="bg-[#092320] w-full sm:rounded-3xl sm:max-w-sm border border-white/10 shadow-2xl text-white flex flex-col"
+            style={{ maxHeight: "100dvh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
 
-            {/* Modal Header with Logo */}
-            <div className="bg-[#021816] px-5 py-4 border-b border-white/10">
+            {/* Sticky Modal Header with Logo */}
+            <div className="shrink-0 bg-[#021816] px-5 py-4 border-b border-white/10 sm:rounded-t-3xl">
               {/* Sri Dwar Brand Logo */}
               <div className="flex justify-center mb-3">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
@@ -418,6 +426,11 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
               </div>
             </div>
 
+            {/* Single scroll container — the ONLY scrollable element */}
+            <div
+              className="flex-1 min-h-0 overflow-y-auto"
+              style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)" }}
+            >
             <form onSubmit={handleSankalpaSubmit} className="p-5 space-y-4">
 
               {/* Item + price summary */}
@@ -556,12 +569,13 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
 
               <button
                 type="submit"
-                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
+                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
               >
                 <Flame className="w-4 h-4" />
                 Proceed to Sacred Offering →
               </button>
             </form>
+            </div>
           </div>
         </div>
       )}

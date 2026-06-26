@@ -196,6 +196,24 @@ body.capacitor-android #mobile-drawer-overlay .overflow-y-auto {
   padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
 }
 
+/* ─── Android: Modal / overlay scroll fix ──────────────────────────────── */
+/*
+  On Capacitor Android WebView, fixed-position overlays with overflow-y:auto
+  can silently swallow touch events, making the modal un-scrollable and
+  hiding the submit button below the fold.
+
+  The fix: give the OUTER overlay a real scroll container (overflow-y:auto
+  + touch-action:pan-y, no -webkit-overflow-scrolling which breaks Android),
+  and let the INNER card scroll independently with max-height:90vh.
+  overflow-hidden on inner cards is removed — it clips content on small screens.
+*/
+body.capacitor-android [id$="-portal"],
+body.capacitor-android [id$="-modal"],
+body.capacitor-android .z-\\[70\\] {
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+}
+
 /*
   REMOVED — these 3 blocks caused scroll freeze on Android WebView:
 

@@ -9,6 +9,7 @@ import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import SriDwarLogo from "./SriDwarLogo";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { syncToGoogleForm } from "../utils/googleFormSync";
 
 interface FamilyMember {
   name: string;
@@ -46,6 +47,13 @@ export default function AuthDashboard({
   const [customMandapAddress, setCustomMandapAddress] = useState("");
   const [contributionAmount, setContributionAmount] = useState<number>(0);
   const [isContributionPaymentOpen, setIsContributionPaymentOpen] = useState(false);
+
+  // Puja Sankalpa Portal (step between Contribute click and payment)
+  const [showSankalpaForm, setShowSankalpaForm] = useState(false);
+  const [sankalpaPhone, setSankalpaPhone] = useState("");
+  const [sankalpaGotra, setSankalpaGotra] = useState("");
+  const [sankalpaIntent, setSankalpaIntent] = useState("");
+  const [contributionRefId, setContributionRefId] = useState("");
 
   // My Sacred Profile states
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
@@ -155,38 +163,54 @@ export default function AuthDashboard({
     }, 1200);
   };
 
-  // Devotee tapped "Skip for Now" on the contribution step.
+  // Step 7 — Skip Contribution: go directly to Dharmic Portal
   const handleSkipContribution = () => {
     if (pendingLogin) onLoginSuccess(pendingLogin.name, pendingLogin.email);
   };
 
-  // Devotee picked an amount and a temple/mandap — open the real UPI popup.
+  // Step 2 — Contribute clicked: validate amount then show Puja Sankalpa Portal
   const handleProceedToContributionPayment = () => {
     if (!contributionAmount || contributionAmount <= 0) return;
+    setContributionRefId("SDC-" + Math.floor(100000 + Math.random() * 900000));
+    setShowSankalpaForm(true);
+  };
+
+  // Step 4 — Sankalpa form submitted: sync to Google Form then open payment
+  const handleSankalpaSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!sankalpaPhone.trim()) {
+      alert("Please enter your WhatsApp number to proceed.");
+      return;
+    }
+
+    const templeName = selectedTempleId
+      ? TEMPLES_LIST.find((t) => t.id === selectedTempleId)?.name || "Selected Temple"
+      : customMandapName || "Custom Mandap";
+
+    // Sync Puja Sankalpa data to Google Forms (seva_booking form)
+    syncToGoogleForm("seva_booking", {
+      name:         pendingLogin?.name || "",
+      email:        pendingLogin?.email || "",
+      phone:        sankalpaPhone.trim(),
+      gotra:        sankalpaGotra || userGotra || undefined,
+      intent:       sankalpaIntent || undefined,
+      type:         `Temple Redevelopment Contribution — ${templeName}`,
+      details:      `Contribution: ₹${contributionAmount} | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
+      fee:          contributionAmount,
+      temple:       templeName,
+      whatsapp:     sankalpaPhone.trim(),
+      city:         customMandapAddress || "Online Devotee",
+    });
+
+    setShowSankalpaForm(false);
     setIsContributionPaymentOpen(true);
   };
 
-  // Called after "I Have Paid" is tapped in the UPI popup.
-  const finalizeContribution = async () => {
-    const templeName = selectedTempleId
-      ? TEMPLES_LIST.find((temple) => temple.id === selectedTempleId)?.name
-      : `${customMandapName}${customMandapAddress ? " — " + customMandapAddress : ""}`;
-
-    // Best-effort logging only — no dedicated Google Form configured for this yet.
-    console.log("[Temple Redevelopment Contribution]", {
-      name: pendingLogin?.name,
-      email: pendingLogin?.email,
-      templeName,
-      amount: contributionAmount
-    });
-
+  // Step 6 — After payment confirmed: redirect to Dharmic Portal
+  const finalizeContribution = () => {
     setIsContributionPaymentOpen(false);
     if (pendingLogin) onLoginSuccess(pendingLogin.name, pendingLogin.email);
   };
-
-  const selectedTempleName = selectedTempleId
-    ? TEMPLES_LIST.find((temple) => temple.id === selectedTempleId)?.name || "Selected Temple"
-    : customMandapName || "Custom Mandap";
 
   const simulatedHistory = [
     { name: "Puri Jagannath Shringar Aarti", date: "June 10, 2026", status: "Completed" },
@@ -727,17 +751,133 @@ export default function AuthDashboard({
 
       </div>
 
-      {/* Real UPI Payment Popup for the temple-redevelopment contribution */}
-      {isContributionPaymentOpen && (
-        <UPIPaymentModal
-          amount={contributionAmount}
-          note={`Temple Redevelopment Contribution - ${pendingLogin?.name || ""}`}
-          payeeLabel="Contribution To"
-          payeeValue={selectedTempleName}
-          onConfirm={finalizeContribution}
-          onClose={() => setIsContributionPaymentOpen(false)}
-        />
+      {/* ── Step 3: Puja Sankalpa Portal ─────────────────────────────────── */}
+      {showSankalpaForm && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] overflow-y-auto p-4 py-6">
+          <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl mx-auto my-4 text-white">
+
+            {/* Header with SriDwarLogo */}
+            <div className="bg-[#021816] px-5 py-4 border-b border-white/10 rounded-t-3xl">
+              <div className="flex justify-center mb-3">
+                <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
+              </div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-serif text-sm font-bold text-white">Puja Sankalpa Portal</h3>
+                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5">
+                    Temple Redevelopment Contribution
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSankalpaForm(false)}
+                  className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSankalpaSubmit} className="p-5 space-y-4">
+
+              {/* Contribution summary */}
+              <div className="bg-[#021816] rounded-2xl p-3 border border-white/10 flex items-center justify-between">
+                <div className="text-xs text-white/60 font-mono truncate max-w-[180px]">
+                  {selectedTempleId
+                    ? TEMPLES_LIST.find(t => t.id === selectedTempleId)?.name
+                    : customMandapName || "Temple Contribution"}
+                </div>
+                <span className="text-sm font-extrabold text-[#FFB347] font-serif shrink-0 ml-2">
+                  ₹{contributionAmount}
+                </span>
+              </div>
+
+              <p className="text-[11px] text-white/60 leading-relaxed">
+                🙏 Please confirm your details so our pandits can register this contribution Sankalpa in your name and Gotra.
+              </p>
+
+              {/* Devotee name — pre-filled from login, read-only */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">Devotee Name</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={pendingLogin?.name || ""}
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/20 border border-white/5 text-white/60 cursor-not-allowed"
+                />
+              </div>
+
+              {/* WhatsApp */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">WhatsApp Number *</label>
+                <input
+                  type="tel"
+                  required
+                  value={sankalpaPhone}
+                  onChange={e => setSankalpaPhone(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                />
+              </div>
+
+              {/* Gotra */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">
+                  Gotra <span className="text-white/40 font-normal">(Optional — auto-filled from your profile)</span>
+                </label>
+                <input
+                  type="text"
+                  value={sankalpaGotra || userGotra}
+                  onChange={e => setSankalpaGotra(e.target.value)}
+                  placeholder="e.g. Kashyap"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                />
+              </div>
+
+              {/* Sankalpa Intention */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">
+                  Sankalpa Intention <span className="text-white/40 font-normal">(Optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={sankalpaIntent}
+                  onChange={e => setSankalpaIntent(e.target.value)}
+                  placeholder="e.g. For the health and prosperity of my family..."
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
+                />
+                <p className="text-[10px] text-white/30 mt-1 font-mono">Recited by the pandit during Sankalpa</p>
+              </div>
+
+              <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[10px] text-emerald-300 font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>Acknowledgement certificate sent on WhatsApp & Email within 24 hours. 🙏</span>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
+              >
+                Proceed to Sacred Offering →
+              </button>
+            </form>
+          </div>
+        </div>
       )}
+
+      {/* ── Step 5: Complete Your Sacred Offering (UPI Payment) ───────────── */}
+      <UPIPaymentModal
+        isOpen={isContributionPaymentOpen}
+        onClose={() => setIsContributionPaymentOpen(false)}
+        onPaymentConfirmed={finalizeContribution}
+        amount={contributionAmount}
+        bookingName={`Temple Contribution — ${
+          selectedTempleId
+            ? TEMPLES_LIST.find(t => t.id === selectedTempleId)?.name || "Temple"
+            : customMandapName || "Temple Redevelopment"
+        }`}
+        devoteeName={pendingLogin?.name || "Devotee"}
+        refId={contributionRefId}
+      />
     </section>
   );
 }

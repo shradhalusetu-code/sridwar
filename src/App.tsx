@@ -300,8 +300,6 @@ export default function App() {
           </div>
         )}
       </main>
-
-      {/* 3. COHESIVE SECURE PLATFORM FOOTER */}
       <footer id="corporate-footer" className="bg-[#021816] text-white pt-10 pb-6 border-t border-white/10 text-left relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -322,8 +320,6 @@ export default function App() {
                 <span>Shradhalu Pvt Ltd, Ground Floor, Sobra, Maa Biraja Khetra, Jajpur, Odisha, 755019</span>
               </div>
             </div>
-
-            {/* Navigation links */}
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
               <ul className="space-y-2 text-xs text-white/60 font-medium">
@@ -352,8 +348,6 @@ export default function App() {
                 <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
               </ul>
             </div>
-
-            {/* Corporate compliance */}
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Legal & Compliance</h4>
               <ul className="space-y-2 text-xs text-white/60">
@@ -366,8 +360,6 @@ export default function App() {
                 </li>
               </ul>
             </div>
-
-            {/* Social links */}
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Social Linkages</h4>
 
@@ -446,8 +438,6 @@ export default function App() {
             </div>
 
           </div>
-
-          {/* ── Row 2: About Sri Dwar + Govt Initiative + Mobile App (merged) ── */}
           <div className="mb-8 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
 
@@ -464,8 +454,6 @@ export default function App() {
                   Create a digital temple, choose your deities, and perform daily prayers with devotion wherever you are.
                 </p>
               </div>
-
-              {/* Government of India Initiatives */}
               <div className="space-y-2 text-left lg:border-x lg:border-white/8 lg:px-6">
                 <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest">
                   Government of India Initiatives
@@ -474,8 +462,6 @@ export default function App() {
                   Sri Dwar has applied for recognition under <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM</strong>, and <strong className="text-white/75">Digital India</strong>. Applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
                 </p>
               </div>
-
-              {/* Mobile App — Coming Soon */}
               <div className="space-y-3 text-left">
                 <div className="flex items-center space-x-2">
                   <span className="text-base">📱</span>
@@ -515,8 +501,6 @@ export default function App() {
 
             </div>
           </div>
-
-          {/* ── Row 3: Legal links strip ──────────────────────────────────────── */}
           <div className="pt-6 border-t border-white/8 mb-4">
             <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
               {(
@@ -540,8 +524,6 @@ export default function App() {
               ))}
             </div>
           </div>
-
-          {/* ── Row 6: Copyright bar ──────────────────────────────────────────── */}
           <div className="pt-4 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[10px] text-white/40 font-mono gap-2">
             <p>{t.copyright}</p>
             <p>Sri Dwar © {new Date().getFullYear()} · Shradhalu Private Limited · All Blessings Secured 🙏</p>
@@ -549,7 +531,6 @@ export default function App() {
 
         </div>
       </footer>
-{/* BOTTOM NAVIGATION BAR — Android app only, hidden on website */}
       {isAndroidApp && <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: '#021816',
@@ -594,11 +575,16 @@ export default function App() {
 
       {/* 6. RE-USABLE SEVA CONTRIBUTION MODAL */}
       {isSevaModalOpen && (
-        <div id="seva-quick-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn text-left">
-          <div className="bg-[#092320] border border-white/15 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative animate-slideUp text-white my-auto">
-            
+        <div id="seva-quick-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
+          style={{ touchAction: "pan-y" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setIsSevaModalOpen(false); }}
+        >
+          <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-lg shadow-2xl animate-slideUp text-white flex flex-col"
+            style={{ maxHeight: "100dvh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
-            <div className="bg-[#021816] text-white px-6 py-5 flex items-center justify-between border-b border-white/10">
+            <div className="shrink-0 bg-[#021816] text-white px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl">
               <div className="flex items-center space-x-2">
                 <Heart className="w-5 h-5 text-[#FFB347] fill-[#FFB347] animate-pulse" />
                 <div className="text-left">
@@ -615,7 +601,8 @@ export default function App() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
+            <div className="p-5 space-y-4">
               <span className="block text-xs font-bold text-white/85 text-left">Choose a quick Charity Offering:</span>
               
               <div className="space-y-2.5">
@@ -656,18 +643,24 @@ export default function App() {
                 All donations are written securely under Shradhalu Private Limited records.
               </p>
             </div>
-
+            </div>
           </div>
         </div>
       )}
 
       {/* 7. RE-USABLE TEMPLE EXPLORE / ARCHITECTURE HISTORY MODAL */}
       {activeExploreTemple && (
-        <div id="temple-explore-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn text-left text-xs text-white">
-          <div className="bg-[#092320] border border-white/15 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden relative animate-slideUp my-auto">
+        <div id="temple-explore-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left text-xs text-white"
+          style={{ touchAction: "pan-y" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveExploreTemple(null); }}
+        >
+          <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl animate-slideUp text-white flex flex-col"
+            style={{ maxHeight: "100dvh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             
-            {/* Header Image box */}
-            <div className="relative aspect-video bg-gray-900 border-b border-white/10">
+            {/* Header Image — shrink-0 so it never scrolls away */}
+            <div className="relative aspect-video bg-gray-900 border-b border-white/10 shrink-0">
               <img
                 src={activeExploreTemple.imageUrl}
                 alt={activeExploreTemple.name}
@@ -689,8 +682,7 @@ export default function App() {
                 <p className="text-xs text-[#FFB347] font-bold font-serif">{activeExploreTemple.city}, {activeExploreTemple.state}</p>
               </div>
             </div>
-
-            {/* Narrative Body */}
+            <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
             <div className="p-6 sm:p-8 space-y-4">
               <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-left">
                 <h4 className="font-bold text-[#5EEAD4] mb-1">Presiding supreme Deity:</h4>
@@ -706,8 +698,6 @@ export default function App() {
                   Our remote co-ordinators have authenticated all physical offerings and pujaris inside this specific sanctum to allow high-integrity virtual devotion.
                 </p>
               </div>
-
-              {/* Travel and Rituals timings */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-left">
                 <div>
                   <h5 className="font-bold text-[#5EEAD4]">Aarti Timings:</h5>
@@ -718,8 +708,6 @@ export default function App() {
                   <p className="text-white/70 font-sans italic">{activeExploreTemple.rituals.join(", ")}</p>
                 </div>
               </div>
-
-              {/* Action */}
               <div className="pt-6 flex justify-end space-x-3">
                 <button
                   id="modal-explore-book-btn"
@@ -741,7 +729,7 @@ export default function App() {
                 </button>
               </div>
             </div>
-
+            </div>
           </div>
         </div>
       )}
@@ -766,9 +754,7 @@ export default function App() {
                   ✕
                 </button>
               </div>
-
-              {/* Cart List */}
-              <div className="space-y-4 pt-6 max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+              <div className="space-y-4 pt-6 overflow-y-auto pr-1 flex-1 min-h-0" style={{ WebkitOverflowScrolling: "touch" }}>
                 {cart.length > 0 ? (
                   cart.map((item) => (
                      <div
@@ -805,8 +791,6 @@ export default function App() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-
-                        {/* Increment / Decrement controls */}
                         <div className="flex items-center space-x-2 bg-white/5 border border-white/10 px-2 py-1 rounded-lg mt-2">
                           <button
                             id={`cart-qty-dec-${item.product.id}`}
@@ -1043,13 +1027,17 @@ export default function App() {
         return (
           <div
             id="legal-doc-modal"
-            className="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] flex justify-center items-start p-4 py-10 overflow-y-auto animate-fadeIn"
+            className="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+            style={{ touchAction: "pan-y" }}
             onClick={(e) => { if (e.target === e.currentTarget) setActiveLegalDoc(null); }}
           >
-            <div className="bg-[#092320] border border-white/10 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden text-white my-auto">
+            <div className="bg-[#092320] border border-white/10 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl text-white flex flex-col"
+              style={{ maxHeight: "100dvh" }}
+              onClick={(e) => e.stopPropagation()}
+            >
 
               {/* ── Sticky header ── */}
-              <div className="sticky top-0 z-10 bg-[#021816] border-b border-white/10 px-6 py-5 flex items-center justify-between">
+              <div className="shrink-0 bg-[#021816] border-b border-white/10 px-5 py-4 flex items-center justify-between sm:rounded-t-3xl">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-xl bg-[#FFB347]/15 flex items-center justify-center text-xl shrink-0">
                     {doc.icon}
@@ -1071,7 +1059,7 @@ export default function App() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-
+              <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
               {/* ── Tab switcher so user can jump between docs ── */}
               <div className="flex gap-2 px-6 pt-5 pb-1 flex-wrap">
                 {(
@@ -1097,8 +1085,6 @@ export default function App() {
                   </button>
                 ))}
               </div>
-
-              {/* ── Last-updated pill ── */}
               <div className="px-6 pt-4 pb-2">
                 <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/8 rounded-full px-3 py-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#5EEAD4] animate-pulse shrink-0" />
@@ -1107,17 +1093,13 @@ export default function App() {
                   </span>
                 </div>
               </div>
-
-              {/* ── Document body ── */}
-              <div
-                className="px-6 pb-6 space-y-0 overflow-y-auto text-left"
-                style={{ maxHeight: "60vh" }}
-              >
+              <div className="px-6 pb-6 space-y-0 text-left">
                 {doc.content}
               </div>
 
+              </div>
               {/* ── Footer row ── */}
-              <div className="border-t border-white/10 px-6 py-4 flex items-center justify-between bg-[#021816]/60">
+              <div className="shrink-0 border-t border-white/10 px-6 py-4 flex items-center justify-between bg-[#021816]/60">
                 <p className="text-[10px] font-mono text-white/30">
                   © {new Date().getFullYear()} Shradhalu Private Limited. All rights reserved.
                 </p>

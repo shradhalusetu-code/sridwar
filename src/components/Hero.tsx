@@ -241,11 +241,20 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
 
       {/* SPECIAL INTERACTIVE DARSHAN CERTIFICATE MODAL */}
       {isModalOpen && (
-        <div id="darshan-modal-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 overflow-y-auto flex justify-center items-start md:items-center p-4 py-8 animate-fadeIn" style={{ touchAction: "pan-y" }}>
-          <div className="bg-[#092320] border border-white/15 rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden relative animate-slideUp text-white my-auto">
+        <div
+          id="darshan-modal-portal"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+          style={{ touchAction: "pan-y" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
+        >
+          <div
+            className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-xl shadow-2xl animate-slideUp text-white flex flex-col"
+            style={{ maxHeight: "100dvh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             
             {/* Modal Header */}
-            <div className="bg-[#021816] text-white px-6 py-5 flex items-center justify-between border-b border-white/10">
+            <div className="shrink-0 bg-[#021816] text-white px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl">
               <div className="flex items-center space-x-3">
                 <SriDwarLogo
                   iconSize="sm"
@@ -268,6 +277,11 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
               </button>
             </div>
 
+            {/* ── Scrollable body — THE ONLY scroll container on Android ── */}
+            <div
+              className="flex-1 min-h-0 overflow-y-auto"
+              style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)" }}
+            >
             {/* Modal Body: Active Submission Form or Completed Message */}
             {!isSubmitted ? (
               <form onSubmit={handleSubmitCertificate} className="p-6 space-y-4">
@@ -542,6 +556,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
               </div>
             )}
 
+            </div>
           </div>
         </div>
       )}

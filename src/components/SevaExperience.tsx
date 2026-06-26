@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, X } from "lucide-react";
-import UPIPaymentModal from "./UPIPaymentModal";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag } from "lucide-react";
+
+
 
 // ─── Market-researched prices with 50% off applied ─────────────────────────
 // Market avg → Sri Dwar price (50% off market avg, rounded to auspicious ₹)
@@ -233,19 +233,13 @@ const LIVE_TICKERS = [
 export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
-  const [showUPI, setShowUPI] = useState(false);
-  const [showDetailsForm, setShowDetailsForm] = useState(false);
-  const [upiAmount, setUpiAmount] = useState(0);
-  const [upiSevaName, setUpiSevaName] = useState("");
-  const [upiRefId, setUpiRefId] = useState("");
+  // Note: UPI/Details state removed — Sponsor Seva now routes through
+  // the Puja Sankalpa Portal (BookNowWizard) via onSponsorSeva prop.
   const [tickerIndex, setTickerIndex] = useState(0);
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
 
-  // User details form state
-  const [devoteeName, setDevoteeName] = useState("");
-  const [devoteePhone, setDevoteePhone] = useState("");
-  const [devoteeGotra, setDevoteeGotra] = useState("");
+
 
   useEffect(() => {
     const t = setInterval(() => setTickerIndex((p) => (p + 1) % LIVE_TICKERS.length), 4500);
@@ -258,30 +252,13 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   }, []);
 
   const handleSponsor = (name: string, amount: number) => {
-    setUpiSevaName(name);
-    setUpiAmount(amount);
-    setUpiRefId("SDV-" + Math.floor(100000 + Math.random() * 900000));
-    setShowDetailsForm(true); // Show details form first
+    // Route to the full Puja Sankalpa Portal (BookNowWizard) which collects
+    // devotee data, syncs to Google Forms, and then opens the UPI payment
+    // flow — all in one consistent flow used across the rest of the site.
+    onSponsorSeva(name, amount);
   };
 
-  const handleDetailsSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!devoteeName.trim() || !devoteePhone.trim()) {
-      alert("Please enter your name and phone number to proceed.");
-      return;
-    }
-    // Sync devotee details to Sri Dwar Technology (seva_booking form)
-    syncToGoogleForm("seva_booking", {
-      name: devoteeName.trim(),
-      email: "",
-      phone: devoteePhone.trim(),
-      details: `Seva: ${upiSevaName} | Amount: ₹${upiAmount} | Gotra: ${devoteeGotra || "Not provided"} | Ref: ${upiRefId}`,
-      type: `Seva Sponsorship — ${upiSevaName}`,
-      gotra: devoteeGotra || undefined,
-    });
-    setShowDetailsForm(false);
-    setShowUPI(true);
-  };
+
 
   const handleSendMessage = (e: FormEvent) => {
     e.preventDefault();
@@ -490,97 +467,6 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         </div>
       </div>
 
-
-      {/* ── Step 1: Devotee Details Form ── */}
-      {showDetailsForm && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl overflow-hidden my-auto">
-
-            {/* Header */}
-            <div className="bg-[#021816] px-5 py-4 flex items-center justify-between border-b border-white/10">
-              <div>
-                <h3 className="font-serif text-sm font-bold text-white">Devotee Details</h3>
-                <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider">{upiSevaName}</p>
-              </div>
-              <button
-                onClick={() => setShowDetailsForm(false)}
-                className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleDetailsSubmit} className="p-5 space-y-4">
-              <p className="text-xs text-white/60 leading-relaxed">
-                🙏 Please enter your details so our pandits can perform the seva in your name and Gotra.
-              </p>
-
-              {/* Seva summary */}
-              <div className="bg-[#021816] rounded-2xl p-3 border border-white/10 flex items-center justify-between">
-                <span className="text-xs text-white/60 font-mono">{upiSevaName}</span>
-                <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{upiAmount}</span>
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={devoteeName}
-                  onChange={(e) => setDevoteeName(e.target.value)}
-                  placeholder="e.g. Anand Satpathy"
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
-                />
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">WhatsApp / Phone *</label>
-                <input
-                  type="tel"
-                  required
-                  value={devoteePhone}
-                  onChange={(e) => setDevoteePhone(e.target.value)}
-                  placeholder="e.g. 9876543210"
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
-                />
-              </div>
-
-              {/* Gotra (optional) */}
-              <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">Gotra <span className="text-white/40 font-normal">(Optional)</span></label>
-                <input
-                  type="text"
-                  value={devoteeGotra}
-                  onChange={(e) => setDevoteeGotra(e.target.value)}
-                  placeholder="e.g. Kashyap, Bharadwaj"
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
-                />
-                <p className="text-[10px] text-white/30 mt-1 font-mono">Used by pandits for Sankalpa recitation</p>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs tracking-widest uppercase transition-all shadow"
-              >
-                Proceed to Payment →
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── Step 2: UPI Payment Modal ── */}
-      <UPIPaymentModal
-        isOpen={showUPI}
-        onClose={() => setShowUPI(false)}
-        onPaymentConfirmed={() => { setShowUPI(false); onSponsorSeva(upiSevaName, upiAmount); }}
-        amount={upiAmount}
-        bookingName={upiSevaName}
-        devoteeName={devoteeName || "Devotee"}
-        refId={upiRefId}
-      />
     </section>
   );
 }
