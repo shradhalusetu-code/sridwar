@@ -22,6 +22,7 @@ import FAQs from "./components/FAQs";
 import UpiPaymentPopup from "./components/UpiPaymentPopup";
 import SacredResources from "./components/SacredResources";
 import HolisticWellness from "./components/HolisticWellness";
+import TempleRegister from "./components/TempleRegister";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -80,6 +81,11 @@ export default function App() {
     const cachedBooked = localStorage.getItem("sd_booked_items");
     if (cachedBooked) {
       setBookedItems(JSON.parse(cachedBooked));
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("page") === "temple-register") {
+      setCurrentPage("temple-register");
     }
   }, []);
     // Handle Android back button
@@ -227,6 +233,7 @@ export default function App() {
             />
             
             {/* Spotlight and lists */}
+            <TempleRegister onNavigate={handleNavigate} />
             <TempleExperience
               onBookPuja={(templeName, deity) => {
                 setWizardDefaults({ pujaName: `${deity} Sankalpa offering (${templeName})`, price: 751 });
@@ -284,6 +291,12 @@ export default function App() {
         {currentPage === "contact" && (
           <div className="animate-fadeIn">
             <ContactUs />
+          </div>
+        )}
+
+        {currentPage === "temple-register" && (
+          <div className="animate-fadeIn">
+            <TempleRegister standaloneTempleReg onNavigate={handleNavigate} />
           </div>
         )}
 

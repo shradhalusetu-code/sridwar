@@ -141,7 +141,12 @@ body.capacitor-android #about-us-section,
 body.capacitor-android #devotee-experiences-section,
 body.capacitor-android #sacred-daily-tools,
 body.capacitor-android #holistic-wellness-section,
-body.capacitor-android #faq-accordion-section {
+body.capacitor-android #faq-accordion-section,
+body.capacitor-android #temple-finder-section,
+body.capacitor-android #devotee-portal-section,
+body.capacitor-android #temple-register-section,
+body.capacitor-android #donation-step-section,
+body.capacitor-android #dharma-portal-section {
   padding-top: calc(env(safe-area-inset-top, 24px) + 80px);
 }
 
@@ -165,6 +170,14 @@ body.capacitor-android #faq-accordion-section {
   body.capacitor-android #sacred-daily-tools,
   body.capacitor-android #faq-accordion-section {
     padding-bottom: 32px;
+  }
+
+  body.capacitor-android #temple-finder-section,
+  body.capacitor-android #devotee-portal-section,
+  body.capacitor-android #temple-register-section,
+  body.capacitor-android #donation-step-section,
+  body.capacitor-android #dharma-portal-section {
+    padding-bottom: 40px;
   }
 
   /* Tighten grid gaps on narrow Android screens */
@@ -254,4 +267,8 @@ body:not(.capacitor-android) #about-us-section,
 body:not(.capacitor-android) #sacred-daily-tools {
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
+}
+body:not(.capacitor-android) #temple-finder-section {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
