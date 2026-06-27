@@ -187,7 +187,7 @@ interface ExpertForm {
   donationNote: string;
 }
 
-type ExpertStep = "form-basic" | "form-services" | "form-donate" | "form-success" | "send-link";
+type ExpertStep = "category-select" | "form-basic" | "form-services" | "form-donate" | "form-success" | "send-link";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -253,7 +253,7 @@ function CheckboxChip({
 // ─── Dharmic Expert Section ───────────────────────────────────────────────────
 
 function DharmicExpertSection() {
-  const [expertStep, setExpertStep] = useState<ExpertStep>("form-basic");
+  const [expertStep, setExpertStep] = useState<ExpertStep>("category-select");
   const [submitting, setSubmitting] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
@@ -371,6 +371,52 @@ function DharmicExpertSection() {
     setLinkShared(true);
   };
 
+  // ── Category selection (landing) screen — shown first, keeps the page short ──
+  if (expertStep === "category-select") {
+    return (
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setExpertStep("form-basic")}
+          className="w-full flex items-center space-x-3 bg-[#FFB347]/8 hover:bg-[#FFB347]/14 border border-[#FFB347]/15 hover:border-[#FFB347]/30 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
+        >
+          <span className="text-2xl">🪔</span>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-[#FFB347]">Register Local Pujari / Pandit</p>
+            <p className="text-[10px] text-white/40">Tap to fill the form</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#FFB347]/60 shrink-0" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setExpertStep("form-basic")}
+          className="w-full flex items-center space-x-3 bg-[#5EEAD4]/6 hover:bg-[#5EEAD4]/12 border border-[#5EEAD4]/15 hover:border-[#5EEAD4]/30 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
+        >
+          <span className="text-2xl">🧘</span>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-[#5EEAD4]">Register Guru / Sant / Sadhu</p>
+            <p className="text-[10px] text-white/40">Tap to fill the form</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-[#5EEAD4]/60 shrink-0" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setExpertStep("form-basic")}
+          className="w-full flex items-center space-x-3 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
+        >
+          <span className="text-2xl">📿</span>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-white/70">Register Dharmic Expert</p>
+            <p className="text-[10px] text-white/40">Jyotish, Vastu, Scholar…</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
+        </button>
+      </div>
+    );
+  }
+
   // ── Send-link screen ──
   if (expertStep === "send-link") {
     return (
@@ -452,7 +498,7 @@ function DharmicExpertSection() {
         </div>
         <button
           onClick={() => {
-            setExpertStep("form-basic");
+            setExpertStep("category-select");
             setForm({
               fullName: "", title: "", category: "", city: "", pincode: "",
               associatedPlace: "", experience: "", languages: [], sampradaya: "", bio: "",
@@ -673,6 +719,14 @@ function DharmicExpertSection() {
     <div className="space-y-5">
       {/* Header card */}
       <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
+        <button
+          type="button"
+          onClick={() => setExpertStep("category-select")}
+          className="flex items-center space-x-2 text-white/50 hover:text-[#5EEAD4] text-sm transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" /><span>Back</span>
+        </button>
+
         <div className="space-y-1">
           <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono">Basic Details</h3>
           <p className="text-xs text-white/40">All starred fields are required.</p>
@@ -1825,31 +1879,6 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
 
         {/* Main card with the expert registration form */}
         <div className="glass-panel-dark rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6">
-
-          {/* CTA buttons at top */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="flex items-center space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/15 rounded-2xl px-4 py-3">
-              <span className="text-2xl">🪔</span>
-              <div>
-                <p className="text-xs font-bold text-[#FFB347]">Register Local Pujari / Pandit</p>
-                <p className="text-[10px] text-white/40">Fill the form below</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 bg-[#5EEAD4]/6 border border-[#5EEAD4]/15 rounded-2xl px-4 py-3">
-              <span className="text-2xl">🧘</span>
-              <div>
-                <p className="text-xs font-bold text-[#5EEAD4]">Register Guru / Sant / Sadhu</p>
-                <p className="text-[10px] text-white/40">Fill the form below</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 bg-white/4 border border-white/10 rounded-2xl px-4 py-3">
-              <span className="text-2xl">📿</span>
-              <div>
-                <p className="text-xs font-bold text-white/70">Register Dharmic Expert</p>
-                <p className="text-[10px] text-white/40">Jyotish, Vastu, Scholar…</p>
-              </div>
-            </div>
-          </div>
 
           {/* Trust bar */}
           <div className="flex flex-wrap gap-2">
