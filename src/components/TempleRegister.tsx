@@ -255,6 +255,8 @@ function CheckboxChip({
 function DharmicExpertSection() {
   const [expertStep, setExpertStep] = useState<ExpertStep>("category-select");
   const [submitting, setSubmitting] = useState(false);
+  const [basicSubmitted, setBasicSubmitted] = useState(false);
+  const [basicSyncError, setBasicSyncError] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
   const [pendingPayload, setPendingPayload] = useState<Record<string, string> | null>(null);
@@ -318,9 +320,24 @@ function DharmicExpertSection() {
     [EXPERT_ENTRY.donationAmount]:     form.donationAmount ? `₹${form.donationAmount}` : "Skipped",
   });
 
-  const handleContinueToServices = () => {
+  const handleContinueToServices = async () => {
     if (!validateBasic()) return;
-    setExpertStep("form-services");
+    // If already submitted basic details once, just navigate (no re-submit)
+    if (basicSubmitted) {
+      setExpertStep("form-services");
+      return;
+    }
+    setSubmitting(true);
+    setBasicSyncError(false);
+    try {
+      await submitToExpertForm(buildPayload());
+      setBasicSubmitted(true);
+      setExpertStep("form-services");
+    } catch {
+      setBasicSyncError(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleContinueToDonate = () => {
@@ -499,6 +516,8 @@ function DharmicExpertSection() {
         <button
           onClick={() => {
             setExpertStep("category-select");
+            setBasicSubmitted(false);
+            setBasicSyncError(false);
             setForm({
               fullName: "", title: "", category: "", city: "", pincode: "",
               associatedPlace: "", experience: "", languages: [], sampradaya: "", bio: "",
@@ -642,6 +661,15 @@ function DharmicExpertSection() {
         >
           <ArrowLeft className="w-4 h-4" /><span>Back</span>
         </button>
+
+        {basicSubmitted && (
+          <div className="flex items-center space-x-2.5 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-2xl px-4 py-3">
+            <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />
+            <p className="text-xs text-[#5EEAD4]/80 leading-snug">
+              Basic details saved. These Puja &amp; Seva details will be added as a follow-up update to the same registration.
+            </p>
+          </div>
+        )}
 
         {/* Puja & Seva services */}
         <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
@@ -917,19 +945,37 @@ function DharmicExpertSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <button
             onClick={() => setExpertStep("send-link")}
-            className="flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/60 text-sm font-semibold py-3 rounded-2xl transition-all cursor-pointer"
+            disabled={submitting}
+            className="flex items-center justify-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/60 text-sm font-semibold py-3 rounded-2xl transition-all cursor-pointer disabled:opacity-50"
           >
             <Share2 className="w-4 h-4 text-[#5EEAD4]" />
             <span>Send Registration Link</span>
           </button>
           <button
             onClick={handleContinueToServices}
-            className="flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] text-[#021816] font-bold py-3 rounded-2xl transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20"
+            disabled={submitting}
+            className="flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] disabled:opacity-60 text-[#021816] font-bold py-3 rounded-2xl transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20"
           >
-            <ChevronRight className="w-4 h-4" />
-            <span>Add Puja &amp; Seva Details</span>
+            {submitting ? (
+              <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Saving…</span></>
+            ) : basicSubmitted ? (
+              <><ChevronRight className="w-4 h-4" /><span>Add Puja &amp; Seva Details</span></>
+            ) : (
+              <><Send className="w-4 h-4" /><span>Submit &amp; Continue</span></>
+            )}
           </button>
         </div>
+
+        {basicSyncError && (
+          <p className="text-center text-xs text-red-400 flex items-center justify-center gap-1.5">
+            <X className="w-3.5 h-3.5" />Sync failed — please check your connection and try again.
+          </p>
+        )}
+        {basicSubmitted && (
+          <p className="text-center text-[11px] text-[#5EEAD4]/70 font-mono flex items-center justify-center gap-1.5">
+            <Check className="w-3.5 h-3.5" />Basic details saved — you can now add Puja &amp; Seva details.
+          </p>
+        )}
 
         <p className="text-center text-[10px] text-white/30 font-mono">
           Securely managed by Sridwar Technology · Data is verified before listing
@@ -1003,6 +1049,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
   const [templeRegErrors, setTempleRegErrors] = useState<Partial<Record<keyof TempleRegForm, string>>>({});
   const [submittingTempleReg, setSubmittingTempleReg] = useState(false);
   const [templeRegSuccess, setTempleRegSuccess] = useState(false);
+  const [templeRegStep, setTempleRegStep] = useState<"details" | "donation" | "done">("details");
   const [templeRegDonationAmount, setTempleRegDonationAmount] = useState("");
   const [templeRegDonationNote, setTempleRegDonationNote] = useState("");
   const [showTempleRegUpi, setShowTempleRegUpi] = useState(false);
@@ -1087,8 +1134,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     setTempleRegErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    const donationAmt = Number(templeRegDonationAmount);
-    const hasDonation = templeRegDonationAmount.trim() !== "" && !isNaN(donationAmt) && donationAmt >= 1;
+    // Step 1: sync Temple / Committee Details immediately
     const payload: Record<string, string> = {
       [ENTRY.name]:      templeReg.contactName,
       [ENTRY.phone]:     templeReg.contactPhone,
@@ -1096,23 +1142,46 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
       [ENTRY.temple]:    templeReg.templeName,
       [ENTRY.city]:      `${templeReg.city}, ${templeReg.state}`,
       [ENTRY.puja]:      templeReg.deity || "Not specified",
-      [ENTRY.donation]:  hasDonation ? `₹${templeRegDonationAmount}` : "Skipped",
+      [ENTRY.donation]:  "Pending — donation step not yet reached",
       [ENTRY.dharmicId]: "Temple-Mgmt",
       [ENTRY.type]:      "Temple / Puja Committee Registration",
-      [ENTRY.notes]:     `Deity: ${templeReg.deity} | Address: ${templeReg.address} | Donation note: ${templeRegDonationNote || "—"} | Notes: ${templeReg.notes}`,
+      [ENTRY.notes]:     `Deity: ${templeReg.deity} | Address: ${templeReg.address} | Notes: ${templeReg.notes}`,
     };
 
-    if (hasDonation) {
-      const ref = `SDW-TREG-${Math.floor(100000 + Math.random() * 900000)}`;
-      setTempleRegDonationRefId(ref);
-      setPendingTempleRegPayload(payload);
-      setShowTempleRegUpi(true);
-    } else {
-      setSubmittingTempleReg(true);
-      await submitToForm(payload);
-      setSubmittingTempleReg(false);
+    setSubmittingTempleReg(true);
+    await submitToForm(payload);
+    setSubmittingTempleReg(false);
+
+    // Move to optional donation step
+    setTempleRegStep("donation");
+  };
+
+  const handleTempleRegDonationSubmit = () => {
+    const donationAmt = Number(templeRegDonationAmount);
+    const hasDonation = templeRegDonationAmount.trim() !== "" && !isNaN(donationAmt) && donationAmt >= 1;
+    if (!hasDonation) {
+      // Skip donation — mark as done
+      setTempleRegStep("done");
       setTempleRegSuccess(true);
+      return;
     }
+    const ref = `SDW-TREG-${Math.floor(100000 + Math.random() * 900000)}`;
+    setTempleRegDonationRefId(ref);
+    // Build donation-only payload as a follow-up note
+    const donPayload: Record<string, string> = {
+      [ENTRY.name]:      templeReg.contactName,
+      [ENTRY.phone]:     templeReg.contactPhone,
+      [ENTRY.email]:     templeReg.contactEmail || "Not provided",
+      [ENTRY.temple]:    templeReg.templeName,
+      [ENTRY.city]:      `${templeReg.city}, ${templeReg.state}`,
+      [ENTRY.puja]:      templeReg.deity || "Not specified",
+      [ENTRY.donation]:  `₹${templeRegDonationAmount}`,
+      [ENTRY.dharmicId]: "Temple-Mgmt-Donation",
+      [ENTRY.type]:      "Temple Registration — Donation Follow-up",
+      [ENTRY.notes]:     `Donation note: ${templeRegDonationNote || "—"}`,
+    };
+    setPendingTempleRegPayload(donPayload);
+    setShowTempleRegUpi(true);
   };
 
   const handleTempleRegDonationConfirmed = async () => {
@@ -1121,6 +1190,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     if (pendingTempleRegPayload) await submitToForm(pendingTempleRegPayload);
     setSubmittingTempleReg(false);
     setPendingTempleRegPayload(null);
+    setTempleRegStep("done");
     setTempleRegSuccess(true);
   };
 
@@ -1172,7 +1242,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
             </p>
           </div>
 
-          {templeRegSuccess ? (
+          {/* ── Step: Done (success after donation or skip) ── */}
+          {templeRegStep === "done" && templeRegSuccess ? (
             <div className="glass-panel rounded-3xl p-8 text-center space-y-5 border border-[#FFB347]/20">
               <div className="w-16 h-16 rounded-full bg-[#FFB347]/15 flex items-center justify-center mx-auto">
                 <Check className="w-8 h-8 text-[#FFB347]" />
@@ -1188,13 +1259,117 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
               </div>
               {!standaloneTempleReg && (
                 <button
-                  onClick={() => { setTempleRegSuccess(false); setStep("find"); }}
+                  onClick={() => { setTempleRegSuccess(false); setTempleRegStep("details"); setStep("find"); }}
                   className="inline-flex items-center space-x-2 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold text-sm px-6 py-2.5 rounded-xl transition-all cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> <span>Back to Home</span>
                 </button>
               )}
             </div>
+
+          /* ── Step: Optional Donation (after successful details sync) ── */
+          ) : templeRegStep === "donation" ? (
+            <div className="space-y-5">
+              {/* Registration confirmed banner */}
+              <div className="flex items-center space-x-3 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-2xl px-4 py-3.5">
+                <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="text-xs font-semibold text-[#5EEAD4]">Temple details saved!</p>
+                  <p className="text-[11px] text-white/50">
+                    <strong className="text-white/70">{templeReg.templeName}</strong> has been submitted. You can now optionally make a contribution.
+                  </p>
+                </div>
+              </div>
+
+              <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-5 border border-white/10">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
+                    <Gift className="w-3.5 h-3.5" /> Optional Donation / Contribution
+                  </h3>
+                  <p className="text-[11px] text-white/40 leading-relaxed">
+                    Support your temple's renovation, annadanam, or seva activities. This step is entirely optional — tap "Skip" to finish.
+                  </p>
+                </div>
+
+                <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
+                  <Heart className="w-3.5 h-3.5 text-[#FFB347] shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-white/55 leading-relaxed">
+                    If you donate, your payment will be forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>.
+                    A <strong className="text-white/80">Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/80">24 hours</strong> after payment verification.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2">
+                  {[101, 251, 501, 1001].map(amt => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setTempleRegDonationAmount(templeRegDonationAmount === String(amt) ? "" : String(amt))}
+                      className={`py-2 rounded-xl text-sm font-bold border transition-all cursor-pointer ${
+                        templeRegDonationAmount === String(amt)
+                          ? "bg-[#FFB347]/20 border-[#FFB347]/50 text-[#FFB347]"
+                          : "bg-white/5 border-white/10 text-white/55 hover:border-white/25"
+                      }`}
+                    >
+                      ₹{amt}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-white/60 mb-1.5">
+                    Or enter a custom amount (₹) <span className="text-white/30 font-normal">— leave blank to skip</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={templeRegDonationAmount}
+                    onChange={e => setTempleRegDonationAmount(e.target.value)}
+                    placeholder="e.g. 2100"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#FFB347]/50 transition-all"
+                  />
+                </div>
+
+                {templeRegDonationAmount && Number(templeRegDonationAmount) >= 1 && (
+                  <input
+                    type="text"
+                    value={templeRegDonationNote}
+                    onChange={e => setTempleRegDonationNote(e.target.value)}
+                    placeholder="Dedication note — e.g. In memory of, On behalf of family…"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#5EEAD4]/50 transition-all"
+                  />
+                )}
+
+                <button
+                  onClick={handleTempleRegDonationSubmit}
+                  disabled={submittingTempleReg}
+                  className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm tracking-wide"
+                >
+                  {submittingTempleReg ? (
+                    <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Processing…</span></>
+                  ) : templeRegDonationAmount && Number(templeRegDonationAmount) >= 1 ? (
+                    <><Heart className="w-4 h-4" /><span>Proceed to Payment ₹{templeRegDonationAmount}</span></>
+                  ) : (
+                    <><Heart className="w-4 h-4" /><span>Donate / Contribute</span></>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => { setTempleRegStep("done"); setTempleRegSuccess(true); }}
+                  disabled={submittingTempleReg}
+                  className="w-full text-white/40 hover:text-white/70 text-xs py-2 transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                  <span>Skip Donation — Finish Registration</span>
+                </button>
+
+                <p className="text-center text-[10px] text-white/25 font-mono">
+                  Donations are voluntary and non-refundable · Powered by Sridwar Technology
+                </p>
+              </div>
+            </div>
+
+          /* ── Step: Temple / Committee Details ── */
           ) : (
             <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-5 border border-white/10">
 
@@ -1300,66 +1475,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
                 </div>
               </div>
 
-              {/* ── Donation / Contribution ── */}
-              <div className="border-t border-white/8 pt-5 space-y-4">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
-                    <Gift className="w-3.5 h-3.5" /> Optional Donation / Contribution
-                  </h3>
-                  <p className="text-[11px] text-white/40 leading-relaxed">
-                    Support your temple's renovation, annadanam, or seva activities. Leave blank to skip — registration is always free.
-                  </p>
-                </div>
-
-                <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
-                  <Heart className="w-3.5 h-3.5 text-[#FFB347] shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-white/55 leading-relaxed">
-                    If you donate, your payment will be forwarded to <strong className="text-white/80">{templeReg.templeName || "your temple"}</strong>.
-                    A <strong className="text-white/80">Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/80">24 hours</strong> after payment verification and temple management response.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-4 gap-2">
-                  {[101, 251, 501, 1001].map(amt => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setTempleRegDonationAmount(templeRegDonationAmount === String(amt) ? "" : String(amt))}
-                      className={`py-2 rounded-xl text-sm font-bold border transition-all cursor-pointer ${
-                        templeRegDonationAmount === String(amt)
-                          ? "bg-[#FFB347]/20 border-[#FFB347]/50 text-[#FFB347]"
-                          : "bg-white/5 border-white/10 text-white/55 hover:border-white/25"
-                      }`}
-                    >
-                      ₹{amt}
-                    </button>
-                  ))}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-white/60 mb-1.5">
-                    Or enter a custom amount (₹) <span className="text-white/30 font-normal">— leave blank to skip</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={templeRegDonationAmount}
-                    onChange={e => setTempleRegDonationAmount(e.target.value)}
-                    placeholder="e.g. 2100"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#FFB347]/50 transition-all"
-                  />
-                </div>
-
-                {templeRegDonationAmount && Number(templeRegDonationAmount) >= 1 && (
-                  <input
-                    type="text"
-                    value={templeRegDonationNote}
-                    onChange={e => setTempleRegDonationNote(e.target.value)}
-                    placeholder="Dedication note — e.g. In memory of, On behalf of family…"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#5EEAD4]/50 transition-all"
-                  />
-                )}
-              </div>
+              {/* ── Donation section removed from this step — shown on next card after submit ── */}
 
               <button
                 onClick={handleTempleRegSubmit}
@@ -1367,11 +1483,9 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
                 className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm tracking-wide"
               >
                 {submittingTempleReg ? (
-                  <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Submitting…</span></>
-                ) : templeRegDonationAmount && Number(templeRegDonationAmount) >= 1 ? (
-                  <><Send className="w-4 h-4" /><span>Register &amp; Donate ₹{templeRegDonationAmount}</span></>
+                  <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Saving Details…</span></>
                 ) : (
-                  <><Send className="w-4 h-4" /><span>Submit Temple Registration</span></>
+                  <><Send className="w-4 h-4" /><span>Submit &amp; Proceed</span></>
                 )}
               </button>
 
