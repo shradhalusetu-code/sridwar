@@ -10,7 +10,6 @@ import TempleExperience from "./components/TempleExperience";
 import SevaExperience from "./components/SevaExperience";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import OnlinePuja from "./components/OnlinePuja";
-import ProductCatalog from "./components/ProductCatalog";
 import TemplateBazaar from "./components/TemplateBazaar";
 import AboutUs from "./components/AboutUs";
 import ContactUs from "./components/ContactUs";
@@ -19,10 +18,10 @@ import AIAssistant from "./components/AIAssistant";
 import BookNowWizard from "./components/BookNowWizard";
 import SriDwarLogo from "./components/SriDwarLogo";
 import FAQs from "./components/FAQs";
-import UpiPaymentPopup from "./components/UpiPaymentPopup";
 import SacredResources from "./components/SacredResources";
 import HolisticWellness from "./components/HolisticWellness";
 import TempleRegister from "./components/TempleRegister";
+import UPIPaymentModal from "./components/UPIPaymentModal";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -895,17 +894,18 @@ export default function App() {
         </div>
       )}
 
-      {/* Real UPI Payment Popup for Temple Bazaar cart checkout */}
-      {isCartPaymentOpen && (
-        <UpiPaymentPopup
-          amount={cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)}
-          note="Temple Bazaar Order"
-          payeeLabel="Order Items"
-          payeeValue={`${cart.length} item(s)`}
-          onConfirm={finalizeCartCheckout}
-          onClose={() => setIsCartPaymentOpen(false)}
-        />
-      )}
+      {/* UPI Payment Modal for Temple Bazaar cart checkout */}
+      <UPIPaymentModal
+        isOpen={isCartPaymentOpen}
+        onClose={() => setIsCartPaymentOpen(false)}
+        onPaymentConfirmed={finalizeCartCheckout}
+        amount={cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)}
+        bookingName="Temple Bazaar Order"
+        devoteeName={userProfile.name || "Devotee"}
+        refId={`CART-${Date.now()}`}
+        payeeLabel="Order Items"
+        payeeValue={`${cart.length} item(s)`}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           INLINE LEGAL DOCUMENT READER

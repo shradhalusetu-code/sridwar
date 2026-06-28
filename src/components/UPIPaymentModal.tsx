@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { X, Check, Copy, ShieldCheck, RefreshCw } from "lucide-react";
+import { buildUpiQrImageUrl, buildUpiLink, PAYEE_NAME } from "../utils/upiConfig";
 
 interface UPIPaymentModalProps {
   isOpen: boolean;
@@ -17,6 +18,10 @@ interface UPIPaymentModalProps {
   allowCustomAmount?: boolean;
   minAmount?: number;
   maxAmount?: number;
+  /** Optional label shown above the amount row (e.g. "Order Items") */
+  payeeLabel?: string;
+  /** Optional value shown next to payeeLabel (e.g. "3 item(s)") */
+  payeeValue?: string;
 }
 
 export default function UPIPaymentModal({
@@ -30,6 +35,8 @@ export default function UPIPaymentModal({
   allowCustomAmount = false,
   minAmount = 5,
   maxAmount = 1000,
+  payeeLabel,
+  payeeValue,
 }: UPIPaymentModalProps) {
   const [copied, setCopied] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -39,14 +46,14 @@ export default function UPIPaymentModal({
 
   const upiId = "sridwar@upi";
   const WHATSAPP_NUMBER = "919777645062";
+  const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
 
   const handleWhatsAppPay = () => {
-    const amt = allowCustomAmount ? customAmount : amount;
     const message = encodeURIComponent(
       "🙏 Jai Jagannath! I would like to make a UPI payment for:\n\n" +
       "📿 Service: " + bookingName + "\n" +
       "👤 Name: " + devoteeName + "\n" +
-      "💰 Amount: ₹" + amt + "\n" +
+      "💰 Amount: ₹" + effectiveAmount + "\n" +
       "🔖 Ref ID: " + refId + "\n\n" +
       "Please confirm my booking after payment. 🙏"
     );
@@ -54,13 +61,12 @@ export default function UPIPaymentModal({
   };
 
   const sendOwnerWhatsAppAlert = () => {
-    const amt = allowCustomAmount ? customAmount : amount;
     const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     const message = encodeURIComponent(
       "🔔 *NEW PAYMENT RECEIVED — Sri Dwar*\n\n" +
       "📿 *Service:* " + bookingName + "\n" +
       "👤 *Devotee:* " + devoteeName + "\n" +
-      "💰 *Amount:* ₹" + amt + "\n" +
+      "💰 *Amount:* ₹" + effectiveAmount + "\n" +
       "🔖 *Ref ID:* " + refId + "\n" +
       "🕐 *Time:* " + now + " IST\n\n" +
       "Please verify UPI payment and confirm booking. 🙏"
@@ -122,6 +128,14 @@ export default function UPIPaymentModal({
         >
           <div className="p-5 space-y-4">
 
+            {/* Optional payee summary row */}
+            {payeeLabel && payeeValue && (
+              <div className="flex justify-between items-center text-xs bg-[#021816] p-3 rounded-xl border border-white/5">
+                <span className="text-white/50 uppercase font-mono shrink-0 pr-2">{payeeLabel}:</span>
+                <span className="font-bold text-[#FFB347] truncate text-right">{payeeValue}</span>
+              </div>
+            )}
+
             {/* Amount Display */}
             <div className="bg-[#021816] rounded-2xl p-4 border border-white/10 text-center space-y-1">
               <span className="block text-[10px] font-mono text-white/40 uppercase tracking-widest">{bookingName}</span>
@@ -144,22 +158,37 @@ export default function UPIPaymentModal({
               )}
               <span className="block text-[10px] text-white/30 font-mono">Ref: {refId}</span>
             </div>
+
+            {/* Dynamic UPI QR Code */}
             <div className="flex flex-col items-center space-y-2">
               <span className="text-[10px] text-white/50 font-mono uppercase tracking-wider">📱 Scan QR with PhonePe · GPay · Paytm · BHIM</span>
-              <div className="bg-white p-3 rounded-2xl shadow-2xl border-4 border-[#FFB347] relative">
-                <img src={import.meta.env.BASE_URL + "images/Sridwar.png"} alt="Sri Dwar PhonePe UPI QR Code"
-                  className="w-48 h-48 object-contain select-none" draggable={false} />
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                  <span className="bg-black/70 text-white text-[8px] font-bold px-2 py-0.5 rounded-full font-mono tracking-widest uppercase">Sridwar · PhonePe</span>
-                </div>
+              <div className="bg-white p-3 rounded-2xl shadow-2xl border-4 border-[#FFB347]">
+                <img
+                  src={buildUpiQrImageUrl(effectiveAmount, bookingName)}
+                  alt={`UPI QR code to pay ₹${effectiveAmount}`}
+                  width={192}
+                  height={192}
+                  className="w-48 h-48 object-contain select-none"
+                  draggable={false}
+                />
               </div>
-              <p className="text-[9px] text-white/30 font-mono text-center">Receiving account: <span className="text-white/60 font-bold">Sridwar</span></p>
+              <p className="text-[9px] text-white/30 font-mono text-center">
+                Receiving account: <span className="text-white/60 font-bold">{PAYEE_NAME}</span>
+              </p>
+              <p className="text-[11px] text-white/55 text-center leading-relaxed">
+                On a phone you can also{" "}
+                <a href={buildUpiLink(effectiveAmount, bookingName)} className="text-[#5EEAD4] underline font-semibold">
+                  tap here to pay directly
+                </a>.
+              </p>
             </div>
+
             <div className="flex items-center space-x-3">
               <div className="flex-1 h-px bg-white/10" />
               <span className="text-[10px] text-white/30 font-mono">OR</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
+
             <button onClick={handleWhatsAppPay}
               className="w-full flex items-center justify-center space-x-2 bg-[#25D366] hover:bg-[#1ebe59] text-white font-bold py-3.5 rounded-xl text-xs transition-all tracking-wide shadow-lg">
               <span className="text-lg">💬</span>
@@ -168,6 +197,7 @@ export default function UPIPaymentModal({
                 <span className="block text-[9px] font-normal opacity-80">Opens WhatsApp with payment details</span>
               </div>
             </button>
+
             <div className="flex items-center justify-between bg-[#021816] px-4 py-3 rounded-xl border border-white/10">
               <div>
                 <span className="block text-[9px] text-white/40 font-mono uppercase">UPI ID · Sridwar</span>
@@ -188,6 +218,7 @@ export default function UPIPaymentModal({
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 24 hours of payment confirmation. 🙏</span>
             </div>
+
             {!confirmed ? (
               <button onClick={handleConfirmPayment}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 rounded-xl text-xs transition-all tracking-widest uppercase shadow-lg flex items-center justify-center space-x-2 border border-emerald-400/20">
