@@ -1,0 +1,12 @@
+# Sri Dwar – robots.txt
+# Shradhalu Private Limited
+
+User-agent: *
+Allow: /
+
+# Block any internal/dev paths if they ever exist
+Disallow: /src/
+Disallow: /node_modules/
+
+# Sitemap location — tells Google exactly where to find your pages
+Sitemap: https://sridwar.com/sitemap.xml

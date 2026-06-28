@@ -3,12 +3,150 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SriDwar – Book Online Puja, Seva & Temple Darshan</title>
-    <meta name="description" content="SriDwar connects devotees worldwide to India's sacred temples — book online puja & seva, support temple donations, and shop blessed prasad online." />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PRIMARY SEO TAGS
+         These are what Google shows in search results
+    ═══════════════════════════════════════════════════════════════ -->
+    <title>Sri Dwar – Book Online Puja, Seva, Live Darshan & Sacred Prasad from India's Temples</title>
+    <meta name="description" content="Sri Dwar connects global devotees to India's most sacred temples. Book online puja & seva with verified priests, watch live darshan, order authentic prasad, consult astrologers, and support temple trusts — from anywhere in the world." />
+    <meta name="keywords" content="online puja booking, temple darshan, seva booking, prasad online, vedic astrology, Hindu temple, puja at home, remote puja India, NRI puja booking, Sri Dwar, Shradhalu, Jagannath puja, temple donation" />
+    <meta name="author" content="Shradhalu Private Limited" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://sridwar.com/" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         OPEN GRAPH TAGS
+         Controls how your link looks when shared on
+         WhatsApp, Facebook, LinkedIn, Telegram etc.
+    ═══════════════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sridwar.com/" />
+    <meta property="og:site_name" content="Sri Dwar" />
+    <meta property="og:title" content="Sri Dwar – Book Online Puja, Seva & Temple Darshan from India" />
+    <meta property="og:description" content="Connect to India's sacred temples from anywhere in the world. Book online puja, sponsor seva, watch live darshan, order prasad, and consult Vedic astrologers — all on Sri Dwar." />
+    <meta property="og:image" content="https://sridwar.com/images/og-preview.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Sri Dwar – Connecting Devotees Worldwide to Sacred Temples of India" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TWITTER / X CARD TAGS
+         Controls preview when shared on Twitter/X
+    ═══════════════════════════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sri Dwar – Book Online Puja, Seva & Temple Darshan from India" />
+    <meta name="twitter:description" content="Connect to India's sacred temples from anywhere. Book puja, sponsor seva, watch live darshan, order prasad & consult Vedic astrologers." />
+    <meta name="twitter:image" content="https://sridwar.com/images/og-preview.jpg" />
+    <meta name="twitter:image:alt" content="Sri Dwar – Sacred Temple Services Online" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PWA & ANDROID THEME
+         Controls status bar colour in Android Chrome and the app
+    ═══════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" content="#021816" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Sri Dwar" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         FAVICONS
+         See STEP 3 in the instructions below for how to create these
+    ═══════════════════════════════════════════════════════════════ -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         STRUCTURED DATA (JSON-LD)
+         This helps Google understand your business and can earn
+         rich results (star ratings, prices) in search results
+    ═══════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Sri Dwar",
+      "alternateName": "Shradhalu Private Limited",
+      "url": "https://sridwar.com",
+      "logo": "https://sridwar.com/images/og-preview.jpg",
+      "description": "Sri Dwar connects global devotees to India's most sacred temples for online puja booking, seva sponsorship, live darshan, prasad delivery, and Vedic astrology consultations.",
+      "foundingDate": "2026",
+      "founder": {
+        "@type": "Person",
+        "name": "Kunu Rana"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Jajpur",
+        "addressRegion": "Odisha",
+        "addressCountry": "IN"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["English", "Hindi", "Bengali", "Odia"]
+      },
+      "sameAs": [
+        "https://www.facebook.com/SridwarSetu/",
+        "https://www.linkedin.com/company/sri-dwar/"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Temple Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Online Puja Booking",
+              "description": "Book personalized Vedic pujas performed with your name and Gotra at India's revered temples by verified priests."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Seva Sponsorship",
+              "description": "Sponsor annadanam, gau seva, diya lighting, and other sacred sevas at partner temples."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Live Temple Darshan",
+              "description": "Watch live darshan and aarti from India's most sacred temples from anywhere in the world."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Prasad Delivery",
+              "description": "Order authentic vacuum-packed temple prasad, rudraksha, dhoop, and sacred items with worldwide shipping."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Vedic Astrology Consultation",
+              "description": "Consult verified Jyotish experts for personalized horoscope, kundali, and life guidance."
+            }
+          }
+        ]
+      }
+    }
+    </script>
+
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
