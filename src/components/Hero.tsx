@@ -12,6 +12,7 @@ import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
+import { gaBookNowOpen, gaContactFormStart, gaContactFormSubmit, gaNavClick } from "../utils/analytics";
 // @ts-ignore
 import aerialJagannathPuri from "../assets/images/aerial_jagannath_puri_hero_1781871848760.jpg";
 
@@ -92,6 +93,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
+      gaContactFormSubmit(!!phone);
       // ✅ Show UPI if user selected a contribution tier
       if (membershipTier) {
         setUpiAmount(membershipTier);
@@ -179,7 +181,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
 
               <button
                 id="hero-book-puja-cta"
-                onClick={onOpenBookNow}
+                onClick={() => { gaBookNowOpen("Hero CTA", 0); onOpenBookNow(); }}
                 className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full shadow-[0_0_15px_rgba(255,179,71,0.3)] transition-all scale-100 hover:scale-103 flex items-center space-x-2 cursor-pointer"
               >
                 <Calendar className="w-4 h-4" />
@@ -189,6 +191,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
               <button
                 id="hero-explore-temples-cta"
                 onClick={() => {
+                  gaNavClick("temple-experience-section", "hero");
                   const el = document.getElementById("temple-experience-section");
                   el?.scrollIntoView({ behavior: "smooth" });
                 }}
@@ -200,7 +203,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
 
               <button
                 id="hero-receive-prasad-cta"
-                onClick={onOpenProducts}
+                onClick={() => { gaNavClick("products", "hero"); onOpenProducts(); }}
                 className="bg-white/5 text-white/90 hover:bg-white/10 font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all flex items-center space-x-2 border border-white/20 cursor-pointer"
               >
                 <GiftIcon className="w-4 h-4 text-[#FFB347]" />
@@ -300,6 +303,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
+                      onFocus={() => gaContactFormStart()}
                       placeholder="e.g. Anand Satpathy"
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                     />

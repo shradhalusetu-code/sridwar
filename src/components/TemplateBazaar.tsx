@@ -16,6 +16,7 @@ import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
+import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
 
 // ─── Product catalogue ─────────────────────────────────────────────────────
 interface BazaarItem {
@@ -179,6 +180,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
 
   // ── Open Sankalpa Portal ────────────────────────────────────────────────
   const handleBuyNow = (item: BazaarItem) => {
+    gaAddToCart(item.name, item.price, item.id);
     setSelectedItem(item);
     setRefId((item.isService ? "SDV-" : "SDB-") + Math.floor(100000 + Math.random() * 900000));
     setShowSankalpa(true);
@@ -227,6 +229,9 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   // ── After payment confirmed ─────────────────────────────────────────────
   const handlePaymentConfirmed = () => {
     setShowUPI(false);
+    if (selectedItem) {
+      gaBookingComplete(selectedItem.name, selectedItem.price, refId);
+    }
     const msg = selectedItem?.isService
       ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a WhatsApp confirmation within 2 hours. Ref: ${refId}`
       : `🙏 Order confirmed! Your ${selectedItem?.name} will be shipped within 3–5 working days. Ref: ${refId}`;
@@ -274,7 +279,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
           {CATEGORIES.map(cat => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => { gaCategoryFilter(cat, "temple_bazaar"); setSelectedCategory(cat); }}
               className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
                 selectedCategory === cat
                   ? "bg-[#FFB347] text-[#021816] border-[#FFB347]"

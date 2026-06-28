@@ -28,6 +28,11 @@ import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "./utils/discount";
 import {
+  gaPageView, gaBookNowOpen, gaBookingComplete, gaCartCheckout, gaCartPurchase,
+  gaSevaSelect, gaAddToCart, gaNavClick, gaSocialClick, gaWhatsAppClick,
+  gaLegalDocOpen, gaTempleExplore,
+} from "./utils/analytics";
+import {
   ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
   Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin
 } from "lucide-react";
@@ -67,7 +72,13 @@ export default function App() {
   const handleNavigate = (page: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
     setCurrentPage(page);
+    gaPageView(`/${page}`, page.charAt(0).toUpperCase() + page.slice(1));
   };
+
+  // Track page view on initial load
+  useEffect(() => {
+    gaPageView("/home", "Home");
+  }, []);
 
   // Load sample book on launch or sync with localStorage for durable persistence
   useEffect(() => {
@@ -131,6 +142,7 @@ export default function App() {
       }
       return [...prevCart, { product, quantity: 1 }];
     });
+    gaAddToCart(product.name, getDiscountedPrice(product.price), product.id);
     setIsCartOpen(true);
   };
 
@@ -155,6 +167,8 @@ export default function App() {
   // Opens the real UPI QR payment popup for the cart total.
   const handleCartGPayCheckout = () => {
     if (cart.length === 0) return;
+    const total = cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0);
+    gaCartCheckout(total, cart.length);
     setIsCartPaymentOpen(true);
   };
 
@@ -174,6 +188,8 @@ export default function App() {
     const updatedBookings = [newBooking, ...bookedItems];
     setBookedItems(updatedBookings);
     localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
+
+    gaCartPurchase(totalAmount, refId);
 
     setIsCartPaymentOpen(false);
     setCart([]);
@@ -239,7 +255,10 @@ export default function App() {
                 setWizardDefaults({ pujaName: `${deity} Sankalpa offering (${templeName})`, price: 751 });
                 setIsBookNowOpen(true);
               }}
-              onExploreTemple={(temple) => setActiveExploreTemple(temple)}
+              onExploreTemple={(temple) => {
+                gaTempleExplore(temple.name);
+                setActiveExploreTemple(temple);
+              }}
               onNavigate={handleNavigate}
             />
 
@@ -383,6 +402,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"
                   title="LinkedIn"
+                  onClick={() => gaSocialClick("linkedin")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Linkedin className="w-4 h-4" />
@@ -393,6 +413,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="Instagram"
                   title="Instagram"
+                  onClick={() => gaSocialClick("instagram")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Instagram className="w-4 h-4" />
@@ -403,6 +424,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="YouTube"
                   title="YouTube"
+                  onClick={() => gaSocialClick("youtube")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Youtube className="w-4 h-4" />
@@ -413,6 +435,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="Twitter / X"
                   title="Twitter / X"
+                  onClick={() => gaSocialClick("twitter_x")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Twitter className="w-4 h-4" />
@@ -423,6 +446,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="Facebook"
                   title="Facebook"
+                  onClick={() => gaSocialClick("facebook")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Facebook className="w-4 h-4" />
@@ -433,6 +457,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
                   title="WhatsApp: +91 97776 45062"
+                  onClick={() => gaWhatsAppClick("footer")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -443,6 +468,7 @@ export default function App() {
                   rel="noopener noreferrer"
                   aria-label="Email via Gmail"
                   title="Email: puja@sridwar.com"
+                  onClick={() => gaSocialClick("email")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
                 >
                   <Mail className="w-4 h-4" />
@@ -527,7 +553,7 @@ export default function App() {
                 <span key={key} className="flex items-center">
                   <button
                     type="button"
-                    onClick={() => setActiveLegalDoc(key)}
+                    onClick={() => { gaLegalDocOpen(key); setActiveLegalDoc(key); }}
                     className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4] cursor-pointer bg-transparent border-none p-0"
                   >
                     {label}
@@ -629,6 +655,7 @@ export default function App() {
                     key={idx}
                     id={`quick-seva-btn-${idx}`}
                     onClick={() => {
+                      gaSevaSelect(item.name, getDiscountedPrice(item.price));
                       setWizardDefaults({ pujaName: `Sponsorship donation: ${item.name}`, price: getDiscountedPrice(item.price) });
                       setIsSevaModalOpen(false);
                       setIsBookNowOpen(true);

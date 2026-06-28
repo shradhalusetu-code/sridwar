@@ -8,6 +8,7 @@ import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Se
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
+import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
 
 export default function ContactUs() {
   const [name, setName] = useState("");
@@ -49,6 +50,7 @@ export default function ContactUs() {
     });
 
     setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
+    gaContactFormSubmit(!!phone);
 
     } catch (err) {
       console.error(err);
@@ -88,6 +90,7 @@ export default function ContactUs() {
                 href="https://wa.me/message/325QR2O5II3IH1"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => gaWhatsAppClick("contact_helpline")}
                 className="flex items-center space-x-3.5 p-4 rounded-2xl bg-[#092320] border border-white/10 hover:bg-white/5 transition-colors group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
@@ -184,7 +187,7 @@ export default function ContactUs() {
                     className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs border border-white/10 transition-all"
                   >Skip Donation</button>
                   <button
-                    onClick={() => { if (donationAmount && donationAmount >= 5) setShowUPI(true); else alert("Minimum donation is ₹5"); }}
+                    onClick={() => { if (donationAmount && donationAmount >= 5) { gaDonationInitiate(donationAmount); setShowUPI(true); } else alert("Minimum donation is ₹5"); }}
                     disabled={!donationAmount}
                     className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-3 rounded-xl text-xs uppercase tracking-wide transition-all"
                   >Donate ₹{donationAmount || 0} 🙏</button>
@@ -208,6 +211,7 @@ export default function ContactUs() {
                     placeholder="e.g. Kunu Rana"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onFocus={() => gaContactFormStart()}
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/30 text-left shadow-sm"
                   />
                 </div>

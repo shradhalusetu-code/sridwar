@@ -19,6 +19,50 @@ import { TEMPLES_LIST } from "../data/temples";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import UPIPaymentModal from "./UPIPaymentModal";
 
+// ─── Google Analytics 4 helpers ───────────────────────────────────────────────
+// Measurement ID: G-LXYRS86RGH  (already loaded in index.html via gtag.js)
+// We call window.gtag directly so we never need a separate GA dependency.
+declare const gtag: (...args: unknown[]) => void;
+
+function gaEvent(name: string, params: Record<string, string | number> = {}) {
+  try {
+    if (typeof gtag === "function") {
+      gtag("event", name, { ...params, send_to: "G-LXYRS86RGH" });
+    }
+  } catch {
+    // gtag not yet loaded — safe to ignore
+  }
+}
+
+// ─── Shareable link builder (UTM-tagged) ─────────────────────────────────────
+// Each section gets its own utm_content so GA can tell them apart in the
+// Acquisition → Traffic → Source/Medium report.
+function buildShareUrl(page: string, utmContent: string): string {
+  const base = `${window.location.origin}${window.location.pathname}`;
+  const params = new URLSearchParams({
+    page,
+    utm_source:   "share",
+    utm_medium:   "social",
+    utm_campaign: "sridwar_registration",
+    utm_content:  utmContent,
+  });
+  return `${base}?${params.toString()}`;
+}
+
+// ─── Native share + clipboard fallback ───────────────────────────────────────
+async function shareOrCopy(url: string, title: string, text: string): Promise<"shared" | "copied"> {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      return "shared";
+    } catch {
+      // user cancelled — fall through to clipboard
+    }
+  }
+  await navigator.clipboard.writeText(url);
+  return "copied";
+}
+
 // ─── Backend Form URL (silent — not shown to users) ──────────────────────────
 // Original generic form — still used by Devotee Registration and
 // Temple / Puja Committee Registration further down this file. Left untouched.
@@ -84,6 +128,32 @@ async function submitToExpertForm(payload: Record<string, string>): Promise<void
   Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
   try {
     await fetch(EXPERT_FORM_URL, { method: "POST", mode: "no-cors", body: fd });
+  } catch {
+    // no-cors fetch always throws on response read — data still submits
+  }
+}
+
+// ─── Devotee Registration Form (uses the devotee_support Google Form) ─────────
+// Entry IDs from googleFormSync.ts → DEFAULT_CONFIGS.devotee_support
+// The rich devotee fields (Gotra, Rashi, Deity, Interests, Message) are packed
+// into the `details` key as a pipe-separated string, matching the pattern used
+// in devotee-register.html.
+const DEVOTEE_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse";
+
+const DEVOTEE_ENTRY = {
+  name:    "entry.898437491",
+  email:   "entry.969380068",
+  phone:   "entry.1486488215",
+  details: "entry.1306645637",
+  type:    "entry.943423993",
+};
+
+async function submitToDevoteeForm(payload: Record<string, string>): Promise<void> {
+  const fd = new FormData();
+  Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
+  try {
+    await fetch(DEVOTEE_FORM_URL, { method: "POST", mode: "no-cors", body: fd });
   } catch {
     // no-cors fetch always throws on response read — data still submits
   }
@@ -189,6 +259,47 @@ interface ExpertForm {
 
 type ExpertStep = "category-select" | "form-basic" | "form-services" | "form-donate" | "form-success" | "send-link";
 
+// Devotee registration step type (mirrors ExpertStep pattern)
+type DevoteeStep = "form-basic" | "form-interests" | "form-donate" | "form-success";
+
+// Devotee interests options (from devotee-register.html)
+const DEVOTEE_INTERESTS = [
+  { val: "Online Puja Booking",    emoji: "🙏", label: "Online Puja" },
+  { val: "Seva Sponsorship",       emoji: "🪔", label: "Seva Sponsorship" },
+  { val: "Live Temple Darshan",    emoji: "📺", label: "Live Darshan" },
+  { val: "Prasad Delivery",        emoji: "🍱", label: "Prasad Delivery" },
+  { val: "Vedic Astrology",        emoji: "⭐", label: "Astrology" },
+  { val: "Temple Donation",        emoji: "💛", label: "Temple Donation" },
+];
+
+// Rashi options (from devotee-register.html)
+const RASHI_OPTIONS = [
+  "Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", "Karka (Cancer)",
+  "Simha (Leo)", "Kanya (Virgo)", "Tula (Libra)", "Vrishchika (Scorpio)",
+  "Dhanu (Sagittarius)", "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)",
+];
+
+// Ishta Devata options (from devotee-register.html)
+const DEITY_OPTIONS = [
+  "Lord Jagannath", "Lord Shiva", "Lord Vishnu", "Lord Ganesha", "Lord Hanuman",
+  "Lord Krishna", "Lord Ram", "Maa Durga", "Maa Kali", "Maa Lakshmi",
+  "Maa Saraswati", "Maa Samaleswari", "Maa Tarini", "Maa Biraja", "Other",
+];
+
+interface DevoteeForm {
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  gotra: string;
+  rashi: string;
+  deity: string;
+  selectedInterests: string[];
+  message: string;
+  donationAmount: string;
+  donationNote: string;
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectionBadge({ label }: { label: string }) {
@@ -250,10 +361,449 @@ function CheckboxChip({
   );
 }
 
+// ─── ShareLinkButton — reusable GA-tracked share/copy button ─────────────────
+// Uses native Web Share API on mobile; falls back to clipboard on desktop.
+// Fires a GA4 event every time the link is shared or copied.
+function ShareLinkButton({
+  page, utmContent, label, gaEventName, color = "teal"
+}: {
+  page: string; utmContent: string; label: string; gaEventName: string; color?: "teal" | "gold";
+}) {
+  const [status, setStatus] = useState<"idle" | "shared" | "copied">("idle");
+
+  const handleClick = async () => {
+    const url = buildShareUrl(page, utmContent);
+    const result = await shareOrCopy(
+      url,
+      "Sri Dwar — India's Sacred Temple Platform",
+      "Register on Sri Dwar and connect with India's sacred temples, verified priests, puja bookings, prasad, live darshan & more."
+    );
+    setStatus(result);
+    gaEvent(gaEventName, { method: result, page_target: page, utm_content: utmContent });
+    setTimeout(() => setStatus("idle"), 2500);
+  };
+
+  const colorClass = color === "gold"
+    ? "bg-[#FFB347]/10 hover:bg-[#FFB347]/18 border-[#FFB347]/25 text-[#FFB347]"
+    : "bg-[#5EEAD4]/10 hover:bg-[#5EEAD4]/15 border-[#5EEAD4]/20 text-[#5EEAD4]";
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`flex items-center space-x-2 ${colorClass} border text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shrink-0`}
+    >
+      {status === "idle"   && <><Share2 className="w-3.5 h-3.5" /><span>{label}</span></>}
+      {status === "shared" && <><Check  className="w-3.5 h-3.5" /><span>Shared!</span></>}
+      {status === "copied" && <><Copy   className="w-3.5 h-3.5" /><span>Link Copied!</span></>}
+    </button>
+  );
+}
+
+// ─── Devotee Registration Section ────────────────────────────────────────────
+
+function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
+  const [step, setStep] = useState<DevoteeStep>("form-basic");
+  const [submitting, setSubmitting] = useState(false);
+  const [basicSubmitted, setBasicSubmitted] = useState(false);
+  const [showUpi, setShowUpi] = useState(false);
+  const [upiRefId, setUpiRefId] = useState("");
+  const [pendingPayload, setPendingPayload] = useState<Record<string, string> | null>(null);
+
+  const [form, setForm] = useState<DevoteeForm>({
+    name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "",
+    selectedInterests: [], message: "", donationAmount: "", donationNote: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const setF = (key: keyof DevoteeForm, value: string) =>
+    setForm(p => ({ ...p, [key]: value }));
+
+  const toggleInterest = (val: string) =>
+    setForm(p => ({
+      ...p,
+      selectedInterests: p.selectedInterests.includes(val)
+        ? p.selectedInterests.filter(x => x !== val)
+        : [...p.selectedInterests, val],
+    }));
+
+  const validateBasic = (): boolean => {
+    const e: Record<string, string> = {};
+    const n = validateName(form.name); if (n) e.name = n;
+    const em = validateEmail(form.email); if (em) e.email = em;
+    const ph = validatePhone(form.phone); if (ph) e.phone = ph;
+    if (!form.city.trim()) e.city = "City / Country is required.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const buildDetails = () => [
+    form.gotra   ? `Gotra: ${form.gotra}`               : "",
+    form.rashi   ? `Rashi: ${form.rashi}`               : "",
+    form.deity   ? `Deity: ${form.deity}`               : "",
+    form.city    ? `City: ${form.city}`                 : "",
+    form.selectedInterests.length ? `Interests: ${form.selectedInterests.join(", ")}` : "",
+    form.message ? `Message: ${form.message}`           : "",
+  ].filter(Boolean).join(" | ");
+
+  const buildPayload = (): Record<string, string> => ({
+    [DEVOTEE_ENTRY.name]:    form.name.trim(),
+    [DEVOTEE_ENTRY.email]:   form.email.trim().toLowerCase(),
+    [DEVOTEE_ENTRY.phone]:   form.phone.trim(),
+    [DEVOTEE_ENTRY.type]:    form.selectedInterests.join(", ") || "Devotee Registration",
+    [DEVOTEE_ENTRY.details]: buildDetails(),
+  });
+
+  const handleContinueToInterests = async () => {
+    if (!validateBasic()) return;
+    if (basicSubmitted) { setStep("form-interests"); return; }
+    setSubmitting(true);
+    try {
+      await submitToDevoteeForm(buildPayload());
+      setBasicSubmitted(true);
+      gaEvent("devotee_registration_started", { form_section: "basic_details" });
+      setStep("form-interests");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleContinueToDonate = async () => {
+    // Re-submit with updated interests/message
+    setSubmitting(true);
+    await submitToDevoteeForm(buildPayload());
+    gaEvent("devotee_registration_interests_saved", {
+      interests_count: form.selectedInterests.length,
+      has_message: form.message.trim() ? 1 : 0,
+    });
+    setSubmitting(false);
+    setStep("form-donate");
+  };
+
+  const handleSubmitWithoutDonation = async () => {
+    setSubmitting(true);
+    await submitToDevoteeForm(buildPayload());
+    gaEvent("devotee_registration_completed", { donation: "skipped" });
+    setSubmitting(false);
+    setStep("form-success");
+  };
+
+  const handleSubmitWithDonation = () => {
+    const amt = Number(form.donationAmount);
+    if (!form.donationAmount || isNaN(amt) || amt < 1) {
+      alert("Please enter a valid donation amount (minimum ₹1), or tap Skip.");
+      return;
+    }
+    const ref = `SDR-DEV-${Math.floor(100000 + Math.random() * 900000)}`;
+    setUpiRefId(ref);
+    setPendingPayload(buildPayload());
+    gaEvent("devotee_donation_initiated", { value: amt, currency: "INR" });
+    setShowUpi(true);
+  };
+
+  const handleDonationConfirmed = async () => {
+    setShowUpi(false);
+    setSubmitting(true);
+    if (pendingPayload) await submitToDevoteeForm(pendingPayload);
+    gaEvent("devotee_registration_completed", {
+      donation: "paid",
+      value: Number(form.donationAmount),
+      currency: "INR",
+    });
+    setSubmitting(false);
+    setPendingPayload(null);
+    setStep("form-success");
+  };
+
+  // ── Success ──
+  if (step === "form-success") {
+    const refId = `SDR-${Math.floor(100000 + Math.random() * 900000)}`;
+    return (
+      <div className="glass-panel rounded-3xl p-8 text-center space-y-5 border border-[#FFB347]/20">
+        <div className="w-16 h-16 rounded-full bg-[#FFB347]/15 flex items-center justify-center mx-auto">
+          <Check className="w-8 h-8 text-[#FFB347]" />
+        </div>
+        <h3 className="text-2xl font-serif font-bold text-white">Registration Complete!</h3>
+        <p className="text-white/60 text-sm leading-relaxed max-w-sm mx-auto">
+          Welcome to the Sri Dwar family. Our team will reach out to you on WhatsApp within <strong className="text-white">24 hours</strong> to help with your first puja or seva booking.
+        </p>
+        <div className="text-xs font-mono text-[#FFB347]/70 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-2.5 inline-block">
+          REF: {refId}
+        </div>
+        <div className="pt-2">
+          <button
+            onClick={() => {
+              setStep("form-basic");
+              setBasicSubmitted(false);
+              setForm({ name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "", selectedInterests: [], message: "", donationAmount: "", donationNote: "" });
+              onBack();
+            }}
+            className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /><span>Register Another Devotee</span>
+          </button>
+        </div>
+        <div className="text-xs font-mono text-[#5EEAD4]/50">Powered by Sridwar Technology</div>
+      </div>
+    );
+  }
+
+  // ── Donation step ──
+  if (step === "form-donate") {
+    const presets = [51, 101, 251, 501, 1001, 2100];
+    return (
+      <>
+      <div className="space-y-5">
+        <button onClick={() => setStep("form-interests")}
+          className="flex items-center space-x-2 text-white/50 hover:text-[#5EEAD4] text-sm transition-colors cursor-pointer">
+          <ArrowLeft className="w-4 h-4" /><span>Back</span>
+        </button>
+
+        <div className="text-center space-y-2">
+          <SectionBadge label="Optional Contribution" />
+          <h3 className="text-xl font-serif font-bold text-white">Support Sri Dwar's Mission</h3>
+        </div>
+
+        <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
+          <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
+            <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-[#FFB347]">Your contribution helps Sridwar Technology:</p>
+              <p className="text-[11px] text-white/55 leading-relaxed">
+                Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, verified priests, and dharmic services.
+                <br /><strong className="text-white/75">A Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/75">24 hours</strong> after payment verification.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {presets.map(amt => (
+              <button key={amt} type="button"
+                onClick={() => setF("donationAmount", form.donationAmount === String(amt) ? "" : String(amt))}
+                className={`py-2.5 rounded-xl text-sm font-bold border transition-all cursor-pointer ${
+                  form.donationAmount === String(amt)
+                    ? "bg-[#FFB347]/20 border-[#FFB347]/50 text-[#FFB347]"
+                    : "bg-white/5 border-white/10 text-white/60 hover:border-white/25"
+                }`}>₹{amt}</button>
+            ))}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-white/60 mb-1.5">
+              Or enter a custom amount (₹) <span className="text-white/30 font-normal">— leave blank to skip</span>
+            </label>
+            <input type="number" min="1" value={form.donationAmount}
+              onChange={e => setF("donationAmount", e.target.value)}
+              placeholder="e.g. 2100"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#FFB347]/50 transition-all"
+            />
+          </div>
+
+          {form.donationAmount && Number(form.donationAmount) >= 1 && (
+            <input type="text" value={form.donationNote}
+              onChange={e => setF("donationNote", e.target.value)}
+              placeholder="Dedication note — e.g. In honour of my Ishta Devata…"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#5EEAD4]/50 transition-all"
+            />
+          )}
+
+          <button onClick={handleSubmitWithDonation} disabled={submitting}
+            className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm">
+            {submitting ? (
+              <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Processing…</span></>
+            ) : (
+              <><Heart className="w-4 h-4" /><span>{form.donationAmount && Number(form.donationAmount) >= 1 ? `Contribute ₹${form.donationAmount}` : "Contribute / Donate"}</span></>
+            )}
+          </button>
+
+          <button onClick={handleSubmitWithoutDonation} disabled={submitting}
+            className="w-full text-white/40 hover:text-white/70 text-xs py-2 transition-colors cursor-pointer flex items-center justify-center space-x-1.5">
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span>Skip Donation — Complete Registration</span>
+          </button>
+        </div>
+
+        <p className="text-center text-[10px] text-white/25 font-mono">
+          Donations are voluntary and non-refundable · Powered by Sridwar Technology
+        </p>
+      </div>
+
+      {showUpi && (
+        <UPIPaymentModal
+          isOpen={showUpi}
+          onClose={() => setShowUpi(false)}
+          onPaymentConfirmed={handleDonationConfirmed}
+          amount={Number(form.donationAmount)}
+          bookingName={`Sri Dwar Devotee Registration Contribution — ${form.name}${form.donationNote ? ` (${form.donationNote})` : ""}`}
+          devoteeName={form.name}
+          refId={upiRefId}
+        />
+      )}
+      </>
+    );
+  }
+
+  // ── Interests & spiritual details step ──
+  if (step === "form-interests") {
+    return (
+      <div className="space-y-5">
+        <button onClick={() => setStep("form-basic")}
+          className="flex items-center space-x-2 text-white/50 hover:text-[#5EEAD4] text-sm transition-colors cursor-pointer">
+          <ArrowLeft className="w-4 h-4" /><span>Back</span>
+        </button>
+
+        {basicSubmitted && (
+          <div className="flex items-center space-x-2.5 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-2xl px-4 py-3">
+            <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />
+            <p className="text-xs text-[#5EEAD4]/80 leading-snug">
+              Basic details saved. Select the services you're interested in below.
+            </p>
+          </div>
+        )}
+
+        {/* Spiritual Details */}
+        <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
+          <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5" /> Spiritual Details
+          </h3>
+          <p className="text-[11px] text-white/40">All fields are optional.</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-white/70 mb-1.5">Gotra (Family Lineage)</label>
+              <input value={form.gotra} onChange={e => setF("gotra", e.target.value)}
+                placeholder="e.g. Kashyapa, Bharadwaja, Vatsasa"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#5EEAD4]/50 transition-all" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-white/70 mb-1.5">Rashi (Moon Sign)</label>
+              <div className="relative">
+                <Star className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5EEAD4]/60 pointer-events-none" />
+                <select value={form.rashi} onChange={e => setF("rashi", e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#5EEAD4]/50 transition-all appearance-none cursor-pointer">
+                  <option value="" className="bg-[#021816]">— Select Rashi —</option>
+                  {RASHI_OPTIONS.map(r => <option key={r} value={r} className="bg-[#021816]">{r}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-white/70 mb-1.5">Ishta Devata (Favourite Deity)</label>
+              <div className="relative">
+                <Heart className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5EEAD4]/60 pointer-events-none" />
+                <select value={form.deity} onChange={e => setF("deity", e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#5EEAD4]/50 transition-all appearance-none cursor-pointer">
+                  <option value="" className="bg-[#021816]">— Select Deity —</option>
+                  {DEITY_OPTIONS.map(d => <option key={d} value={d} className="bg-[#021816]">{d}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Services Interested In */}
+        <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-[#5EEAD4] uppercase tracking-wider font-mono flex items-center gap-2">
+              <Star className="w-3.5 h-3.5" /> I Am Interested In
+            </h3>
+            <p className="text-[11px] text-white/40">Select all that apply.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {DEVOTEE_INTERESTS.map(({ val, emoji, label }) => (
+              <CheckboxChip
+                key={val} label={`${emoji} ${label}`}
+                selected={form.selectedInterests.includes(val)}
+                onToggle={() => toggleInterest(val)}
+              />
+            ))}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-white/70 mb-1.5">
+              Anything Specific You'd Like? <span className="text-white/30 font-normal">(optional)</span>
+            </label>
+            <textarea value={form.message} onChange={e => setF("message", e.target.value)} rows={3}
+              placeholder="E.g. Satyanarayan Puja for family, Prasad from Puri, astrology for marriage…"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#5EEAD4]/50 transition-all resize-none" />
+          </div>
+        </div>
+
+        <button onClick={handleContinueToDonate} disabled={submitting}
+          className="w-full bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20">
+          {submitting ? (
+            <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Saving…</span></>
+          ) : (
+            <><ChevronRight className="w-4 h-4" /><span>Continue to Contribution</span></>
+          )}
+        </button>
+      </div>
+    );
+  }
+
+  // ── Basic details form (default) ──
+  return (
+    <div className="space-y-5">
+      <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
+        <button type="button" onClick={onBack}
+          className="flex items-center space-x-2 text-white/50 hover:text-[#5EEAD4] text-sm transition-colors cursor-pointer">
+          <ArrowLeft className="w-4 h-4" /><span>Back</span>
+        </button>
+
+        <div className="space-y-1">
+          <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono">Your Sacred Profile</h3>
+          <p className="text-xs text-white/40">All starred fields are required. Takes less than 2 minutes.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <InputField label="Full Name" icon={User} value={form.name} onChange={v => setF("name", v)}
+              placeholder="e.g. Ramesh Kumar Sharma" error={errors.name} required />
+          </div>
+
+          <InputField label="Email Address" icon={Mail} type="email" value={form.email}
+            onChange={v => setF("email", v)} placeholder="e.g. ramesh@gmail.com" error={errors.email} required />
+
+          <InputField label="WhatsApp / Phone" icon={Phone} type="tel" value={form.phone}
+            onChange={v => setF("phone", v)} placeholder="e.g. 9876543210" error={errors.phone} required />
+
+          <div className="sm:col-span-2">
+            <InputField label="City / Country" icon={MapPin} value={form.city}
+              onChange={v => setF("city", v)} placeholder="e.g. Mumbai / USA / UAE" error={errors.city} required />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          {[
+            { icon: "🔒", label: "Data is private" },
+            { icon: "✅", label: "No spam, ever" },
+            { icon: "🕉", label: "Verified priests" },
+            { icon: "🌍", label: "Worldwide service" },
+          ].map(f => (
+            <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
+              <span>{f.icon}</span><span>{f.label}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={handleContinueToInterests} disabled={submitting}
+        className="w-full bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20">
+        {submitting ? (
+          <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Saving…</span></>
+        ) : (
+          <><ChevronRight className="w-4 h-4" /><span>Continue — Select Your Interests</span></>
+        )}
+      </button>
+    </div>
+  );
+}
+
 // ─── Dharmic Expert Section ───────────────────────────────────────────────────
 
 function DharmicExpertSection() {
   const [expertStep, setExpertStep] = useState<ExpertStep>("category-select");
+  const [showDevoteeFlow, setShowDevoteeFlow] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [basicSubmitted, setBasicSubmitted] = useState(false);
   const [basicSyncError, setBasicSyncError] = useState(false);
@@ -341,12 +891,14 @@ function DharmicExpertSection() {
   };
 
   const handleContinueToDonate = () => {
+    gaEvent("dharmic_expert_services_saved", { category: form.category });
     setExpertStep("form-donate");
   };
 
   const handleSubmitWithoutDonation = async () => {
     setSubmitting(true);
     await submitToExpertForm(buildPayload());
+    gaEvent("dharmic_expert_registration_completed", { category: form.category, donation: "skipped" });
     setSubmitting(false);
     setExpertStep("form-success");
   };
@@ -360,6 +912,7 @@ function DharmicExpertSection() {
     const ref = `SDW-EXP-${Math.floor(100000 + Math.random() * 900000)}`;
     setUpiRefId(ref);
     setPendingPayload(buildPayload());
+    gaEvent("dharmic_expert_donation_initiated", { value: amt, currency: "INR" });
     setShowUpi(true);
   };
 
@@ -367,26 +920,41 @@ function DharmicExpertSection() {
     setShowUpi(false);
     setSubmitting(true);
     if (pendingPayload) await submitToExpertForm(pendingPayload);
+    gaEvent("dharmic_expert_registration_completed", {
+      category: form.category,
+      donation: "paid",
+      value: Number(form.donationAmount),
+      currency: "INR",
+    });
     setSubmitting(false);
     setPendingPayload(null);
     setExpertStep("form-success");
   };
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}${window.location.pathname}?page=dharmic-expert-register`;
+    const url = buildShareUrl("dharmic-expert-register", "send_link_flow");
     navigator.clipboard.writeText(url);
+    gaEvent("share_dharmic_expert_link", { method: "copy", source: "send_link_flow" });
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2500);
   };
 
   const handleShareWhatsApp = () => {
-    const url = `${window.location.origin}${window.location.pathname}?page=dharmic-expert-register`;
+    const url = buildShareUrl("dharmic-expert-register", "whatsapp_send_link");
     const recipientName = sendLinkName || "devotee";
     const msg = `Namaste ${recipientName}, please use this Sridwar Technology registration link to submit details of your local Pujari, Pandit, Guru, Sant, Sadhu, Purohit, Seer, or other dharmic expert so devotees can discover and connect with them.\n\n${url}`;
     const waUrl = `https://wa.me/${sendLinkPhone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank");
+    gaEvent("share_dharmic_expert_link", { method: "whatsapp", source: "send_link_flow" });
     setLinkShared(true);
   };
+
+  // ── Devotee registration sub-flow ──
+  if (showDevoteeFlow) {
+    return (
+      <DevoteeRegistrationSection onBack={() => setShowDevoteeFlow(false)} />
+    );
+  }
 
   // ── Category selection (landing) screen — shown first, keeps the page short ──
   if (expertStep === "category-select") {
@@ -430,6 +998,22 @@ function DharmicExpertSection() {
           </div>
           <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
         </button>
+
+        {/* Devotee Registration card */}
+        <div className="border-t border-white/8 pt-3">
+          <button
+            type="button"
+            onClick={() => setShowDevoteeFlow(true)}
+            className="w-full flex items-center space-x-3 bg-[#FFB347]/10 hover:bg-[#FFB347]/18 border border-[#FFB347]/25 hover:border-[#FFB347]/45 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
+          >
+            <span className="text-2xl">🙏</span>
+            <div className="flex-1">
+              <p className="text-xs font-bold text-[#FFB347]">Register as Devotee</p>
+              <p className="text-[10px] text-white/40">Book pujas, prasad, darshan &amp; more</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-[#FFB347]/60 shrink-0" />
+          </button>
+        </div>
       </div>
     );
   }
@@ -463,7 +1047,7 @@ function DharmicExpertSection() {
           <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Message Preview</p>
           <p className="text-xs text-white/60 leading-relaxed">
             Namaste {sendLinkName || "[Recipient]"}, please use this Sridwar Technology registration link to submit details of your local Pujari, Pandit, Guru, Sant, Sadhu, Purohit, Seer, or other dharmic expert so devotees can discover and connect with them.
-            <br /><span className="text-[#5EEAD4]">{window.location.origin}/?page=dharmic-expert-register</span>
+            <br /><span className="text-[#5EEAD4] break-all">{buildShareUrl("dharmic-expert-register", "send_link_flow")}</span>
           </p>
         </div>
 
@@ -1021,6 +1605,33 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // ── Deep-link routing: ?page=devotee-register / dharmic-expert-register / temple-register ──
+  // When someone arrives via a shared UTM link, auto-scroll + open the right section.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get("page");
+    if (!page) return;
+
+    // Fire a GA page_view so the shared-link visit is attributed correctly
+    gaEvent("page_view", {
+      page_title:    document.title,
+      page_location: window.location.href,
+      utm_source:    params.get("utm_source")    ?? "direct",
+      utm_medium:    params.get("utm_medium")    ?? "none",
+      utm_campaign:  params.get("utm_campaign")  ?? "",
+      utm_content:   params.get("utm_content")   ?? "",
+    });
+
+    if (page === "temple-register") {
+      setStep("temple-reg");
+      setTimeout(() => document.getElementById("temple-register-section")?.scrollIntoView({ behavior: "smooth" }), 300);
+    } else if (page === "dharmic-expert-register") {
+      setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
+    } else if (page === "devotee-register") {
+      setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
+    }
   }, []);
 
   // ── Devotee form ──
@@ -1934,16 +2545,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
               <p className="text-xs font-semibold text-white/50 mb-0.5">Temple / Authority Registration Link</p>
               <p className="text-[11px] text-white/30 font-mono">Share this with your temple management for direct access</p>
             </div>
-            <button
-              onClick={() => {
-                const url = `${window.location.origin}${window.location.pathname}?page=temple-register`;
-                navigator.clipboard.writeText(url);
-                alert("✅ Temple registration link copied!");
-              }}
-              className="flex items-center space-x-2 bg-[#5EEAD4]/10 hover:bg-[#5EEAD4]/15 border border-[#5EEAD4]/20 text-[#5EEAD4] text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shrink-0"
-            >
-              <ExternalLink className="w-3.5 h-3.5" /><span>Copy Link</span>
-            </button>
+            <ShareLinkButton
+              page="temple-register"
+              utmContent="temple_register_footer"
+              label="Share Registration Link"
+              gaEventName="share_temple_register_link"
+              color="teal"
+            />
           </div>
         </div>
 
@@ -2014,19 +2622,25 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
           {/* Shareable link */}
           <div className="border-t border-white/8 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold text-white/50 mb-0.5">Dharmic Expert Registration Link</p>
-              <p className="text-[11px] text-white/30 font-mono">Share with any pujari, pandit, guru, or dharmic expert for direct registration</p>
+              <p className="text-xs font-semibold text-white/50 mb-0.5">Dharmic Expert &amp; Devotee Registration Link</p>
+              <p className="text-[11px] text-white/30 font-mono">Share with pujaris, pandits, gurus, dharmic experts, or devotees</p>
             </div>
-            <button
-              onClick={() => {
-                const url = `${window.location.origin}${window.location.pathname}?page=dharmic-expert-register`;
-                navigator.clipboard.writeText(url);
-                alert("✅ Dharmic expert registration link copied!");
-              }}
-              className="flex items-center space-x-2 bg-[#5EEAD4]/10 hover:bg-[#5EEAD4]/15 border border-[#5EEAD4]/20 text-[#5EEAD4] text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shrink-0"
-            >
-              <ExternalLink className="w-3.5 h-3.5" /><span>Copy Link</span>
-            </button>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <ShareLinkButton
+                page="dharmic-expert-register"
+                utmContent="dharmic_expert_footer"
+                label="Share Expert Link"
+                gaEventName="share_dharmic_expert_link"
+                color="teal"
+              />
+              <ShareLinkButton
+                page="devotee-register"
+                utmContent="devotee_register_footer"
+                label="Share Devotee Link"
+                gaEventName="share_devotee_register_link"
+                color="gold"
+              />
+            </div>
           </div>
         </div>
 

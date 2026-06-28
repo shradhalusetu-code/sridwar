@@ -10,6 +10,7 @@ import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
 import { isDiscountActive, DISCOUNT_DEADLINE_LABEL, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
+import { gaBookNowOpen, gaBookingDetailsSubmit, gaCheckoutInitiate, gaBookingComplete, gaCertificateAction } from "../utils/analytics";
 
 interface BookNowWizardProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       setPujaName(defaultPujaName || "Graha Shanti Maha Puja");
       setPrice(defaultPrice);
       setStep(1);
+      gaBookNowOpen(defaultPujaName || "Graha Shanti Maha Puja", defaultPrice);
 
       const savedProfileStr = localStorage.getItem("sridwar_sacred_profile");
       if (savedProfileStr) {
@@ -84,6 +86,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     if (phoneErr) { alert(phoneErr); return; }
     if (emailErr) { alert(emailErr); return; }
     if (dobErr)   { alert(dobErr);   return; }
+    gaBookingDetailsSubmit(pujaName, price);
     setStep(2);
   };
 
@@ -105,6 +108,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     } finally {
       setIsProcessingPayment(false);
       isSubmittingRef.current = false;
+      gaCheckoutInitiate(pujaName, price, "UPI");
       setShowUPI(true);
     }
   };
@@ -113,6 +117,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     paymentCompletedRef.current = true; // lock — do not reset to Step 1
     setShowUPI(false);
     setStep(3);
+    gaBookingComplete(pujaName, price, refId);
     onSuccess({ pujaName, sankalpaName: devoteeName, price, refId });
   };
 
@@ -362,7 +367,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <span>Powered by Sri Dwar Technology Reference: {refId}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <button id="pdf-download-btn" onClick={() => alert("Your premium high-resolution blessed Sankalpa Patrika PDF is compiled and will be dispatched to your WhatsApp within 3 minutes!")}
+                    <button id="pdf-download-btn" onClick={() => { gaCertificateAction("download", refId); alert("Your premium high-resolution blessed Sankalpa Patrika PDF is compiled and will be dispatched to your WhatsApp within 3 minutes!"); }}
                       className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
                       <Download className="w-3.5 h-3.5 text-[#FFB347]" />
                       <span>Download patra PDF</span>

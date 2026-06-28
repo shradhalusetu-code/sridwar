@@ -8,6 +8,7 @@ import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye } fr
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
+import { gaNavClick, gaShare } from "../utils/analytics";
 
 interface NavbarProps {
   currentLanguage: Language;
@@ -64,12 +65,14 @@ export default function Navbar({
           text: "Experience sacred Vedic rituals, live darshans, and premium blessings directly from India's most revered shrines.",
           url: window.location.href
         });
+        gaShare("native_share", "website", "Sri Dwar");
       } catch (err) {
         console.log("Error sharing:", err);
       }
     } else {
       // Fallback: Copy link to clipboard
       navigator.clipboard.writeText(window.location.href);
+      gaShare("clipboard_copy", "website", "Sri Dwar");
       alert("Spiritual connection link copied to your clipboard! Share the blessings.");
     }
   };
@@ -111,7 +114,7 @@ export default function Navbar({
                 <button
                   key={item.id}
                   id={`nav-${item.id}`}
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => { gaNavClick(item.id, "desktop_nav"); onNavigate(item.id); }}
                   className={`relative text-xs font-medium uppercase tracking-widest transition-colors duration-200 outline-none hover:text-white ${
                     currentPage === item.id
                       ? "text-[#5EEAD4] font-bold"
@@ -307,6 +310,7 @@ export default function Navbar({
                     key={item.id}
                     id={`mobile-nav-${item.id}`}
                     onClick={() => {
+                      gaNavClick(item.id, "mobile_nav");
                       onNavigate(item.id);
                       setIsMobileMenuOpen(false);
                     }}

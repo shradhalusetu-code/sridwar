@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag } from "lucide-react";
+import { gaSevaSelect } from "../utils/analytics";
 
 
 
@@ -255,6 +256,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
     // Route to the full Puja Sankalpa Portal (BookNowWizard) which collects
     // devotee data, syncs to Google Forms, and then opens the UPI payment
     // flow — all in one consistent flow used across the rest of the site.
+    gaSevaSelect(name, amount);
     onSponsorSeva(name, amount);
   };
 

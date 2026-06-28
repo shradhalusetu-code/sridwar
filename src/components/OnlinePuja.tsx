@@ -10,6 +10,7 @@ import {
   CheckCircle2, Video, Clock, ChevronDown, X, Tag
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
 
 interface OnlinePujaProps {
@@ -111,6 +112,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
 
   const handleCategoryChange = (val: string) => {
     setSelectedCategory(val as any);
+    gaCategoryFilter(val, "online_puja");
     // Auto-open matching section when a specific category is chosen from dropdown/tab
     if (val !== "all" && ACCORDION_ORDER.includes(val as AccordionCat)) {
       setOpenSections(prev => ({ ...prev, [val]: true }));
@@ -420,7 +422,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                             {/* Book button */}
                             <button
                               id={`puja-book-btn-${puja.id}`}
-                              onClick={() => onBookNowClick(puja.name, discountedPrice)}
+                              onClick={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
                               className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[10px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
                             >
                               Book Puja
@@ -547,7 +549,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                           </div>
                           <button
                             id={`puja-book-btn-${puja.id}`}
-                            onClick={() => onBookNowClick(puja.name, discountedPrice)}
+                            onClick={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
                             className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[10px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
                           >
                             Book Puja

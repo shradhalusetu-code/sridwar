@@ -10,6 +10,7 @@ import { TEMPLES_LIST } from "../data/temples";
 import SriDwarLogo from "./SriDwarLogo";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
 
 interface FamilyMember {
   name: string;
@@ -160,17 +161,22 @@ export default function AuthDashboard({
       setPendingLogin({ name: userNameField, email: userEmailField });
       setIsLoggingIn(false);
       setAuthStep("contribute");
+      gaRegistrationSubmit("devotee_registration");
     }, 1200);
   };
 
   // Step 7 — Skip Contribution: go directly to Dharmic Portal
   const handleSkipContribution = () => {
-    if (pendingLogin) onLoginSuccess(pendingLogin.name, pendingLogin.email);
+    if (pendingLogin) {
+      gaLogin("email");
+      onLoginSuccess(pendingLogin.name, pendingLogin.email);
+    }
   };
 
   // Step 2 — Contribute clicked: validate amount then show Puja Sankalpa Portal
   const handleProceedToContributionPayment = () => {
     if (!contributionAmount || contributionAmount <= 0) return;
+    gaDonationInitiate(contributionAmount);
     setContributionRefId("SDC-" + Math.floor(100000 + Math.random() * 900000));
     setShowSankalpaForm(true);
   };
@@ -209,7 +215,10 @@ export default function AuthDashboard({
   // Step 6 — After payment confirmed: redirect to Dharmic Portal
   const finalizeContribution = () => {
     setIsContributionPaymentOpen(false);
-    if (pendingLogin) onLoginSuccess(pendingLogin.name, pendingLogin.email);
+    if (pendingLogin) {
+      gaLogin("email_with_contribution");
+      onLoginSuccess(pendingLogin.name, pendingLogin.email);
+    }
   };
 
   const simulatedHistory = [

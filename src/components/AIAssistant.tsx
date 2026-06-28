@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { Send, Sparkles, X, RefreshCw } from "lucide-react";
+import { gaAIAssistantOpen } from "../utils/analytics";
 
 interface AIAssistantProps {
   currentLanguage: string;
@@ -70,7 +71,7 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
       {/* Floating Sparkly circular button at bottom right corner */}
       <button
         id="ai-floating-trigger"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => { if (!isOpen) gaAIAssistantOpen(); setIsOpen(!isOpen); }}
         id="ai-assistant-fab"
         className="fixed bottom-6 right-6 z-40 bg-[#092320]/95 backdrop-blur border border-white/20 text-[#5EEAD4] p-4 rounded-full shadow-2xl hover:bg-neutral-900 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center cursor-pointer group"
         style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }}
