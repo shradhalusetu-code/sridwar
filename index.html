@@ -22,6 +22,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- ═══════════════════════════════════════════════════════════════
+         PAGESPEED FIX 1 — Preload the hero (LCP) image
+         This tells the browser to load the background image FIRST
+         before anything else, fixing the Largest Contentful Paint score
+    ═══════════════════════════════════════════════════════════════ -->
+    <link
+      rel="preload"
+      as="image"
+      href="/images/aerial_jagannath_puri_hero_1781871848760.jpg"
+      fetchpriority="high"
+    />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PAGESPEED FIX 2 — Preconnect to external domains
+         This starts the connection to Google servers early,
+         reducing delay for Analytics and Tag Manager scripts
+    ═══════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
          PRIMARY SEO TAGS
          These are what Google shows in search results
     ═══════════════════════════════════════════════════════════════ -->
@@ -76,6 +97,19 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         PAGESPEED FIX 3 — Page background colour
+         Shows dark background INSTANTLY while JS loads,
+         preventing the white flash that hurts performance score
+    ═══════════════════════════════════════════════════════════════ -->
+    <style>
+      html, body, #root {
+        background-color: #021816;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
          STRUCTURED DATA (JSON-LD)
