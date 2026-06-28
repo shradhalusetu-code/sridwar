@@ -3,34 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sridwar</title>
-    <script>
-      // Silently mock HMR WebSocket connections to avoid benign connection failure logs in terminal/browser consoles
-      (function() {
-        const OriginalWebSocket = window.WebSocket;
-        if (OriginalWebSocket) {
-          window.WebSocket = function(url, protocols) {
-            if (typeof url === 'string' && (url.includes('localhost') || url.includes('run.app') || url.includes('/vite') || url.includes('ws'))) {
-              return {
-                url: url,
-                readyState: 0, // CONNECTING
-                send: function() {},
-                close: function() {},
-                addEventListener: function() {},
-                removeEventListener: function() {},
-                dispatchEvent: function() { return true; }
-              };
-            }
-            return new OriginalWebSocket(url, protocols);
-          };
-          window.WebSocket.prototype = OriginalWebSocket.prototype;
-          window.WebSocket.CONNECTING = OriginalWebSocket.CONNECTING;
-          window.WebSocket.OPEN = OriginalWebSocket.OPEN;
-          window.WebSocket.CLOSING = OriginalWebSocket.CLOSING;
-          window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
-        }
-      })();
-    </script>
+    <title>SriDwar – Book Online Puja, Seva & Temple Darshan</title>
+    <meta name="description" content="SriDwar connects devotees worldwide to India's sacred temples — book online puja & seva, support temple donations, and shop blessed prasad online." />
   </head>
   <body>
     <div id="root"></div>
