@@ -15,6 +15,7 @@ import {
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import SriDwarLogo from "./SriDwarLogo";
+import IndiaTempleMap from "./IndiaTempleMap";
 
 // ─── Product catalogue ─────────────────────────────────────────────────────
 interface BazaarItem {
@@ -244,6 +245,11 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
       style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* India Temple Map (static image) */}
+        <div className="mb-12">
+          <IndiaTempleMap />
+        </div>
 
         {/* ── Section Header ───────────────────────────────────────────── */}
         <div className="text-center max-w-2xl mx-auto mb-8">
