@@ -9,9 +9,8 @@
  */
 
 export const DISCOUNT_RATE = 0.30; // 30% off
-export const DISCOUNT_DEADLINE = new Date("2026-08-01T00:00:00+05:30"); // midnight IST, Aug 1 (covers "until July 31st")
+export const DISCOUNT_DEADLINE = new Date("2026-08-01T00:00:00+05:30"); // midnight IST, Aug 1
 export const DISCOUNT_TAG = "30% OFF";
-export const DISCOUNT_DEADLINE_LABEL = "Offer valid until July 31st";
 
 /** Whether the promotional window is still open. */
 export function isDiscountActive(now: Date = new Date()): boolean {

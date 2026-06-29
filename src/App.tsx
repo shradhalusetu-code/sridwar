@@ -10,6 +10,7 @@ import TempleExperience from "./components/TempleExperience";
 import SevaExperience from "./components/SevaExperience";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import OnlinePuja from "./components/OnlinePuja";
+import PriestSection from "./components/PriestSection";
 import TemplateBazaar from "./components/TemplateBazaar";
 import AboutUs from "./components/AboutUs";
 import ContactUs from "./components/ContactUs";
@@ -25,7 +26,7 @@ import UPIPaymentModal from "./components/UPIPaymentModal";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
-import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "./utils/discount";
+import { getDiscountedPrice, isDiscountActive } from "./utils/discount";
 import {
   gaPageView, gaBookNowOpen, gaBookingComplete, gaCartCheckout, gaCartPurchase,
   gaSevaSelect, gaAddToCart, gaNavClick, gaSocialClick, gaWhatsAppClick,
@@ -62,6 +63,9 @@ export default function App() {
 
   // Active Selected Temple Modal details for full page reviews
   const [activeExploreTemple, setActiveExploreTemple] = useState<Temple | null>(null);
+
+  // Deep-link target when navigating to the Priests page from elsewhere (e.g. Online Puja)
+  const [priestDeepLinkId, setPriestDeepLinkId] = useState<string | null>(null);
 
   // Inline legal document reader — null = closed
   const [activeLegalDoc, setActiveLegalDoc] = useState<null | "privacy" | "legal" | "terms" | "refund">(null);
@@ -283,6 +287,10 @@ export default function App() {
                 setWizardDefaults({ pujaName, price });
                 setIsBookNowOpen(true);
               }}
+              onViewPriestProfile={(priestId) => {
+                setPriestDeepLinkId(priestId);
+                handleNavigate("priests");
+              }}
             />
             <HolisticWellness
               onBookService={(serviceName, price) => {
@@ -292,6 +300,19 @@ export default function App() {
             />
           </div>
         )}
+
+        {currentPage === "priests" && (
+          <div className="animate-fadeIn">
+            <PriestSection
+              initialPriestId={priestDeepLinkId}
+              onBack={() => {
+                setPriestDeepLinkId(null);
+                handleNavigate("puja");
+              }}
+            />
+          </div>
+        )}
+
 
         {currentPage === "products" && (
           <div className="animate-fadeIn">
@@ -861,7 +882,7 @@ export default function App() {
                 <div>
                   <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
                   {isDiscountActive() && (
-                    <span className="block text-[9px] font-mono text-[#FFB347]">🎉 50% OFF · {DISCOUNT_DEADLINE_LABEL}</span>
+                    <span className="block text-[9px] font-mono text-[#FFB347]">🎉 50% OFF</span>
                   )}
                 </div>
                 <div className="text-right">

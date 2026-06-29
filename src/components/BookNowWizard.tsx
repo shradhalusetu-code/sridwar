@@ -8,7 +8,7 @@ import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from 
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
-import { isDiscountActive, DISCOUNT_DEADLINE_LABEL, DISCOUNT_TAG } from "../utils/discount";
+import { isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
 import { gaBookNowOpen, gaBookingDetailsSubmit, gaCheckoutInitiate, gaBookingComplete, gaCertificateAction } from "../utils/analytics";
 
@@ -237,7 +237,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <input id="wizard-puja-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                       {isDiscountActive() && (
-                        <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 {DISCOUNT_TAG} already applied · {DISCOUNT_DEADLINE_LABEL}</p>
+                        <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 {DISCOUNT_TAG} already applied</p>
                       )}
                     </div>
                   </div>

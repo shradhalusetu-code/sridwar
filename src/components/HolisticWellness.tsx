@@ -9,7 +9,7 @@ import {
   ChevronRight, ChevronDown, Clock, Users, Award, Leaf, Heart,
   Flame, Moon, Sun, Wind, Droplets, Zap, Shield, BookOpen, Star
 } from "lucide-react";
-import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL, DISCOUNT_TAG } from "../utils/discount";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -485,7 +485,7 @@ function ServiceCard({
             </p>
           )}
           {isDiscountActive() && (
-            <span className="block text-[9px] font-mono font-bold text-[#FFB347]">{DISCOUNT_TAG} · {DISCOUNT_DEADLINE_LABEL}</span>
+            <span className="block text-[9px] font-mono font-bold text-[#FFB347]">{DISCOUNT_TAG}</span>
           )}
         </div>
         <button

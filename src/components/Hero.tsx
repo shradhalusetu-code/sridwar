@@ -135,14 +135,15 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   };
 
   const trustStats = [
-    { value: "2 Million+", label: "Devotees Served" },
-    { value: "100+", label: "Verified Priests" },
+    { value: "10k+", label: "Devotees Served" },
+    { value: "20+", label: "Verified Priests" },
     { value: "100%", label: "Secure Offerings" },
-    { value: "600", label: "Puja Committees" },
-    { value: "250+", label: "Temples Network" },
-    { value: "150,000+", label: "Devotee Memberships" },
-    { value: "150", label: "Global Reps" },
-    { value: "74", label: "Festivals Streamed" },
+    { value: "30", label: "Puja Committees" },
+    { value: "40", label: "Puja Mandal" },
+    { value: "33+", label: "Temples Network" },
+    { value: "1500+", label: "Devotee Memberships" },
+    { value: "12", label: "Global Reps" },
+    { value: "2", label: "Festivals Streamed" },
     { value: "24/7", label: "Live Ritual Streams" }
   ];
 
@@ -255,7 +256,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       {/* Floating animated statistics card - Trust Bar Section */}
       <div id="trust-bar-section" className={`relative bg-[#092320]/80 z-10 w-full border-t border-b border-white/10 shadow-lg backdrop-blur-md ${isAndroidApp ? "mt-12 py-6" : "mt-4 py-3"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`grid ${isAndroidApp ? "grid-cols-2" : "grid-cols-3"} sm:grid-cols-5 lg:grid-cols-9 gap-4 text-center items-stretch`}>
+          <div className={`grid ${isAndroidApp ? "grid-cols-2" : "grid-cols-3"} sm:grid-cols-5 lg:grid-cols-10 gap-4 text-center items-stretch`}>
             {trustStats.map((stat, i) => (
               <div 
                 key={i} 

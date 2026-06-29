@@ -44,6 +44,26 @@ export interface Puja {
   materialsIncluded?: string[];
 }
 
+export interface PriestProfile {
+  id: string;                      // dedicated profile id, used for detail view lookup
+  priestDetails: string;           // exact string match to Puja.priestDetails — keeps existing flow intact
+  name: string;
+  yearsExperience: number;         // years of experience performing pujas/rituals
+  yearsHelpingDevotees: number;    // years actively helping devotees with puja & religious activities
+  currentCity: string;
+  currentState: string;
+  templesAssociated: string[];
+  deitiesServed: string[];
+  pujaExpertise: string[];         // puja specializations
+  adviceAreas: string[];           // advice/specialization areas devotees can consult on
+  languagesSpoken: string[];
+  bio: string;
+  isVerified: boolean;
+  rating: number;                  // out of 5
+  devoteesServedApprox: number;
+  associatedPujaIds: string[];     // links back to ON_LINE_PUJAS entries
+}
+
 export interface Product {
   id: string;
   name: string;

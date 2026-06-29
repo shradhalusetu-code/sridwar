@@ -5,16 +5,19 @@
 
 import { useState, useMemo } from "react";
 import { ON_LINE_PUJAS } from "../data/spiritualData";
+import { getPriestByDetails } from "../data/priests";
 import {
   ShieldAlert, Heart, Briefcase, Award, TrendingUp, Sparkles,
-  CheckCircle2, Video, Clock, ChevronDown, X, Tag
+  CheckCircle2, Video, Clock, ChevronDown, X, UserCircle2
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
-import { getDiscountedPrice, isDiscountActive, DISCOUNT_DEADLINE_LABEL } from "../utils/discount";
+import { getDiscountedPrice, isDiscountActive } from "../utils/discount";
 
 interface OnlinePujaProps {
   onBookNowClick: (pujaName: string, price: number) => void;
+  /** Optional — lets the parent app navigate to the dedicated Priest profile page. */
+  onViewPriestProfile?: (priestId: string) => void;
 }
 
 // ── Category metadata ──────────────────────────────────────────────────────────
@@ -42,7 +45,7 @@ function displayDuration(d?: string) {
   return d && d.trim() ? d : "Not specified";
 }
 
-export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
+export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: OnlinePujaProps) {
   // ── Filter state ─────────────────────────────────────────────────────────────
   const [selectedCategory, setSelectedCategory] = useState<"all" | AccordionCat>("all");
   const [selectedTemple,   setSelectedTemple]   = useState<string>("all");
@@ -201,6 +204,15 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#FFB347]/60" />
               </div>
+              {onViewPriestProfile && (
+                <button
+                  type="button"
+                  onClick={() => onViewPriestProfile("")}
+                  className="text-[10px] text-[#5EEAD4] font-mono underline underline-offset-2 hover:text-[#5EEAD4]/80 mt-1.5 self-start"
+                >
+                  Browse all priest profiles →
+                </button>
+              )}
             </div>
 
             {/* Clear All */}
@@ -371,15 +383,11 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                               {puja.templeName}
                             </p>
 
-                            {/* Duration + Offer label row */}
+                            {/* Duration row */}
                             <div className="flex flex-wrap items-center gap-3 pt-0.5">
                               <span className="flex items-center gap-1 text-[10px] text-white/50 font-mono">
                                 <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
                                 {displayDuration(puja.duration)}
-                              </span>
-                              <span className="flex items-center gap-1 text-[10px] text-[#FFB347] font-semibold bg-[#FFB347]/8 border border-[#FFB347]/20 px-2 py-0.5 rounded-full">
-                                <Tag className="w-2.5 h-2.5 shrink-0" />
-                                Offer valid until July 31st
                               </span>
                             </div>
 
@@ -394,6 +402,28 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                                 {puja.prasadIncluded ? "Prasad Shipped" : "E-Patrika"}
                               </span>
                             </div>
+
+                            {/* Priest details + link to full profile */}
+                            {(() => {
+                              const priest = getPriestByDetails(puja.priestDetails);
+                              return (
+                                <div className="flex items-center gap-1.5 pt-0.5">
+                                  <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
+                                  <span className="text-[9px] font-mono text-white/50 truncate">
+                                    {puja.priestDetails}
+                                  </span>
+                                  {priest && onViewPriestProfile && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
+                                      className="text-[9px] font-bold text-[#5EEAD4] hover:underline shrink-0"
+                                    >
+                                      View Profile
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           {/* Right: price + book button */}
@@ -409,7 +439,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                                     ₹{discountedPrice}
                                   </span>
                                   <span className="block text-[9px] text-[#FFB347] font-mono">
-                                    50% OFF · {DISCOUNT_DEADLINE_LABEL}
+                                    30% OFF
                                   </span>
                                 </>
                               ) : (
@@ -519,10 +549,6 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                               <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
                               {displayDuration(puja.duration)}
                             </span>
-                            <span className="flex items-center gap-1 text-[10px] text-[#FFB347] font-semibold bg-[#FFB347]/8 border border-[#FFB347]/20 px-2 py-0.5 rounded-full">
-                              <Tag className="w-2.5 h-2.5 shrink-0" />
-                              Offer valid until July 31st
-                            </span>
                           </div>
                           <div className="flex items-center gap-4 text-[9px] font-mono text-white/40 pt-0.5">
                             <span className="flex items-center gap-1">
@@ -534,6 +560,28 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                               {puja.prasadIncluded ? "Prasad Shipped" : "E-Patrika"}
                             </span>
                           </div>
+
+                          {/* Priest details + link to full profile */}
+                          {(() => {
+                            const priest = getPriestByDetails(puja.priestDetails);
+                            return (
+                              <div className="flex items-center gap-1.5 pt-0.5">
+                                <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
+                                <span className="text-[9px] font-mono text-white/50 truncate">
+                                  {puja.priestDetails}
+                                </span>
+                                {priest && onViewPriestProfile && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
+                                    className="text-[9px] font-bold text-[#5EEAD4] hover:underline shrink-0"
+                                  >
+                                    View Profile
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
                           <div className="text-right">
@@ -541,7 +589,7 @@ export default function OnlinePuja({ onBookNowClick }: OnlinePujaProps) {
                               <>
                                 <span className="block text-[10px] line-through text-white/30 font-mono">₹{puja.price}</span>
                                 <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
-                                <span className="block text-[9px] text-[#FFB347] font-mono">50% OFF · {DISCOUNT_DEADLINE_LABEL}</span>
+                                <span className="block text-[9px] text-[#FFB347] font-mono">30% OFF</span>
                               </>
                             ) : (
                               <span className="block text-base font-black text-white font-serif">₹{puja.price}</span>

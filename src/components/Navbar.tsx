@@ -81,6 +81,7 @@ export default function Navbar({
     { id: "home", label: t.navHome },
     { id: "seva", label: t.navSeva },
     { id: "puja", label: t.navOnlinePuja },
+    { id: "priests", label: t.navPriests },
     { id: "products", label: t.navProducts },
     { id: "about", label: t.navAbout },
     { id: "contact", label: t.navContact }

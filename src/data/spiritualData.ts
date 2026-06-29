@@ -197,6 +197,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1599,
+    duration: "60 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg"
   },
   {
@@ -210,6 +211,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3999,
+    duration: "90 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
   },
   {
@@ -223,6 +225,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2499,
+    duration: "75 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/maa.jpg"
   },
   {
@@ -236,6 +239,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1999,
+    duration: "45 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg"
   },
   {
@@ -249,6 +253,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: false,
     price: 3299,
+    duration: "60 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja.jpg"
   },
 
