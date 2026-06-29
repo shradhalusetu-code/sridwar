@@ -16,9 +16,12 @@ import {
   Landmark, BookOpen, Gift, Users, Star, Globe, Mic
 } from "lucide-react";
 import { TEMPLES_LIST } from "../data/temples";
+import registerPriestImg from "../assets/images/Register_Priest.jpg";
+import registerDevotteeImg from "../assets/images/Register_devottee.jpg";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
 
 // ─── Google Analytics 4 helpers ───────────────────────────────────────────────
 // Measurement ID: G-LXYRS86RGH  (already loaded in index.html via gtag.js)
@@ -923,6 +926,8 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
+      <SetuYatraFooterLinks />
+
       <button onClick={handleContinueToInterests} disabled={submitting}
         className="w-full bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20">
         {submitting ? (
@@ -1116,59 +1121,51 @@ function DharmicExpertSection() {
   if (expertStep === "category-select") {
     return (
       <div className="space-y-3">
-        <button
-          type="button"
-          onClick={() => setExpertStep("form-basic")}
-          className="w-full flex items-center space-x-3 bg-[#FFB347]/8 hover:bg-[#FFB347]/14 border border-[#FFB347]/15 hover:border-[#FFB347]/30 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
-        >
-          <span className="text-2xl">🪔</span>
-          <div className="flex-1">
-            <p className="text-xs font-bold text-[#FFB347]">Register Local Pujari / Pandit</p>
-            <p className="text-[10px] text-white/40">Tap to fill the form</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-[#FFB347]/60 shrink-0" />
-        </button>
+        {/* 2-by-2 grid of registration option cards */}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <button
+            type="button"
+            onClick={() => setExpertStep("form-basic")}
+            className="flex flex-col items-start gap-1.5 bg-[#FFB347]/8 hover:bg-[#FFB347]/14 border border-[#FFB347]/15 hover:border-[#FFB347]/30 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+          >
+            <span className="text-xl sm:text-2xl">🪔</span>
+            <p className="text-[11px] sm:text-xs font-bold text-[#FFB347] leading-snug">Register Local Pujari / Pandit</p>
+            <p className="text-[9px] sm:text-[10px] text-white/40">Tap to fill the form</p>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setExpertStep("form-basic")}
-          className="w-full flex items-center space-x-3 bg-[#5EEAD4]/6 hover:bg-[#5EEAD4]/12 border border-[#5EEAD4]/15 hover:border-[#5EEAD4]/30 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
-        >
-          <span className="text-2xl">🧘</span>
-          <div className="flex-1">
-            <p className="text-xs font-bold text-[#5EEAD4]">Register Guru / Sant / Sadhu</p>
-            <p className="text-[10px] text-white/40">Tap to fill the form</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-[#5EEAD4]/60 shrink-0" />
-        </button>
+          <button
+            type="button"
+            onClick={() => setExpertStep("form-basic")}
+            className="flex flex-col items-start gap-1.5 bg-[#5EEAD4]/6 hover:bg-[#5EEAD4]/12 border border-[#5EEAD4]/15 hover:border-[#5EEAD4]/30 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+          >
+            <span className="text-xl sm:text-2xl">🧘</span>
+            <p className="text-[11px] sm:text-xs font-bold text-[#5EEAD4] leading-snug">Register Guru / Sant / Sadhu</p>
+            <p className="text-[9px] sm:text-[10px] text-white/40">Tap to fill the form</p>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setExpertStep("form-basic")}
-          className="w-full flex items-center space-x-3 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
-        >
-          <span className="text-2xl">📿</span>
-          <div className="flex-1">
-            <p className="text-xs font-bold text-white/70">Register Dharmic Expert</p>
-            <p className="text-[10px] text-white/40">Jyotish, Vastu, Scholar…</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
-        </button>
+          <button
+            type="button"
+            onClick={() => setExpertStep("form-basic")}
+            className="flex flex-col items-start gap-1.5 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+          >
+            <span className="text-xl sm:text-2xl">📿</span>
+            <p className="text-[11px] sm:text-xs font-bold text-white/70 leading-snug">Register Dharmic Expert</p>
+            <p className="text-[9px] sm:text-[10px] text-white/40">Jyotish, Vastu, Scholar…</p>
+          </button>
 
-        {/* Devotee Registration card */}
-        <div className="border-t border-white/8 pt-3 space-y-2">
           <button
             type="button"
             onClick={() => setShowDevoteeFlow(true)}
-            className="w-full flex items-center space-x-3 bg-[#FFB347]/10 hover:bg-[#FFB347]/18 border border-[#FFB347]/25 hover:border-[#FFB347]/45 rounded-2xl px-4 py-3.5 transition-all cursor-pointer text-left"
+            className="flex flex-col items-start gap-1.5 bg-[#FFB347]/10 hover:bg-[#FFB347]/18 border border-[#FFB347]/25 hover:border-[#FFB347]/45 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
           >
-            <span className="text-2xl">🙏</span>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-[#FFB347]">Register as Devotee</p>
-              <p className="text-[10px] text-white/40">Book pujas, prasad, darshan &amp; more</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-[#FFB347]/60 shrink-0" />
+            <span className="text-xl sm:text-2xl">🙏</span>
+            <p className="text-[11px] sm:text-xs font-bold text-[#FFB347] leading-snug">Register as Devotee</p>
+            <p className="text-[9px] sm:text-[10px] text-white/40">Pujas, prasad, darshan &amp; more</p>
           </button>
+        </div>
+
+        {/* Devotee link sharing — kept below the grid */}
+        <div className="border-t border-white/8 pt-3">
           <div className="flex justify-end items-center gap-2 flex-wrap">
             <ShortDevoteeLinkButton />
             <ShareLinkButton
@@ -1733,6 +1730,8 @@ function DharmicExpertSection() {
         <p className="text-center text-[10px] text-white/30 font-mono">
           Securely managed by Sridwar Technology · Data is verified before listing
         </p>
+
+        <SetuYatraFooterLinks />
       </div>
     </div>
   );
@@ -2301,6 +2300,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
               <p className="text-center text-[10px] text-white/30 font-mono">
                 Securely managed by Sridwar Technology · An Initiative by Sridwar Technology
               </p>
+
+              <SetuYatraFooterLinks />
             </div>
           )}
         </div>
@@ -2601,252 +2602,274 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
   return (
     <>
     {/* ══════════════════════════════════════════════════════════════════════
-        SECTION 1 — Find & Register Your Native Temple or Puja Committee
+        SECTION 1 — Register Your Temple or Puja Committee
+        Card stretched full width to match other sections · full image visible above
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="temple-finder-section"
-      className="py-16 sm:py-20 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white"
+      className="py-16 sm:py-20 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#FFB347]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-[#5EEAD4]/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-10 space-y-3">
-          <SectionBadge label="An Initiative by Sridwar Technology" />
-          <h2 className="text-3xl sm:text-4xl font-serif font-black text-white leading-tight">
-            Find &amp; Register Your<br />
-            <span className="text-[#FFB347]">Native Temple</span> or Puja Committee
-          </h2>
-          <p className="text-white/55 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-            Search for your local temple, puja committee, or mandal. Don't find it? Register it for free — and connect
-            thousands of devotees to your sacred space.
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-        <div className="glass-panel-dark rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6">
+        {/* Single centred card — stretched to the same width as other sections */}
+        <div className="glass-panel-dark rounded-3xl border border-white/10 overflow-hidden">
 
-          {/* Searchable dropdown */}
-          <div ref={dropRef} className="relative">
-            <label className="block text-xs font-semibold text-white/60 mb-2 uppercase tracking-wider font-mono">
-              Search Temple / Puja Committee / Mandal
-            </label>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5EEAD4]/60 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setDropdownOpen(true); setSelectedTemple(""); }}
-                onFocus={() => setDropdownOpen(true)}
-                placeholder="Type temple name, city, deity, or state…"
-                className="w-full bg-white/5 border border-white/12 rounded-2xl pl-11 pr-11 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
-              />
-              <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+          {/* Image at the top of the card — full image visible, no cropping, no side gaps */}
+          <div className="w-full aspect-[3/2] bg-black/20">
+            <img
+              src={registerPriestImg}
+              alt="Find & register your native temple or puja committee — Sri Dwar"
+              className="w-full h-full object-contain"
+              style={{ display: "block", opacity: 0.97 }}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+
+          {/* Card body */}
+          <div className="p-6 sm:p-8 space-y-6">
+
+            {/* Badge only — full description already shown inside the image above */}
+            <div className="space-y-2">
+              <SectionBadge label="An Initiative by Sridwar Technology" />
             </div>
 
-            {dropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#051F1A] border border-white/12 rounded-2xl shadow-2xl z-50 max-h-64 overflow-y-auto">
-                {filtered.length > 0 ? (
-                  <>
-                    {filtered.map(t => (
+            {/* Searchable dropdown */}
+            <div ref={dropRef} className="relative">
+              <label className="block text-xs font-semibold text-white/60 mb-2 uppercase tracking-wider font-mono">
+                Search Temple / Puja Committee / Mandal
+              </label>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5EEAD4]/60 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); setDropdownOpen(true); setSelectedTemple(""); }}
+                  onFocus={() => setDropdownOpen(true)}
+                  placeholder="Type temple name, city, deity, or state…"
+                  className="w-full bg-white/5 border border-white/12 rounded-2xl pl-11 pr-11 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                />
+                <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+              </div>
+
+              {dropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[#051F1A] border border-white/12 rounded-2xl shadow-2xl z-50 max-h-64 overflow-y-auto">
+                  {filtered.length > 0 ? (
+                    <>
+                      {filtered.map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => handleSelectTemple(t.name)}
+                          className="w-full flex items-start space-x-3 px-4 py-3 hover:bg-white/5 text-left transition-colors cursor-pointer border-b border-white/5 last:border-0"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-[#FFB347]/60 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-sm text-white font-medium leading-snug">{t.name}</p>
+                            <p className="text-[11px] text-white/40">{t.city}, {t.state}</p>
+                          </div>
+                          {selectedTemple === t.name && <Check className="w-4 h-4 text-[#5EEAD4] ml-auto shrink-0" />}
+                        </button>
+                      ))}
                       <button
-                        key={t.id}
-                        onClick={() => handleSelectTemple(t.name)}
-                        className="w-full flex items-start space-x-3 px-4 py-3 hover:bg-white/5 text-left transition-colors cursor-pointer border-b border-white/5 last:border-0"
+                        onClick={() => { handleSelectTemple(searchQuery.trim() || "New Temple", true); setDropdownOpen(false); setStep("temple-reg"); }}
+                        className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-[#FFB347]/8 text-left transition-colors cursor-pointer bg-[#FFB347]/5"
                       >
-                        <MapPin className="w-3.5 h-3.5 text-[#FFB347]/60 mt-0.5 shrink-0" />
+                        <Plus className="w-4 h-4 text-[#FFB347] shrink-0" />
                         <div>
-                          <p className="text-sm text-white font-medium leading-snug">{t.name}</p>
-                          <p className="text-[11px] text-white/40">{t.city}, {t.state}</p>
+                          <p className="text-sm text-[#FFB347] font-semibold">Register a New Temple / Puja Committee</p>
+                          <p className="text-[11px] text-white/40">Can't find yours? List it on Sri Dwar for free</p>
                         </div>
-                        {selectedTemple === t.name && <Check className="w-4 h-4 text-[#5EEAD4] ml-auto shrink-0" />}
                       </button>
-                    ))}
+                    </>
+                  ) : showAddNew ? (
                     <button
-                      onClick={() => { handleSelectTemple(searchQuery.trim() || "New Temple", true); setDropdownOpen(false); setStep("temple-reg"); }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-[#FFB347]/8 text-left transition-colors cursor-pointer bg-[#FFB347]/5"
+                      onClick={() => { setStep("temple-reg"); setTempleReg(p => ({ ...p, templeName: searchQuery })); setDropdownOpen(false); }}
+                      className="w-full flex items-center space-x-3 px-4 py-3.5 hover:bg-[#FFB347]/8 text-left transition-colors cursor-pointer"
                     >
                       <Plus className="w-4 h-4 text-[#FFB347] shrink-0" />
                       <div>
-                        <p className="text-sm text-[#FFB347] font-semibold">Register a New Temple / Puja Committee</p>
-                        <p className="text-[11px] text-white/40">Can't find yours? List it on Sri Dwar for free</p>
+                        <p className="text-sm text-[#FFB347] font-semibold">Register "{searchQuery}"</p>
+                        <p className="text-[11px] text-white/40">Submit this temple / puja committee for listing on Sri Dwar</p>
                       </div>
                     </button>
-                  </>
-                ) : showAddNew ? (
-                  <button
-                    onClick={() => { setStep("temple-reg"); setTempleReg(p => ({ ...p, templeName: searchQuery })); setDropdownOpen(false); }}
-                    className="w-full flex items-center space-x-3 px-4 py-3.5 hover:bg-[#FFB347]/8 text-left transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4 text-[#FFB347] shrink-0" />
-                    <div>
-                      <p className="text-sm text-[#FFB347] font-semibold">Register "{searchQuery}"</p>
-                      <p className="text-[11px] text-white/40">Submit this temple / puja committee for listing on Sri Dwar</p>
+                  ) : (
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-sm text-white/40">Start typing to search temples…</p>
                     </div>
-                  </button>
-                ) : (
-                  <div className="px-4 py-6 text-center">
-                    <p className="text-sm text-white/40">Start typing to search temples…</p>
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
+            </div>
+
+            {selectedTemple && !dropdownOpen && (
+              <div className="flex items-center space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
+                <Check className="w-4 h-4 text-[#FFB347] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#FFB347] truncate">{selectedTemple}</p>
+                  {isNewTemple && <p className="text-[11px] text-white/40">New — will be submitted for listing</p>}
+                </div>
+                <button onClick={() => { setSelectedTemple(""); setSearchQuery(""); }} className="text-white/30 hover:text-white/60 cursor-pointer transition-colors shrink-0">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             )}
-          </div>
 
-          {selectedTemple && !dropdownOpen && (
-            <div className="flex items-center space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
-              <Check className="w-4 h-4 text-[#FFB347] shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#FFB347] truncate">{selectedTemple}</p>
-                {isNewTemple && <p className="text-[11px] text-white/40">New — will be submitted for listing</p>}
-              </div>
-              <button onClick={() => { setSelectedTemple(""); setSearchQuery(""); }} className="text-white/30 hover:text-white/60 cursor-pointer transition-colors shrink-0">
-                <X className="w-4 h-4" />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  if (!selectedTemple) { alert("Please select or enter a temple / puja committee first."); return; }
+                  if (isNewTemple) { setStep("temple-reg"); } else { setStep("portal"); }
+                }}
+                className="flex-1 bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20"
+              >
+                <Heart className="w-4 h-4" /><span>Register as Devotee</span>
+              </button>
+              <button
+                onClick={() => setStep("temple-reg")}
+                className="flex-1 sm:flex-none bg-white/5 hover:bg-white/10 border border-white/15 hover:border-white/25 text-white font-semibold py-3.5 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm"
+              >
+                <Building2 className="w-4 h-4 text-[#5EEAD4]" /><span>Register My Temple</span>
               </button>
             </div>
-          )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => {
-                if (!selectedTemple) { alert("Please select or enter a temple / puja committee first."); return; }
-                if (isNewTemple) { setStep("temple-reg"); } else { setStep("portal"); }
-              }}
-              className="flex-1 bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20"
-            >
-              <Heart className="w-4 h-4" /><span>Register as Devotee</span>
-            </button>
-            <button
-              onClick={() => setStep("temple-reg")}
-              className="flex-1 sm:flex-none bg-white/5 hover:bg-white/10 border border-white/15 hover:border-white/25 text-white font-semibold py-3.5 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm"
-            >
-              <Building2 className="w-4 h-4 text-[#5EEAD4]" /><span>Register My Temple</span>
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-1">
-            {[
-              { icon: "🏛️", label: `${TEMPLES_LIST.length}+ Temples Listed` },
-              { icon: "🆓", label: "Free Registration" },
-              { icon: "🔒", label: "Securely managed by Sridwar Technology" },
-              { icon: "🪪", label: "Dharmic ID" },
-            ].map(f => (
-              <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
-                <span>{f.icon}</span><span>{f.label}</span>
-              </span>
-            ))}
-          </div>
-
-          <div className="border-t border-white/8 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold text-white/50 mb-0.5">Temple / Authority Registration Link</p>
-              <p className="text-[11px] text-white/30 font-mono">Share this with your temple management for direct access</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { icon: "🏛️", label: `${TEMPLES_LIST.length}+ Temples Listed` },
+                { icon: "🆓", label: "Free Registration" },
+                { icon: "🔒", label: "Securely managed by Sridwar Technology" },
+                { icon: "🪪", label: "Dharmic ID" },
+              ].map(f => (
+                <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
+                  <span>{f.icon}</span><span>{f.label}</span>
+                </span>
+              ))}
             </div>
-            <ShareLinkButton
-              page="temple-register"
-              utmContent="temple_register_footer"
-              label="Share Registration Link"
-              gaEventName="share_temple_register_link"
-              color="teal"
-            />
-          </div>
-        </div>
+
+            <div className="border-t border-white/8 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-white/50 mb-0.5">Temple / Authority Registration Link</p>
+                <p className="text-[11px] text-white/30 font-mono">Share this with your temple management for direct access</p>
+              </div>
+              <ShareLinkButton
+                page="temple-register"
+                utmContent="temple_register_footer"
+                label="Share Registration Link"
+                gaEventName="share_temple_register_link"
+                color="teal"
+              />
+            </div>
+
+          </div>{/* end card body */}
+        </div>{/* end card */}
 
         <p className="text-center text-[10px] text-white/25 font-mono mt-6 tracking-wider">
           🕉️ An Initiative by Sridwar Technology · Empowering Every Temple, Every Devotee
         </p>
-      </div>
+      </div>{/* end max-w-7xl */}
     </section>
 
     {/* ══════════════════════════════════════════════════════════════════════
-        SECTION 2 — Find & Register Local Pujari, Pandit, Guru, Dharmic Experts
+        SECTION 2 — Register a Dharmic Expert
+        Card stretched full width to match other sections · full image visible above
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="dharmic-expert-section"
-      className="py-16 sm:py-20 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white"
+      className="py-16 sm:py-20 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#5EEAD4]/4 rounded-full blur-3xl" />
         <div className="absolute bottom-1/3 left-1/4 w-72 h-72 bg-[#FFB347]/4 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-        {/* Header */}
-        <div className="text-center mb-10 space-y-3">
-          <SectionBadge label="An Initiative by Sridwar Technology" />
-          <h2 className="text-3xl sm:text-4xl font-serif font-black text-white leading-tight">
-            Find &amp; Register Your<br />
-            <span className="text-[#5EEAD4]">Local Pujari, Pandit, Guru,</span><br />
-            <span className="text-[#FFB347]">Sant, Sadhu &amp; Dharmic Experts</span>
-          </h2>
-          <p className="text-white/55 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Help devotees discover trusted local dharmic experts — Pujaris, Pandits, Mahants, Gurus, Sants, Sadhus, Purohits, Seers, Acharyas, Vedic Scholars, Jyotish Advisors, and more.
-            Register them free and build India's trusted digital dharmic directory.
-          </p>
+        {/* Single centred card — stretched to the same width as other sections */}
+        <div className="glass-panel-dark rounded-3xl border border-white/10 overflow-hidden">
 
-          {/* Expert type chips */}
-          <div className="flex flex-wrap justify-center gap-2 pt-2">
-            {["Pujari", "Pandit", "Guru", "Sant", "Sadhu", "Purohit", "Acharya", "Jyotish", "Vastu Expert", "Sanskrit Teacher"].map(tag => (
-              <span key={tag} className="bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-full px-3 py-1 text-[11px] text-[#5EEAD4]/80 font-medium">
-                {tag}
-              </span>
-            ))}
-            <span className="bg-white/4 border border-white/10 rounded-full px-3 py-1 text-[11px] text-white/40 font-medium">& more…</span>
-          </div>
-        </div>
-
-        {/* Main card with the expert registration form */}
-        <div className="glass-panel-dark rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6">
-
-          {/* Trust bar */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { icon: "🆓", label: "Free Registration" },
-              { icon: "🔒", label: "Securely managed by Sridwar Technology" },
-              { icon: "✅", label: "Verified before listing" },
-              { icon: "📲", label: "Discoverable by devotees" },
-            ].map(f => (
-              <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
-                <span>{f.icon}</span><span>{f.label}</span>
-              </span>
-            ))}
+          {/* Image at the top of the card — full image visible, no cropping, no side gaps */}
+          <div className="w-full aspect-[3/2] bg-black/20">
+            <img
+              src={registerDevotteeImg}
+              alt="Find & register your local pujari, pandit, guru, sant, sadhu & dharmic experts — Sri Dwar"
+              className="w-full h-full object-contain"
+              style={{ display: "block", opacity: 0.97 }}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
 
-          {/* The expert registration form component */}
-          <DharmicExpertSection />
+          {/* Card body */}
+          <div className="p-6 sm:p-8 space-y-6">
 
-          {/* Shareable link */}
-          <div className="border-t border-white/8 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold text-white/50 mb-0.5">Dharmic Expert &amp; Devotee Registration Link</p>
-              <p className="text-[11px] text-white/30 font-mono">Share with pujaris, pandits, gurus, dharmic experts, or devotees</p>
+            {/* Badge only — full description already shown inside the image above */}
+            <div className="space-y-2">
+              <SectionBadge label="An Initiative by Sridwar Technology" />
             </div>
-            <div className="flex flex-wrap gap-2 shrink-0">
-              <ShareLinkButton
-                page="dharmic-expert-register"
-                utmContent="dharmic_expert_footer"
-                label="Share Expert Link"
-                gaEventName="share_dharmic_expert_link"
-                color="teal"
-              />
-              <ShareLinkButton
-                page="devotee-register"
-                utmContent="devotee_register_footer"
-                label="Share Devotee Link"
-                gaEventName="share_devotee_register_link"
-                color="gold"
-              />
-              <ShortDevoteeLinkButton />
+
+            {/* Expert type chips */}
+            <div className="flex flex-wrap gap-2">
+              {["Pujari", "Pandit", "Guru", "Sant", "Sadhu", "Purohit", "Acharya", "Jyotish", "Vastu Expert", "Sanskrit Teacher"].map(tag => (
+                <span key={tag} className="bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-full px-3 py-1 text-[11px] text-[#5EEAD4]/80 font-medium">
+                  {tag}
+                </span>
+              ))}
+              <span className="bg-white/4 border border-white/10 rounded-full px-3 py-1 text-[11px] text-white/40 font-medium">& more…</span>
             </div>
-          </div>
-        </div>
+
+            {/* Trust bar */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { icon: "🆓", label: "Free Registration" },
+                { icon: "🔒", label: "Securely managed by Sridwar Technology" },
+                { icon: "✅", label: "Verified before listing" },
+                { icon: "📲", label: "Discoverable by devotees" },
+              ].map(f => (
+                <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
+                  <span>{f.icon}</span><span>{f.label}</span>
+                </span>
+              ))}
+            </div>
+
+            {/* The expert registration form component */}
+            <DharmicExpertSection />
+
+            {/* Shareable links */}
+            <div className="border-t border-white/8 pt-4 space-y-3">
+              <div>
+                <p className="text-xs font-semibold text-white/50 mb-0.5">Dharmic Expert &amp; Devotee Registration Link</p>
+                <p className="text-[11px] text-white/30 font-mono">Share with pujaris, pandits, gurus, dharmic experts, or devotees</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <ShareLinkButton
+                  page="dharmic-expert-register"
+                  utmContent="dharmic_expert_footer"
+                  label="Share Expert Link"
+                  gaEventName="share_dharmic_expert_link"
+                  color="teal"
+                />
+                <ShareLinkButton
+                  page="devotee-register"
+                  utmContent="devotee_register_footer"
+                  label="Share Devotee Link"
+                  gaEventName="share_devotee_register_link"
+                  color="gold"
+                />
+                <ShortDevoteeLinkButton />
+              </div>
+            </div>
+
+          </div>{/* end card body */}
+        </div>{/* end card */}
 
         <p className="text-center text-[10px] text-white/25 font-mono mt-6 tracking-wider">
           🕉️ An Initiative by Sridwar Technology · Connecting Every Devotee with Dharmic Wisdom
         </p>
-      </div>
+      </div>{/* end max-w-7xl */}
     </section>
     </>
   );
