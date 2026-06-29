@@ -23,6 +23,7 @@ import SacredResources from "./components/SacredResources";
 import HolisticWellness from "./components/HolisticWellness";
 import TempleRegister from "./components/TempleRegister";
 import UPIPaymentModal from "./components/UPIPaymentModal";
+import OfferPopup from "./components/OfferPopup";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -51,6 +52,12 @@ export default function App() {
   const [isCartPaymentOpen, setIsCartPaymentOpen] = useState(false);
   const [isBookNowOpen, setIsBookNowOpen] = useState(false);
   const [isSevaModalOpen, setIsSevaModalOpen] = useState(false);
+
+  // "Setu Yatra Challenge" promo popup — bump the version suffix below
+  // (v1 -> v2) any time you launch a NEW campaign and want it to show again
+  // to devotees who already dismissed a previous one.
+  const OFFER_POPUP_STORAGE_KEY = "sd_offer_popup_dismissed_v1";
+  const [isOfferPopupOpen, setIsOfferPopupOpen] = useState(false);
   
   // Custom states for wizard pass
   const [wizardDefaults, setWizardDefaults] = useState({ pujaName: "", price: 1100 });
@@ -102,6 +109,21 @@ export default function App() {
       setCurrentPage("temple-register");
     }
   }, []);
+
+  // Auto-show the "Setu Yatra Challenge" popup once per devotee (per
+  // browser), a couple of seconds after the page loads, unless they have
+  // already dismissed THIS version of the campaign before.
+  useEffect(() => {
+    const alreadyDismissed = localStorage.getItem(OFFER_POPUP_STORAGE_KEY);
+    if (alreadyDismissed) return;
+    const timer = setTimeout(() => setIsOfferPopupOpen(true), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleCloseOfferPopup = () => {
+    localStorage.setItem(OFFER_POPUP_STORAGE_KEY, "1");
+    setIsOfferPopupOpen(false);
+  };
     // Handle Android back button
   useEffect(() => {
     const setupBackButton = async () => {
@@ -926,6 +948,13 @@ export default function App() {
         refId={`CART-${Date.now()}`}
         payeeLabel="Order Items"
         payeeValue={`${cart.length} item(s)`}
+      />
+
+      {/* "Setu Yatra Challenge" promo popup */}
+      <OfferPopup
+        isOpen={isOfferPopupOpen}
+        onClose={handleCloseOfferPopup}
+        storageKey={OFFER_POPUP_STORAGE_KEY}
       />
 
       {/* ═══════════════════════════════════════════════════════════════════════
