@@ -142,10 +142,12 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
 
         {/* ── Filter Dropdown Bar ─────────────────────────────────────────────── */}
         <div className="mb-8 bg-[#092320]/70 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
-          <div className="flex flex-wrap gap-3 items-end">
+
+          {/* Three equal-width dropdowns — grid keeps them perfectly aligned on all screen sizes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
             {/* Dropdown 1 – Temple */}
-            <div className="flex flex-col gap-1 flex-1 min-w-[150px]">
+            <div className="flex flex-col gap-1">
               <label className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
                 Select Temple
               </label>
@@ -165,7 +167,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
             </div>
 
             {/* Dropdown 2 – Category */}
-            <div className="flex flex-col gap-1 flex-1 min-w-[150px]">
+            <div className="flex flex-col gap-1">
               <label className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
                 Select Puja Category
               </label>
@@ -187,7 +189,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
             </div>
 
             {/* Dropdown 3 – Priest */}
-            <div className="flex flex-col gap-1 flex-1 min-w-[150px]">
+            <div className="flex flex-col gap-1">
               <label className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
                 Select Priest
               </label>
@@ -204,44 +206,36 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#FFB347]/60" />
               </div>
+            </div>
+          </div>
+
+          {/* Result count + Browse priests link + Clear All on one tidy row */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="text-[11px] text-white/50 font-mono">
+                Showing{" "}
+                <span className="text-[#5EEAD4] font-bold">{filteredPujas.length}</span>
+                {" "}of{" "}
+                <span className="text-white/80 font-bold">{ON_LINE_PUJAS.length}</span>
+                {" "}pujas
+              </span>
               {onViewPriestProfile && (
                 <button
                   type="button"
                   onClick={() => onViewPriestProfile("")}
-                  className="text-[10px] text-[#5EEAD4] font-mono underline underline-offset-2 hover:text-[#5EEAD4]/80 mt-1.5 self-start"
+                  className="text-[10px] text-[#5EEAD4] font-mono underline underline-offset-2 hover:text-[#5EEAD4]/80"
                 >
                   Browse all priest profiles →
                 </button>
               )}
             </div>
-
-            {/* Clear All */}
             {isAnyFilterActive && (
               <button
                 onClick={handleClearAll}
-                className="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-bold transition-all self-end shrink-0 min-h-[44px]"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-bold transition-all shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
-                Clear All Filters
-              </button>
-            )}
-          </div>
-
-          {/* Result count */}
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <span className="text-[11px] text-white/50 font-mono">
-              Showing{" "}
-              <span className="text-[#5EEAD4] font-bold">{filteredPujas.length}</span>
-              {" "}of{" "}
-              <span className="text-white/80 font-bold">{ON_LINE_PUJAS.length}</span>
-              {" "}pujas
-            </span>
-            {isAnyFilterActive && (
-              <button
-                onClick={handleClearAll}
-                className="text-[10px] text-[#FFB347]/70 hover:text-[#FFB347] font-mono underline underline-offset-2 transition-colors"
-              >
-                Reset / Show All
+                Clear All
               </button>
             )}
           </div>

@@ -110,15 +110,8 @@ export default function App() {
     }
   }, []);
 
-  // Auto-show the "Setu Yatra Challenge" popup once per devotee (per
-  // browser), a couple of seconds after the page loads, unless they have
-  // already dismissed THIS version of the campaign before.
-  useEffect(() => {
-    const alreadyDismissed = localStorage.getItem(OFFER_POPUP_STORAGE_KEY);
-    if (alreadyDismissed) return;
-    const timer = setTimeout(() => setIsOfferPopupOpen(true), 2500);
-    return () => clearTimeout(timer);
-  }, []);
+  // "Setu Yatra Challenge" popup is triggered by the hero CTA button.
+  // No auto-show timer — keeps the experience non-intrusive for devotees.
 
   const handleCloseOfferPopup = () => {
     localStorage.setItem(OFFER_POPUP_STORAGE_KEY, "1");
@@ -271,6 +264,7 @@ export default function App() {
                 setIsBookNowOpen(true);
               }}
               onOpenProducts={() => setCurrentPage("products")}
+              onOpenSetuYatra={() => setIsOfferPopupOpen(true)}
             />
             
             {/* Spotlight and lists */}
