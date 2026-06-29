@@ -171,15 +171,17 @@ export function saveSyncConfig(formType: string, config: SyncConfig) {
 }
 
 /**
- * Deduplication guard — prevents the same form from being submitted twice
- * within a 5-second window. This blocks both React StrictMode's double-invoke
- * in development AND any accidental double-call in the codebase.
- * Key = formType + name + phone so distinct users are never blocked.
+ * Deduplication guard — prevents the exact same submission from being sent
+ * twice within a 5-second window (e.g. a double-tap, or React StrictMode's
+ * dev-mode double-invoke). Key includes the type/details content, not just
+ * name+phone, so two DIFFERENT intentional submissions for the same person —
+ * e.g. an immediate "Pending" row followed by a fast Skip/Pay decision a
+ * second later — are never mistaken for an accidental duplicate and dropped.
  */
 const _recentSubmissions = new Map<string, number>();
 
-function _isDuplicate(formType: string, data: { name: string; phone: string }): boolean {
-  const key = `${formType}|${data.name.trim().toLowerCase()}|${data.phone.trim()}`;
+function _isDuplicate(formType: string, data: { name: string; phone: string; type?: string; details?: string }): boolean {
+  const key = `${formType}|${data.name.trim().toLowerCase()}|${data.phone.trim()}|${data.type || ""}|${data.details || ""}`;
   const lastTime = _recentSubmissions.get(key);
   const now = Date.now();
   if (lastTime && now - lastTime < 5000) {
@@ -420,6 +422,105 @@ export async function syncToGoogleForm(
 
   } catch (error) {
     console.error(`[Google Forms Sync Error]: Failed submitting to ${finalFormUrl}`, error);
+    return false;
+  }
+}
+
+/**
+ * ─── "Submit now, finalize later" pattern ──────────────────────────────────
+ *
+ * Google Forms' /formResponse endpoint is write-only and append-only — there
+ * is no API to edit a row that was already submitted. So for any flow where
+ * the user fills a form, THEN separately decides to skip or pay a donation,
+ * we can't literally "update" the first row once the donation outcome is
+ * known.
+ *
+ * Instead we follow one rule everywhere a donation/payment decision happens
+ * after the main form submit:
+ *
+ *   1. The moment the devotee clicks the main submit button, we POST the
+ *      full profile ONCE with a stable Ref ID and a donation status of
+ *      "Pending — Awaiting Decision". This guarantees the lead is captured
+ *      even if the devotee closes the tab before deciding on a donation.
+ *   2. The moment the donation decision is final (Skip clicked, or UPI
+ *      payment confirmed), we POST exactly ONE more row — same Ref ID, same
+ *      profile, but with the donation field corrected to "Skipped" or the
+ *      real "₹<amount>" — and a status of "Final".
+ *
+ * This is technically two POSTs (Google Forms can't avoid that), but it is
+ * ONE true submission event from the devotee's point of view: nothing is
+ * submitted twice for the same step, and the sheet can always be filtered/
+ * sorted by Ref ID + Status to find the authoritative final row. Every
+ * caller of this helper must reuse the SAME refId for both calls.
+ *
+ * Usage:
+ *   const refId = makeSubmissionRef("DEV");
+ *   await postPendingRow(formUrl, refId, buildPayload(refId, "Pending — Awaiting Decision"));
+ *   // ...later, once donation outcome is known...
+ *   await postFinalRow(formUrl, refId, buildPayload(refId, "Skipped" | `₹${amount}`));
+ */
+
+export function makeSubmissionRef(prefix: string): string {
+  return `SDR-${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
+}
+
+// Guards so a given refId's "pending" or "final" row is ever sent only once,
+// even if React re-renders, double-clicks, or effect re-fires occur.
+const _pendingSentRefs = new Set<string>();
+const _finalSentRefs = new Set<string>();
+
+/**
+ * Posts the FIRST row for a submission — fired the instant the user clicks
+ * the main "Submit and Proceed" / "Submit Message" / "Proceed to Offering"
+ * button. Donation/payment field should be set to "Pending — Awaiting
+ * Decision" in the payload before calling this.
+ */
+export async function postPendingRow(
+  formUrl: string,
+  refId: string,
+  payload: Record<string, string>
+): Promise<boolean> {
+  if (_pendingSentRefs.has(refId)) {
+    console.log(`[Google Forms Sync]: Pending row already sent for ${refId}, skipping duplicate.`);
+    return false;
+  }
+  _pendingSentRefs.add(refId);
+  try {
+    const fd = new FormData();
+    Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
+    await fetch(formUrl, { method: "POST", mode: "no-cors", body: fd });
+    console.log(`[Google Forms Sync]: Pending row sent for ${refId}.`);
+    return true;
+  } catch (err) {
+    console.error(`[Google Forms Sync Error]: Pending row failed for ${refId}`, err);
+    return false;
+  }
+}
+
+/**
+ * Posts the FINAL row for a submission — fired the instant the donation
+ * outcome is known (Skip Donation clicked, or UPI payment confirmed).
+ * Donation/payment field in the payload should already reflect the true
+ * outcome ("Skipped" or "₹<amount>").
+ */
+export async function postFinalRow(
+  formUrl: string,
+  refId: string,
+  payload: Record<string, string>
+): Promise<boolean> {
+  if (_finalSentRefs.has(refId)) {
+    console.log(`[Google Forms Sync]: Final row already sent for ${refId}, skipping duplicate.`);
+    return false;
+  }
+  _finalSentRefs.add(refId);
+  try {
+    const fd = new FormData();
+    Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
+    await fetch(formUrl, { method: "POST", mode: "no-cors", body: fd });
+    console.log(`[Google Forms Sync]: Final row sent for ${refId}.`);
+    return true;
+  } catch (err) {
+    console.error(`[Google Forms Sync Error]: Final row failed for ${refId}`, err);
     return false;
   }
 }

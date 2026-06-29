@@ -187,6 +187,11 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   };
 
   // ── Submit Sankalpa Portal → go to payment ──────────────────────────────
+  // Sends ONE row immediately with payment status "Pending — Payment Not Yet
+  // Confirmed" (the order is captured even if the devotee abandons the UPI
+  // step), then redirects straight to "Complete Your Sacred Offering". Once
+  // payment is actually confirmed, handlePaymentConfirmed sends exactly ONE
+  // more row — same Ref ID — correctly marked "Paid — Confirmed". ──
   const handleSankalpaSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!devoteeName.trim() || !devoteePhone.trim()) {
@@ -211,6 +216,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
                       : `Temple Bazaar Order — ${selectedItem?.name}`,
       details:      `Item: ${selectedItem?.name} | ` +
                     `Amount: ₹${selectedItem?.price} | ` +
+                    `Payment Status: Pending — Awaiting Confirmation | ` +
                     `Gotra: ${devoteeGotra || "Not provided"} | ` +
                     `Rashi: ${devoteeRashi} | ` +
                     (selectedItem?.isService
@@ -227,10 +233,36 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   };
 
   // ── After payment confirmed ─────────────────────────────────────────────
-  const handlePaymentConfirmed = () => {
+  // Sends the ONE Final row for this order, sharing the same Ref ID, with
+  // the payment status corrected to "Paid — Confirmed" and the real method.
+  const handlePaymentConfirmed = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowUPI(false);
     if (selectedItem) {
-      gaBookingComplete(selectedItem.name, selectedItem.price, refId);
+      gaBookingComplete(selectedItem.name, details.amount, refId);
+      syncToGoogleForm("seva_booking", {
+        name:         devoteeName.trim(),
+        email:        devoteeEmail.trim(),
+        phone:        devoteePhone.trim(),
+        gotra:        devoteeGotra || undefined,
+        rashi:        devoteeRashi || undefined,
+        intent:       sankalpaIntent.trim() || undefined,
+        type:         selectedItem.isService
+                        ? `Puja Service — ${selectedItem.name}`
+                        : `Temple Bazaar Order — ${selectedItem.name}`,
+        details:      `Item: ${selectedItem.name} | ` +
+                      `Amount: ₹${details.amount} | ` +
+                      `Payment Status: Paid — Confirmed | ` +
+                      `Payment Method: ${details.method} | ` +
+                      `Gotra: ${devoteeGotra || "Not provided"} | ` +
+                      `Rashi: ${devoteeRashi} | ` +
+                      (selectedItem.isService
+                        ? `Intent: ${sankalpaIntent || "General blessings"}`
+                        : `Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
+                      ` | Ref: ${refId}`,
+        fee:          details.amount,
+        city:         selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
+        whatsapp:     devoteePhone.trim(),
+      });
     }
     const msg = selectedItem?.isService
       ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a WhatsApp confirmation within 2 hours. Ref: ${refId}`

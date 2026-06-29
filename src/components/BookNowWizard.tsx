@@ -94,17 +94,17 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setIsProcessingPayment(true);
+    const newRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
+    setRefId(newRefId);
     try {
       await syncToGoogleForm("puja_booking", {
         name: devoteeName, email, phone,
-        details: `Puja: ${pujaName} | Dakshina: ₹${price} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"}`,
+        details: `Puja: ${pujaName} | Dakshina: ₹${price} | Payment Status: Pending — Awaiting Confirmation | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${newRefId}`,
         type: `Puja/Seva Booking - ${pujaName}`,
         fee: price, dob, gotra: gotra || "Shiva Gotra", rashi, intent: sankalpWish,
       });
-      setRefId(`SDP-${Math.floor(100000 + Math.random() * 900000)}`);
     } catch (err) {
       console.error(err);
-      setRefId(`SDP-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setIsProcessingPayment(false);
       isSubmittingRef.current = false;
@@ -113,12 +113,21 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     }
   };
 
-  const handlePaymentConfirmed = () => {
+  // Payment confirmed in the UPI modal — sends the ONE Final row for this
+  // booking, sharing the same Ref ID, with payment status corrected to
+  // "Paid — Confirmed" and the real payment method.
+  const handlePaymentConfirmed = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     paymentCompletedRef.current = true; // lock — do not reset to Step 1
     setShowUPI(false);
     setStep(3);
-    gaBookingComplete(pujaName, price, refId);
-    onSuccess({ pujaName, sankalpaName: devoteeName, price, refId });
+    gaBookingComplete(pujaName, details.amount, refId);
+    syncToGoogleForm("puja_booking", {
+      name: devoteeName, email, phone,
+      details: `Puja: ${pujaName} | Dakshina: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${refId}`,
+      type: `Puja/Seva Booking - ${pujaName}`,
+      fee: details.amount, dob, gotra: gotra || "Shiva Gotra", rashi, intent: sankalpWish,
+    });
+    onSuccess({ pujaName, sankalpaName: devoteeName, price: details.amount, refId });
   };
 
   const handleClose = () => {

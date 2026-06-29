@@ -5,7 +5,7 @@
 
 import { useState, FormEvent } from "react";
 import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check } from "lucide-react";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
@@ -24,6 +24,11 @@ export default function ContactUs() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [refId, setRefId] = useState("");
 
+  // ── "Submit Message" — fires ONE Pending row to Google Sync immediately,
+  // with the donation outcome correctly recorded as "Pending" (not silently
+  // dropped/blank). The Skip / Donate buttons below send exactly ONE more
+  // Final row sharing the same Ref ID, with the real outcome — see
+  // handleSkipDonation / handleDonationConfirmed. ──
   const handleSendMessage = async (e: FormEvent) => {
   e.preventDefault();
 
@@ -37,29 +42,61 @@ export default function ContactUs() {
   // ────────────────────────────────────────────────────────────────────────
 
   setIsSyncing(true);
+  const newRefId = makeSubmissionRef("SUP");
+  setRefId(newRefId);
 
   try {
-    // ✅ FIX: Removed invalid `response.json()` — no response variable exists here.
-    // syncToGoogleForm submits directly to Google Forms and returns true/false.
     await syncToGoogleForm("customer_contact", {
       name,
       email,
       phone,
       type: queryType,
-      details: comment
+      details: `${comment} [Contribution: Pending — Awaiting Decision] [Ref: ${newRefId}]`,
     });
 
-    setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
     gaContactFormSubmit(!!phone);
 
     } catch (err) {
       console.error(err);
-      setRefId(`SDC-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setTimeout(() => {
         setIsSyncing(false);
         setShowDonation(true); // ✅ Show donation option after form submission
       }, 1000);
+    }
+  };
+
+  // Skip Donation — sends the ONE Final row for this message, with the
+  // contribution correctly recorded as "Skipped" instead of leaving the
+  // earlier "Pending" status to stand in for it.
+  const handleSkipDonation = async () => {
+    try {
+      await syncToGoogleForm("customer_contact", {
+        name, email, phone, type: queryType,
+        details: `${comment} [Contribution: Skipped] [Ref: ${refId}]`,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitted(true);
+      setShowDonation(false);
+    }
+  };
+
+  // Payment confirmed — sends the ONE Final row for this message, with the
+  // contribution correctly recorded as the real amount and method paid.
+  const handleDonationPaid = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
+    try {
+      await syncToGoogleForm("customer_contact", {
+        name, email, phone, type: queryType,
+        details: `${comment} [Contribution: ₹${details.amount} via ${details.method}] [Ref: ${refId}]`,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setShowUPI(false);
+      setIsSubmitted(true);
+      setShowDonation(false);
     }
   };
 
@@ -133,8 +170,8 @@ export default function ContactUs() {
             {showUPI && (
               <UPIPaymentModal
                 isOpen={showUPI}
-                onClose={() => { setShowUPI(false); setIsSubmitted(true); setShowDonation(false); }}
-                onPaymentConfirmed={() => { setShowUPI(false); setIsSubmitted(true); setShowDonation(false); }}
+                onClose={() => setShowUPI(false)}
+                onPaymentConfirmed={handleDonationPaid}
                 amount={donationAmount}
                 bookingName="Sri Dwar Temple Donation"
                 devoteeName={name}
@@ -183,7 +220,7 @@ export default function ContactUs() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => { setIsSubmitted(true); setShowDonation(false); }}
+                    onClick={handleSkipDonation}
                     className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs border border-white/10 transition-all"
                   >Skip Donation</button>
                   <button
@@ -326,7 +363,14 @@ export default function ContactUs() {
 
                 <button
                   id="contact-button-reset"
-                  onClick={() => setIsSubmitted(false)}
+                  onClick={() => {
+                    setIsSubmitted(false);
+                    setShowDonation(false);
+                    setDonationAmount(null);
+                    setRefId("");
+                    setName(""); setEmail(""); setPhone("");
+                    setQueryType("Puja Clarification"); setComment("");
+                  }}
                   className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs transition-all uppercase tracking-wider cursor-pointer"
                 >
                   Submit another ticket

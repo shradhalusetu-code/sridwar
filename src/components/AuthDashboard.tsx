@@ -181,7 +181,7 @@ export default function AuthDashboard({
     setShowSankalpaForm(true);
   };
 
-  // Step 4 — Sankalpa form submitted: sync to Google Form then open payment
+  // Step 4 — Sankalpa form submitted: sync to Google Form (Pending row) then open payment
   const handleSankalpaSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!sankalpaPhone.trim()) {
@@ -193,7 +193,10 @@ export default function AuthDashboard({
       ? TEMPLES_LIST.find((t) => t.id === selectedTempleId)?.name || "Selected Temple"
       : customMandapName || "Custom Mandap";
 
-    // Sync Puja Sankalpa data to Google Forms (seva_booking form)
+    // Sync Puja Sankalpa data to Google Forms (seva_booking form) — ONE row,
+    // recorded as "Pending" since payment hasn't been confirmed yet. The
+    // corrected Final row (with real payment method) is sent from
+    // finalizeContribution below, sharing the same Ref ID.
     syncToGoogleForm("seva_booking", {
       name:         pendingLogin?.name || "",
       email:        pendingLogin?.email || "",
@@ -201,7 +204,7 @@ export default function AuthDashboard({
       gotra:        sankalpaGotra || userGotra || undefined,
       intent:       sankalpaIntent || undefined,
       type:         `Temple Redevelopment Contribution — ${templeName}`,
-      details:      `Contribution: ₹${contributionAmount} | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
+      details:      `Contribution: ₹${contributionAmount} | Payment Status: Pending — Awaiting Confirmation | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
       fee:          contributionAmount,
       temple:       templeName,
       whatsapp:     sankalpaPhone.trim(),
@@ -212,9 +215,28 @@ export default function AuthDashboard({
     setIsContributionPaymentOpen(true);
   };
 
-  // Step 6 — After payment confirmed: redirect to Dharmic Portal
-  const finalizeContribution = () => {
+  // Step 6 — After payment confirmed: send the ONE Final row (same Ref ID),
+  // with payment status corrected to "Paid — Confirmed" and the real method
+  // (UPI or WhatsApp Pay) + actual confirmed amount — then redirect to the
+  // Dharmic Portal.
+  const finalizeContribution = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setIsContributionPaymentOpen(false);
+    const templeName = selectedTempleId
+      ? TEMPLES_LIST.find((t) => t.id === selectedTempleId)?.name || "Selected Temple"
+      : customMandapName || "Custom Mandap";
+    syncToGoogleForm("seva_booking", {
+      name:         pendingLogin?.name || "",
+      email:        pendingLogin?.email || "",
+      phone:        sankalpaPhone.trim(),
+      gotra:        sankalpaGotra || userGotra || undefined,
+      intent:       sankalpaIntent || undefined,
+      type:         `Temple Redevelopment Contribution — ${templeName}`,
+      details:      `Contribution: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
+      fee:          details.amount,
+      temple:       templeName,
+      whatsapp:     sankalpaPhone.trim(),
+      city:         customMandapAddress || "Online Devotee",
+    });
     if (pendingLogin) {
       gaLogin("email_with_contribution");
       onLoginSuccess(pendingLogin.name, pendingLogin.email);

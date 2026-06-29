@@ -10,7 +10,14 @@ import { buildUpiQrImageUrl, buildUpiLink, PAYEE_NAME } from "../utils/upiConfig
 interface UPIPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPaymentConfirmed: () => void;
+  /**
+   * Called once payment is confirmed — either via "I Have Paid" (UPI/QR) or
+   * "Pay via WhatsApp". Receives the actual confirmed amount (custom or
+   * fixed) and which method was used, so the caller's final Google Sync row
+   * can record an accurate donation/payment status — never "Skipped" once a
+   * real payment action has happened.
+   */
+  onPaymentConfirmed: (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => void;
   amount: number | null;
   bookingName: string;
   devoteeName: string;
@@ -48,7 +55,17 @@ export default function UPIPaymentModal({
   const WHATSAPP_NUMBER = "919777645062";
   const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
 
+  // "Pay via WhatsApp" is a real payment-intent action, not just an
+  // informational link — opening it means the devotee has committed to
+  // paying via WhatsApp instead of the QR/UPI button. So it now also
+  // confirms the booking (method: "WhatsApp Pay"), same as "I Have Paid"
+  // does for the UPI/QR path, instead of silently leaving the record
+  // showing no confirmation at all.
   const handleWhatsAppPay = () => {
+    if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
+      alert("Minimum contribution is ₹" + minAmount);
+      return;
+    }
     const message = encodeURIComponent(
       "🙏 Jai Jagannath! I would like to make a UPI payment for:\n\n" +
       "📿 Service: " + bookingName + "\n" +
@@ -58,15 +75,19 @@ export default function UPIPaymentModal({
       "Please confirm my booking after payment. 🙏"
     );
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message, "_blank");
+    setConfirmed(true);
+    sendOwnerWhatsAppAlert("WhatsApp Pay");
+    setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "WhatsApp Pay" }); }, 1500);
   };
 
-  const sendOwnerWhatsAppAlert = () => {
+  const sendOwnerWhatsAppAlert = (method: "UPI" | "WhatsApp Pay") => {
     const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     const message = encodeURIComponent(
       "🔔 *NEW PAYMENT RECEIVED — Sri Dwar*\n\n" +
       "📿 *Service:* " + bookingName + "\n" +
       "👤 *Devotee:* " + devoteeName + "\n" +
       "💰 *Amount:* ₹" + effectiveAmount + "\n" +
+      "💳 *Method:* " + method + "\n" +
       "🔖 *Ref ID:* " + refId + "\n" +
       "🕐 *Time:* " + now + " IST\n\n" +
       "Please verify UPI payment and confirm booking. 🙏"
@@ -86,8 +107,8 @@ export default function UPIPaymentModal({
       return;
     }
     setConfirmed(true);
-    sendOwnerWhatsAppAlert();
-    setTimeout(() => { onPaymentConfirmed(); }, 1500);
+    sendOwnerWhatsAppAlert("UPI");
+    setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "UPI" }); }, 1500);
   };
 
   return (
@@ -98,19 +119,23 @@ export default function UPIPaymentModal({
       Inner card: flex column, max-height 100dvh.
       Body: flex-1, min-h-0, overflow-y-auto — the ONLY scroll container.
       ─────────────────────────────────────────────────────────────────────
+      Styling note: uses the same translucent "glass-panel" surfaces and
+      teal/gold palette as the rest of Sri Dwar (e.g. the Temple/Committee
+      donation step) instead of solid near-black blocks, so this payment
+      screen reads as part of the same smooth visual language site-wide.
     */
     <div
-      className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+      className="fixed inset-0 bg-[#021816]/90 backdrop-blur-md z-[70] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
       style={{ touchAction: "pan-y" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="bg-[#092320] w-full sm:rounded-3xl sm:max-w-sm border border-white/10 shadow-2xl animate-slideUp text-white flex flex-col"
+        className="bg-gradient-to-b from-[#0B2B27] to-[#0F3530] w-full sm:rounded-3xl sm:max-w-sm border border-white/10 shadow-2xl animate-slideUp text-white flex flex-col"
         style={{ maxHeight: "100dvh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Sticky header ── */}
-        <div className="shrink-0 bg-[#021816] px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl">
+        <div className="shrink-0 bg-white/5 px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl">
           <div>
             <h3 className="font-serif text-sm font-bold text-white">Complete Your Sacred Offering</h3>
             <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider">PhonePe · GPay · Paytm · BHIM</p>
@@ -130,14 +155,14 @@ export default function UPIPaymentModal({
 
             {/* Optional payee summary row */}
             {payeeLabel && payeeValue && (
-              <div className="flex justify-between items-center text-xs bg-[#021816] p-3 rounded-xl border border-white/5">
+              <div className="flex justify-between items-center text-xs bg-white/5 p-3 rounded-xl border border-white/10">
                 <span className="text-white/50 uppercase font-mono shrink-0 pr-2">{payeeLabel}:</span>
                 <span className="font-bold text-[#FFB347] truncate text-right">{payeeValue}</span>
               </div>
             )}
 
             {/* Amount Display */}
-            <div className="bg-[#021816] rounded-2xl p-4 border border-white/10 text-center space-y-1">
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 text-center space-y-1">
               <span className="block text-[10px] font-mono text-white/40 uppercase tracking-widest">{bookingName}</span>
               {allowCustomAmount ? (
                 <div className="space-y-2">
@@ -162,7 +187,7 @@ export default function UPIPaymentModal({
             {/* Dynamic UPI QR Code */}
             <div className="flex flex-col items-center space-y-2">
               <span className="text-[10px] text-white/50 font-mono uppercase tracking-wider">📱 Scan QR with PhonePe · GPay · Paytm · BHIM</span>
-              <div className="bg-white p-3 rounded-2xl shadow-2xl border-4 border-[#FFB347]">
+              <div className="bg-white p-3 rounded-2xl shadow-xl border-4 border-[#FFB347]">
                 <img
                   src={buildUpiQrImageUrl(effectiveAmount, bookingName)}
                   alt={`UPI QR code to pay ₹${effectiveAmount}`}
@@ -198,7 +223,7 @@ export default function UPIPaymentModal({
               </div>
             </button>
 
-            <div className="flex items-center justify-between bg-[#021816] px-4 py-3 rounded-xl border border-white/10">
+            <div className="flex items-center justify-between bg-white/5 px-4 py-3 rounded-xl border border-white/10">
               <div>
                 <span className="block text-[9px] text-white/40 font-mono uppercase">UPI ID · Sridwar</span>
                 <span className="text-sm font-bold text-white font-mono">{upiId}</span>
@@ -214,14 +239,14 @@ export default function UPIPaymentModal({
               Booking for: <span className="text-white/70 font-bold">{devoteeName}</span>
             </div>
 
-            <div className="flex items-start space-x-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[10px] text-emerald-300 font-mono">
+            <div className="flex items-start space-x-2 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 px-3 py-2.5 rounded-xl text-[10px] text-[#5EEAD4] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 24 hours of payment confirmation. 🙏</span>
             </div>
 
             {!confirmed ? (
               <button onClick={handleConfirmPayment}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-4 rounded-xl text-xs transition-all tracking-widest uppercase shadow-lg flex items-center justify-center space-x-2 border border-emerald-400/20">
+                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-4 rounded-xl text-xs transition-all tracking-widest uppercase shadow-lg flex items-center justify-center space-x-2">
                 <Check className="w-4 h-4" />
                 <div className="text-left">
                   <span className="block">I Have Paid — Notify Sri Dwar 🙏</span>
@@ -229,7 +254,7 @@ export default function UPIPaymentModal({
                 </div>
               </button>
             ) : (
-              <div className="w-full bg-emerald-900/40 border border-emerald-500/30 text-emerald-400 font-bold py-4 rounded-xl text-xs flex items-center justify-center space-x-2">
+              <div className="w-full bg-[#5EEAD4]/12 border border-[#5EEAD4]/30 text-[#5EEAD4] font-bold py-4 rounded-xl text-xs flex items-center justify-center space-x-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 <span>Blessing Activated! Sri Dwar notified...</span>
               </div>

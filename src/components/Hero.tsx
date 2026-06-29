@@ -8,7 +8,7 @@ import { Award, Compass, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldC
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
@@ -52,6 +52,12 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     setMembershipTier(null);
   };
 
+  // ── Submit Certificate Request — fires ONE row immediately. If the devotee
+  // picked a contribution tier, the row is recorded as "Pending — Awaiting
+  // Decision" (not the tier amount) until payment is actually confirmed —
+  // see handleDarshanPaymentConfirmed below. If no tier was picked ("Skip
+  // for Now"), that's already a final decision, so it's recorded as
+  // "Skipped" right away with no further row needed. ──
   const handleSubmitCertificate = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -70,13 +76,16 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     // ──────────────────────────────────────────────────────────────────────
 
     setIsSubmitting(true);
-    
+    const newRefId = makeSubmissionRef("CERT");
+    setRefId(newRefId);
+    const contributionStatus = membershipTier ? "Pending — Awaiting Decision" : "Skipped";
+
     try {
       await syncToGoogleForm("darshan_certificate", {
         name,
         email,
         phone,
-        details: `Temple: ${temple} | Age: ${age || 'N/A'} | Deity: ${deity || 'N/A'} | City: ${city} | Contribution: ${membershipTier ? '₹' + membershipTier : 'None'} | Feedback: ${feedback || 'None'}`,
+        details: `Temple: ${temple} | Age: ${age || 'N/A'} | Deity: ${deity || 'N/A'} | City: ${city} | Contribution: ${contributionStatus} | Feedback: ${feedback || 'None'} | Ref: ${newRefId}`,
         type: "Darshan Certificate Request",
         temple,
         age: age || undefined,
@@ -84,12 +93,10 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         whatsapp,
         city,
         feedback,
-        contribution: membershipTier || undefined
+        contribution: contributionStatus,
       });
-      setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
     } catch (err) {
       console.error(err);
-      setRefId(`SD-${Math.floor(100000 + Math.random() * 900000)}`);
     } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
@@ -99,6 +106,31 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         setUpiAmount(membershipTier);
         setShowUPI(true);
       }
+    }
+  };
+
+  // Payment confirmed — sends the ONE Final row for this certificate
+  // request, with the contribution correctly recorded as the real amount
+  // and method paid, sharing the same Ref ID as the initial submission.
+  const handleDarshanPaymentConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
+    setShowUPI(false);
+    try {
+      await syncToGoogleForm("darshan_certificate", {
+        name,
+        email,
+        phone,
+        details: `Temple: ${temple} | Age: ${age || 'N/A'} | Deity: ${deity || 'N/A'} | City: ${city} | Contribution: ₹${details.amount} via ${details.method} | Feedback: ${feedback || 'None'} | Ref: ${refId}`,
+        type: "Darshan Certificate Request",
+        temple,
+        age: age || undefined,
+        deity,
+        whatsapp,
+        city,
+        feedback,
+        contribution: `₹${details.amount}`,
+      });
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -569,7 +601,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     <UPIPaymentModal
       isOpen={showUPI}
       onClose={() => setShowUPI(false)}
-      onPaymentConfirmed={() => setShowUPI(false)}
+      onPaymentConfirmed={handleDarshanPaymentConfirmed}
       amount={upiAmount}
       bookingName="Darshan Certificate Contribution"
       devoteeName={name}

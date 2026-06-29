@@ -165,6 +165,42 @@ export default function DevoteeExperiences() {
     setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
   };
 
+  // Modal closed without paying — sends the ONE Final row for this
+  // testimony, sharing the same Ref ID, with the contribution correctly
+  // recorded as "Skipped".
+  const handleSkipContribution = async () => {
+    setShowUPI(false);
+    try {
+      await syncToGoogleForm("prasad_testimony", {
+        name: newName,
+        email: newLocation,
+        phone: newService,
+        details: `${newStory} [Contribution: Skipped] [Ref: ${testimonyRefId}]`,
+        type: String(newRating)
+      });
+    } catch (err) {
+      console.error("Testimony sync error:", err);
+    }
+  };
+
+  // Payment confirmed — sends the ONE Final row for this testimony, sharing
+  // the same Ref ID, with the contribution correctly recorded as the real
+  // amount + method paid.
+  const handleContributionConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
+    setShowUPI(false);
+    try {
+      await syncToGoogleForm("prasad_testimony", {
+        name: newName,
+        email: newLocation,
+        phone: newService,
+        details: `${newStory} [Contribution: ₹${details.amount} via ${details.method}] [Ref: ${testimonyRefId}]`,
+        type: String(newRating)
+      });
+    } catch (err) {
+      console.error("Testimony sync error:", err);
+    }
+  };
+
   const handleSubmitReview = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -179,13 +215,21 @@ export default function DevoteeExperiences() {
     if (storyErr)    { alert(storyErr);    return; }
     // ────────────────────────────────────────────────────────────────────────
 
-    // ✅ Sync to Google Forms first
+    const newRef = "SDT-" + Math.floor(100000 + Math.random() * 900000);
+    setTestimonyRefId(newRef);
+
+    // ✅ Sync to Google Forms first — ONE row, with the optional thank-you
+    // contribution correctly recorded as "Pending — Awaiting Decision" (not
+    // silently omitted). If the devotee closes the UPI modal without
+    // contributing, OR confirms a contribution, handleContributionConfirmed
+    // / handleSkipContribution below send exactly ONE more row — same Ref
+    // ID — with the real outcome.
     try {
       await syncToGoogleForm("prasad_testimony", {
         name: newName,
         email: newLocation,   // location goes into email field (entry.1921900509)
         phone: newService,    // service goes into phone field (entry.151571055)
-        details: newStory,
+        details: `${newStory} [Contribution: Pending — Awaiting Decision] [Ref: ${newRef}]`,
         type: String(newRating)
       });
     } catch (err) {
@@ -193,8 +237,6 @@ export default function DevoteeExperiences() {
     }
 
     // ✅ Show optional UPI contribution after testimony submission
-    const newRef = "SDT-" + Math.floor(100000 + Math.random() * 900000);
-    setTestimonyRefId(newRef);
     setShowUPI(true);
 
     const newReview: Testimonial = {
@@ -535,8 +577,8 @@ export default function DevoteeExperiences() {
       {/* Optional UPI contribution after testimony */}
       <UPIPaymentModal
         isOpen={showUPI}
-        onClose={() => setShowUPI(false)}
-        onPaymentConfirmed={() => setShowUPI(false)}
+        onClose={handleSkipContribution}
+        onPaymentConfirmed={handleContributionConfirmed}
         amount={null}
         bookingName="Optional Contribution — Temple Support"
         devoteeName={newName}

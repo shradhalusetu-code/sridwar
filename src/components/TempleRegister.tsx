@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { TEMPLES_LIST } from "../data/temples";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
+import { makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 
 // ─── Google Analytics 4 helpers ───────────────────────────────────────────────
@@ -47,6 +48,18 @@ function buildShareUrl(page: string, utmContent: string): string {
     utm_content:  utmContent,
   });
   return `${base}?${params.toString()}`;
+}
+
+// ─── Short link for "Register as Devotee" ────────────────────────────────────
+// A separate, minimal, no-UTM-clutter link — just ?d=1 — meant for places
+// where a long tagged URL is awkward (WhatsApp status, business cards,
+// print, SMS). It's recognised by the SAME deep-link check that watches for
+// ?page=devotee-register, so either link opens "Your Sacred Profile"
+// directly. This works on any static host (GitHub Pages, etc.) since it's a
+// query param, not a server-side route. ──
+function buildShortDevoteeLink(): string {
+  const base = `${window.location.origin}${window.location.pathname}`;
+  return `${base}?d=1`;
 }
 
 // ─── Native share + clipboard fallback ───────────────────────────────────────
@@ -123,7 +136,20 @@ const EXPERT_ENTRY = {
   donationAmount:     "entry.609090750",
 };
 
-async function submitToExpertForm(payload: Record<string, string>): Promise<void> {
+// Two-stage submission, same pattern as the Devotee form below: ONE Pending
+// row the instant basic details are confirmed (so the lead is captured even
+// if the expert never finishes the donation step), then ONE Final row once
+// the donation decision is known. Both share a Ref ID so they're easy to
+// match in the sheet, and each stage is guarded against ever firing twice.
+const _expertPendingSentRefs = new Set<string>();
+const _expertFinalSentRefs = new Set<string>();
+
+async function postExpertPendingRow(payload: Record<string, string>, refId: string): Promise<void> {
+  if (_expertPendingSentRefs.has(refId)) {
+    console.log("[Expert Form]: Pending row already sent for", refId);
+    return;
+  }
+  _expertPendingSentRefs.add(refId);
   const fd = new FormData();
   Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
   try {
@@ -133,23 +159,76 @@ async function submitToExpertForm(payload: Record<string, string>): Promise<void
   }
 }
 
-// ─── Devotee Registration Form (uses the devotee_support Google Form) ─────────
-// Entry IDs from googleFormSync.ts → DEFAULT_CONFIGS.devotee_support
-// The rich devotee fields (Gotra, Rashi, Deity, Interests, Message) are packed
-// into the `details` key as a pipe-separated string, matching the pattern used
-// in devotee-register.html.
-const DEVOTEE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse";
+async function postExpertFinalRow(payload: Record<string, string>, refId: string): Promise<void> {
+  if (_expertFinalSentRefs.has(refId)) {
+    console.log("[Expert Form]: Final row already sent for", refId);
+    return;
+  }
+  _expertFinalSentRefs.add(refId);
+  const fd = new FormData();
+  Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
+  try {
+    await fetch(EXPERT_FORM_URL, { method: "POST", mode: "no-cors", body: fd });
+  } catch {
+    // no-cors fetch always throws on response read — data still submits
+  }
+}
+
+// ─── Devotee Registration Form ("Your Sacred Profile") ────────────────────────
+// Dedicated Google Form for the "Register as Devotee" card. Submission endpoint
+// + entry IDs decoded from the prefilled test link, in field order:
+//   547528903=Full Name   228477136=Email     722744160=Phone/WhatsApp
+//   805781266=City        1615537210=Gotra    276477968=Rashi
+//   470789595=Deity       1126066915=Interests 595187602=Message
+//   1587174728=Donation Amount
+// Editor / responses view: https://docs.google.com/forms/d/1b7beJcqzZfqKcfS3-btlmWzPQzQ5gcKg3efje9D3Bjo/edit#responses
+const DEVOTEE_FORM_ID = "1FAIpQLSeHWUYMoz6k1qDLIgn2p80jzkVzbdxysFwJZSiHEcM4tzBeAg";
+const DEVOTEE_FORM_URL = `https://docs.google.com/forms/d/e/${DEVOTEE_FORM_ID}/formResponse`;
 
 const DEVOTEE_ENTRY = {
-  name:    "entry.898437491",
-  email:   "entry.969380068",
-  phone:   "entry.1486488215",
-  details: "entry.1306645637",
-  type:    "entry.943423993",
+  name:           "entry.547528903",
+  email:          "entry.228477136",
+  phone:          "entry.722744160",
+  city:           "entry.805781266",
+  gotra:          "entry.1615537210",
+  rashi:          "entry.276477968",
+  deity:          "entry.470789595",
+  interests:      "entry.1126066915",
+  message:        "entry.595187602",
+  donationAmount: "entry.1587174728",
 };
 
-async function submitToDevoteeForm(payload: Record<string, string>): Promise<void> {
+// Guards against a single registration creating more than one Google Form
+// response for the SAME stage — even if a user double-taps a button or a
+// re-render fires twice. Two stages exist per registration: "pending" (sent
+// the instant "Submit and Proceed" is clicked) and "final" (sent the instant
+// the donation decision — skip or paid — is known). Both stages share one
+// Ref ID, so the sheet can always be sorted by Ref ID to find the latest,
+// authoritative row for a given devotee.
+const _devoteePendingSentRefs = new Set<string>();
+const _devoteeFinalSentRefs = new Set<string>();
+
+async function postDevoteePendingRow(payload: Record<string, string>, refId: string): Promise<void> {
+  if (_devoteePendingSentRefs.has(refId)) {
+    console.log("[Devotee Form]: Pending row already sent for", refId);
+    return;
+  }
+  _devoteePendingSentRefs.add(refId);
+  const fd = new FormData();
+  Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
+  try {
+    await fetch(DEVOTEE_FORM_URL, { method: "POST", mode: "no-cors", body: fd });
+  } catch {
+    // no-cors fetch always throws on response read — data still submits
+  }
+}
+
+async function postDevoteeFinalRow(payload: Record<string, string>, refId: string): Promise<void> {
+  if (_devoteeFinalSentRefs.has(refId)) {
+    console.log("[Devotee Form]: Final row already sent for", refId);
+    return;
+  }
+  _devoteeFinalSentRefs.add(refId);
   const fd = new FormData();
   Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
   try {
@@ -399,6 +478,39 @@ function ShareLinkButton({
   );
 }
 
+// ─── Short link button — "Register as Devotee" only ──────────────────────────
+// Shares/copies the minimal ?d=1 link (buildShortDevoteeLink) instead of the
+// long UTM-tagged URL. Kept as its own small button rather than a third
+// ShareLinkButton variant, since the short link intentionally carries no
+// utm_* params — it's meant for places a long URL is awkward (WhatsApp
+// status, business cards, print, SMS).
+function ShortDevoteeLinkButton() {
+  const [status, setStatus] = useState<"idle" | "shared" | "copied">("idle");
+
+  const handleClick = async () => {
+    const url = buildShortDevoteeLink();
+    const result = await shareOrCopy(
+      url,
+      "Sri Dwar — Register as Devotee",
+      "Join Sri Dwar as a devotee — book pujas, prasad, darshan & more from India's sacred temples."
+    );
+    setStatus(result);
+    gaEvent("share_devotee_short_link", { method: result });
+    setTimeout(() => setStatus("idle"), 2500);
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/60 hover:text-white/85 text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shrink-0"
+    >
+      {status === "idle"   && <><ExternalLink className="w-3.5 h-3.5" /><span>Get Short Link</span></>}
+      {status === "shared" && <><Check  className="w-3.5 h-3.5" /><span>Shared!</span></>}
+      {status === "copied" && <><Copy   className="w-3.5 h-3.5" /><span>Link Copied!</span></>}
+    </button>
+  );
+}
+
 // ─── Devotee Registration Section ────────────────────────────────────────────
 
 function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
@@ -407,7 +519,6 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   const [basicSubmitted, setBasicSubmitted] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
-  const [pendingPayload, setPendingPayload] = useState<Record<string, string> | null>(null);
 
   const [form, setForm] = useState<DevoteeForm>({
     name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "",
@@ -436,55 +547,67 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
     return Object.keys(e).length === 0;
   };
 
-  const buildDetails = () => [
-    form.gotra   ? `Gotra: ${form.gotra}`               : "",
-    form.rashi   ? `Rashi: ${form.rashi}`               : "",
-    form.deity   ? `Deity: ${form.deity}`               : "",
-    form.city    ? `City: ${form.city}`                 : "",
-    form.selectedInterests.length ? `Interests: ${form.selectedInterests.join(", ")}` : "",
-    form.message ? `Message: ${form.message}`           : "",
-  ].filter(Boolean).join(" | ");
-
-  const buildPayload = (): Record<string, string> => ({
-    [DEVOTEE_ENTRY.name]:    form.name.trim(),
-    [DEVOTEE_ENTRY.email]:   form.email.trim().toLowerCase(),
-    [DEVOTEE_ENTRY.phone]:   form.phone.trim(),
-    [DEVOTEE_ENTRY.type]:    form.selectedInterests.join(", ") || "Devotee Registration",
-    [DEVOTEE_ENTRY.details]: buildDetails(),
+  const buildPayload = (donationStatus: string): Record<string, string> => ({
+    [DEVOTEE_ENTRY.name]:           form.name.trim(),
+    [DEVOTEE_ENTRY.email]:          form.email.trim().toLowerCase(),
+    [DEVOTEE_ENTRY.phone]:          form.phone.trim(),
+    [DEVOTEE_ENTRY.city]:           form.city.trim(),
+    [DEVOTEE_ENTRY.gotra]:          form.gotra.trim() || "Not provided",
+    [DEVOTEE_ENTRY.rashi]:          form.rashi || "Not provided",
+    [DEVOTEE_ENTRY.deity]:          form.deity || "Not provided",
+    [DEVOTEE_ENTRY.interests]:      form.selectedInterests.join(", ") || "Not specified",
+    // Ref ID is folded into the free-text message field so it's easy to match
+    // this row against the UPI/WhatsApp payment alert for the same devotee.
+    [DEVOTEE_ENTRY.message]:        `${form.message.trim() || "—"} [Ref: ${refIdRef.current}]`,
+    [DEVOTEE_ENTRY.donationAmount]: donationStatus,
   });
 
-  const handleContinueToInterests = async () => {
+  // One stable Ref ID for the whole registration — generated once, reused by
+  // BOTH the Pending row (sent on "Submit and Proceed") and the Final row
+  // (sent once the donation decision is known), so the two rows in the sheet
+  // are easy to match to the same devotee.
+  const refIdRef = useRef(makeSubmissionRef("DEV"));
+
+  // ── Step 1 → 2: validate + move on. No submission yet — nothing is sent
+  // to Google Forms until the devotee has finished "Your Sacred Profile". ──
+  const handleContinueToInterests = () => {
     if (!validateBasic()) return;
-    if (basicSubmitted) { setStep("form-interests"); return; }
+    setBasicSubmitted(true);
+    setStep("form-interests");
+  };
+
+  // ── "Submit and Proceed" — fires the FIRST (Pending) Google Forms row
+  // immediately, so the registration is captured even if the devotee never
+  // comes back to finish the donation step. Then redirects straight to the
+  // contribution / payment screen. The donation field is correctly recorded
+  // as "Pending — Awaiting Decision" here, NOT "Skipped" — that was the bug:
+  // it used to lock in "Skipped" before the devotee had even seen the
+  // donation options, so a later real payment never showed up correctly. ──
+  const handleContinueToDonate = async () => {
     setSubmitting(true);
     try {
-      await submitToDevoteeForm(buildPayload());
-      setBasicSubmitted(true);
-      gaEvent("devotee_registration_started", { form_section: "basic_details" });
-      setStep("form-interests");
+      await postDevoteePendingRow(buildPayload("Pending — Awaiting Decision"), refIdRef.current);
+      gaEvent("devotee_registration_submitted", {
+        interests_count: form.selectedInterests.length,
+        has_message: form.message.trim() ? 1 : 0,
+      });
     } finally {
       setSubmitting(false);
+      setStep("form-donate");
     }
   };
 
-  const handleContinueToDonate = async () => {
-    // Re-submit with updated interests/message
-    setSubmitting(true);
-    await submitToDevoteeForm(buildPayload());
-    gaEvent("devotee_registration_interests_saved", {
-      interests_count: form.selectedInterests.length,
-      has_message: form.message.trim() ? 1 : 0,
-    });
-    setSubmitting(false);
-    setStep("form-donate");
-  };
-
+  // Skip Donation — sends the ONE Final row for this registration, with the
+  // donation field correctly recorded as "Skipped".
   const handleSubmitWithoutDonation = async () => {
     setSubmitting(true);
-    await submitToDevoteeForm(buildPayload());
-    gaEvent("devotee_registration_completed", { donation: "skipped" });
-    setSubmitting(false);
-    setStep("form-success");
+    try {
+      await postDevoteeFinalRow(buildPayload("Skipped"), refIdRef.current);
+      gaEvent("devotee_registration_completed", { donation: "skipped" });
+    } finally {
+      setSubmitting(false);
+      setStep("form-success");
+    }
   };
 
   const handleSubmitWithDonation = () => {
@@ -493,30 +616,32 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
       alert("Please enter a valid donation amount (minimum ₹1), or tap Skip.");
       return;
     }
-    const ref = `SDR-DEV-${Math.floor(100000 + Math.random() * 900000)}`;
-    setUpiRefId(ref);
-    setPendingPayload(buildPayload());
+    setUpiRefId(refIdRef.current);
     gaEvent("devotee_donation_initiated", { value: amt, currency: "INR" });
     setShowUpi(true);
   };
 
-  const handleDonationConfirmed = async () => {
+  // Payment confirmed — sends the ONE Final row for this registration, with
+  // the donation field correctly recorded as the real amount and method paid.
+  const handleDonationConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowUpi(false);
     setSubmitting(true);
-    if (pendingPayload) await submitToDevoteeForm(pendingPayload);
-    gaEvent("devotee_registration_completed", {
-      donation: "paid",
-      value: Number(form.donationAmount),
-      currency: "INR",
-    });
-    setSubmitting(false);
-    setPendingPayload(null);
-    setStep("form-success");
+    try {
+      await postDevoteeFinalRow(buildPayload(`₹${details.amount} via ${details.method}`), refIdRef.current);
+      gaEvent("devotee_registration_completed", {
+        donation: "paid",
+        value: details.amount,
+        currency: "INR",
+      });
+    } finally {
+      setSubmitting(false);
+      setStep("form-success");
+    }
   };
 
   // ── Success ──
   if (step === "form-success") {
-    const refId = `SDR-${Math.floor(100000 + Math.random() * 900000)}`;
+    const refId = refIdRef.current;
     return (
       <div className="glass-panel rounded-3xl p-8 text-center space-y-5 border border-[#FFB347]/20">
         <div className="w-16 h-16 rounded-full bg-[#FFB347]/15 flex items-center justify-center mx-auto">
@@ -557,6 +682,17 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           className="flex items-center space-x-2 text-white/50 hover:text-[#5EEAD4] text-sm transition-colors cursor-pointer">
           <ArrowLeft className="w-4 h-4" /><span>Back</span>
         </button>
+
+        {/* Registration confirmed banner — matches the Temple/Puja Committee section's pattern */}
+        <div className="flex items-center space-x-3 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-2xl px-4 py-3.5">
+          <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />
+          <div className="space-y-0.5">
+            <p className="text-xs font-semibold text-[#5EEAD4]">Your Sacred Profile is saved!</p>
+            <p className="text-[11px] text-white/50">
+              <strong className="text-white/70">{form.name}</strong>, you can now optionally make a contribution.
+            </p>
+          </div>
+        </div>
 
         <div className="text-center space-y-2">
           <SectionBadge label="Optional Contribution" />
@@ -732,9 +868,9 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         <button onClick={handleContinueToDonate} disabled={submitting}
           className="w-full bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20">
           {submitting ? (
-            <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Saving…</span></>
+            <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Submitting…</span></>
           ) : (
-            <><ChevronRight className="w-4 h-4" /><span>Continue to Contribution</span></>
+            <><ChevronRight className="w-4 h-4" /><span>Submit and Proceed</span></>
           )}
         </button>
       </div>
@@ -809,7 +945,6 @@ function DharmicExpertSection() {
   const [basicSyncError, setBasicSyncError] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
-  const [pendingPayload, setPendingPayload] = useState<Record<string, string> | null>(null);
 
   // Send-link sub-flow
   const [sendLinkName, setSendLinkName] = useState("");
@@ -817,6 +952,17 @@ function DharmicExpertSection() {
   const [sendLinkEmail, setSendLinkEmail] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
   const [linkShared, setLinkShared] = useState(false);
+
+  // ── Deep-link: ?page=devotee-register (or the short ?d=1 link) opens "Your
+  // Sacred Profile" directly, skipping the category-select screen — this is
+  // what BOTH the long UTM "Get Devotee Link" share button and the short
+  // "Get Short Link" button below point to. ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("page") === "devotee-register" || params.get("d") === "1") {
+      setShowDevoteeFlow(true);
+    }
+  }, []);
 
   const [form, setForm] = useState<ExpertForm>({
     fullName: "", title: "", category: "", city: "", pincode: "",
@@ -849,7 +995,13 @@ function DharmicExpertSection() {
     return Object.keys(e).length === 0;
   };
 
-  const buildPayload = (): Record<string, string> => ({
+  // One stable Ref ID for the whole registration — reused by the Pending row
+  // (sent once basic details are confirmed) and the Final row (sent once the
+  // donation decision is known), so the sheet shows one matched pair per
+  // expert instead of two unrelated-looking rows.
+  const expertRefIdRef = useRef(makeSubmissionRef("EXP"));
+
+  const buildPayload = (donationStatus: string): Record<string, string> => ({
     [EXPERT_ENTRY.fullName]:           form.fullName,
     [EXPERT_ENTRY.title]:              form.title || "Not specified",
     [EXPERT_ENTRY.category]:           form.category,
@@ -859,7 +1011,9 @@ function DharmicExpertSection() {
     [EXPERT_ENTRY.experience]:         form.experience || "Not specified",
     [EXPERT_ENTRY.sampradaya]:         form.sampradaya || "Not specified",
     [EXPERT_ENTRY.languages]:          form.languages.join(", ") || "Not specified",
-    [EXPERT_ENTRY.bio]:                form.bio || "Not provided",
+    // Ref ID folded into the free-text bio field for easy cross-referencing
+    // against the UPI/WhatsApp payment alert for the same expert.
+    [EXPERT_ENTRY.bio]:                `${form.bio || "Not provided"} [Ref: ${expertRefIdRef.current}]`,
     [EXPERT_ENTRY.phone]:              form.phone,
     [EXPERT_ENTRY.email]:              form.email || "Not provided",
     [EXPERT_ENTRY.willingToTravel]:    form.willingToTravel || "Not specified",
@@ -867,9 +1021,14 @@ function DharmicExpertSection() {
     [EXPERT_ENTRY.pujaServices]:       form.selectedPujaServices.join(", ") || "Not specified",
     [EXPERT_ENTRY.expertise]:          form.selectedExpertise.join(", ") || "Not specified",
     [EXPERT_ENTRY.specialSkills]:      form.specialSkills || "Not provided",
-    [EXPERT_ENTRY.donationAmount]:     form.donationAmount ? `₹${form.donationAmount}` : "Skipped",
+    [EXPERT_ENTRY.donationAmount]:     donationStatus,
   });
 
+  // Basic details confirmed → ONE Pending row, so the registration is
+  // captured even if the expert never reaches the donation step. This used
+  // to ALSO submit again at the end, creating two separate spreadsheet rows
+  // for one registration — now the second submit is a Final row that shares
+  // the same Ref ID instead of a brand-new, disconnected entry.
   const handleContinueToServices = async () => {
     if (!validateBasic()) return;
     // If already submitted basic details once, just navigate (no re-submit)
@@ -880,7 +1039,7 @@ function DharmicExpertSection() {
     setSubmitting(true);
     setBasicSyncError(false);
     try {
-      await submitToExpertForm(buildPayload());
+      await postExpertPendingRow(buildPayload("Pending — Awaiting Decision"), expertRefIdRef.current);
       setBasicSubmitted(true);
       setExpertStep("form-services");
     } catch {
@@ -897,7 +1056,7 @@ function DharmicExpertSection() {
 
   const handleSubmitWithoutDonation = async () => {
     setSubmitting(true);
-    await submitToExpertForm(buildPayload());
+    await postExpertFinalRow(buildPayload("Skipped"), expertRefIdRef.current);
     gaEvent("dharmic_expert_registration_completed", { category: form.category, donation: "skipped" });
     setSubmitting(false);
     setExpertStep("form-success");
@@ -909,25 +1068,22 @@ function DharmicExpertSection() {
       alert("Please enter a valid donation amount (minimum ₹1), or tap Skip.");
       return;
     }
-    const ref = `SDW-EXP-${Math.floor(100000 + Math.random() * 900000)}`;
-    setUpiRefId(ref);
-    setPendingPayload(buildPayload());
+    setUpiRefId(expertRefIdRef.current);
     gaEvent("dharmic_expert_donation_initiated", { value: amt, currency: "INR" });
     setShowUpi(true);
   };
 
-  const handleDonationConfirmed = async () => {
+  const handleDonationConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowUpi(false);
     setSubmitting(true);
-    if (pendingPayload) await submitToExpertForm(pendingPayload);
+    await postExpertFinalRow(buildPayload(`₹${details.amount} via ${details.method}`), expertRefIdRef.current);
     gaEvent("dharmic_expert_registration_completed", {
       category: form.category,
       donation: "paid",
-      value: Number(form.donationAmount),
+      value: details.amount,
       currency: "INR",
     });
     setSubmitting(false);
-    setPendingPayload(null);
     setExpertStep("form-success");
   };
 
@@ -1000,7 +1156,7 @@ function DharmicExpertSection() {
         </button>
 
         {/* Devotee Registration card */}
-        <div className="border-t border-white/8 pt-3">
+        <div className="border-t border-white/8 pt-3 space-y-2">
           <button
             type="button"
             onClick={() => setShowDevoteeFlow(true)}
@@ -1013,6 +1169,16 @@ function DharmicExpertSection() {
             </div>
             <ChevronRight className="w-4 h-4 text-[#FFB347]/60 shrink-0" />
           </button>
+          <div className="flex justify-end items-center gap-2 flex-wrap">
+            <ShortDevoteeLinkButton />
+            <ShareLinkButton
+              page="devotee-register"
+              utmContent="devotee_card_inline"
+              label="Get Devotee Link"
+              gaEventName="share_devotee_register_link"
+              color="gold"
+            />
+          </div>
         </div>
       </div>
     );
@@ -1109,6 +1275,9 @@ function DharmicExpertSection() {
               selectedPujaServices: [], selectedExpertise: [], specialSkills: "",
               donationAmount: "", donationNote: "",
             });
+            // Fresh registration → fresh Ref ID, so this expert's two rows
+            // (Pending + Final) never get matched to the previous expert's.
+            expertRefIdRef.current = makeSubmissionRef("EXP");
           }}
           className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
         >
@@ -1607,18 +1776,20 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ── Deep-link routing: ?page=devotee-register / dharmic-expert-register / temple-register ──
-  // When someone arrives via a shared UTM link, auto-scroll + open the right section.
+  // ── Deep-link routing: ?page=temple-register / dharmic-expert-register /
+  // devotee-register, or the short ?d=1 devotee link ──
+  // When someone arrives via a shared link, auto-scroll + open the right section.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const page = params.get("page");
-    if (!page) return;
+    const isShortDevoteeLink = params.get("d") === "1";
+    if (!page && !isShortDevoteeLink) return;
 
     // Fire a GA page_view so the shared-link visit is attributed correctly
     gaEvent("page_view", {
       page_title:    document.title,
       page_location: window.location.href,
-      utm_source:    params.get("utm_source")    ?? "direct",
+      utm_source:    params.get("utm_source")    ?? (isShortDevoteeLink ? "short_link" : "direct"),
       utm_medium:    params.get("utm_medium")    ?? "none",
       utm_campaign:  params.get("utm_campaign")  ?? "",
       utm_content:   params.get("utm_content")   ?? "",
@@ -1629,7 +1800,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
       setTimeout(() => document.getElementById("temple-register-section")?.scrollIntoView({ behavior: "smooth" }), 300);
     } else if (page === "dharmic-expert-register") {
       setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
-    } else if (page === "devotee-register") {
+    } else if (page === "devotee-register" || isShortDevoteeLink) {
       setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
     }
   }, []);
@@ -1664,8 +1835,11 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
   const [templeRegDonationAmount, setTempleRegDonationAmount] = useState("");
   const [templeRegDonationNote, setTempleRegDonationNote] = useState("");
   const [showTempleRegUpi, setShowTempleRegUpi] = useState(false);
-  const [templeRegDonationRefId, setTempleRegDonationRefId] = useState("");
-  const [pendingTempleRegPayload, setPendingTempleRegPayload] = useState<Record<string, string> | null>(null);
+  // One stable Ref ID for the whole registration, generated the moment the
+  // temple/committee details are submitted — reused by BOTH the initial
+  // "Pending" row and the Final donation row, so the two rows in the sheet
+  // are easy to match to the same registration.
+  const templeRegRefIdRef = useRef(makeSubmissionRef("TREG"));
 
   // ── Handlers ──
   const handleSelectTemple = (name: string, isNew = false) => {
@@ -1692,7 +1866,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     setStep("donation");
   };
 
-  const finalize = useCallback(async (donated: boolean, amount?: string) => {
+  const finalize = useCallback(async (donated: boolean, amount?: string, method?: "UPI" | "WhatsApp Pay") => {
     const id = generateDharmicId();
     setDharmicId(id);
     const payload: Record<string, string> = {
@@ -1702,7 +1876,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
       [ENTRY.temple]:    selectedTemple,
       [ENTRY.city]:      devotee.city,
       [ENTRY.puja]:      devotee.puja || "None requested",
-      [ENTRY.donation]:  donated && amount ? `₹${amount}` : "Skipped",
+      [ENTRY.donation]:  donated && amount ? `₹${amount}${method ? ` via ${method}` : ""}` : "Skipped",
       [ENTRY.dharmicId]: id,
       [ENTRY.type]:      "Devotee Registration",
       [ENTRY.notes]:     devotee.notes || "",
@@ -1721,10 +1895,10 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     setShowDonationUpi(true);
   };
 
-  const handleDonationConfirmed = async () => {
+  const handleDonationConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowDonationUpi(false);
     setSubmittingDonation(true);
-    await finalize(true, donationAmount);
+    await finalize(true, String(details.amount), details.method);
     setSubmittingDonation(false);
   };
 
@@ -1745,7 +1919,9 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     setTempleRegErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    // Step 1: sync Temple / Committee Details immediately
+    // Step 1: sync Temple / Committee Details immediately — recorded as
+    // "Pending", sharing templeRegRefIdRef so the donation follow-up row
+    // (if any) can be matched to this same registration in the sheet.
     const payload: Record<string, string> = {
       [ENTRY.name]:      templeReg.contactName,
       [ENTRY.phone]:     templeReg.contactPhone,
@@ -1756,7 +1932,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
       [ENTRY.donation]:  "Pending — donation step not yet reached",
       [ENTRY.dharmicId]: "Temple-Mgmt",
       [ENTRY.type]:      "Temple / Puja Committee Registration",
-      [ENTRY.notes]:     `Deity: ${templeReg.deity} | Address: ${templeReg.address} | Notes: ${templeReg.notes}`,
+      [ENTRY.notes]:     `Deity: ${templeReg.deity} | Address: ${templeReg.address} | Notes: ${templeReg.notes} | Ref: ${templeRegRefIdRef.current}`,
     };
 
     setSubmittingTempleReg(true);
@@ -1771,36 +1947,44 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
     const donationAmt = Number(templeRegDonationAmount);
     const hasDonation = templeRegDonationAmount.trim() !== "" && !isNaN(donationAmt) && donationAmt >= 1;
     if (!hasDonation) {
-      // Skip donation — mark as done
+      // Skip donation — mark as done, but still send the ONE Final row so
+      // the registration's donation status is correctly recorded as
+      // "Skipped" rather than left at "Pending" forever.
+      submitToForm({
+        [ENTRY.name]:      templeReg.contactName,
+        [ENTRY.phone]:     templeReg.contactPhone,
+        [ENTRY.email]:     templeReg.contactEmail || "Not provided",
+        [ENTRY.temple]:    templeReg.templeName,
+        [ENTRY.city]:      `${templeReg.city}, ${templeReg.state}`,
+        [ENTRY.puja]:      templeReg.deity || "Not specified",
+        [ENTRY.donation]:  "Skipped",
+        [ENTRY.dharmicId]: "Temple-Mgmt-Donation",
+        [ENTRY.type]:      "Temple Registration — Donation Follow-up",
+        [ENTRY.notes]:     `Donation note: ${templeRegDonationNote || "—"} | Ref: ${templeRegRefIdRef.current}`,
+      });
       setTempleRegStep("done");
       setTempleRegSuccess(true);
       return;
     }
-    const ref = `SDW-TREG-${Math.floor(100000 + Math.random() * 900000)}`;
-    setTempleRegDonationRefId(ref);
-    // Build donation-only payload as a follow-up note
-    const donPayload: Record<string, string> = {
+    setShowTempleRegUpi(true);
+  };
+
+  const handleTempleRegDonationConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
+    setShowTempleRegUpi(false);
+    setSubmittingTempleReg(true);
+    await submitToForm({
       [ENTRY.name]:      templeReg.contactName,
       [ENTRY.phone]:     templeReg.contactPhone,
       [ENTRY.email]:     templeReg.contactEmail || "Not provided",
       [ENTRY.temple]:    templeReg.templeName,
       [ENTRY.city]:      `${templeReg.city}, ${templeReg.state}`,
       [ENTRY.puja]:      templeReg.deity || "Not specified",
-      [ENTRY.donation]:  `₹${templeRegDonationAmount}`,
+      [ENTRY.donation]:  `₹${details.amount} via ${details.method}`,
       [ENTRY.dharmicId]: "Temple-Mgmt-Donation",
       [ENTRY.type]:      "Temple Registration — Donation Follow-up",
-      [ENTRY.notes]:     `Donation note: ${templeRegDonationNote || "—"}`,
-    };
-    setPendingTempleRegPayload(donPayload);
-    setShowTempleRegUpi(true);
-  };
-
-  const handleTempleRegDonationConfirmed = async () => {
-    setShowTempleRegUpi(false);
-    setSubmittingTempleReg(true);
-    if (pendingTempleRegPayload) await submitToForm(pendingTempleRegPayload);
+      [ENTRY.notes]:     `Donation note: ${templeRegDonationNote || "—"} | Ref: ${templeRegRefIdRef.current}`,
+    });
     setSubmittingTempleReg(false);
-    setPendingTempleRegPayload(null);
     setTempleRegStep("done");
     setTempleRegSuccess(true);
   };
@@ -1870,7 +2054,21 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
               </div>
               {!standaloneTempleReg && (
                 <button
-                  onClick={() => { setTempleRegSuccess(false); setTempleRegStep("details"); setStep("find"); }}
+                  onClick={() => {
+                    setTempleRegSuccess(false);
+                    setTempleRegStep("details");
+                    setStep("find");
+                    // Fresh registration next time → fresh form + Ref ID, so
+                    // it's never matched to this temple's rows in the sheet.
+                    setTempleReg({
+                      templeName: "", city: "", state: "", deity: "", address: "",
+                      contactName: "", contactPhone: "", contactEmail: "", notes: ""
+                    });
+                    setTempleRegDonationAmount("");
+                    setTempleRegDonationNote("");
+                    setTempleRegErrors({});
+                    templeRegRefIdRef.current = makeSubmissionRef("TREG");
+                  }}
                   className="inline-flex items-center space-x-2 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold text-sm px-6 py-2.5 rounded-xl transition-all cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> <span>Back to Home</span>
@@ -2116,7 +2314,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
           amount={Number(templeRegDonationAmount)}
           bookingName={`Temple Registration Donation — ${templeReg.templeName}${templeRegDonationNote ? ` (${templeRegDonationNote})` : ""}`}
           devoteeName={templeReg.contactName}
-          refId={templeRegDonationRefId}
+          refId={templeRegRefIdRef.current}
         />
       )}
       </>
@@ -2640,6 +2838,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
                 gaEventName="share_devotee_register_link"
                 color="gold"
               />
+              <ShortDevoteeLinkButton />
             </div>
           </div>
         </div>
