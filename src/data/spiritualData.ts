@@ -1757,7 +1757,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     authenticity: "100% natural, hand-rolled by village artisan women, charcoal-free and completely petroleum-free.",
     blessings: "Infused with pure Himalayan sandalwood extract oils.",
     price: 299,
-    imageUrl: import.meta.env.BASE_URL + "images/incense.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Incense.jpg",
     rating: 4.9,
     deliveryTimeline: "2-4 Business Days."
   },
