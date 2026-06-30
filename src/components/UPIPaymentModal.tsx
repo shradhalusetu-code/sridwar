@@ -102,6 +102,7 @@ export default function UPIPaymentModal({
   };
 
   const handleConfirmPayment = () => {
+    if (confirmed) return; // guard against double-tap before re-render
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
       alert("Minimum contribution is ₹" + minAmount);
       return;

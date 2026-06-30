@@ -346,6 +346,7 @@ export default function App() {
         {currentPage === "contact" && (
           <div className="animate-fadeIn">
             <ContactUs />
+            <FAQs />
           </div>
         )}
 
@@ -376,17 +377,11 @@ export default function App() {
 
             {/* Logo / brand block */}
             <div className="space-y-4">
+              <h4 className="invisible font-serif text-sm font-bold mb-4 uppercase tracking-wider" aria-hidden="true">Sri Dwar</h4>
               <SriDwarLogo variant="colored" iconSize="xl" showTagline={true} className="" />
               <p className="text-xs text-white/60 font-sans leading-relaxed">
-                A globally scalable faith-tech ecosystem bridging holy distances with verified ancient rituals, live aartis, and authenticated certifications.
+                An AI-powered faith-tech platform built on Sri Dwar's proprietary technology, bridging holy distances with verified ancient rituals, live aartis, and authenticated certifications.
               </p>
-              <span className="text-[10px] font-mono text-[#FFB347] uppercase font-bold tracking-wider block">
-                Shradhalu Private Limited
-              </span>
-              <div className="flex items-start space-x-2 text-[11px] text-white/55 leading-relaxed pt-1">
-                <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0 mt-0.5" />
-                <span>Shradhalu Pvt Ltd, Ground Floor, Sobra, Maa Biraja Khetra, Jajpur, Odisha, 755019</span>
-              </div>
             </div>
             <div>
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
@@ -421,10 +416,14 @@ export default function App() {
               <ul className="space-y-2 text-xs text-white/60">
                 <li className="font-bold text-white">Shradhalu Private Ltd</li>
                 <li className="font-mono text-[10px] text-[#FFB347]">CIN: U62099OD2026PTC054237</li>
-                <li>Secured Payments: Sri Dwar Technology Payment Gateway</li>
-                <li>Database: Sri Dwar Technology secured records</li>
+                <li>Secured Payments: Sri Dwar UPI/Payment Gateway</li>
+                <li>Database: Sri Dwar secured records</li>
+                <li className="flex items-start space-x-2 text-[11px] text-white/55 leading-relaxed pt-1">
+                  <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0 mt-0.5" />
+                  <span>Ground Floor, Sobra, Maa Biraja Khetra, Jajpur, Odisha, 755019</span>
+                </li>
                 <li className="pt-2 text-[10px] text-white/40 leading-relaxed italic border-t border-white/5 mt-2">
-                  Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & Shradhalu Private Ltd.
+                  Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
                 </li>
               </ul>
             </div>
@@ -502,7 +501,7 @@ export default function App() {
                   href="https://mail.google.com/mail/?view=cm&to=puja@sridwar.com&su=Sri%20Dwar%20Inquiry"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Email via Gmail"
+                  aria-label="Email Us"
                   title="Email: puja@sridwar.com"
                   onClick={() => gaSocialClick("email")}
                   className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 transition-all"
@@ -514,22 +513,9 @@ export default function App() {
 
           </div>
           <div className="mb-8 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
-              {/* About Sri Dwar */}
-              <div className="space-y-2 text-left">
-                <div className="flex items-center space-x-2">
-                  <Heart className="w-4 h-4 text-[#FFB347] fill-[#FFB347]/30 shrink-0" />
-                  <span className="text-[10px] font-mono font-bold text-[#FFB347]/80 uppercase tracking-widest">About Sri Dwar</span>
-                </div>
-                <p className="text-[11px] text-white/65 leading-relaxed">
-                  Sri Dwar is a digital platform supporting millions on their spiritual journey — making daily worship simple, accessible, and convenient from your phone, free of charge.
-                </p>
-                <p className="text-[11px] text-white/55 leading-relaxed">
-                  Create a digital temple, choose your deities, and perform daily prayers with devotion wherever you are.
-                </p>
-              </div>
-              <div className="space-y-2 text-left lg:border-x lg:border-white/8 lg:px-6">
+              <div className="space-y-2 text-left lg:pr-6">
                 <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest">
                   Government of India Initiatives
                 </p>
@@ -537,7 +523,7 @@ export default function App() {
                   Sri Dwar has applied for recognition under <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM</strong>, and <strong className="text-white/75">Digital India</strong>. Applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
                 </p>
               </div>
-              <div className="space-y-3 text-left">
+              <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
                 <div className="flex items-center space-x-2">
                   <span className="text-base">📱</span>
                   <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Coming Soon</span>
@@ -601,7 +587,7 @@ export default function App() {
           </div>
           <div className="pt-4 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[10px] text-white/40 font-mono gap-2">
             <p>{t.copyright}</p>
-            <p>Sri Dwar © {new Date().getFullYear()} · Shradhalu Private Limited · All Blessings Secured 🙏</p>
+            <p>Sri Dwar © {new Date().getFullYear()} · All Blessings Secured 🙏</p>
           </div>
 
         </div>

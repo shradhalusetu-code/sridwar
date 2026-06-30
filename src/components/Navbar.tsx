@@ -55,6 +55,12 @@ export default function Navbar({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close the language dropdown whenever the user navigates to a different page,
+  // so it doesn't stay stuck open across page changes.
+  useEffect(() => {
+    setIsLangDropdownOpen(false);
+  }, [currentPage]);
+
   const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleShare = async () => {
@@ -98,24 +104,24 @@ export default function Navbar({
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-6 lg:gap-10">
             {/* Left: Brand Identity */}
             <div
               id="brand-logo-trigger"
               onClick={() => onNavigate("home")}
-              className="hover:opacity-95 transition-opacity cursor-pointer group"
+              className="hover:opacity-95 transition-opacity cursor-pointer group shrink-0"
             >
               <SriDwarLogo variant="colored" iconSize="md" showTagline={true} className="" />
             </div>
 
             {/* Middle: Desktop Navigation Items */}
-            <div className="hidden lg:flex items-center space-x-4 xl:space-x-7" id="desktop-menu">
+            <div className="hidden lg:flex items-center space-x-3 xl:space-x-5 flex-1 justify-end" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   id={`nav-${item.id}`}
                   onClick={() => { gaNavClick(item.id, "desktop_nav"); onNavigate(item.id); }}
-                  className={`relative text-xs font-medium uppercase tracking-widest transition-colors duration-200 outline-none hover:text-white ${
+                  className={`relative text-[11px] font-semibold tracking-wide transition-colors duration-200 outline-none hover:text-white whitespace-nowrap ${
                     currentPage === item.id
                       ? "text-[#5EEAD4] font-bold"
                       : "text-white/70"
@@ -130,7 +136,7 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3.5">
+            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3.5 shrink-0">
               {/* Preference & Account Utilities Capsule */}
               <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-9">
                 {/* Language Selector Selector */}
@@ -138,7 +144,7 @@ export default function Navbar({
                   <button
                     id="lang-selector-btn"
                     onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                    className="flex items-center space-x-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white/90 hover:bg-white/10 hover:text-white transition-all outline-none h-7"
+                    className="flex items-center space-x-1 text-[11px] font-semibold px-2 py-1 rounded-full text-white/90 hover:bg-white/10 hover:text-white transition-all outline-none h-7 whitespace-nowrap"
                   >
                     <Globe className="w-3.5 h-3.5 text-[#5EEAD4]" />
                     <span>
@@ -153,10 +159,15 @@ export default function Navbar({
                   </button>
 
                   {isLangDropdownOpen && (
-                    <div
-                      id="lang-dropdown"
-                      className="absolute left-0 mt-2.5 w-32 rounded-xl bg-[#092320] shadow-2xl border border-white/10 py-1 text-xs text-white z-50 animate-fadeIn"
-                    >
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsLangDropdownOpen(false)}
+                      />
+                      <div
+                        id="lang-dropdown"
+                        className="absolute left-0 mt-2.5 w-32 rounded-xl bg-[#092320] shadow-2xl border border-white/10 py-1 text-xs text-white z-50 animate-fadeIn"
+                      >
                       {[
                         { key: "en", label: "English" },
                         { key: "hi", label: "हिंदी" },
@@ -176,7 +187,8 @@ export default function Navbar({
                           {lang.label}
                         </button>
                       ))}
-                    </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -204,14 +216,14 @@ export default function Navbar({
                 <button
                   id="navbar-account-trigger"
                   onClick={() => onNavigate("login")}
-                  className={`flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all outline-none border h-7 ${
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all outline-none border h-7 ${
                     isLoggedIn
                       ? "bg-[#0F766E] text-white border-[#FFB347] shadow-[0_0_10px_rgba(20,184,166,0.3)]"
                       : "border-transparent text-white/90 hover:bg-white/10"
                   }`}
                 >
-                  <User className="w-3.5 h-3.5 text-[#5EEAD4]" />
-                  <span className="max-w-[70px] truncate">
+                  <User className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0" />
+                  <span className="max-w-[110px] truncate whitespace-nowrap">
                     {isLoggedIn ? userProfileName || "Devotee" : t.navDashboard}
                   </span>
                 </button>
@@ -222,7 +234,7 @@ export default function Navbar({
                 <button
                   id="nav-direct-donate-seva"
                   onClick={onOpenSevaModal}
-                  className="bg-[#0F766E]/65 hover:bg-[#14B8A6]/80 text-white text-xs font-bold px-4 py-2 rounded-full border border-white/10 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer"
+                  className="bg-[#0F766E]/65 hover:bg-[#14B8A6]/80 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-white/10 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
                 >
                   <Heart className="w-3.5 h-3.5 text-[#FFB347] fill-[#FFB347]" />
                   <span>{t.donate}</span>

@@ -1,11 +1,11 @@
 /*
- * Copyright 2026 Google LLC
- * SPDX-License-Identifier: Apache-2.5
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { HelpCircle, ChevronDown, Search, Info, HelpCircleIcon } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 
 interface FAQItem {
   id: string;
@@ -43,7 +43,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-5",
     category: "Platform",
     question: "Is Sri Dwar officially affiliated with the listed temples?",
-    answer: "Yes. Sri Dwar is a premium faith-tech platform operated under official service level agreements and legal partnerships with validated temple trusts, apex dharmic authorities, and managing pandas. All actions, dakshinas, and logistics are registered securely under the corporate governance of Shradhalu Private Ltd."
+    answer: "Yes. Sri Dwar is an AI-powered faith-tech platform operated under official service level agreements and legal partnerships with validated temple trusts, apex dharmic authorities, and managing pandas. All actions, dakshinas, and logistics are registered securely under the corporate governance of Shradhalu Private Ltd."
   },
   {
     id: "faq-6",
@@ -227,6 +227,14 @@ export default function FAQs() {
     category === "Platform" ? "bg-teal-980 text-[#5EEAD4] border border-[#5EEAD4]/10" :
     "bg-neutral-900 text-neutral-400 border border-neutral-800";
 
+  // Temple & Hindu-themed emojis for each FAQ category — used instead of
+  // generic UI icons so the section feels warm and on-brand.
+  const categoryEmoji = (category: string) =>
+    category === "Rituals" ? "🔱" :
+    category === "Prasad" ? "🪔" :
+    category === "Platform" ? "🛕" :
+    "🪷"; // Account
+
   return (
     <section 
       id="faq-accordion-section" 
@@ -241,7 +249,7 @@ export default function FAQs() {
         {/* Header Block */}
         <div className="text-center space-y-3 mb-10">
           <div className="inline-flex items-center space-x-2 bg-white/5 border border-[#5EEAD4]/20 px-3 py-1 rounded-full text-[#5EEAD4] text-xs font-semibold uppercase tracking-widest">
-            <HelpCircle className="w-3.5 h-3.5 text-[#FFB347]" />
+            <span className="text-sm leading-none">🛕</span>
             <span>Spiritual Inquiries</span>
           </div>
           
@@ -359,7 +367,7 @@ export default function FAQs() {
               className="bg-[#092421] rounded-2xl border border-[#FFB347] shadow-[0_0_15px_rgba(255,179,71,0.08)] px-5 py-5"
             >
               <div className="flex items-start space-x-2.5">
-                <Info className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
+                <span className="text-base leading-none shrink-0 mt-0.5">{categoryEmoji(selectedFaq.category)}</span>
                 <p className="text-left font-normal text-xs sm:text-sm text-white/85 leading-relaxed">{selectedFaq.answer}</p>
               </div>
             </motion.div>
@@ -385,6 +393,14 @@ export default function FAQs() {
           <span className="text-base shrink-0">📜</span>
           <p className="text-left">
             <strong>Gotra & Sankalpa Verification SLA:</strong> All holy names registered on Sri Dwar are entered into physical Sanskrit registries at partnering shrines. If you require specialized astrology birth star analysis (Kundli) for exact nakshatras, consult your customized <strong>Dharmic Margadarshak</strong> sidebar guide immediately.
+          </p>
+        </div>
+
+        {/* General disclaimer — FAQ content subject to change */}
+        <div className="mt-4 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[11px] text-white/55 font-sans leading-relaxed">
+          <span className="text-base shrink-0">🙏</span>
+          <p className="text-left">
+            <strong>Disclaimer:</strong> The information shared above is provided in good faith for general devotee guidance and reflects our current rituals, processes, and policies as accurately as possible. Temple timings, priest availability, Vedic procedures, pricing, shipping schedules, and platform features may evolve due to festival calendars, temple-trust directives, or operational requirements, and Sri Dwar (Shradhalu Private Limited) reserves the right to update, amend, or discontinue any term, service detail, or policy referenced in this FAQ section at its discretion. Where reasonably possible, devotees will be notified of material changes in advance via the registered email, WhatsApp, or the Devotee Console; however, continued use of the platform after such updates are published shall constitute acceptance of the revised terms. For the most current details on any specific booking, ritual, or seva, please reach out to our Devotee Care desk before proceeding.
           </p>
         </div>
 

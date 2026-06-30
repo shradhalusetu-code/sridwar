@@ -182,7 +182,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             {/* Saffron & Teal Badge */}
             <div className="inline-flex items-center space-x-2 bg-white/5 border border-[#5EEAD4]/20 px-3.5 py-1.5 rounded-full text-[#5EEAD4] text-xs font-semibold uppercase tracking-widest animate-fadeIn mx-auto">
               <Sparkles className="w-3.5 h-3.5 text-[#FFB347] fill-[#FFB347]" />
-              <span>World's First Premium Faith-Tech Platform</span>
+              <span>World's First AI-Powered Faith-Tech Platform</span>
             </div>
 
             {/* Headline — single line on Android APK; split tagline on website */}

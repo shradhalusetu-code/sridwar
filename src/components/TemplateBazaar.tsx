@@ -283,11 +283,6 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* India Temple Map (static image) */}
-        <div className="mb-12">
-          <IndiaTempleMap />
-        </div>
-
         {/* ── Section Header ───────────────────────────────────────────── */}
         <div className="text-center max-w-2xl mx-auto mb-8">
           <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono uppercase">
@@ -428,6 +423,11 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* India Temple Map (static image) — shown after Sacred Marketplace per site layout */}
+        <div className="mt-12">
+          <IndiaTempleMap />
         </div>
 
       </div>

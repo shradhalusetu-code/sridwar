@@ -23,6 +23,7 @@ interface BookNowWizardProps {
 export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, onSuccess }: BookNowWizardProps) {
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Certificate
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isSyncingDetails, setIsSyncingDetails] = useState(false);
 
   const [pujaName, setPujaName] = useState(defaultPujaName || "Graha Shanti Maha Puja");
   const [price, setPrice] = useState(defaultPrice);
@@ -76,8 +77,16 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
   if (!isOpen) return null;
 
-  const handleNextToPayment = (e: FormEvent) => {
+  // Step 1 → Step 2: the instant the devotee's details are validated and
+  // they proceed toward payment, sync the FIRST (and only "pending") row to
+  // Google Forms with their real entered data and a payment status of
+  // "Pending — Awaiting Confirmation". This guarantees the lead is captured
+  // even if the devotee closes the tab before paying. The Final row (same
+  // Ref ID) is sent exactly once more, from handlePaymentConfirmed below,
+  // with only the payment/donation details corrected — no duplicate rows.
+  const handleNextToPayment = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current) return;
     const nameErr  = validateName(devoteeName);
     const phoneErr = validatePhone(phone);
     const emailErr = validateEmail(email);
@@ -87,13 +96,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     if (emailErr) { alert(emailErr); return; }
     if (dobErr)   { alert(dobErr);   return; }
     gaBookingDetailsSubmit(pujaName, price);
-    setStep(2);
-  };
 
-  const handleSimulatePayment = async () => {
-    if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
-    setIsProcessingPayment(true);
+    setIsSyncingDetails(true);
     const newRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
     setRefId(newRefId);
     try {
@@ -106,11 +111,15 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessingPayment(false);
       isSubmittingRef.current = false;
-      gaCheckoutInitiate(pujaName, price, "UPI");
-      setShowUPI(true);
+      setIsSyncingDetails(false);
+      setStep(2);
     }
+  };
+
+  const handleSimulatePayment = () => {
+    gaCheckoutInitiate(pujaName, price, "UPI");
+    setShowUPI(true);
   };
 
   // Payment confirmed in the UPI modal — sends the ONE Final row for this
@@ -297,9 +306,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <span>Powered by Sri Dwar Technology</span>
                   </div>
 
-                  <button id="wizard-step1-submit" type="submit"
-                    className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center uppercase tracking-wider">
-                    Proceed to Secure Offering
+                  <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}
+                    className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center uppercase tracking-wider">
+                    {isSyncingDetails ? "Saving Your Details…" : "Proceed to Secure Offering"}
                   </button>
                 </form>
               )}

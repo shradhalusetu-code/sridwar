@@ -25,16 +25,16 @@ export default function AboutUs() {
             </h2>
 
             <p className="text-sm text-white/80 leading-relaxed font-sans">
-              Founded under the legal parent of **Shradhalu Private Limited** by visionary entrepreneur **Kunu Rana**, Sri Dwar is the world’s leading digital faith-tech ecosystem designed to preserve Vedic culture and make remote temple worship deeply authentic.
+              Founded under the legal parent of <strong className="text-white font-semibold">Shradhalu Private Limited</strong> by visionary entrepreneur <strong className="text-white font-semibold">Kunu Rana</strong>, Sri Dwar is an AI-powered faith-tech platform built on proprietary Sri Dwar technology, designed to preserve Vedic culture and make remote temple worship deeply authentic.
             </p>
 
             <blockquote className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl">
-              "We didn't build Sri Dwar to replace physical holy temple visits, but to bridge the spatial divide for elderly parents, sick individuals, and global NRIs. To provide sustainable, transparent financial conduits for traditional priests, local flower-vendors, and indigenous cows."
+              "We didn't build Sri Dwar to replace physical holy temple visits, but to bridge the spatial divide for elderly parents, sick individuals, and global NRIs — and to provide sustainable, transparent financial conduits for traditional priests, local flower vendors, and indigenous cows."
               <span className="block mt-1 font-sans text-[10px] font-bold text-[#5EEAD4] not-italic uppercase font-mono">— Founder Kunu Rana</span>
             </blockquote>
 
             <p className="text-sm text-white/80 leading-relaxed font-sans">
-              Every Sankalpa we register is legally synchronized using strict compliance, and we maintain immediate payout structures so that a major portion of your Dakshina is transferred directly into verified priest trusts.
+              Every Sankalpa we register is synchronized through Sri Dwar's secure compliance systems, with immediate payout structures ensuring a major portion of your Dakshina is transferred directly into verified priest trusts.
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export default function AboutUs() {
             </div>
             <h4 className="font-serif text-base font-bold text-white">Scriptural Authenticity</h4>
             <p className="text-xs text-white/70 leading-relaxed">
-              We never perform general mass prayers. Every puja is voiced individually with your Gotra and Nakshatra, preserving thousands of years of strict Vedic guidelines.
+              No mass prayers, ever. Every puja is voiced individually with your Gotra and Nakshatra, faithfully preserving thousands of years of strict Vedic tradition.
             </p>
           </div>
 
@@ -75,7 +75,7 @@ export default function AboutUs() {
             </div>
             <h4 className="font-serif text-base font-bold text-white">Priest Empowerment</h4>
             <p className="text-xs text-white/70 leading-relaxed">
-              We empower over 100+ local Pandits and Gurukuls with technical training, digital tablets, and consistent wages, ensuring their children keep the chanting line active.
+              We empower 100+ local pandits and gurukuls with technical training, digital tools, and consistent wages — keeping the chanting tradition alive for the next generation.
             </p>
           </div>
 
@@ -85,7 +85,7 @@ export default function AboutUs() {
             </div>
             <h4 className="font-serif text-base font-bold text-white">Zero-Leaking Economy</h4>
             <p className="text-xs text-white/70 leading-relaxed">
-              Operated under Shradhalu Private Limited, we use secure transaction ledgers and Google Spreadsheet databases for full audit disclosures on how donations are utilized.
+              Operated under Shradhalu Private Limited, we use secure transaction ledgers and a Sri Dwar-managed database for full audit disclosures on how every donation is utilized.
             </p>
           </div>
 
@@ -93,9 +93,9 @@ export default function AboutUs() {
             <div className="w-10 h-10 rounded-2xl bg-[#5EEAD4]/10 text-[#5EEAD4] flex items-center justify-center font-bold text-lg border border-[#5EEAD4]/20">
               🌍
             </div>
-            <h4 className="font-serif text-base font-bold text-white">PWA Global Ingress</h4>
+            <h4 className="font-serif text-base font-bold text-white">Global, Always On</h4>
             <p className="text-xs text-white/70 leading-relaxed">
-              Built using top-tier React, with responsive design elements and offline-first service parameters supporting NRIs in Europe, Americas, and East Asia.
+              Built on a fast, responsive, offline-friendly platform — so devotees across Europe, the Americas, and East Asia can connect with Indian temples anytime, from anywhere.
             </p>
           </div>
         </div>
