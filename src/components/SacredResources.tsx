@@ -120,14 +120,21 @@ interface DropdownGroupProps {
   icon: React.ReactNode;
   options: string[];
   placeholderNote: (selected: string) => string;
+  imageUrl?: string;
 }
 
-function DropdownGroup({ label, icon, options, placeholderNote }: DropdownGroupProps) {
+function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: DropdownGroupProps) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(options[0]);
 
   return (
-    <div className="bg-[#092320]/80 rounded-2xl border border-white/10 p-5 h-full flex flex-col">
+    <div className="bg-[#092320]/80 rounded-2xl border border-white/10 overflow-hidden h-full flex flex-col">
+      {imageUrl && (
+        <div className="w-full aspect-[3/2] overflow-hidden">
+          <img src={imageUrl} alt={label} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className="p-5 flex flex-col flex-1">
       <div className="flex items-center space-x-2 mb-3">
         {icon}
         <h4 className="font-serif text-sm font-bold text-[#FFB347] uppercase tracking-wider">{label}</h4>
@@ -172,6 +179,7 @@ function DropdownGroup({ label, icon, options, placeholderNote }: DropdownGroupP
       </div>
 
       <p className="text-[11px] text-white/50 italic mt-3 leading-relaxed">{placeholderNote(selected)}</p>
+      </div>
     </div>
   );
 }
@@ -197,30 +205,35 @@ export default function SacredResources() {
             label="Mantra"
             icon={<Sparkles className="w-4 h-4 text-[#5EEAD4]" />}
             options={MANTRAS}
+            imageUrl={import.meta.env.BASE_URL + "images/Mantra.jpg"}
             placeholderNote={(s) => `🙏 ${s} selected. Full chanting guide & audio will be available here soon.`}
           />
           <DropdownGroup
             label="Aarti"
             icon={<Flame className="w-4 h-4 text-[#5EEAD4]" />}
             options={AARTIS}
+            imageUrl={import.meta.env.BASE_URL + "images/Aarti.jpg"}
             placeholderNote={(s) => `🙏 ${s} selected. Full lyrics & audio will be available here soon.`}
           />
           <DropdownGroup
             label="Chalisa"
             icon={<BookOpen className="w-4 h-4 text-[#5EEAD4]" />}
             options={CHALISAS}
+            imageUrl={import.meta.env.BASE_URL + "images/Chalisa.jpg"}
             placeholderNote={(s) => `🙏 ${s} selected. Full verses & audio will be available here soon.`}
           />
           <DropdownGroup
             label="Sun Rise & Sun Set Timings"
             icon={<Sun className="w-4 h-4 text-[#5EEAD4]" />}
             options={CITIES}
+            imageUrl={import.meta.env.BASE_URL + "images/Sun Rise.jpg"}
             placeholderNote={(s) => `Sunrise & sunset timings for ${s} will appear here once live astronomy data is connected.`}
           />
           <DropdownGroup
             label="Moon Rise & Moon Set Timings"
             icon={<Moon className="w-4 h-4 text-[#5EEAD4]" />}
             options={CITIES}
+            imageUrl={import.meta.env.BASE_URL + "images/Moon Rise.jpg"}
             placeholderNote={(s) => `Moonrise & moonset timings for ${s} will appear here once live astronomy data is connected.`}
           />
         </div>

@@ -5,9 +5,9 @@
 
 import { useState, useMemo } from "react";
 import {
-  ShieldCheck, MapPin, Award, Star, Users, Languages,
+  MapPin, Award, Star, Users, Languages,
   ArrowLeft, Search, X, BookOpenCheck, MessageCircle,
-  HeartHandshake, Eye, BadgeCheck
+  HeartHandshake, Eye, Landmark
 } from "lucide-react";
 import { PRIEST_PROFILES } from "../data/priests";
 import { PriestProfile } from "../types";
@@ -24,11 +24,6 @@ const GUIDANCE_POINTS: { icon: React.ElementType; title: string; desc: string }[
     icon: Award,
     title: "Years of Experience",
     desc: "Prefer priests with a proven track record performing the specific puja or ritual you need — more years generally means deeper command of Vedic procedure and timing (muhurat)."
-  },
-  {
-    icon: BadgeCheck,
-    title: "Authenticity & Verification",
-    desc: "Look for priests verified by a temple trust, heritage board, or recognized Acharya lineage. Sri Dwar marks every listed priest as verified so you know they are genuine, temple-affiliated Pandits."
   },
   {
     icon: BookOpenCheck,
@@ -110,16 +105,11 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             Back to Priest Directory
           </button>
 
-          <div className="bg-[#092320]/70 border border-white/10 rounded-3xl p-6 sm:p-10">
+          <div className="bg-[#062421] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl sm:text-3xl font-serif font-black text-white">{p.name}</h1>
-                  {p.isVerified && (
-                    <span className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-emerald-300 bg-emerald-400/10 border border-emerald-400/30 px-2 py-1 rounded-full">
-                      <ShieldCheck className="w-3 h-3" /> Verified Priest
-                    </span>
-                  )}
                 </div>
                 <p className="flex items-center gap-1.5 text-sm text-[#FFB347]/80 font-mono mt-2">
                   <MapPin className="w-3.5 h-3.5" />
@@ -133,6 +123,16 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
                 </p>
               </div>
             </div>
+
+            {/* Local highlight strip — what makes this priest/temple unique */}
+            {(p as PriestProfile & { localHighlight?: string }).localHighlight && (
+              <div className="flex items-start gap-3 bg-[#FFB347]/8 border border-[#FFB347]/25 rounded-2xl p-4 mb-8">
+                <Landmark className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
+                <p className="text-xs text-[#FFB347]/90 leading-relaxed">
+                  {(p as PriestProfile & { localHighlight?: string }).localHighlight}
+                </p>
+              </div>
+            )}
 
             {/* Key stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -164,7 +164,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             </div>
 
             <p className="text-[10px] text-white/30 font-mono mt-6 pt-4 border-t border-white/10">
-              Listed by Sri Dwar as part of the verified Online Puja priest network. To book a ritual
+              Listed by Sri Dwar as part of the Online Puja priest network. To book a ritual
               with {p.name.split(" ").slice(-1)[0]}, head to the Online Puja section and select this priest from the dropdown.
             </p>
           </div>
@@ -189,19 +189,20 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
 
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">
-            Verified Vedic Acharyas
+            Our Vedic Acharyas
           </span>
           <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
             Meet Our Priests
           </h2>
           <p className="text-xs text-white/70 mt-2">
-            Every priest on Sri Dwar is verified by a temple trust or heritage board. Browse experience,
-            puja expertise, and devotee-facing details before choosing who performs your ritual.
+            Every priest on Sri Dwar is a local Brahmin priest associated with their temple.
+            Browse experience, regional puja traditions, and devotee-facing details before choosing who
+            performs your ritual.
           </p>
         </div>
 
         {/* ── Guidance: what to look for ──────────────────────────────── */}
-        <div className="mb-12 bg-[#092320]/60 border border-white/10 rounded-2xl p-6 sm:p-8">
+        <div className="mb-12 bg-[#062421] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm">
           <h3 className="text-lg font-serif font-bold text-[#FFB347] mb-1">
             What to Look for Before Consulting a Priest
           </h3>
@@ -225,14 +226,14 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
         </div>
 
         {/* ── Search & filter bar ─────────────────────────────────────── */}
-        <div className="mb-8 bg-[#092320]/70 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row gap-3">
+        <div className="mb-8 bg-[#062421] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 shadow-sm">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by priest name, city, or temple…"
-              className="w-full bg-[#021816] border border-white/15 text-white/90 text-xs rounded-xl pl-9 pr-8 py-3 focus:outline-none focus:border-[#FFB347]/60"
+              className="w-full bg-[#021816] border border-white/15 text-white/90 text-xs rounded-xl pl-9 pr-8 py-3 focus:outline-none focus:border-[#5EEAD4]/60"
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -243,7 +244,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
           <select
             value={expertiseFilter}
             onChange={e => setExpertiseFilter(e.target.value)}
-            className="bg-[#021816] border border-white/15 text-white/90 text-xs rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFB347]/60 cursor-pointer sm:w-64"
+            className="bg-[#021816] border border-white/15 text-white/90 text-xs rounded-xl px-4 py-3 focus:outline-none focus:border-[#5EEAD4]/60 cursor-pointer sm:w-64"
           >
             <option value="all">All Puja Expertise</option>
             {allExpertiseTags.map(tag => (
@@ -254,46 +255,59 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
 
         <p className="text-[11px] text-white/50 font-mono mb-4">
           Showing <span className="text-[#5EEAD4] font-bold">{filteredPriests.length}</span> of{" "}
-          <span className="text-white/80 font-bold">{PRIEST_PROFILES.length}</span> verified priests
+          <span className="text-white/80 font-bold">{PRIEST_PROFILES.length}</span> priests
         </p>
 
-        {/* ── Priest cards grid ───────────────────────────────────────── */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredPriests.map(p => (
-            <button
-              key={p.id}
-              onClick={() => setSelectedPriestId(p.id)}
-              className="text-left bg-[#092320]/70 border border-white/10 rounded-2xl p-5 hover:border-[#FFB347]/40 hover:bg-[#092320] transition-all group"
-            >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-serif font-black text-white text-sm leading-snug">{p.name}</h3>
-                {p.isVerified && <ShieldCheck className="w-4 h-4 text-emerald-300 shrink-0" />}
-              </div>
+        {/* ── Priest cards grid (aligned to the app-wide card system: bg-[#062421], rounded-2xl, gap-6, scale-on-hover) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPriests.map(p => {
+            const highlight = (p as PriestProfile & { localHighlight?: string }).localHighlight;
+            return (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPriestId(p.id)}
+                className="text-left bg-[#062421] p-5 rounded-2xl border border-white/10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 flex flex-col h-full"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-serif font-black text-white text-sm leading-snug">{p.name}</h3>
+                </div>
 
-              <p className="flex items-center gap-1 text-[10px] text-[#FFB347]/80 font-mono mb-3">
-                <MapPin className="w-3 h-3" /> {p.currentCity}, {p.currentState}
-              </p>
+                <p className="flex items-center gap-1 text-[10px] text-[#FFB347]/80 font-mono mb-1">
+                  <MapPin className="w-3 h-3" /> {p.currentCity}, {p.currentState}
+                </p>
 
-              <div className="flex items-center gap-4 mb-3">
-                <span className="text-[10px] font-mono text-white/60">
-                  <span className="text-white font-bold">{p.yearsExperience}</span> yrs experience
-                </span>
-                <StarRating rating={p.rating} />
-              </div>
+                <p className="text-[10px] text-white/50 font-mono mb-3 line-clamp-1">
+                  {p.templesAssociated[0]}
+                </p>
 
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {p.pujaExpertise.slice(0, 2).map(e => (
-                  <span key={e} className="text-[9px] font-mono uppercase tracking-wide text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
-                    {e}
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-[10px] font-mono text-white/60">
+                    <span className="text-white font-bold">{p.yearsExperience}</span> yrs experience
                   </span>
-                ))}
-              </div>
+                  <StarRating rating={p.rating} />
+                </div>
 
-              <span className="flex items-center gap-1 text-[10px] font-bold text-[#FFB347] group-hover:gap-2 transition-all">
-                <Eye className="w-3 h-3" /> View Full Profile
-              </span>
-            </button>
-          ))}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {p.pujaExpertise.slice(0, 2).map(e => (
+                    <span key={e} className="text-[9px] font-mono uppercase tracking-wide text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
+                      {e}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Locally-rooted highlight — distinguishes each priest's unique temple role */}
+                {highlight && (
+                  <p className="text-[11px] text-white/65 leading-relaxed mb-4 flex-1">
+                    {highlight}
+                  </p>
+                )}
+
+                <span className="flex items-center gap-1 text-[10px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
+                  <Eye className="w-3 h-3" /> View Full Profile
+                </span>
+              </button>
+            );
+          })}
 
           {filteredPriests.length === 0 && (
             <div className="col-span-full text-center py-16 text-white/40 text-xs">

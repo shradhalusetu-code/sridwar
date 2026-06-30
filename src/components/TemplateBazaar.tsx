@@ -41,7 +41,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 899,
     mrp: 1499,
     category: "Prasad",
-    imageUrl: import.meta.env.BASE_URL + "images/prasad.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Kit.jpg",
     badge: "Bestseller",
     includes: ["Dry Prasad 250g", "Temple Certificate", "Blessing Card"],
   },
@@ -52,7 +52,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 449,
     mrp: 899,
     category: "Puja Essentials",
-    imageUrl: import.meta.env.BASE_URL + "images/puja.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Home Puja Kit.jpg",
     badge: "50% OFF",
     includes: ["Brass Diya", "Incense Sticks (pack of 50)", "Kumkum & Haldi", "Akshat", "Sankalpa Card"],
   },
@@ -63,7 +63,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 799,
     mrp: 1599,
     category: "Sacred Items",
-    imageUrl: import.meta.env.BASE_URL + "images/bead.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Rudraksha Mala.jpg",
     badge: "Certified",
     includes: ["108+1 Beads Mala", "Energisation Certificate", "Velvet Pouch"],
   },
@@ -74,7 +74,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 199,
     mrp: 399,
     category: "Incense & Aroma",
-    imageUrl: import.meta.env.BASE_URL + "images/incense.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Incense.jpg",
     includes: ["Sandalwood (20 sticks)", "Mogra (20 sticks)", "Dhoop (10 sticks)"],
   },
   {
@@ -84,7 +84,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 549,
     mrp: 1099,
     category: "Donation Kits",
-    imageUrl: import.meta.env.BASE_URL + "images/kit.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Student Kit.jpg",
     badge: "Impact Gift",
     includes: ["Sanskrit Primer", "Devanagari Workbook", "Yajnopavita (Sacred Thread)", "Photo Report from Gurukul"],
   },
@@ -95,7 +95,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 999,
     mrp: 1999,
     category: "Sacred Items",
-    imageUrl: import.meta.env.BASE_URL + "images/maa.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Brass Idol.jpg",
     badge: "Handcrafted",
     includes: ["6-inch Brass Idol", "Energisation Certificate", "Red Velvet Base"],
   },
@@ -108,7 +108,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 1100,
     mrp: 2200,
     category: "Puja Services",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Rudrabhishek Seva.jpg",
     badge: "Live Puja",
     isService: true,
     includes: ["Performed in your Gotra", "Live Photo Proof", "WhatsApp Confirmation", "Digital Certificate"],
@@ -120,7 +120,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 4000,
     mrp: 8000,
     category: "Puja Services",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Shanti Homa.jpg",
     badge: "50% OFF",
     isService: true,
     includes: ["Jyotish-trained Acharya", "All Herbal Samidha included", "Video Confirmation", "Digital Certificate"],
@@ -132,7 +132,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     price: 900,
     mrp: 1800,
     category: "Puja Services",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Annadanam Puja.jpg",
     badge: "High Impact",
     isService: true,
     includes: ["Feeds 35+ pilgrims", "Performed at Puri Temple", "Photo Report", "WhatsApp Receipt"],
@@ -331,7 +331,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
               className="bg-[#092320] rounded-3xl border border-white/10 overflow-hidden flex flex-col hover:border-[#5EEAD4]/20 transition-all hover:shadow-lg"
             >
               {/* Image */}
-              <div className="relative w-full h-40 overflow-hidden bg-[#0D2F2B]">
+              <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#0D2F2B]">
                 {item.imageUrl ? (
                   <img
                     src={item.imageUrl}

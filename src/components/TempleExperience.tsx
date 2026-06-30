@@ -46,8 +46,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   return (
     <section 
       id="temple-experience-section" 
-      className="py-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
-      style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
+      className="pb-8 sm:pb-10 pt-16 sm:pt-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         

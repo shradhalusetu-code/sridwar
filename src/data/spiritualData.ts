@@ -139,7 +139,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 1800, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
       { amount: 4500, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_badrivishal_1781879619365.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Annadanam Seva.jpg"
   },
   {
     id: "seva-cow",
@@ -153,7 +153,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 2000, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
       { amount: 5000, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_venkatesaya_1781879635982.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Gau Seva.jpg"
   },
   {
     id: "seva-diya",
@@ -167,7 +167,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 1100, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
       { amount: 2200, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_somnath_1781879651117.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Diya Lighting.jpg"
   },
   {
     id: "seva-gurukul",
@@ -181,7 +181,7 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 5000, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
       { amount: 12000, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_dakshineswar_1781879664944.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Vedic Education.jpg"
   }
 ];
 

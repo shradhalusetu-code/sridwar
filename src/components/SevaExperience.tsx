@@ -27,7 +27,7 @@ const EXTRA_SEVAS = [
     impactStat: "Performed at Kashi Vishwanath & Lingaraj Mandir, Bhubaneswar",
     templeAssociation: "Kashi Vishwanath",
     donationTiers: [{ amount: 1100, mrp: 2200 }],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_somnath_1781879651117.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Rudrabhishek Puja.jpg",
   },
   {
     id: "seva-mahaprasad",
@@ -36,7 +36,7 @@ const EXTRA_SEVAS = [
     impactStat: "Feeds 200+ devotees per sponsorship at Jagannath Puri",
     templeAssociation: "Jagannath Puri",
     donationTiers: [{ amount: 1000, mrp: 2000 }],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_badrivishal_1781879619365.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
   },
   {
     id: "seva-tulsi-vivah",
@@ -45,7 +45,7 @@ const EXTRA_SEVAS = [
     impactStat: "Conducted during Kartik Maas at Vrindavan & Dwarka temples",
     templeAssociation: "Vrindavan Dham",
     donationTiers: [{ amount: 450, mrp: 900 }],
-    imageUrl: import.meta.env.BASE_URL + "images/puja.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Tulsi Vivah.jpg",
   },
   {
     id: "seva-navagraha",
@@ -54,7 +54,7 @@ const EXTRA_SEVAS = [
     impactStat: "Performed by Jyotish-trained Acharyas at Ujjain Mahakaleshwar",
     templeAssociation: "Mahakaleshwar, Ujjain",
     donationTiers: [{ amount: 4000, mrp: 8000 }],
-    imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Navagraha.jpg",
   },
   {
     id: "seva-akhand-path",
@@ -63,7 +63,7 @@ const EXTRA_SEVAS = [
     impactStat: "Organised at Ram Janmabhoomi, Ayodhya for devotee sankalpa",
     templeAssociation: "Ram Janmabhoomi, Ayodhya",
     donationTiers: [{ amount: 4250, mrp: 8500 }],
-    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Akhand Ramayan.jpg",
   },
   {
     id: "seva-gomata-puja",
@@ -72,24 +72,24 @@ const EXTRA_SEVAS = [
     impactStat: "Done at certified Gaushalas in Mathura & Vrindavan",
     templeAssociation: "Mathura Gaushala",
     donationTiers: [{ amount: 550, mrp: 1100 }],
-    imageUrl: import.meta.env.BASE_URL + "images/seva_venkatesaya_1781879635982.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Gaushala.jpg",
   },
 ];
 
 // Lord Jagannath live feed photo slideshow — using existing project images
 const JAGANNATH_SLIDES = [
   {
-    img: import.meta.env.BASE_URL + "images/puja_2.jpg",
+    img: import.meta.env.BASE_URL + "images/Aarti.jpg",
     title: "Jagannath Mangal Aarti — Puri",
     desc: "Sacred morning aarti performed live at Jagannath Temple, Puri.",
   },
   {
-    img: import.meta.env.BASE_URL + "images/seva_badrivishal_1781879619365.jpg",
+    img: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
     title: "Chhappan Bhog Naivedya Seva",
     desc: "56-item sacred food offering to Lord Jagannath — live from the sanctum.",
   },
   {
-    img: import.meta.env.BASE_URL + "images/seva_somnath_1781879651117.jpg",
+    img: import.meta.env.BASE_URL + "images/Diya Lighting.jpg",
     title: "Akhanda Diya Lighting Seva",
     desc: "Sacred lamps glowing continuously at the temple premises.",
   },
@@ -144,7 +144,7 @@ function SevaCard({ seva, onSponsor }: SevaCardProps) {
       <div>
         {/* Temple image */}
         {seva.imageUrl ? (
-          <div className="w-full h-32 rounded-2xl overflow-hidden mb-4 border border-white/5 relative">
+          <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden mb-4 border border-white/5 relative">
             <img
               src={seva.imageUrl}
               alt={seva.name}

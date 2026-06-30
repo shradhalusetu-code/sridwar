@@ -28,6 +28,7 @@ interface WellnessService {
   badge?: string;
   benefits: string[];
   tradition: string;
+  imageUrl?: string;
 }
 
 interface WellnessCategory {
@@ -65,6 +66,7 @@ const SERVICES: WellnessService[] = [
     badge: "Most Popular",
     benefits: ["Spinal flexibility", "Breath control", "Nervous system balance", "Stress relief"],
     tradition: "Sivananda · Rishikesh lineage",
+    imageUrl: import.meta.env.BASE_URL + "images/Hatha Yoga.jpg",
   },
   {
     id: "ashtanga-yoga",
@@ -80,6 +82,7 @@ const SERVICES: WellnessService[] = [
     price: 1599,
     benefits: ["Core strength", "Internal heat (tapas)", "Mental clarity", "Dexterity"],
     tradition: "Pattabhi Jois · Mysore tradition",
+    imageUrl: import.meta.env.BASE_URL + "images/Ashtanga Vinyasa.jpg",
   },
   {
     id: "kundalini-yoga",
@@ -96,6 +99,7 @@ const SERVICES: WellnessService[] = [
     badge: "Advanced",
     benefits: ["Chakra activation", "Heightened awareness", "Emotional release", "Spiritual upliftment"],
     tradition: "Yogi Bhajan · Sat Nam lineage",
+    imageUrl: import.meta.env.BASE_URL + "images/Kundalini Awakening.jpg",
   },
   {
     id: "prenatal-yoga",
@@ -111,6 +115,7 @@ const SERVICES: WellnessService[] = [
     price: 1299,
     benefits: ["Safe movement for pregnancy", "Reduces back pain", "Birth preparation", "Postpartum recovery"],
     tradition: "Garbha Sanskar · Vedic motherhood",
+    imageUrl: import.meta.env.BASE_URL + "images/Prenatal & Postnata.jpg",
   },
 
   // ── AYURVEDA ──────────────────────────────────────────────────────
@@ -129,6 +134,7 @@ const SERVICES: WellnessService[] = [
     badge: "Signature",
     benefits: ["Deep cellular detox", "Dosha rebalancing", "Metabolic reset", "Chronic condition management"],
     tradition: "Kerala Ayurveda · Charaka Samhita",
+    imageUrl: import.meta.env.BASE_URL + "images/Panchakarma.jpg",
   },
   {
     id: "abhyanga",
@@ -144,6 +150,7 @@ const SERVICES: WellnessService[] = [
     price: 3499,
     benefits: ["Lymphatic drainage", "Joint lubrication", "Deep relaxation", "Skin nourishment"],
     tradition: "Ashtanga Hridayam · classical protocol",
+    imageUrl: import.meta.env.BASE_URL + "images/Abhyanga.jpg",
   },
   {
     id: "shirodhara",
@@ -160,6 +167,7 @@ const SERVICES: WellnessService[] = [
     badge: "Bestseller",
     benefits: ["Deep sleep restoration", "Migraine relief", "Anxiety management", "Third eye activation"],
     tradition: "Kerala Panchakarma heritage",
+    imageUrl: import.meta.env.BASE_URL + "images/Shirodhara.jpg",
   },
   {
     id: "prakriti-consultation",
@@ -175,6 +183,7 @@ const SERVICES: WellnessService[] = [
     price: 1799,
     benefits: ["Know your body type", "Personalised diet plan", "Herbal supplements", "Seasonal lifestyle guide"],
     tradition: "AYUSH certified · Sushruta tradition",
+    imageUrl: import.meta.env.BASE_URL + "images/Prakriti Dosha.jpg",
   },
 
   // ── YOGIC HEALING ─────────────────────────────────────────────────
@@ -399,6 +408,17 @@ function ServiceCard({
           style={{ background: service.categoryColor + "20", color: service.categoryColor, border: `1px solid ${service.categoryColor}40` }}
         >
           {service.badge}
+        </div>
+      )}
+
+      {/* Card Image */}
+      {service.imageUrl && (
+        <div className="w-full aspect-[3/2] overflow-hidden">
+          <img
+            src={service.imageUrl}
+            alt={service.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         </div>
       )}
 

@@ -1164,19 +1164,6 @@ function DharmicExpertSection() {
           </button>
         </div>
 
-        {/* Devotee link sharing — kept below the grid */}
-        <div className="border-t border-white/8 pt-3">
-          <div className="flex justify-end items-center gap-2 flex-wrap">
-            <ShortDevoteeLinkButton />
-            <ShareLinkButton
-              page="devotee-register"
-              utmContent="devotee_card_inline"
-              label="Get Devotee Link"
-              gaEventName="share_devotee_register_link"
-              color="gold"
-            />
-          </div>
-        </div>
       </div>
     );
   }
@@ -2607,7 +2594,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="temple-finder-section"
-      className="py-16 sm:py-20 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
+      className="pt-8 sm:pt-10 pb-16 sm:pb-20 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#FFB347]/5 rounded-full blur-3xl" />
