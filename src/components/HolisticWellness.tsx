@@ -202,6 +202,7 @@ const SERVICES: WellnessService[] = [
     badge: "No-touch therapy",
     benefits: ["Aura cleansing", "Chakra energisation", "Accelerated healing", "Emotional balance"],
     tradition: "Grand Master Choa Kok Sui lineage",
+    imageUrl: import.meta.env.BASE_URL + "images/Pranic.jpg",
   },
   {
     id: "sound-healing",
@@ -217,6 +218,7 @@ const SERVICES: WellnessService[] = [
     price: 1499,
     benefits: ["Deep meditative states", "Pain reduction", "Emotional release", "Sleep quality"],
     tradition: "Himalayan bowl healing · Buddhist tradition",
+    imageUrl: import.meta.env.BASE_URL + "images/Tibetan.jpg",
   },
   {
     id: "reiki-healing",
@@ -232,6 +234,7 @@ const SERVICES: WellnessService[] = [
     price: 1999,
     benefits: ["Stress dissolution", "Pain management", "Emotional wounds", "Spiritual reconnection"],
     tradition: "Mikao Usui · Japanese Reiki tradition",
+    imageUrl: import.meta.env.BASE_URL + "images/Reiki.jpg",
   },
   {
     id: "mantra-chikitsa",
@@ -248,6 +251,7 @@ const SERVICES: WellnessService[] = [
     badge: "Unique to Sri Dwar",
     benefits: ["Neurological recalibration", "Karmic clearing", "Mental fortitude", "Devotional deepening"],
     tradition: "Sama Veda · Nada Brahma science",
+    imageUrl: import.meta.env.BASE_URL + "images/Mantra_Yoga.jpg",
   },
 
   // ── TRAINING & CLASSES ────────────────────────────────────────────
@@ -266,6 +270,7 @@ const SERVICES: WellnessService[] = [
     badge: "Certification",
     benefits: ["Yoga Alliance 200hr cert", "Teaching methodology", "Business of yoga", "Lifetime alumni network"],
     tradition: "Yoga Alliance RYS-200 accredited",
+    imageUrl: import.meta.env.BASE_URL + "images/Yoga_Teacher.jpg",
   },
   {
     id: "meditation-masterclass",
@@ -281,6 +286,7 @@ const SERVICES: WellnessService[] = [
     price: 4999,
     benefits: ["Consistent daily practice", "Multiple techniques", "Peer community", "Lifetime replays"],
     tradition: "Swami Vivekananda Mission",
+    imageUrl: import.meta.env.BASE_URL + "images/Meditation.jpg",
   },
   {
     id: "pranayama-intensive",
@@ -296,6 +302,7 @@ const SERVICES: WellnessService[] = [
     price: 3499,
     benefits: ["Lung capacity expansion", "CO₂ tolerance", "Nervous regulation", "Spiritual vitality"],
     tradition: "Hatha Yoga Pradipika · classical texts",
+    imageUrl: import.meta.env.BASE_URL + "images/Pranayama.jpg",
   },
 
   // ── ADDITIONAL YOGIC SCIENCE OFFERINGS ───────────────────────────
@@ -314,6 +321,7 @@ const SERVICES: WellnessService[] = [
     badge: "Deep Rest",
     benefits: ["Stress & trauma release", "Subconscious reprogramming", "Insomnia remedy", "Heightened creativity"],
     tradition: "Swami Satyananda · Bihar School of Yoga",
+    imageUrl: import.meta.env.BASE_URL + "images/Yoga_Nidra.jpg",
   },
   {
     id: "jyotish-consultation",
@@ -330,6 +338,7 @@ const SERVICES: WellnessService[] = [
     badge: "Vedic Science",
     benefits: ["Life-path clarity", "Dasha timing guidance", "Dosha remedies", "Muhurta (auspicious timing)"],
     tradition: "Parashara Hora Shastra · classical Jyotish",
+    imageUrl: import.meta.env.BASE_URL + "images/Vedic_Jyotish.jpg",
   },
   {
     id: "shatkarma",
@@ -345,6 +354,7 @@ const SERVICES: WellnessService[] = [
     price: 1999,
     benefits: ["Digestive system reset", "Sinus & respiratory clarity", "Agni (digestive fire) boost", "Pranamaya kosha purification"],
     tradition: "Hatha Yoga Pradipika · Gheranda Samhita",
+    imageUrl: import.meta.env.BASE_URL + "images/Shatkarma.jpg",
   },
 
   // ── RETREATS & DETOX ──────────────────────────────────────────────
@@ -363,6 +373,7 @@ const SERVICES: WellnessService[] = [
     badge: "Residential",
     benefits: ["Digital detox", "Sattvic diet reset", "Aarti & satsang", "Nature healing"],
     tradition: "Parmarth Niketan partner ashram",
+    imageUrl: import.meta.env.BASE_URL + "images/Weekend_Yogic.jpg",
   },
   {
     id: "panchakarma-retreat",
@@ -379,6 +390,7 @@ const SERVICES: WellnessService[] = [
     badge: "Premium",
     benefits: ["Deep cellular renewal", "NABH-accredited centre", "All-inclusive", "Post-retreat protocol"],
     tradition: "Kerala Ayurveda · Kairali lineage",
+    imageUrl: import.meta.env.BASE_URL + "images/Kerala_Panchakarma.jpg",
   },
 ];
 
