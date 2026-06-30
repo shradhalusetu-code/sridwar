@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TempleExperience from "./components/TempleExperience";
@@ -79,15 +79,63 @@ export default function App() {
 
   const t = TRANSLATIONS[currentLanguage];
 
+  // ── Browser/Android back-button control ──────────────────────────────
+  // Goal: from any internal page, Back returns the user to the Home page
+  // (never out of the site / to Google). From the Home page, Back behaves
+  // normally (exits the site / goes to the previous external page).
+  //
+  // How it works: a single extra history entry is pushed the moment the
+  // user leaves Home. Moving between internal pages just replaces that
+  // entry (no extra entries pile up), so exactly one Back press from any
+  // internal page lands back on Home. Pressing Back again while already
+  // on Home falls through to the browser's normal history behavior.
+  const currentPageRef = useRef("home");
+  currentPageRef.current = currentPage;
+
   const handleNavigate = (page: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
+    const wasHome = currentPageRef.current === "home";
     setCurrentPage(page);
     gaPageView(`/${page}`, page.charAt(0).toUpperCase() + page.slice(1));
+
+    if (typeof window !== "undefined" && window.history) {
+      if (page !== "home" && wasHome) {
+        // Leaving Home for an internal page: push one guard entry.
+        window.history.pushState({ sdPage: page }, "", window.location.pathname + window.location.search);
+      } else {
+        // Internal -> internal, or navigating back to Home in-app:
+        // stay at the same history depth.
+        window.history.replaceState({ sdPage: page }, "", window.location.pathname + window.location.search);
+      }
+    }
   };
 
-  // Track page view on initial load
+  // Track page view on initial load, and label the starting history entry
+  // so our popstate handler can tell it apart from the guard entry above.
   useEffect(() => {
     gaPageView("/home", "Home");
+    if (typeof window !== "undefined" && window.history) {
+      window.history.replaceState({ sdPage: "home" }, "", window.location.pathname + window.location.search);
+    }
+  }, []);
+
+  // Intercept Back navigation: if the user is leaving an internal page,
+  // send them Home instead of letting the browser exit the site.
+  useEffect(() => {
+    const onPopState = () => {
+      if (currentPageRef.current !== "home") {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        setCurrentPage("home");
+        gaPageView("/home", "Home");
+        if (typeof window !== "undefined" && window.history) {
+          window.history.replaceState({ sdPage: "home" }, "", window.location.pathname + window.location.search);
+        }
+      }
+      // If already on Home, do nothing — let the browser's default
+      // Back behavior proceed (e.g. exit to the previous external page).
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   // Load sample book on launch or sync with localStorage for durable persistence
@@ -107,6 +155,9 @@ export default function App() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === "temple-register") {
       setCurrentPage("temple-register");
+      if (typeof window !== "undefined" && window.history) {
+        window.history.pushState({ sdPage: "temple-register" }, "", window.location.pathname + window.location.search);
+      }
     }
   }, []);
 
