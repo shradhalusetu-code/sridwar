@@ -46,7 +46,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   return (
     <section 
       id="temple-experience-section" 
-      className="pb-8 sm:pb-10 pt-16 sm:pt-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
+      className="pb-8 sm:pb-10 pt-16 sm:pt-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white scroll-mt-20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         

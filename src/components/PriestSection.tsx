@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   MapPin, Award, Star, Users, Languages,
   ArrowLeft, Search, X, BookOpenCheck, MessageCircle,
@@ -65,6 +65,20 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
   const [selectedPriestId, setSelectedPriestId] = useState<string | null>(initialPriestId);
   const [search, setSearch] = useState("");
   const [expertiseFilter, setExpertiseFilter] = useState<string>("all");
+  // Anchor used to scroll the freshly-shown section (detail or listing) into
+  // view starting at its very top, so the heading / priest name is the first
+  // thing visible — instead of leaving the user's previous scroll position
+  // in place, which could land them mid-section.
+  const topAnchorRef = useRef<HTMLElement>(null);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    topAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedPriestId]);
 
   const allExpertiseTags = useMemo(() => {
     const s = new Set<string>();
@@ -95,7 +109,12 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
   if (selectedPriest) {
     const p = selectedPriest;
     return (
-      <section id="priest-detail-section" className="py-16 bg-[#021816] text-white min-h-[60vh]">
+      <section
+        ref={topAnchorRef}
+        id="priest-detail-section"
+        className="py-16 bg-[#021816] text-white min-h-[60vh]"
+        style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 100px)` }}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
             onClick={() => setSelectedPriestId(null)}
@@ -175,7 +194,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
 
   // ── LISTING VIEW ─────────────────────────────────────────────────────────
   return (
-    <section id="priest-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
+    <section ref={topAnchorRef} id="priest-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {onBack && (

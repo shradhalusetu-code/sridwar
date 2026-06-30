@@ -312,11 +312,21 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           </div>
         </div>
 
-        {/* ── Main 2-column grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/*
+          ── Main 2-column row ──
+          The Sponsorship Services column (4 always-visible cards) and the
+          Live Feed column are the ONLY two items in this grid row, with
+          lg:items-stretch so the row's track height is the max of the two —
+          this is what makes the Live Feed card match the height of the
+          visible 4 Sponsorship cards exactly. The "More Sacred Sevas"
+          accordion lives in its OWN row further below (outside this grid),
+          so opening/closing it never changes this row's height and the
+          overall dashboard size stays fixed and stable.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-stretch">
 
           {/* LEFT: Sponsorship Services — col-span-7 */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
+          <div className="lg:col-span-7 flex flex-col gap-4 lg:h-full">
 
             {/* Heading row */}
             <div className="flex items-center justify-between">
@@ -332,53 +342,11 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                 <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} />
               ))}
             </div>
-
-            {/* Accordion for remaining sevas */}
-            <div className="border border-white/10 rounded-2xl overflow-hidden">
-              <button
-                onClick={() => setAccordionOpen((p) => !p)}
-                className="w-full flex items-center justify-between px-5 py-4 bg-[#092320] hover:bg-[#0D2F2B] transition-colors text-left"
-                aria-expanded={accordionOpen}
-              >
-                <div className="flex items-center space-x-3">
-                  <Sparkles className="w-4 h-4 text-[#FFB347]" />
-                  <div>
-                    <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
-                    <span className="block text-[10px] text-white/50 font-mono mt-0.5">
-                      {FEATURED_SEVAS.slice(4).length + EXTRA_SEVAS.length} additional offerings — all 50% off
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
-                    50% OFF
-                  </span>
-                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
-                    {accordionOpen
-                      ? <ChevronUp className="w-4 h-4 text-[#5EEAD4]" />
-                      : <ChevronDown className="w-4 h-4 text-[#5EEAD4]" />}
-                  </div>
-                </div>
-              </button>
-
-              {accordionOpen && (
-                <div className="bg-[#021816] p-4 border-t border-white/10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {FEATURED_SEVAS.slice(4).map((seva) => (
-                      <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} />
-                    ))}
-                    {EXTRA_SEVAS.map((seva) => (
-                      <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* RIGHT: Live Feed + Chat — col-span-5, sticky top */}
-          <div className="lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0">
-            <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white min-h-[520px]">
+          {/* RIGHT: Live Feed + Chat — col-span-5, sticky top, stretched to match the Sponsorship Services column height */}
+          <div className="lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0 lg:h-full">
+            <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white min-h-[520px] lg:h-full">
 
               {/* Live Feed header */}
               <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
@@ -467,6 +435,60 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           </div>
 
         </div>
+
+        {/*
+          ── Accordion row ──
+          Deliberately a separate grid row (same lg:col-span-7 width as the
+          Sponsorship Services column above) so that opening "More Sacred
+          Sevas" only grows content that lives BELOW the equal-height
+          Sponsorship/Live Feed row — it never resizes or shifts that row,
+          keeping the overall dashboard size fixed and stable on toggle.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mt-4">
+          <div className="lg:col-span-7">
+            <div className="border border-white/10 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => setAccordionOpen((p) => !p)}
+                className="w-full flex items-center justify-between px-5 py-4 bg-[#092320] hover:bg-[#0D2F2B] transition-colors text-left"
+                aria-expanded={accordionOpen}
+              >
+                <div className="flex items-center space-x-3">
+                  <Sparkles className="w-4 h-4 text-[#FFB347]" />
+                  <div>
+                    <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
+                    <span className="block text-[10px] text-white/50 font-mono mt-0.5">
+                      {FEATURED_SEVAS.slice(4).length + EXTRA_SEVAS.length} additional offerings — all 50% off
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
+                    50% OFF
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                    {accordionOpen
+                      ? <ChevronUp className="w-4 h-4 text-[#5EEAD4]" />
+                      : <ChevronDown className="w-4 h-4 text-[#5EEAD4]" />}
+                  </div>
+                </div>
+              </button>
+
+              {accordionOpen && (
+                <div className="bg-[#021816] p-4 border-t border-white/10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {FEATURED_SEVAS.slice(4).map((seva) => (
+                      <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} />
+                    ))}
+                    {EXTRA_SEVAS.map((seva) => (
+                      <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </section>

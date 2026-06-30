@@ -2766,7 +2766,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="dharmic-expert-section"
-      className="py-16 sm:py-20 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden"
+      className="py-16 sm:py-20 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden scroll-mt-20"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#5EEAD4]/4 rounded-full blur-3xl" />
