@@ -28,6 +28,8 @@ import SriDwarLogo from "./SriDwarLogo";
 interface OfferPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Called when the user picks a CTA destination — navigate in-app without a page reload. */
+  onNavigate: (page: string) => void;
   /** The same storage key used in App.tsx so clicking a CTA also suppresses future shows. */
   storageKey?: string;
 }
@@ -43,10 +45,6 @@ const REWARD_LINES = [
   "The No. 1 contributor wins the Grand Prize — All India Yatra",
 ];
 
-function buildDeepLink(page: string): string {
-  const base = `${window.location.origin}${window.location.pathname}`;
-  return `${base}?page=${page}`;
-}
 
 function formatCountdown(diffMs: number): string {
   if (diffMs <= 0) return "Offer closed";
@@ -56,7 +54,7 @@ function formatCountdown(diffMs: number): string {
   return `${d}d ${h}h ${m}m`;
 }
 
-export default function OfferPopup({ isOpen, onClose, storageKey }: OfferPopupProps) {
+export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: OfferPopupProps) {
   const [countdown, setCountdown] = useState<string>(() =>
     formatCountdown(CAMPAIGN_END.getTime() - Date.now())
   );
@@ -87,8 +85,20 @@ export default function OfferPopup({ isOpen, onClose, storageKey }: OfferPopupPr
       try { localStorage.setItem(storageKey, "1"); } catch (_) { /* storage blocked */ }
     }
     onClose();
-    // Small tick lets React flush the close before the navigation fires.
-    setTimeout(() => { window.location.href = buildDeepLink(page); }, 0);
+
+    if (page === "temple-register") {
+      // This is a real top-level page App.tsx knows how to render.
+      onNavigate(page);
+      return;
+    }
+
+    // "dharmic-expert-register" and "devotee-register" aren't top-level
+    // pages — they're sections/steps INSIDE the Dharmic Expert registration
+    // block that lives on the homepage. Navigate home, then tell that block
+    // (via a lightweight event, since it isn't lifted into App state) which
+    // sub-flow to open.
+    onNavigate("home");
+    window.dispatchEvent(new CustomEvent("sridwar:open-registration", { detail: { page } }));
   };
 
   const confirmOnWhatsApp = () => {

@@ -4,6 +4,17 @@ import App from './App.tsx';
 import './index.css';
 
 /*
+ * ── Back-button trap ────────────────────────────────────────────────────────
+ * Push a sentinel history entry SYNCHRONOUSLY — before React even mounts —
+ * so the trap is in place from the very first millisecond the page is alive.
+ * The App.tsx popstate handler then decides whether to go Home or let through.
+ * Doing this here (module-level) avoids the React useEffect timing gap.
+ */
+if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+  window.history.pushState({ sdTrap: true }, '', window.location.pathname + window.location.search);
+}
+
+/*
  * Detect if we are running inside the Capacitor Android app.
  * window.Capacitor is ONLY present inside the APK — it does not exist
  * on GitHub Pages or any regular browser. This code will NEVER run

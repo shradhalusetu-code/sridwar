@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye } from "lucide-react";
+import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye, Compass } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
@@ -232,6 +232,20 @@ export default function Navbar({
               {/* Action CTA Buttons */}
               <div className="flex items-center space-x-2">
                 <button
+                  id="nav-explore-shrines"
+                  onClick={() => {
+                    gaNavClick("temple-experience-section", "navbar");
+                    onNavigate("home");
+                    setTimeout(() => {
+                      document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
+                    }, 150);
+                  }}
+                  className="bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#818CF8]/30 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
+                >
+                  <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
+                  <span>Explore Shrines</span>
+                </button>
+                <button
                   id="nav-direct-donate-seva"
                   onClick={onOpenSevaModal}
                   className="bg-[#0F766E]/65 hover:bg-[#14B8A6]/80 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-white/10 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
@@ -339,6 +353,22 @@ export default function Navbar({
 
               {/* Floating menu buttons inside drawer */}
               <div className="mt-6 flex flex-col space-y-3">
+                <button
+                  id="mobile-explore-shrines-btn"
+                  onClick={() => {
+                    gaNavClick("temple-experience-section", "mobile_nav");
+                    onNavigate("home");
+                    setIsMobileMenuOpen(false);
+                    setTimeout(() => {
+                      document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
+                    }, 200);
+                  }}
+                  className="w-full bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#818CF8]/30 shadow hover:scale-[1.01] transition-transform"
+                >
+                  <Compass className="w-4 h-4 text-[#C7D2FE]" />
+                  <span>Explore Shrines</span>
+                </button>
+
                 <button
                   id="mobile-seva-btn"
                   onClick={() => {

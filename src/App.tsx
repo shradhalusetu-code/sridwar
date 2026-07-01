@@ -24,6 +24,7 @@ import HolisticWellness from "./components/HolisticWellness";
 import TempleRegister from "./components/TempleRegister";
 import UPIPaymentModal from "./components/UPIPaymentModal";
 import OfferPopup from "./components/OfferPopup";
+import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -80,60 +81,91 @@ export default function App() {
   const t = TRANSLATIONS[currentLanguage];
 
   // ── Browser/Android back-button control ──────────────────────────────
-  // Goal: from any internal page, Back returns the user to the Home page
-  // (never out of the site / to Google). From the Home page, Back behaves
-  // normally (exits the site / goes to the previous external page).
-  //
-  // How it works: a single extra history entry is pushed the moment the
-  // user leaves Home. Moving between internal pages just replaces that
-  // entry (no extra entries pile up), so exactly one Back press from any
-  // internal page lands back on Home. Pressing Back again while already
-  // on Home falls through to the browser's normal history behavior.
+  // Strategy: main.tsx already pushed one sentinel history entry before
+  // React mounted. Our popstate handler ALWAYS re-pushes a sentinel at
+  // the very start, THEN decides what to do. This means:
+  //   - From any internal page or open form → go Home (or close the form).
+  //   - From the Home page with nothing open → do NOT retrap; let the
+  //     browser navigate back naturally (exit to the previous external page).
+  // The refs let the popstate handler read the latest React state without
+  // stale-closure issues (the handler is registered once with []).
   const currentPageRef = useRef("home");
   currentPageRef.current = currentPage;
+  const isCartOpenRef          = useRef(false);  isCartOpenRef.current          = isCartOpen;
+  const isCartPaymentOpenRef   = useRef(false);  isCartPaymentOpenRef.current   = isCartPaymentOpen;
+  const isBookNowOpenRef       = useRef(false);  isBookNowOpenRef.current       = isBookNowOpen;
+  const isSevaModalOpenRef     = useRef(false);  isSevaModalOpenRef.current     = isSevaModalOpen;
+  const isOfferPopupOpenRef    = useRef(false);  isOfferPopupOpenRef.current    = isOfferPopupOpen;
+  const activeExploreTempleRef = useRef<Temple | null>(null);             activeExploreTempleRef.current = activeExploreTemple;
+  const activeLegalDocRef      = useRef<typeof activeLegalDoc>(null);    activeLegalDocRef.current      = activeLegalDoc;
 
-  const handleNavigate = (page: string) => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-    const wasHome = currentPageRef.current === "home";
-    setCurrentPage(page);
-    gaPageView(`/${page}`, page.charAt(0).toUpperCase() + page.slice(1));
-
+  const retrap = () => {
     if (typeof window !== "undefined" && window.history) {
-      if (page !== "home" && wasHome) {
-        // Leaving Home for an internal page: push one guard entry.
-        window.history.pushState({ sdPage: page }, "", window.location.pathname + window.location.search);
-      } else {
-        // Internal -> internal, or navigating back to Home in-app:
-        // stay at the same history depth.
-        window.history.replaceState({ sdPage: page }, "", window.location.pathname + window.location.search);
-      }
+      window.history.pushState({ sdTrap: true }, "", window.location.pathname + window.location.search);
     }
   };
 
-  // Track page view on initial load, and label the starting history entry
-  // so our popstate handler can tell it apart from the guard entry above.
+  const handleNavigate = (page: string) => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    setCurrentPage(page);
+    gaPageView(`/${page}`, page.charAt(0).toUpperCase() + page.slice(1));
+  };
+
+  // Track page view on initial load.
+  // (The sentinel history entry was already pushed synchronously in main.tsx.)
   useEffect(() => {
     gaPageView("/home", "Home");
-    if (typeof window !== "undefined" && window.history) {
-      window.history.replaceState({ sdPage: "home" }, "", window.location.pathname + window.location.search);
-    }
   }, []);
 
-  // Intercept Back navigation: if the user is leaving an internal page,
-  // send them Home instead of letting the browser exit the site.
+  // Popstate listener — registered once; uses refs for current state.
   useEffect(() => {
     const onPopState = () => {
-      if (currentPageRef.current !== "home") {
-        window.scrollTo({ top: 0, behavior: "instant" });
-        setCurrentPage("home");
-        gaPageView("/home", "Home");
-        if (typeof window !== "undefined" && window.history) {
-          window.history.replaceState({ sdPage: "home" }, "", window.location.pathname + window.location.search);
-        }
+      const onInternalPage = currentPageRef.current !== "home";
+      const hasOverlay = (
+        isBookNowOpenRef.current ||
+        isCartPaymentOpenRef.current ||
+        isCartOpenRef.current ||
+        isSevaModalOpenRef.current ||
+        !!activeExploreTempleRef.current ||
+        !!activeLegalDocRef.current ||
+        isOfferPopupOpenRef.current
+      );
+
+      // Local multi-step flows/modals (e.g. the Darshan Certificate modal in
+      // Hero, or the Devotee/Dharmic-Expert/Temple registration flows in
+      // TempleRegister) manage their own state and register themselves here
+      // rather than lifting state into App. Treat a registered handler the
+      // same as any other tracked overlay.
+      const hasLocalOverlay = hasBackHandlers();
+
+      // Let the user exit the site normally when they're on Home with nothing open.
+      if (!onInternalPage && !hasOverlay && !hasLocalOverlay) return;
+
+      // Otherwise always re-push the sentinel FIRST so the next Back is also caught.
+      retrap();
+
+      // Close the most-recently-opened local flow/modal first, if any.
+      if (hasLocalOverlay)                 { invokeTopBackHandler();         return; }
+
+      // Close the topmost open overlay/wizard/form (most-recently-opened first).
+      if (isBookNowOpenRef.current)        { setIsBookNowOpen(false);        return; }
+      if (isCartPaymentOpenRef.current)    { setIsCartPaymentOpen(false);    return; }
+      if (isCartOpenRef.current)           { setIsCartOpen(false);           return; }
+      if (isSevaModalOpenRef.current)      { setIsSevaModalOpen(false);      return; }
+      if (activeExploreTempleRef.current)  { setActiveExploreTemple(null);   return; }
+      if (activeLegalDocRef.current)       { setActiveLegalDoc(null);        return; }
+      if (isOfferPopupOpenRef.current) {
+        localStorage.setItem(OFFER_POPUP_STORAGE_KEY, "1");
+        setIsOfferPopupOpen(false);
+        return;
       }
-      // If already on Home, do nothing — let the browser's default
-      // Back behavior proceed (e.g. exit to the previous external page).
+
+      // No overlay — must be on an internal page; go Home.
+      window.scrollTo({ top: 0, behavior: "instant" });
+      setCurrentPage("home");
+      gaPageView("/home", "Home");
     };
+
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
@@ -155,9 +187,6 @@ export default function App() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === "temple-register") {
       setCurrentPage("temple-register");
-      if (typeof window !== "undefined" && window.history) {
-        window.history.pushState({ sdPage: "temple-register" }, "", window.location.pathname + window.location.search);
-      }
     }
   }, []);
 
@@ -168,11 +197,23 @@ export default function App() {
     localStorage.setItem(OFFER_POPUP_STORAGE_KEY, "1");
     setIsOfferPopupOpen(false);
   };
-    // Handle Android back button
+    // Handle Android back button (mirrors the web Back-button trap above:
+    // close any open form/modal first, then go Home, then exit the app)
   useEffect(() => {
     const setupBackButton = async () => {
       const { App: CapApp } = await import('@capacitor/app');
       const handler = await CapApp.addListener('backButton', () => {
+        if (isBookNowOpenRef.current) { setIsBookNowOpen(false); return; }
+        if (isCartPaymentOpenRef.current) { setIsCartPaymentOpen(false); return; }
+        if (isCartOpenRef.current) { setIsCartOpen(false); return; }
+        if (isSevaModalOpenRef.current) { setIsSevaModalOpen(false); return; }
+        if (activeExploreTempleRef.current) { setActiveExploreTemple(null); return; }
+        if (activeLegalDocRef.current) { setActiveLegalDoc(null); return; }
+        if (isOfferPopupOpenRef.current) {
+          localStorage.setItem(OFFER_POPUP_STORAGE_KEY, "1");
+          setIsOfferPopupOpen(false);
+          return;
+        }
         if (currentPage !== 'home') {
           setCurrentPage('home');
         } else {
@@ -310,16 +351,17 @@ export default function App() {
               currentLanguage={currentLanguage}
               isAndroidApp={isAndroidApp}
               onNavigate={handleNavigate}
-              onOpenBookNow={() => {
-                setWizardDefaults({ pujaName: "Vighnaharta Ganesha Success Puja", price: 626 });
-                setIsBookNowOpen(true);
-              }}
-              onOpenProducts={() => setCurrentPage("products")}
               onOpenSetuYatra={() => setIsOfferPopupOpen(true)}
             />
             
             {/* Spotlight and lists */}
-            <TempleRegister onNavigate={handleNavigate} />
+            <TempleRegister
+              onNavigate={handleNavigate}
+              onOpenBookNow={() => {
+                setWizardDefaults({ pujaName: "Sarvajanik Veda Shanti Puja", price: 550 });
+                setIsBookNowOpen(true);
+              }}
+            />
             <TempleExperience
               onBookPuja={(templeName, deity) => {
                 setWizardDefaults({ pujaName: `${deity} Sankalpa offering (${templeName})`, price: 751 });
@@ -457,8 +499,20 @@ export default function App() {
                     Explore Shrines
                   </button>
                 </li>
-                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">Darshan Certificate</button></li>
-                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">Receive Prasad</button></li>
+                <li>
+                  <button
+                    onClick={() => {
+                      handleNavigate("home");
+                      setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent("sd-open-darshan-register"));
+                      }, 150);
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    Darshan Certificate
+                  </button>
+                </li>
+                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Receive Prasad</button></li>
                 <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
               </ul>
             </div>
@@ -985,6 +1039,7 @@ export default function App() {
       <OfferPopup
         isOpen={isOfferPopupOpen}
         onClose={handleCloseOfferPopup}
+        onNavigate={handleNavigate}
         storageKey={OFFER_POPUP_STORAGE_KEY}
       />
 

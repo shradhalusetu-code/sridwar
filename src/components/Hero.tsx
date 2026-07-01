@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, FormEvent } from "react";
-import { Award, Compass, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Calendar, Flame } from "lucide-react";
+import { useState, useEffect, FormEvent } from "react";
+import { Award, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Flame } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
@@ -12,7 +12,8 @@ import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
-import { gaBookNowOpen, gaContactFormStart, gaContactFormSubmit, gaNavClick } from "../utils/analytics";
+import { gaContactFormStart, gaContactFormSubmit, gaNavClick } from "../utils/analytics";
+import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
 // @ts-ignore
 import aerialJagannathPuri from "../assets/images/aerial_jagannath_puri_hero_1781871848760.jpg";
 
@@ -20,13 +21,25 @@ interface HeroProps {
   currentLanguage: Language;
   isAndroidApp?: boolean;
   onNavigate: (page: string) => void;
-  onOpenBookNow: () => void;
-  onOpenProducts: () => void;
   onOpenSetuYatra: () => void;
 }
 
-export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate, onOpenBookNow, onOpenProducts, onOpenSetuYatra }: HeroProps) {
+export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate, onOpenSetuYatra }: HeroProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Register with the shared Back-button trap while the Darshan Certificate
+  // modal is open, so pressing Back (browser or Android hardware) closes
+  // the modal / returns to the homepage instead of exiting the site.
+  useEffect(() => {
+    const id = "hero-darshan-certificate-modal";
+    if (isModalOpen) {
+      registerBackHandler(id, () => setIsModalOpen(false));
+    } else {
+      unregisterBackHandler(id);
+    }
+    return () => unregisterBackHandler(id);
+  }, [isModalOpen]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   
@@ -52,6 +65,15 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     setIsSubmitted(false);
     setMembershipTier(null);
   };
+
+  // Allow other parts of the app (e.g. the footer's "Darshan Certificate"
+  // link, which lives outside this component) to open the Sri Dwar Darshan
+  // Register modal by dispatching a global event after navigating home.
+  useEffect(() => {
+    const openFromEvent = () => handleOpenCertificateModal();
+    window.addEventListener("sd-open-darshan-register", openFromEvent);
+    return () => window.removeEventListener("sd-open-darshan-register", openFromEvent);
+  }, []);
 
   // ── Submit Certificate Request — fires ONE row immediately. If the devotee
   // picked a contribution tier, the row is recorded as "Pending — Awaiting
@@ -215,41 +237,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 <span>Receive Darshan Certificate</span>
               </button>
 
-              {/* 2. Book a Puja — saffron/amber */}
-              <button
-                id="hero-book-puja-cta"
-                onClick={() => { gaBookNowOpen("Hero CTA", 0); onOpenBookNow(); }}
-                className="bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full shadow-[0_0_18px_rgba(217,119,6,0.4)] hover:shadow-[0_0_28px_rgba(217,119,6,0.65)] transition-all hover:scale-105 flex items-center space-x-2 border border-[#FCD34D]/50 cursor-pointer"
-              >
-                <Calendar className="w-4 h-4 text-[#FCD34D]" />
-                <span>Book a Puja</span>
-              </button>
-
-              {/* 3. Explore Shrines — indigo/blue */}
-              <button
-                id="hero-explore-temples-cta"
-                onClick={() => {
-                  gaNavClick("temple-experience-section", "hero");
-                  const el = document.getElementById("temple-experience-section");
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="bg-[#3730A3] hover:bg-[#4338CA] text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full shadow-[0_0_18px_rgba(99,102,241,0.35)] hover:shadow-[0_0_28px_rgba(99,102,241,0.55)] transition-all hover:scale-105 flex items-center space-x-2 border border-[#818CF8]/50 cursor-pointer"
-              >
-                <Compass className="w-4 h-4 text-[#C7D2FE]" />
-                <span>Explore Shrines</span>
-              </button>
-
-              {/* 4. Receive Prasad — rose/pink */}
-              <button
-                id="hero-receive-prasad-cta"
-                onClick={() => { gaNavClick("products", "hero"); onOpenProducts(); }}
-                className="bg-[#9F1239] hover:bg-[#BE123C] text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full shadow-[0_0_18px_rgba(244,63,94,0.35)] hover:shadow-[0_0_28px_rgba(244,63,94,0.55)] transition-all hover:scale-105 flex items-center space-x-2 border border-[#FDA4AF]/50 cursor-pointer"
-              >
-                <GiftIcon className="w-4 h-4 text-[#FDA4AF]" />
-                <span>Receive Prasad</span>
-              </button>
-
-              {/* 5. Setu Yatra Challenge — deep saffron/flame — pulsing attention button */}
+              {/* 2. Setu Yatra Challenge — deep saffron/flame — pulsing attention button */}
               <button
                 id="hero-setu-yatra-cta"
                 onClick={() => { gaNavClick("setu_yatra_challenge", "hero"); onOpenSetuYatra(); }}
@@ -651,29 +639,5 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       refId={refId}
     />
     </div>
-  );
-}
-
-// Inline fallback since Lucide rect doesn't have Gift as GiftIcon
-function GiftIcon(props: any) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <rect x="3" y="8" width="18" height="4" rx="1" />
-      <path d="M12 8v13" />
-      <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
-      <path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 10.3 4.5 12 8A2.5 2.5 0 0 1 7.5 8z" />
-      <path d="M16.5 8a2.5 2.5 0 0 0 0-5C15 3 13.7 4.5 12 8a2.5 2.5 0 0 0 0 0z" />
-    </svg>
   );
 }

@@ -13,7 +13,7 @@ import {
   Search, ChevronDown, ChevronRight, Plus, Check, X,
   MapPin, Phone, Mail, User, Heart, Sparkles,
   Building2, Send, Copy, Share2, ExternalLink, ArrowLeft,
-  Landmark, BookOpen, Gift, Users, Star, Globe, Mic
+  Landmark, BookOpen, Gift, Users, Star, Globe, Mic, Calendar
 } from "lucide-react";
 import { TEMPLES_LIST } from "../data/temples";
 import registerPriestImg from "../assets/images/Register_Priest.jpg";
@@ -22,6 +22,7 @@ import { validateName, validateEmail, validatePhone } from "../utils/formValidat
 import { makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
+import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
 
 // ─── Google Analytics 4 helpers ───────────────────────────────────────────────
 // Measurement ID: G-LXYRS86RGH  (already loaded in index.html via gtag.js)
@@ -529,6 +530,26 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // ── Back-button trap ──────────────────────────────────────────────────
+  // This section is always reached from a non-default state of its parent
+  // (the "Register as Devotee" CTA), so for as long as it's mounted, the
+  // hardware/browser Back button should mirror whatever this screen's own
+  // in-page "Back" button currently does — one step back through the form,
+  // or all the way out via onBack() from the first/last step.
+  useEffect(() => {
+    const id = "devotee-registration-section";
+    const handler =
+      step === "form-basic"
+        ? onBack
+        : step === "form-interests"
+        ? () => setStep("form-basic")
+        : step === "form-donate"
+        ? () => setStep("form-interests")
+        : /* form-success */ onBack;
+    registerBackHandler(id, handler);
+    return () => unregisterBackHandler(id);
+  }, [step, onBack]);
+
   const setF = (key: keyof DevoteeForm, value: string) =>
     setForm(p => ({ ...p, [key]: value }));
 
@@ -968,6 +989,62 @@ function DharmicExpertSection() {
       setShowDevoteeFlow(true);
     }
   }, []);
+
+  // ── Listen for the "Help Us Build India's Sacred Directory" popup CTAs ──
+  // OfferPopup can't set currentPage to "dharmic-expert-register" /
+  // "devotee-register" (those aren't top-level pages), so it navigates home
+  // and dispatches this event instead, telling us which sub-flow to open.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ page?: string }>).detail;
+      if (detail?.page === "devotee-register") {
+        setShowDevoteeFlow(true);
+      } else if (detail?.page === "dharmic-expert-register") {
+        setShowDevoteeFlow(false);
+        setExpertStep("form-basic");
+      } else {
+        return;
+      }
+      setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
+    };
+    window.addEventListener("sridwar:open-registration", handler);
+    return () => window.removeEventListener("sridwar:open-registration", handler);
+  }, []);
+
+  // ── Back-button trap ──────────────────────────────────────────────────
+  // "category-select" is this section's own default/landing view (it's part
+  // of the normal homepage content), so no handler is needed there — Back
+  // should fall through to App's default "go to homepage" behaviour. Every
+  // other step mirrors its own in-page "Back" button. When the devotee
+  // sub-flow is showing, DevoteeRegistrationSection registers its own
+  // handler, so this section steps aside.
+  useEffect(() => {
+    const id = "dharmic-expert-section";
+    if (showDevoteeFlow) {
+      unregisterBackHandler(id);
+      return () => unregisterBackHandler(id);
+    }
+    switch (expertStep) {
+      case "form-basic":
+        registerBackHandler(id, () => setExpertStep("category-select"));
+        break;
+      case "form-services":
+        registerBackHandler(id, () => setExpertStep("form-basic"));
+        break;
+      case "form-donate":
+        registerBackHandler(id, () => setExpertStep("form-services"));
+        break;
+      case "send-link":
+        registerBackHandler(id, () => setExpertStep("form-basic"));
+        break;
+      case "form-success":
+        registerBackHandler(id, () => setExpertStep("category-select"));
+        break;
+      default:
+        unregisterBackHandler(id);
+    }
+    return () => unregisterBackHandler(id);
+  }, [expertStep, showDevoteeFlow]);
 
   const [form, setForm] = useState<ExpertForm>({
     fullName: "", title: "", category: "", city: "", pincode: "",
@@ -1728,9 +1805,10 @@ function DharmicExpertSection() {
 interface TempleRegisterProps {
   standaloneTempleReg?: boolean;
   onNavigate?: (page: string) => void;
+  onOpenBookNow?: () => void;
 }
 
-export default function TempleRegister({ standaloneTempleReg, onNavigate }: TempleRegisterProps) {
+export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpenBookNow }: TempleRegisterProps) {
 
   // ── Step state ──
   const [step, setStep] = useState<Step>(standaloneTempleReg ? "temple-reg" : "find");
@@ -1821,6 +1899,41 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
   const [templeRegDonationAmount, setTempleRegDonationAmount] = useState("");
   const [templeRegDonationNote, setTempleRegDonationNote] = useState("");
   const [showTempleRegUpi, setShowTempleRegUpi] = useState(false);
+
+  // ── Back-button trap ──────────────────────────────────────────────────
+  // This whole component is embedded directly on the homepage (currentPage
+  // stays "home" the entire time), so App's own popstate trap never sees
+  // these internal step changes. Register a handler whenever the user has
+  // moved off the default "find" screen so hardware/browser Back returns
+  // them to the Temple Finder (i.e. the homepage content) instead of
+  // exiting the site. When this component is the STANDALONE Temple
+  // Registration page (?page=temple-register), App.tsx's currentPage-level
+  // trap already sends Back to Home, so no extra handler is needed there.
+  useEffect(() => {
+    const id = "temple-register-main";
+    if (standaloneTempleReg) {
+      unregisterBackHandler(id);
+      return () => unregisterBackHandler(id);
+    }
+    switch (step) {
+      case "temple-reg":
+        registerBackHandler(id, () => setStep("find"));
+        break;
+      case "portal":
+        registerBackHandler(id, () => setStep("find"));
+        break;
+      case "donation":
+        registerBackHandler(id, () => setStep("portal"));
+        break;
+      case "dharmic":
+        registerBackHandler(id, () => setStep("find"));
+        break;
+      default:
+        unregisterBackHandler(id);
+    }
+    return () => unregisterBackHandler(id);
+  }, [step, standaloneTempleReg]);
+
   // One stable Ref ID for the whole registration, generated the moment the
   // temple/committee details are submitted — reused by BOTH the initial
   // "Pending" row and the Final donation row, so the two rows in the sheet
@@ -2751,6 +2864,38 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
               />
             </div>
 
+            {/* Receive Prasad — rose/pink, same glow/pop effect as Setu Yatra Challenge */}
+            <button
+              id="temple-reg-receive-prasad-cta"
+              onClick={() => { gaEvent("prasad_cta_click", { source: "temple_register_section" }); onNavigate?.("products"); }}
+              className="sd-glow-cta w-full sm:w-auto bg-[#9F1239] hover:bg-[#BE123C] text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center justify-center space-x-2 border border-[#FDA4AF]/60 cursor-pointer"
+              style={{
+                boxShadow: "0 0 20px rgba(244,63,94,0.5), 0 0 40px rgba(244,63,94,0.25)",
+                animation: "setuYatraPulse 2s ease-in-out infinite",
+              }}
+            >
+              <span className="absolute inset-0 rounded-full" style={{ animation: "setuYatraRing 2s ease-in-out infinite" }} aria-hidden="true" />
+              <Gift className="w-4 h-4 text-[#FDA4AF]" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
+              <span>Receive Prasad</span>
+            </button>
+
+            {/* Shared glow keyframes for the relocated Hero CTA buttons on this page */}
+            <style>{`
+              .sd-glow-cta { position: relative; }
+              @keyframes setuYatraPulse {
+                0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
+                50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
+              }
+              @keyframes setuYatraRing {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+                50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+              }
+              @keyframes setuYatraFlicker {
+                0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
+                100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+              }
+            `}</style>
+
           </div>{/* end card body */}
         </div>{/* end card */}
 
@@ -2849,6 +2994,21 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate }: Temp
                 <ShortDevoteeLinkButton />
               </div>
             </div>
+
+            {/* Book a Puja — saffron/amber, same glow/pop effect as Setu Yatra Challenge */}
+            <button
+              id="dharmic-expert-book-puja-cta"
+              onClick={() => { gaEvent("book_puja_cta_click", { source: "dharmic_expert_section" }); onOpenBookNow?.(); }}
+              className="sd-glow-cta w-full sm:w-auto bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center justify-center space-x-2 border border-[#FCD34D]/60 cursor-pointer"
+              style={{
+                boxShadow: "0 0 20px rgba(217,119,6,0.5), 0 0 40px rgba(217,119,6,0.25)",
+                animation: "setuYatraPulse 2s ease-in-out infinite",
+              }}
+            >
+              <span className="absolute inset-0 rounded-full" style={{ animation: "setuYatraRing 2s ease-in-out infinite" }} aria-hidden="true" />
+              <Calendar className="w-4 h-4 text-[#FCD34D]" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
+              <span>Book a Puja</span>
+            </button>
 
           </div>{/* end card body */}
         </div>{/* end card */}

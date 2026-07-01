@@ -128,9 +128,9 @@ function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: Drop
   const [selected, setSelected] = useState(options[0]);
 
   return (
-    <div className="bg-[#092320]/80 rounded-2xl border border-white/10 overflow-hidden h-full flex flex-col">
+    <div className="bg-[#092320]/80 rounded-2xl border border-white/10 h-full flex flex-col relative">
       {imageUrl && (
-        <div className="w-full aspect-[3/2] overflow-hidden">
+        <div className="w-full aspect-[3/2] overflow-hidden rounded-t-2xl">
           <img src={imageUrl} alt={label} className="w-full h-full object-cover" />
         </div>
       )}

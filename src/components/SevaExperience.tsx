@@ -398,7 +398,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                 <div
                   id="chat-messages-container"
                   className="flex-1 overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
-                  style={{ minHeight: "160px", maxHeight: "320px" }}
+                  style={{ minHeight: "220px" }}
                 >
                   {chatMessages.map((msg, i) => (
                     <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
