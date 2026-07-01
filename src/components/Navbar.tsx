@@ -9,6 +9,7 @@ import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
 import { gaNavClick, gaShare } from "../utils/analytics";
+import { getShareUrl } from "../utils/shareUrl";
 
 interface NavbarProps {
   currentLanguage: Language;
@@ -22,6 +23,11 @@ interface NavbarProps {
   isLoggedIn: boolean;
   userProfileName?: string;
   onLogout: () => void;
+  // Mobile drawer ("hamburger menu") open state is owned by App.tsx so that
+  // OTHER navigation surfaces outside this component — like the Android
+  // bottom tab bar — can also close it when the devotee taps a tab.
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
 }
 
 export default function Navbar({
@@ -35,10 +41,11 @@ export default function Navbar({
   onOpenSevaModal,
   isLoggedIn,
   userProfileName,
-  onLogout
+  onLogout,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
 
   const t = TRANSLATIONS[currentLanguage];
@@ -64,12 +71,17 @@ export default function Navbar({
   const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleShare = async () => {
+    // Always use the public production URL here — inside the Android app,
+    // window.location.href points at Capacitor's internal "https://localhost"
+    // origin, which is meaningless to whoever receives the shared link.
+    const shareUrl = getShareUrl();
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: "Sri Dwar - Faith Beyond Distance",
           text: "Experience sacred Vedic rituals, live darshans, and premium blessings directly from India's most revered shrines.",
-          url: window.location.href
+          url: shareUrl
         });
         gaShare("native_share", "website", "Sri Dwar");
       } catch (err) {
@@ -77,7 +89,7 @@ export default function Navbar({
       }
     } else {
       // Fallback: Copy link to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       gaShare("clipboard_copy", "website", "Sri Dwar");
       alert("Spiritual connection link copied to your clipboard! Share the blessings.");
     }

@@ -46,6 +46,12 @@ export default function App() {
 
   const [currentLanguage, setCurrentLanguage] = useState<Language>("en");
   const [currentPage, setCurrentPage] = useState<string>("home");
+
+  // Owns the Navbar's mobile hamburger drawer open/closed state here (rather
+  // than inside Navbar itself) so that OTHER navigation surfaces — like the
+  // Android app's bottom tab bar below — can also close the drawer when the
+  // devotee taps a tab, even if they're already on that page.
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Cart, Booking wizards
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -340,6 +346,8 @@ export default function App() {
         isLoggedIn={isLoggedIn}
         userProfileName={userProfile.name}
         onLogout={handleLogout}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
       {/* 2. DYNAMIC PAGES VIEW */}
@@ -713,6 +721,9 @@ export default function App() {
           { id:'login', icon:'👤', label:'Profile' },
         ].map(tab => (
           <button key={tab.id} onClick={() => {
+            // Always close the hamburger drawer first — otherwise it stays
+            // open on top of the newly navigated-to page.
+            setIsMobileMenuOpen(false);
             setCurrentPage(tab.id);
             window.scrollTo({ top: 0, behavior: 'instant' });
           }}

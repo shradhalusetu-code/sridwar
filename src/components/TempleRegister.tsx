@@ -23,6 +23,7 @@ import { makeSubmissionRef } from "../utils/googleFormSync";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
+import { getShareOrigin, isNativeAndroidApp } from "../utils/shareUrl";
 
 // ─── Google Analytics 4 helpers ───────────────────────────────────────────────
 // Measurement ID: G-LXYRS86RGH  (already loaded in index.html via gtag.js)
@@ -43,7 +44,12 @@ function gaEvent(name: string, params: Record<string, string | number> = {}) {
 // Each section gets its own utm_content so GA can tell them apart in the
 // Acquisition → Traffic → Source/Medium report.
 function buildShareUrl(page: string, utmContent: string): string {
-  const base = `${window.location.origin}${window.location.pathname}`;
+  // Inside the Android app, window.location points at Capacitor's internal
+  // "https://localhost" origin, which is meaningless outside the device —
+  // always fall back to the public production URL there.
+  const base = isNativeAndroidApp()
+    ? `${getShareOrigin()}/`
+    : `${window.location.origin}${window.location.pathname}`;
   const params = new URLSearchParams({
     page,
     utm_source:   "share",
@@ -62,7 +68,9 @@ function buildShareUrl(page: string, utmContent: string): string {
 // directly. This works on any static host (GitHub Pages, etc.) since it's a
 // query param, not a server-side route. ──
 function buildShortDevoteeLink(): string {
-  const base = `${window.location.origin}${window.location.pathname}`;
+  const base = isNativeAndroidApp()
+    ? `${getShareOrigin()}/`
+    : `${window.location.origin}${window.location.pathname}`;
   return `${base}?d=1`;
 }
 
