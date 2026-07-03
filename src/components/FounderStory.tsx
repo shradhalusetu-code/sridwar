@@ -106,6 +106,22 @@ export default function FounderStory({ onBack, defaultLanguage = "en" }: Founder
               <a
                 key={sec.id}
                 href={`#story-${lang}-${sec.id}`}
+                onClick={(e) => {
+                  // Scroll to the section manually instead of letting the
+                  // browser perform its default fragment navigation. A native
+                  // hash jump creates a new same-document history entry,
+                  // which fires a `popstate` event; the app's global
+                  // back-button trap (see App.tsx) treats any `popstate`
+                  // while on an internal page as a "go back" signal and was
+                  // sending devotees to the homepage instead of scrolling
+                  // them to the section. Scrolling via scrollIntoView avoids
+                  // touching browser history entirely, so the jump nav no
+                  // longer triggers that handler.
+                  e.preventDefault();
+                  document
+                    .getElementById(`story-${lang}-${sec.id}`)
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
                 className="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-[#5EEAD4]/90 bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-3 py-1.5 hover:bg-[#5EEAD4]/20 transition-colors"
               >
                 {sec.title}
