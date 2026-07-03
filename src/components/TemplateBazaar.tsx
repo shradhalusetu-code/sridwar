@@ -437,13 +437,13 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
       ══════════════════════════════════════════════════════════════════ */}
       {showSankalpa && selectedItem && (
         <div
-          className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4"
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4"
           style={{ touchAction: "pan-y" }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowSankalpa(false); }}
         >
           <div
             className="bg-[#092320] w-full sm:rounded-3xl sm:max-w-sm border border-white/10 shadow-2xl text-white flex flex-col"
-            style={{ maxHeight: "100dvh" }}
+            style={{ maxHeight: "100%" }}
             onClick={(e) => e.stopPropagation()}
           >
 

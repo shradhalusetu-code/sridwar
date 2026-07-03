@@ -752,12 +752,12 @@ export default function App() {
 
       {/* 6. RE-USABLE SEVA CONTRIBUTION MODAL */}
       {isSevaModalOpen && (
-        <div id="seva-quick-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
+        <div id="seva-quick-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
           style={{ touchAction: "pan-y" }}
           onClick={(e) => { if (e.target === e.currentTarget) setIsSevaModalOpen(false); }}
         >
           <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-lg shadow-2xl animate-slideUp text-white flex flex-col"
-            style={{ maxHeight: "100dvh" }}
+            style={{ maxHeight: "100%" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -828,12 +828,12 @@ export default function App() {
 
       {/* 7. RE-USABLE TEMPLE EXPLORE / ARCHITECTURE HISTORY MODAL */}
       {activeExploreTemple && (
-        <div id="temple-explore-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left text-xs text-white"
+        <div id="temple-explore-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left text-xs text-white"
           style={{ touchAction: "pan-y" }}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveExploreTemple(null); }}
         >
           <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl animate-slideUp text-white flex flex-col"
-            style={{ maxHeight: "100dvh" }}
+            style={{ maxHeight: "100%" }}
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -914,25 +914,27 @@ export default function App() {
 
       {/* 8. CAR BASKET SIDE-OVER TRAY */}
       {isCartOpen && (
-        <div id="cart-slideover-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-end animate-fadeIn">
-          <div className="w-full max-w-md bg-[#092320] border-l border-white/10 h-full shadow-2xl flex flex-col justify-between p-6 animate-slideLeft text-xs text-white text-left">
+        <div id="cart-slideover-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex justify-end animate-fadeIn">
+          <div className="w-full max-w-md bg-[#092320] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-xs text-white text-left">
             
-            {/* Header */}
-            <div>
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex items-center space-x-2">
-                  <ShoppingBasket className="w-5.5 h-5.5 text-[#5EEAD4]" />
-                  <h3 className="font-serif text-lg font-bold text-white">Your Basket</h3>
-                </div>
-                <button
-                  id="close-cart-slideover"
-                  onClick={() => setIsCartOpen(false)}
-                  className="p-1 rounded-full text-white/50 hover:bg-white/10 hover:text-white"
-                >
-                  ✕
-                </button>
+            {/* Header — shrink-0 so it never scrolls away */}
+            <div className="shrink-0 flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/10">
+              <div className="flex items-center space-x-2">
+                <ShoppingBasket className="w-5.5 h-5.5 text-[#5EEAD4]" />
+                <h3 className="font-serif text-lg font-bold text-white">Your Basket</h3>
               </div>
-              <div className="space-y-4 pt-6 overflow-y-auto pr-1 flex-1 min-h-0" style={{ WebkitOverflowScrolling: "touch" }}>
+              <button
+                id="close-cart-slideover"
+                onClick={() => setIsCartOpen(false)}
+                className="p-1 rounded-full text-white/50 hover:bg-white/10 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable body — THE ONLY scroll container */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pr-5" style={{ WebkitOverflowScrolling: "touch" }}>
+              <div className="space-y-4 pt-6 pb-2">
                 {cart.length > 0 ? (
                   cart.map((item) => (
                      <div
@@ -995,7 +997,10 @@ export default function App() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-white/10 space-y-4">
+            <div
+              className="shrink-0 px-6 pt-6 border-t border-white/10 space-y-4"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 24px)" }}
+            >
               <div className="flex justify-between items-center text-sm">
                 <div>
                   <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
@@ -1214,12 +1219,12 @@ export default function App() {
         return (
           <div
             id="legal-doc-modal"
-            className="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+            className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
             style={{ touchAction: "pan-y" }}
             onClick={(e) => { if (e.target === e.currentTarget) setActiveLegalDoc(null); }}
           >
             <div className="bg-[#092320] border border-white/10 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl text-white flex flex-col"
-              style={{ maxHeight: "100dvh" }}
+              style={{ maxHeight: "100%" }}
               onClick={(e) => e.stopPropagation()}
             >
 

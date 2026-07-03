@@ -11,9 +11,9 @@ const config: CapacitorConfig = {
   // Darshan". They have ZERO effect on your GitHub Pages website — this block
   // is only read by Capacitor when it builds the Android APK.
   android: {
-    allowMixedContent: true,   // allows http resources inside https webview
+    allowMixedContent: false,  // set to true ONLY if your site loads http:// resources
     captureInput: false,       // don't let WebView capture all input globally
-    webContentsDebuggingEnabled: true, // keep this so USB debugging still works
+    webContentsDebuggingEnabled: false, // OFF for release. Set to true temporarily if you need to debug locally.
   },
 
   server: {

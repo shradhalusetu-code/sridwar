@@ -784,7 +784,7 @@ export default function AuthDashboard({
 
       {/* ── Step 3: Puja Sankalpa Portal ─────────────────────────────────── */}
       {showSankalpaForm && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] overflow-y-auto p-4 py-6">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] overflow-y-auto p-4 py-6">
           <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl mx-auto my-4 text-white">
 
             {/* Header with SriDwarLogo */}

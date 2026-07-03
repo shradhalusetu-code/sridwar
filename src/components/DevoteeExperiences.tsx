@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, FormEvent } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -431,34 +430,39 @@ export default function DevoteeExperiences() {
       </div>
 
       {/* Share Testimonial Overlay Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+      {isModalOpen && (
+          <div
+            id="share-story-modal"
+            className="fixed inset-0 z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+            style={{ touchAction: "pan-y" }}
+            onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
+          >
+            <div
               className="fixed inset-0 bg-black/80 backdrop-blur-sm"
               onClick={() => setIsModalOpen(false)}
             />
             
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative w-full max-w-lg bg-[#042825] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 overflow-hidden"
+            <div
+              className="relative w-full sm:max-w-lg bg-[#042825] border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 flex flex-col overflow-hidden animate-slideUp"
+              style={{ maxHeight: "100%" }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Gold border top accent */}
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#5EEAD4] via-[#FFB347] to-[#5EEAD4]" />
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#5EEAD4] via-[#FFB347] to-[#5EEAD4] z-10" />
               
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1"
+                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
+              {/* Scrollable body — THE ONLY scroll container */}
+              <div
+                className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8"
+                style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}
+              >
               <div className="flex justify-center mb-2">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
               </div>
@@ -471,11 +475,7 @@ export default function DevoteeExperiences() {
               </p>
 
               {isSubmitSuccess ? (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="py-12 text-center space-y-4"
-                >
+                <div className="py-12 text-center space-y-4 animate-fadeIn">
                   <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40">
                     <CheckCircle className="w-8 h-8" />
                   </div>
@@ -483,7 +483,7 @@ export default function DevoteeExperiences() {
                   <p className="text-xs text-white/70 max-w-xs mx-auto">
                     Thank you for sharing your spiritual testimony. Your story has been added and synchronized securely to your browser storage.
                   </p>
-                </motion.div>
+                </div>
               ) : (
                 <form onSubmit={handleSubmitReview} className="space-y-4 text-left">
                   
@@ -570,10 +570,10 @@ export default function DevoteeExperiences() {
 
                 </form>
               )}
-            </motion.div>
+              </div>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+      )}
       {/* Optional UPI contribution after testimony */}
       <UPIPaymentModal
         isOpen={showUPI}

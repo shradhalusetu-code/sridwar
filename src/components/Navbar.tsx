@@ -300,7 +300,7 @@ export default function Navbar({
       {isMobileMenuOpen && (
         <div
           id="mobile-drawer-overlay"
-          className="fixed inset-0 z-50 bg-[#021816]/70 backdrop-blur-md flex justify-end animate-fadeIn"
+          className="fixed inset-0 z-[200] bg-[#021816]/70 backdrop-blur-md flex justify-end animate-fadeIn"
         >
           <div className="w-4/5 max-w-sm bg-[#04201e] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-white overflow-hidden">
             {/* Scrollable inner content */}

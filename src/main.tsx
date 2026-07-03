@@ -27,34 +27,21 @@ if (
 ) {
   document.body.classList.add('capacitor-android');
 
-  // Inject scroll fix styles directly into the page.
-  // This bypasses the build tool stripping out -webkit- prefixes.
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Fix backdrop-blur elements stealing touch/scroll events */
-    .backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md,
-    .backdrop-blur-lg, .backdrop-blur-xl, .backdrop-blur-2xl {
-      -webkit-backface-visibility: hidden !important;
-      backface-visibility: hidden !important;
-      -webkit-transform: translateZ(0) !important;
-      transform: translateZ(0) !important;
-      touch-action: pan-y !important;
-      will-change: transform !important;
-    }
+  /*
+    NOTE: We intentionally do NOT inject any global touch-action /
+    backdrop-blur / overflow-y-auto CSS overrides here.
 
-    /* Fix scrollable inner boxes intercepting finger swipes */
-    .overflow-y-auto, .overflow-y-scroll {
-      overscroll-behavior: contain !important;
-      touch-action: pan-y !important;
-      -webkit-overflow-scrolling: touch !important;
-    }
-
-    /* Global scroll passthrough safety net */
-    * {
-      touch-action: pan-y !important;
-    }
-  `;
-  document.head.appendChild(style);
+    A previous version of this file injected `transform: translateZ(0)`
+    on every backdrop-blur element and `touch-action: pan-y !important`
+    on `*`. That combination promotes blur overlays to their own GPU
+    compositing layer AND forces a single global touch-action, which is
+    precisely what silently swallows touch/scroll events on Capacitor's
+    Android WebView — the modal freezes and bottom buttons become
+    unreachable. index.css documents this same finding (see the
+    "REMOVED" block there) and already applies the correct, narrowly
+    scoped fix via `[id$="-modal"]` / `[id$="-portal"]` selectors.
+    Do not re-add a global override here.
+  */
 }
 
 createRoot(document.getElementById('root')!).render(

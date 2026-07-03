@@ -175,8 +175,14 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       id="hero-wrapper"
       className={`relative flex flex-col justify-between bg-[#021816] text-white ${isAndroidApp ? "pt-28 pb-12" : "pt-2 pb-6"}`}
       style={{
-        minHeight: isAndroidApp ? "100svh" : undefined,
-        overflowX: isAndroidApp ? "clip" : "hidden",
+        // "100vh" not "100svh" — svh is silently dropped on older Android
+        // WebView (no collapsing browser chrome inside the app anyway, so
+        // vh is accurate here and works on every device).
+        minHeight: isAndroidApp ? "100vh" : undefined,
+        // "hidden" not "clip" — overflow: clip is unsupported on older
+        // Android WebView and gets ignored, letting horizontal overflow
+        // through.
+        overflowX: "hidden",
         touchAction: "pan-y",
       }}
     >
@@ -309,13 +315,13 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       {isModalOpen && (
         <div
           id="darshan-modal-portal"
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
           style={{ touchAction: "pan-y" }}
           onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
           <div
             className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-xl shadow-2xl animate-slideUp text-white flex flex-col"
-            style={{ maxHeight: "100dvh" }}
+            style={{ maxHeight: "100%" }}
             onClick={(e) => e.stopPropagation()}
           >
             

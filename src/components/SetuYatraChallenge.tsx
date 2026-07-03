@@ -284,7 +284,7 @@ function SetuYatraModal({ initialTab, onClose }: { initialTab: Tab; onClose: () 
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-0 sm:px-4"
+      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-0 sm:px-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

@@ -221,8 +221,11 @@ body.capacitor-android #mobile-drawer-overlay .overflow-y-auto {
   overflow-hidden on inner cards is removed — it clips content on small screens.
 */
 body.capacitor-android [id$="-portal"],
-body.capacitor-android [id$="-modal"],
-body.capacitor-android .z-\\[70\\] {
+body.capacitor-android [id$="-modal"] {
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+}
+body.capacitor-android .z-\[70\] {
   overflow-y: auto !important;
   touch-action: pan-y !important;
 }

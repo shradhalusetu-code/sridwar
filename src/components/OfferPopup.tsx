@@ -117,13 +117,13 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
   return (
     <div
       id="offer-popup-modal"
-      className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
+      className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
       style={{ touchAction: "pan-y" }}
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div
         className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-xl shadow-2xl animate-slideUp text-white flex flex-col"
-        style={{ maxHeight: "95dvh" }}
+        style={{ maxHeight: "95%" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}

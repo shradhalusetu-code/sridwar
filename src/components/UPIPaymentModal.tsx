@@ -117,7 +117,8 @@ export default function UPIPaymentModal({
       ── Android-safe modal layout ─────────────────────────────────────────
       Same single-scroll-container pattern as BookNowWizard.
       Outer overlay: flex column, overflow HIDDEN — no scroll here.
-      Inner card: flex column, max-height 100dvh.
+      Inner card: flex column, max-height 100% (of the fixed inset-0 parent —
+      not dvh, which is silently dropped on older Android WebView).
       Body: flex-1, min-h-0, overflow-y-auto — the ONLY scroll container.
       ─────────────────────────────────────────────────────────────────────
       Styling note: uses the same translucent "glass-panel" surfaces and
@@ -126,13 +127,13 @@ export default function UPIPaymentModal({
       screen reads as part of the same smooth visual language site-wide.
     */
     <div
-      className="fixed inset-0 bg-[#021816]/90 backdrop-blur-md z-[70] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+      className="fixed inset-0 bg-[#021816]/90 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
       style={{ touchAction: "pan-y" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="bg-gradient-to-b from-[#0B2B27] to-[#0F3530] w-full sm:rounded-3xl sm:max-w-sm border border-white/10 shadow-2xl animate-slideUp text-white flex flex-col"
-        style={{ maxHeight: "100dvh" }}
+        style={{ maxHeight: "100%" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Sticky header ── */}

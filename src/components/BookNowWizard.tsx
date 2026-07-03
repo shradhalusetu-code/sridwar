@@ -191,15 +191,18 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       */}
       <div
         id="booking-wizard-portal"
-        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
         style={{ touchAction: "pan-y" }}
         onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
       >
         <div
           className="bg-[#092320] w-full sm:rounded-3xl sm:max-w-xl shadow-2xl border border-white/10 animate-slideUp text-white flex flex-col"
           style={{
-            // On mobile: take up to full viewport height dynamically (respects keyboard)
-            maxHeight: "100dvh",
+            // Percentage (not dvh — unsupported on older Android WebView, where the
+            // property is silently dropped and the card can grow past the screen)
+            // resolves against the fixed inset-0 parent's real, definite height, so
+            // it stays correct even as the viewport resizes for the keyboard.
+            maxHeight: "100%",
             // On sm+ screens already constrained by p-4 on outer
           }}
           onClick={(e) => e.stopPropagation()}
