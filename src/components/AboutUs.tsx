@@ -3,14 +3,190 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Sparkles, Award, Heart, ShieldCheck, Users } from "lucide-react";
+import { useState } from "react";
+import { Sparkles, Award, Heart, ShieldCheck, Users, Linkedin, ArrowUpRight, ChevronDown } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+
+interface Founder {
+  id: string;
+  name: string;
+  initials: string;
+  title: string;
+  bio: string;
+  pills: { icon: React.ReactNode; label: string }[];
+  photo: string;
+  linkedin: string;
+}
+
+const FOUNDERS: Founder[] = [
+  {
+    id: "kunu-rana",
+    name: "Kunu Rana",
+    initials: "KR",
+    title: "Founder & CEO — Shradhalu Private Limited",
+    bio: "Kunu built Sri Dwar to close the distance between devotees and their temples — pairing proprietary faith-tech with unwavering Vedic authenticity, so that a Sankalpa performed for someone thousands of miles away feels every bit as real as standing at the sanctum door.",
+    pills: [
+      { icon: <Sparkles className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Architect of Sri Dwar Technology" },
+      { icon: <Heart className="w-3.5 h-3.5 text-[#FFB347]" />, label: "100+ Priests Empowered" },
+      { icon: <Award className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Serving Devotees Worldwide" },
+    ],
+    photo: "images/founder-kunu-rana.jpg",
+    linkedin: "https://www.linkedin.com/in/kunurana/",
+  },
+  {
+    id: "harmohan-rana",
+    name: "Harmohan Rana",
+    initials: "HR",
+    title: "Co-Founder — Shradhalu Private Limited",
+    bio: "Harmohan brings the discipline and vision that turns Sri Dwar's mission into a lasting institution — steering the platform's growth while staying rooted in the same commitment to authenticity and priest welfare that inspired its founding.",
+    pills: [
+      { icon: <Sparkles className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Co-Founder, Sri Dwar" },
+      { icon: <Heart className="w-3.5 h-3.5 text-[#FFB347]" />, label: "Champion of Priest Welfare" },
+      { icon: <Award className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Building for the Long Term" },
+    ],
+    photo: "images/founder-harmohan-rana.jpg",
+    linkedin: "https://www.linkedin.com/in/harmohan-rana/",
+  },
+];
+
+function FounderCard({ founder }: { founder: Founder }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div className="relative rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#092320] via-[#092320] to-[#021816] p-6 sm:p-8 shadow-2xl overflow-hidden h-full">
+      {/* Watermark Om, purely decorative */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute -right-6 -top-10 text-[10rem] sm:text-[12rem] font-serif text-white/[0.03] leading-none"
+      >
+        ॐ
+      </span>
+
+      <div className="relative flex flex-col items-center text-center gap-5">
+        {/* Photo + Halo */}
+        <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0">
+          {/* Rotating dotted halo, evokes a japamala (prayer bead) ring */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 200 200"
+            className="absolute inset-[-14px] w-[calc(100%+28px)] h-[calc(100%+28px)] animate-halo-spin"
+          >
+            <circle
+              cx="100" cy="100" r="96"
+              fill="none"
+              stroke="#5EEAD4"
+              strokeOpacity="0.55"
+              strokeWidth="2.5"
+              strokeDasharray="1 11.5"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <div className="absolute inset-0 rounded-full glow-gold">
+            {!imgFailed ? (
+              <img
+                src={import.meta.env.BASE_URL + founder.photo}
+                alt={`${founder.name}, ${founder.title.split(" — ")[0]} of Sri Dwar`}
+                referrerPolicy="no-referrer"
+                onError={() => setImgFailed(true)}
+                className="w-full h-full object-cover rounded-full border-4 border-[#FFB347]"
+              />
+            ) : (
+              <div className="w-full h-full rounded-full border-4 border-[#FFB347] bg-[#0F766E]/40 flex items-center justify-center">
+                <span className="font-serif text-3xl font-black text-[#FFB347]">{founder.initials}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Verified founder badge */}
+          <div className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-[#FFB347] border-4 border-[#092320] flex items-center justify-center shadow-lg">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#021816]" strokeWidth={2.75} />
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight">
+              {founder.name}
+            </h3>
+            <p className="text-[11px] sm:text-xs font-mono uppercase tracking-widest text-[#FFB347] font-bold mt-1.5">
+              {founder.title}
+            </p>
+          </div>
+
+          <p className="text-sm text-white/80 leading-relaxed font-sans">
+            {founder.bio}
+          </p>
+
+          {/* Key detail pills */}
+          <div className="flex flex-wrap justify-center gap-2 pt-1">
+            {founder.pills.map((pill, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-[11px] text-white/85 font-sans"
+              >
+                {pill.icon}
+                {pill.label}
+              </span>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <div className="pt-2">
+            <a
+              href={founder.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-[#FFB347] hover:bg-[#F27D26] active:scale-[0.98] transition-all text-[#021816] font-sans font-bold text-sm px-5 py-2.5 rounded-full shadow-lg"
+            >
+              <Linkedin className="w-4 h-4" strokeWidth={2.5} />
+              Connect on LinkedIn
+              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.75} />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FounderProfile() {
+  return (
+    <div className="relative mb-14 sm:mb-16 animate-fadeIn">
+      {/* Eyebrow */}
+      <div className="inline-flex items-center space-x-2 bg-[#5EEAD4]/10 border border-[#5EEAD4]/30 px-3.5 py-1.5 rounded-full text-[#5EEAD4] text-xs font-semibold uppercase tracking-wider mb-6">
+        <Users className="w-3.5 h-3.5" />
+        <span>Meet the Founders</span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {FOUNDERS.map((founder) => (
+          <FounderCard key={founder.id} founder={founder} />
+        ))}
+      </div>
+
+      <div className="flex justify-center pt-6">
+        <a
+          href="#founder-story-quote"
+          className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors font-sans text-sm px-2 py-2"
+        >
+          Read the founders&apos; full story
+          <ChevronDown className="w-4 h-4" />
+        </a>
+      </div>
+    </div>
+  );
+}
 
 export default function AboutUs() {
   return (
     <section id="about-us-section" className="py-12 bg-[#021816] text-white text-left" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
+        {/* Founder Profile */}
+        <FounderProfile />
+
         {/* Banner Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20 animate-fadeIn">
           {/* Narrative Text (cols 7) */}
@@ -28,7 +204,7 @@ export default function AboutUs() {
               Founded under the legal parent of <strong className="text-white font-semibold">Shradhalu Private Limited</strong> by visionary entrepreneur <strong className="text-white font-semibold">Kunu Rana</strong>, Sri Dwar is an AI-powered faith-tech platform built on proprietary Sri Dwar technology, designed to preserve Vedic culture and make remote temple worship deeply authentic.
             </p>
 
-            <blockquote className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl">
+            <blockquote id="founder-story-quote" className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl scroll-mt-24">
               "We didn't build Sri Dwar to replace physical holy temple visits, but to bridge the spatial divide for elderly parents, sick individuals, and global NRIs — and to provide sustainable, transparent financial conduits for traditional priests, local flower vendors, and indigenous cows."
               <span className="block mt-1 font-sans text-[10px] font-bold text-[#5EEAD4] not-italic uppercase font-mono">— Founder Kunu Rana</span>
             </blockquote>
