@@ -151,7 +151,7 @@ function FounderCard({ founder }: { founder: Founder }) {
   );
 }
 
-function FounderProfile() {
+function FounderProfile({ onNavigate }: { onNavigate?: (page: string) => void }) {
   return (
     <div className="relative mb-14 sm:mb-16 animate-fadeIn">
       {/* Eyebrow */}
@@ -167,25 +167,30 @@ function FounderProfile() {
       </div>
 
       <div className="flex justify-center pt-6">
-        <a
-          href="#founder-story-quote"
+        <button
+          type="button"
+          onClick={() => onNavigate?.("founder-story")}
           className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors font-sans text-sm px-2 py-2"
         >
           Read the founders&apos; full story
           <ChevronDown className="w-4 h-4" />
-        </a>
+        </button>
       </div>
     </div>
   );
 }
 
-export default function AboutUs() {
+interface AboutUsProps {
+  onNavigate?: (page: string) => void;
+}
+
+export default function AboutUs({ onNavigate }: AboutUsProps) {
   return (
     <section id="about-us-section" className="py-12 bg-[#021816] text-white text-left" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Founder Profile */}
-        <FounderProfile />
+        <FounderProfile onNavigate={onNavigate} />
 
         {/* Banner Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20 animate-fadeIn">
@@ -204,7 +209,7 @@ export default function AboutUs() {
               Founded under the legal parent of <strong className="text-white font-semibold">Shradhalu Private Limited</strong> by visionary entrepreneur <strong className="text-white font-semibold">Kunu Rana</strong>, Sri Dwar is an AI-powered faith-tech platform built on proprietary Sri Dwar technology, designed to preserve Vedic culture and make remote temple worship deeply authentic.
             </p>
 
-            <blockquote id="founder-story-quote" className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl scroll-mt-24">
+            <blockquote className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl">
               "We didn't build Sri Dwar to replace physical holy temple visits, but to bridge the spatial divide for elderly parents, sick individuals, and global NRIs — and to provide sustainable, transparent financial conduits for traditional priests, local flower vendors, and indigenous cows."
               <span className="block mt-1 font-sans text-[10px] font-bold text-[#5EEAD4] not-italic uppercase font-mono">— Founder Kunu Rana</span>
             </blockquote>

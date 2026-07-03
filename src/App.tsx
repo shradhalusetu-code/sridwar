@@ -13,6 +13,7 @@ import OnlinePuja from "./components/OnlinePuja";
 import PriestSection from "./components/PriestSection";
 import TemplateBazaar from "./components/TemplateBazaar";
 import AboutUs from "./components/AboutUs";
+import FounderStory from "./components/FounderStory";
 import ContactUs from "./components/ContactUs";
 import AuthDashboard from "./components/AuthDashboard";
 import AIAssistant from "./components/AIAssistant";
@@ -439,8 +440,17 @@ export default function App() {
 
         {currentPage === "about" && (
           <div className="animate-fadeIn">
-            <AboutUs />
+            <AboutUs onNavigate={handleNavigate} />
             <SacredResources />
+          </div>
+        )}
+
+        {currentPage === "founder-story" && (
+          <div className="animate-fadeIn">
+            <FounderStory
+              onBack={() => handleNavigate("about")}
+              defaultLanguage={currentLanguage === "hi" || currentLanguage === "or" ? currentLanguage : "en"}
+            />
           </div>
         )}
 
