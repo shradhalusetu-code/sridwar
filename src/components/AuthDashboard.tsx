@@ -8,6 +8,8 @@ import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Lay
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import SriDwarLogo from "./SriDwarLogo";
+import dharmicIdBg from "../assets/images/Dharmic_ID.jpg";
+import sridwarQR from "../assets/images/SridwarQR.jpg";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
@@ -487,71 +489,136 @@ export default function AuthDashboard({
           /* ACTIVE DEVOTEE WORKSPACE WITH FLOATING VIRTUAL ID CARD */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fadeIn text-white">
             
-            {/* Left Box: Elegant Gotras Virtual ID Card (cols 5) */}
+            {/* Left Box: Professional Dharmic ID Card + Transactions Ledger (cols 5) */}
             <div className="lg:col-span-5 flex flex-col items-center">
-              <h3 className="font-serif text-xl font-bold text-white mb-4 text-center">My Permanent Devotee Card</h3>
+              <h3 className="font-serif text-xl font-bold text-white mb-4 text-center">My Dharmic ID</h3>
               
-              {/* FLOATING SACRED CERTIFICATE/ID DESIGN */}
+              {/* PROFESSIONAL DHARMIC ID CARD — corporate-ID-inspired layout on the Dharmic_ID.jpg backdrop */}
               <div 
                 id="digital-dharmic-id-card"
-                className="relative w-full max-w-sm aspect-[1.586/1] bg-gradient-to-tr from-[#092320] via-[#021816] to-[#042F2A] text-white p-6 rounded-3xl shadow-2xl overflow-hidden border-2 border-[#FFB347]/50 transform hover:-translate-y-2 hover:rotate-1 transition-all duration-300"
+                className="relative w-full max-w-md aspect-[1.62/1] text-white p-6 rounded-3xl shadow-2xl overflow-hidden border-2 border-[#FFB347]/50 transform hover:-translate-y-2 hover:rotate-1 transition-all duration-300"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, rgba(9,35,32,0.55), rgba(2,24,22,0.6) 55%, rgba(4,47,42,0.5)), url(${dharmicIdBg})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
               >
-                {/* Mandala Background Watermarks */}
-                <div className="absolute top-2 right-2 text-9xl text-white/5 font-serif pointer-events-none select-none">
+                {/* Mandala Background Watermarks — unchanged, kept visible over the new backdrop */}
+                <div className="absolute top-2 right-2 text-9xl text-white/10 font-serif pointer-events-none select-none">
                   ॐ
                 </div>
-                <div className="absolute -left-10 -bottom-10 text-9xl text-[#FFB347]/5 font-sans pointer-events-none select-none">
+                <div className="absolute -left-10 -bottom-10 text-9xl text-[#FFB347]/10 font-sans pointer-events-none select-none">
                   श्री
                 </div>
 
-                {/* Card Header */}
-                <div className="flex justify-between items-start border-b border-white/10 pb-3 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
-                    <div>
-                      <span className="block font-bold text-sm tracking-wide text-left">Sri Dwar Identity</span>
-                      <span className="block text-[8px] font-mono tracking-widest text-[#FFB347] uppercase text-left">Shradhalu Private Ltd</span>
-                    </div>
-                  </div>
-                  <span className="text-[9px] bg-[#FFB347]/20 text-[#FFB347] px-2 py-0.5 rounded border border-[#FFB347]/30 font-bold uppercase font-mono">
-                    Devotee
+                {/* Card Header — brand logo centered at top, like a corporate ID crest */}
+                <div className="relative flex flex-col items-center border-b border-white/10 pb-2 mb-2.5">
+                  <SriDwarLogo variant="colored" iconSize="sm" className="mx-auto justify-center" showTagline={false} />
+                  <span className="mt-1.5 text-[9px] font-bold tracking-[0.2em] uppercase text-[#FFB347]/80">
+                    Dharmic Identity Card
                   </span>
                 </div>
 
+                {/* Shradhalu Name */}
+                <div className="relative mb-3 text-left">
+                  <span className="text-[9px] text-white/60 block uppercase">Shradhalu Name</span>
+                  <span className="font-serif font-black text-base text-[#FFB347] truncate block">{userProfile.name}</span>
+                </div>
+
                 {/* Card Main Info layout */}
-                <div className="grid grid-cols-2 gap-4 text-xs font-mono mb-4 text-left">
+                <div className="relative grid grid-cols-2 gap-3 text-xs font-mono mb-2.5 text-left">
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Pilgrim Name</span>
-                    <span className="font-serif font-black text-sm text-[#FFB347] truncate block">{userProfile.name}</span>
-                  </div>
-                  <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Permanent ID</span>
+                    <span className="text-[9px] text-white/60 block uppercase">Dharmic ID</span>
                     <span className="font-bold block">SDM-23491-IN2</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Gotra Lineage</span>
+                    <span className="text-[9px] text-white/60 block uppercase">Membership Tier</span>
+                    <span className="font-bold text-white block truncate">Lifetime Shradhalu</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-white/60 block uppercase">Gotra / Lineage</span>
                     <span className="font-bold text-white block truncate">{userGotra}</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Sign Rashi</span>
+                    <span className="text-[9px] text-white/60 block uppercase">Sign / Rashi</span>
                     <span className="font-bold block truncate">{userRashi}</span>
                   </div>
                 </div>
 
-                {/* Card footer Bar */}
-                <div className="flex justify-between items-center text-[8px] font-mono bg-[#021816]/60 p-2 rounded-xl mt-4">
-                  <span>Registered: June 2026</span>
-                  <span className="text-emerald-350 flex items-center">
-                    <ShieldCheck className="w-3 h-3 text-emerald-400 mr-0.5" />
-                    <span>✓ Secure Login</span>
-                  </span>
+                {/* Card footer Bar — with real Sri Dwar QR code for verification */}
+                <div className="relative flex items-center gap-2.5 text-[8px] font-mono bg-[#021816]/60 p-2 rounded-xl mt-2.5">
+                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <span>Registered: June 2026</span>
+                      <span>Valid Till: June 2027</span>
+                    </div>
+                    <div className="flex justify-center items-center text-emerald-350 pt-1 border-t border-white/5">
+                      <ShieldCheck className="w-3 h-3 text-emerald-400 mr-1" />
+                      <span>Secured by Sridwar Technology</span>
+                    </div>
+                  </div>
+                  <img
+                    src={sridwarQR}
+                    alt="Sri Dwar verification QR code"
+                    className="shrink-0 w-12 h-12 rounded-md object-cover border border-white/10"
+                  />
                 </div>
               </div>
 
+              {/* MY SPIRITUAL TRANSACTIONS LEDGER — moved directly below the ID card */}
+              <div className="w-full max-w-md mt-6 text-left">
+                <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
+                  My Spiritual Transactions Ledger
+                </h3>
+
+                {/* Dynamic booked seva list from wizard success */}
+                <div className="space-y-4">
+                  {bookedItems.length > 0 ? (
+                    <div>
+                      <span className="text-xs font-bold text-[#5EEAD4] uppercase tracking-wider font-mono block mb-2 text-left">Booked Ceremonies</span>
+                      <div className="space-y-3">
+                        {bookedItems.map((item, idx) => (
+                          <div
+                            key={idx}
+                            id={`booked-item-ledg-${idx}`}
+                            className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                          >
+                            <div className="absolute right-4 top-4 text-2xl">🐚</div>
+                            <h4 className="font-serif text-sm font-bold text-white">{item.pujaName}</h4>
+                            <span className="text-[10px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
+                            <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                              <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
+                              <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase animate-pulse">
+                                Sankalpa Scheduled
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-white/40 py-4 italic text-left">No dynamic pujas scheduled in this current browser session yet. Use the header "Book a Puja" to watch live results.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Log out option */}
+              <button
+                id="dashboard-logout-btn"
+                onClick={onLogout}
+                className="mt-6 flex items-center space-x-1.5 px-4 py-2 bg-white/5 border border-white/10 text-white/90 hover:bg-white/15 hover:text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5 text-[#FFB347]" />
+                <span>Log Out of workspace</span>
+              </button>
+            </div>
+
+            {/* Right Box: My Sacred Profile management, moved to the right side (cols 7) */}
+            <div className="lg:col-span-7">
               {/* MY SACRED PROFILE MANAGEMENT CARD */}
               <div 
                 id="my-sacred-profile-card"
-                className="w-full max-w-sm mt-6 bg-[#092320] border border-white/10 rounded-3xl p-5 text-left text-white space-y-4"
+                className="w-full bg-[#092320] border border-white/10 rounded-3xl p-5 text-left text-white space-y-4"
               >
                 <div className="flex items-center space-x-2 border-b border-white/5 pb-2">
                   <span className="text-lg">🕉️</span>
@@ -713,55 +780,6 @@ export default function AuthDashboard({
                   </div>
                 </form>
               </div>
-
-              {/* Log out option */}
-              <button
-                id="dashboard-logout-btn"
-                onClick={onLogout}
-                className="mt-6 flex items-center space-x-1.5 px-4 py-2 bg-white/5 border border-white/10 text-white/90 hover:bg-white/15 hover:text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5 text-[#FFB347]" />
-                <span>Log Out of workspace</span>
-              </button>
-            </div>
-
-            {/* Right Box: Live bookings history record ledger (cols 7) */}
-            <div className="lg:col-span-7 space-y-6">
-              <h3 className="font-serif text-xl font-bold text-white border-b border-white/10 pb-2">
-                My Spiritual Transactions Ledger
-              </h3>
-
-              {/* Dynamic booked seva list from wizard success */}
-              <div className="space-y-4">
-                {bookedItems.length > 0 ? (
-                  <div>
-                    <span className="text-xs font-bold text-[#5EEAD4] uppercase tracking-wider font-mono block mb-2 text-left">Booked Ceremonies</span>
-                    <div className="space-y-3">
-                      {bookedItems.map((item, idx) => (
-                        <div
-                          key={idx}
-                          id={`booked-item-ledg-${idx}`}
-                          className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
-                        >
-                          <div className="absolute right-4 top-4 text-2xl">🐚</div>
-                          <h4 className="font-serif text-sm font-bold text-white">{item.pujaName}</h4>
-                          <span className="text-[10px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
-                          <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
-                            <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
-                            <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase animate-pulse">
-                              Sankalpa Scheduled
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-white/40 py-4 italic text-left">No dynamic pujas scheduled in this current browser session yet. Use the header "Book a Puja" to watch live results.</p>
-                )}
-
-              </div>
-
             </div>
 
           </div>

@@ -35,83 +35,264 @@ interface Testimonial {
   avatarUrl?: string;
 }
 
+// Real devotee stories, drawn from the same devotee names, cities and pujas
+// shared across the Seva Hub "Sacred Moments" panel and the Prayer Wall
+// (see src/data/devoteeReviews.ts). Each entry uses the devotee's first
+// name only, their city/state/country, the puja they sponsored, and the
+// temple it was offered at — no dates or photos are attached.
 const DEFAULT_TESTIMONIALS: Testimonial[] = [
   {
     id: "t1",
-    name: "Rohan Sharma",
-    location: "New Delhi",
+    name: "Aarav",
+    location: "Delhi, Delhi, India",
     serviceName: "Kashi Vishwanath Rudrabhishek",
-    story: "My father had been facing severe health issues of late. We sponsored the Kashi Vishwanath Rudrabhishek online through Sri Dwar. Seeing the live Sankalpa read with his name and gotra, and receiving the pure ashes and Belpatra Prasad within days brought immense peace. His recovery has been miraculous.",
+    story: "My father battled ill health for months. We booked Rudrabhishek at Kashi Vishwanath for him. Watching the sacred chants read with his name and gotra brought tears of hope. Days later, his smile returned. Sri Dwar turned our prayer into a lived miracle.",
     rating: 5,
-    badge: "Example Story",
-    date: "June 2026",
-    avatarSeed: "rohan",
+    badge: "Story",
+    date: "",
+    avatarSeed: "aarav",
   },
   {
     id: "t2",
-    name: "Ananya Iyer",
-    location: "Bengaluru",
-    serviceName: "Vighnaharta Ganesha Success Puja",
-    story: "Before launching our technology venture, we registered for the special Ganesha Sankalpa. The transparency was immaculate—real temple receipts, the chief shastri's digital seal on our certificate, and real-time aarti. We signed our first institutional partner last week! Grateful to Sri Dwar.",
-    rating: 5,
-    badge: "Example Story",
-    date: "May 2026",
-    avatarSeed: "ananya",
+    name: "Aditya",
+    location: "Mumbai, Maharashtra, India",
+    serviceName: "Ayodhya Ram Mandir Annadaan",
+    story: "Sponsoring Annadaan at Ayodhya felt like feeding Lord Ram's own family. The WhatsApp updates made distance disappear — I felt present in every plate served. My heart has never felt fuller.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "aditya",
   },
   {
     id: "t3",
-    name: "Meera Nair",
-    location: "Ernakulam",
-    serviceName: "Sanskrit Gurukul Book Kit Seva",
-    story: "I wanted to sponsor traditional education for my mother's birthday. Through the temple seva portal, I gifted Sanskrit books to young students. Sri Dwar shared actual photographs of children holding the exact kits stamped with the Gurukul seal. Deeply moving and transparent. Highly recommended!",
+    name: "Arjun",
+    location: "Bengaluru, Karnataka, India",
+    serviceName: "Kashi Vishwanath Live Rudrabhishek",
+    story: "Watching the live Rudrabhishek from Kashi Vishwanath filled our home with an energy I can't describe. My children sat in silence, eyes wide, hearts open. That evening changed how we pray together forever.",
     rating: 5,
-    badge: "Example Story",
-    date: "June 2026",
-    avatarSeed: "meera",
+    badge: "Story",
+    date: "",
+    avatarSeed: "arjun",
   },
   {
     id: "t4",
-    name: "Vikram Aditya",
-    location: "Mumbai",
-    serviceName: "Shani Dev Malefic Relief Puja",
-    story: "The transit of Saturn was bringing immense struggles in my profession. Initiating the special Saturday Shani-Taila Abhishekam through Sri Dwar brought high tranquil vibes. The live audio streaming was pristine, and the sacred black thread was received in a beautifully sealed package.",
-    rating: 5,
-    badge: "Example Story",
-    date: "April 2026",
-    avatarSeed: "vikram",
+    name: "Krishna",
+    location: "Hyderabad, Telangana, India",
+    serviceName: "Kashi Vishwanath Mahamrityunjaya Jaap",
+    story: "When my mother fell seriously ill, we booked the Mahamrityunjaya Jaap at Kashi Vishwanath. Every mantra felt like a shield around her. Her recovery since has felt nothing short of divine grace.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "krishna",
   },
   {
     id: "t5",
-    name: "Sandeep Patnaik",
-    location: "Cuttack, Odisha",
-    serviceName: "Puri Jagannath Mahaprasad Seva",
-    story: "Sri Dwar made it incredibly easy to sponsor Chhappan Bhog at Puri on my daughter's birthday. We watched the live streams of the pandas carrying the holy pots. Our sanctified Prasad package containing the dry Nirmalya reached our doorstep in Cuttack with pristine packing. A truly divine blessing!",
+    name: "Shivansh",
+    location: "Chennai, Tamil Nadu, India",
+    serviceName: "Puri Jagannath Chhappan Bhog",
+    story: "For our wedding anniversary, we sponsored Chhappan Bhog at Puri Jagannath. Seeing fifty-six dishes offered in Lord Jagannath's name, from so far away, made our small home feel wrapped in his blessing.",
     rating: 5,
-    badge: "Example Story",
-    date: "June 2026",
-    avatarSeed: "sandeep",
+    badge: "Story",
+    date: "",
+    avatarSeed: "shivansh",
   },
   {
     id: "t6",
-    name: "Rajeshwari Deshmukh",
-    location: "Pune, Maharashtra",
-    serviceName: "Maa Kamakhya Tantrik Archana",
-    story: "Faced severe obstacles in life, blockages seemed endless. Sponsoring Maa Kamakhya's Tantrik Archana with Sri Dwar felt extremely sacred. Listening to the priest recite my Gotra over the water spring in Nilachal hills was deeply moving. Receival of the blessed vermilion and red thread brought a miraculous shift in my daily peace.",
-    rating: 5,
-    badge: "Example Story",
-    date: "June 2026",
-    avatarSeed: "rajeshwari",
+    name: "Shiv",
+    location: "Kolkata, West Bengal, India",
+    serviceName: "Badrinath Darshan Seva",
+    story: "The live darshan from Badrinath felt like standing inside the sanctum myself. My grandmother, who can no longer travel, wept watching from her bed. Sri Dwar gave her the pilgrimage she thought was lost.",
+    rating: 4,
+    badge: "Story",
+    date: "",
+    avatarSeed: "shiv",
   },
   {
     id: "t7",
-    name: "Dr. Amit Varma",
-    location: "Chicago, USA",
-    serviceName: "Ayodhya Gausala Seva Ritual",
-    story: "Living thousands of miles away in Chicago, I always wanted to contribute to the sacred cows in Ayodhya. With Sri Dwar, I was able to sponsor food and fodder seamlessly. Within 24 hours, the team shared photos and live clip links showing fresh green grass delivered to Go-Mata. Deeply transparency-oriented governance!",
+    name: "Rohan",
+    location: "Pune, Maharashtra, India",
+    serviceName: "Kashi Vishwanath Rudrabhishek",
+    story: "Living far from home, I never thought I could sponsor a Rudrabhishek at Kashi Vishwanath myself. The entire process felt personal and sacred, like the priests knew exactly whose prayer they were carrying.",
     rating: 5,
-    badge: "Example Story",
-    date: "May 2026",
-    avatarSeed: "amit",
+    badge: "Story",
+    date: "",
+    avatarSeed: "rohan",
+  },
+  {
+    id: "t8",
+    name: "Karthik",
+    location: "Jaipur, Rajasthan, India",
+    serviceName: "Ayodhya Gurukul Book Seva",
+    story: "I sponsored Sanskrit books for children at a Gurukul near Ayodhya. Seeing them hold the very books I gave, faces lit with joy, taught me giving itself is the truest form of prayer.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "karthik",
+  },
+  {
+    id: "t9",
+    name: "Sandeep",
+    location: "Visakhapatnam, Andhra Pradesh, India",
+    serviceName: "Ayodhya Ram Mandir Seva",
+    story: "We sponsored a temple seva at the Ayodhya Ram Mandir exactly as promised, down to the smallest ritual detail. Knowing our Sankalp reached Lord Ram's own sanctum brought a peace words can't hold.",
+    rating: 4,
+    badge: "Story",
+    date: "",
+    avatarSeed: "sandeep",
+  },
+  {
+    id: "t10",
+    name: "Pranav",
+    location: "Bhubaneswar, Odisha, India",
+    serviceName: "Lingaraj Temple Annadaan",
+    story: "Instead of a birthday party for my son, we sponsored Annadaan at Lingaraj Temple. Watching devotees eat in his name taught him more about gratitude than any gift ever could. Best decision we made.",
+    rating: 5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "pranav",
+  },
+  {
+    id: "t11",
+    name: "Sanjiv",
+    location: "Cuttack, Odisha, India",
+    serviceName: "Puri Jagannath Chhappan Bhog",
+    story: "Even through a screen, the devotion of the Puri Jagannath priests during our Chhappan Bhog seva touched something deep in me. It felt less like watching and more like being personally blessed.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "sanjiv",
+  },
+  {
+    id: "t12",
+    name: "Gaurav",
+    location: "Amritsar, Punjab, India",
+    serviceName: "Kashi Vishwanath Rudrabhishek",
+    story: "Sri Dwar let me stay rooted in Sanatan tradition despite my hectic life. Sponsoring a Kashi Vishwanath Rudrabhishek from Amritsar reminded me that devotion never needs distance, only sincerity of heart.",
+    rating: 4,
+    badge: "Story",
+    date: "",
+    avatarSeed: "gaurav",
+  },
+  {
+    id: "t13",
+    name: "Dev",
+    location: "Varanasi, Uttar Pradesh, India",
+    serviceName: "Kashi Vishwanath Sankalp Puja",
+    story: "Living right here in Varanasi, I still chose Sri Dwar for my Sankalp Puja at Kashi Vishwanath. Hearing my name and family lineage spoken aloud during the ritual was a moment I will carry forever.",
+    rating: 5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "dev",
+  },
+  {
+    id: "t14",
+    name: "Om",
+    location: "Ludhiana, Punjab, India",
+    serviceName: "Kashi Vishwanath Shravan Rudrabhishek",
+    story: "This Shravan, I sponsored a Rudrabhishek at Kashi Vishwanath for my whole family's wellbeing. The spiritual upliftment I felt afterward stayed with me for weeks, calm and steady in a way I hadn't known.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "om",
+  },
+  {
+    id: "t15",
+    name: "Manjunath",
+    location: "Mysore, Karnataka, India",
+    serviceName: "Vrindavan Gau Seva",
+    story: "Sponsoring Gau Seva in Vrindavan gave me a quiet joy I didn't expect. Knowing the cows were fed fresh fodder in my family's name felt like offering love straight to Krishna himself.",
+    rating: 4,
+    badge: "Story",
+    date: "",
+    avatarSeed: "manjunath",
+  },
+  {
+    id: "t16",
+    name: "Ramesh",
+    location: "Kochi, Kerala, India",
+    serviceName: "Guruvayur Temple Seva",
+    story: "From booking to blessing, sponsoring a seva at Guruvayur Temple through Sri Dwar was seamless and sincere. Grateful that sacred rituals are now just a few taps away, wherever life takes us.",
+    rating: 5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "ramesh",
+  },
+  {
+    id: "t17",
+    name: "Aditi",
+    location: "London, England, United Kingdom",
+    serviceName: "Badrinath Live Darshan",
+    story: "Thousands of miles from India, watching live darshan from Badrinath made me feel instantly home. The photos and videos of the ritual brought tears — a connection to my roots I feared I'd lost.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "aditi",
+  },
+  {
+    id: "t18",
+    name: "Ananya",
+    location: "Paris, Île-de-France, France",
+    serviceName: "Somnath Vedic Puja",
+    story: "Sponsoring a Vedic puja at Somnath Temple from Paris reminded me that faith travels farther than any flight. Every mantra chanted in my name felt like Lord Shiva was listening from across the world.",
+    rating: 5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "ananya",
+  },
+  {
+    id: "t19",
+    name: "Priya",
+    location: "Los Angeles, California, USA",
+    serviceName: "Vrindavan Gau Seva",
+    story: "On Gopashtami, I sponsored Gau Seva in Vrindavan from Los Angeles. The peace that followed stayed with our whole family for days — proof that sacred intent needs no passport to reach the divine.",
+    rating: 4,
+    badge: "Story",
+    date: "",
+    avatarSeed: "priya",
+  },
+  {
+    id: "t20",
+    name: "Neha",
+    location: "Chicago, Illinois, USA",
+    serviceName: "Kashi Vishwanath Vedic Ceremony",
+    story: "The Vedic chanting during our Kashi Vishwanath ceremony felt absolutely divine, even streamed to Chicago. My children, born abroad, finally felt a living thread to their grandparents' faith.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "neha",
+  },
+  {
+    id: "t21",
+    name: "Nandini",
+    location: "Phoenix, Arizona, USA",
+    serviceName: "Tirupati Balaji Griha Pravesh Mahapuja",
+    story: "For our new home, we sponsored a Mahapuja at Tirupati Balaji Temple. Watching every ritual performed with such care from Phoenix, we felt Lord Venkateswara's blessing settle over our doorstep before we'd even moved in.",
+    rating: 5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "nandini",
+  },
+  {
+    id: "t22",
+    name: "Shruti",
+    location: "Sydney, New South Wales, Australia",
+    serviceName: "Puri Jagannath Family Sankalpa",
+    story: "We now book every family occasion puja through Sri Dwar. Our latest Sankalpa at Puri Jagannath, offered all the way from Sydney, felt as intimate as standing at the temple gates ourselves.",
+    rating: 4.5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "shruti",
+  },
+  {
+    id: "t23",
+    name: "Gauri",
+    location: "Brisbane, Queensland, Australia",
+    serviceName: "Puri Jagannath Chhappan Bhog",
+    story: "Sponsoring Chhappan Bhog seva at Puri Jagannath from Brisbane, and receiving such thorough documentation of every offering, made an ocean of distance feel like nothing at all. Truly beautiful devotion.",
+    rating: 5,
+    badge: "Story",
+    date: "",
+    avatarSeed: "gauri",
   }
 ];
 
@@ -285,9 +466,6 @@ export default function DevoteeExperiences() {
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
             Divine Miracles & Success Stories
           </h2>
-          <p className="text-xs md:text-sm text-white/70 max-w-xl mx-auto">
-            Real stories shared by devotees who used Sri Dwar, alongside example stories illustrating the kinds of experiences devotees have.
-          </p>
         </div>
 
         {/* Carousel Container */}
@@ -332,22 +510,25 @@ export default function DevoteeExperiences() {
               <div className="mt-4 px-3 py-1.5 rounded-xl bg-teal-950/80 border border-[#5EEAD4]/20 text-[11px] font-sans font-bold text-[#5EEAD4] tracking-wide uppercase">
                 {currentDevotee.serviceName}
               </div>
-              
-              <div className="text-[10px] text-white/40 font-mono mt-2">{currentDevotee.date}</div>
             </div>
 
             {/* Right Column: Quote & Story */}
             <div className="md:col-span-8 flex flex-col justify-between py-2 pl-0 md:pl-4 min-h-[220px]">
               <div>
-                {/* Trust Stars */}
+                {/* Trust Stars — supports half-star ratings like 4.5 */}
                 <div className="flex items-center space-x-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-4 h-4 ${i < currentDevotee.rating ? "text-[#FFB347] fill-[#FFB347]" : "text-white/20"}`} 
-                    />
-                  ))}
-                  <span className="text-xs text-white/50 font-mono pl-1">({currentDevotee.rating}.0)</span>
+                  {[...Array(5)].map((_, i) => {
+                    const fillPercent = Math.max(0, Math.min(1, currentDevotee.rating - i)) * 100;
+                    return (
+                      <span key={i} className="relative inline-block w-4 h-4">
+                        <Star className="absolute inset-0 w-4 h-4 text-white/20" />
+                        <span className="absolute inset-0 overflow-hidden" style={{ width: `${fillPercent}%` }}>
+                          <Star className="w-4 h-4 text-[#FFB347] fill-[#FFB347]" />
+                        </span>
+                      </span>
+                    );
+                  })}
+                  <span className="text-xs text-white/50 font-mono pl-1">({currentDevotee.rating})</span>
                 </div>
 
                 {/* Quote details */}
@@ -359,16 +540,11 @@ export default function DevoteeExperiences() {
                 </div>
               </div>
 
-              {/* Bottom Stamp Badges */}
-              <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
+              {/* Bottom Stamp Badge */}
+              <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap items-center gap-4">
                 <div className="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-500/20 rounded-lg px-2.5 py-1 text-emerald-400 text-xs font-bold font-sans">
                   <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
                   <span>{currentDevotee.badge}</span>
-                </div>
-
-                {/* Sri Dwar Digital signature guarantee stamp text */}
-                <div className="text-[10px] font-mono tracking-widest text-[#FFB347]/70 uppercase flex items-center space-x-1">
-                  <span>Sri Dwar Confirmed Sync</span>
                 </div>
               </div>
 
