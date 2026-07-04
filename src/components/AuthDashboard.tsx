@@ -496,7 +496,7 @@ export default function AuthDashboard({
               {/* PROFESSIONAL DHARMIC ID CARD — corporate-ID-inspired layout on the Dharmic_ID.jpg backdrop */}
               <div 
                 id="digital-dharmic-id-card"
-                className="relative w-full max-w-md aspect-[1.62/1] text-white p-6 rounded-3xl shadow-2xl overflow-hidden border-2 border-[#FFB347]/50 transform hover:-translate-y-2 hover:rotate-1 transition-all duration-300"
+                className="relative w-full max-w-md text-white p-5 sm:p-6 rounded-3xl shadow-2xl overflow-hidden border-2 border-[#FFB347]/50 transform hover:-translate-y-2 hover:rotate-1 transition-all duration-300"
                 style={{
                   backgroundImage: `linear-gradient(135deg, rgba(9,35,32,0.55), rgba(2,24,22,0.6) 55%, rgba(4,47,42,0.5)), url(${dharmicIdBg})`,
                   backgroundSize: "cover",
@@ -526,7 +526,7 @@ export default function AuthDashboard({
                 </div>
 
                 {/* Card Main Info layout */}
-                <div className="relative grid grid-cols-2 gap-3 text-xs font-mono mb-2.5 text-left">
+                <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2.5 text-xs font-mono mb-2.5 text-left">
                   <div>
                     <span className="text-[9px] text-white/60 block uppercase">Dharmic ID</span>
                     <span className="font-bold block">SDM-23491-IN2</span>
