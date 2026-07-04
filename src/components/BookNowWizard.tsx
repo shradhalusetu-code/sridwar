@@ -154,7 +154,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
           <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="shrink-0" />
           <div>
             <h3 className="font-serif text-base font-bold text-left text-white">Puja Sankalpa Portal</h3>
-            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider text-left">Vedas Authenticated Rites</p>
+            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider text-left">Vedic Rites, Followed Faithfully</p>
           </div>
         </div>
         <button
@@ -225,7 +225,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               {step === 1 && (
                 <form onSubmit={handleNextToPayment} className="space-y-4">
                   <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[11px] text-[#5EEAD4] text-left leading-relaxed">
-                    <span className="font-bold">🙏 Sanctify Your Rites:</span> Every ritual requires an authentic sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.
+                    <span className="font-bold">🙏 Sanctify Your Rites:</span> Every ritual requires a heartfelt sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.
                   </div>
 
                   {hasAutofilled && (

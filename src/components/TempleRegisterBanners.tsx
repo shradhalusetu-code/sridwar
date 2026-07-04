@@ -56,7 +56,7 @@ export function TempleBanner() {
             {[
               { icon: "🏛️", label: "Temples & Mandals" },
               { icon: "🆓", label: "Free Listing" },
-              { icon: "🔒", label: "Verified" },
+              { icon: "🔒", label: "Trusted" },
             ].map((c) => (
               <span
                 key={c.label}
@@ -170,7 +170,7 @@ export function DharmicExpertBanner() {
 
           <div className="flex flex-wrap gap-2">
             {[
-              { icon: "✅", label: "Verified Experts" },
+              { icon: "✅", label: "Experienced Experts" },
               { icon: "🆓", label: "Free to Register" },
               { icon: "📲", label: "Discoverable" },
             ].map((c) => (

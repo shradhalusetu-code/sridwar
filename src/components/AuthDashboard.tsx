@@ -57,10 +57,10 @@ export default function AuthDashboard({
   const [contributionRefId, setContributionRefId] = useState("");
 
   // My Sacred Profile states
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([
-    { name: "Anjali Rana", relation: "Spouse" },
-    { name: "Siddharth Rana", relation: "Son" }
-  ]);
+  // No placeholder/generic family members are pre-populated here. The
+  // Dharmic ID should only ever show family members the devotee has
+  // actually entered themselves via "Add family member" below.
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRelation, setNewMemberRelation] = useState("Spouse");
   const [saveProfileSuccess, setSaveProfileSuccess] = useState(false);
@@ -243,10 +243,11 @@ export default function AuthDashboard({
     }
   };
 
-  const simulatedHistory = [
-    { name: "Puri Jagannath Shringar Aarti", date: "June 10, 2026", status: "Completed" },
-    { name: "Gau Seva Green Food Feed", date: "June 14, 2026", status: "Delivered & Chanted" }
-  ];
+  // Note: previously this dashboard showed a hardcoded "simulatedHistory"
+  // list of completed pujas to every devotee regardless of whether they had
+  // actually booked anything — i.e. fabricated personal account history.
+  // That has been removed; the dashboard now only shows a devotee's real
+  // bookedItems (from this browser session) and an honest empty state.
 
   return (
     <section id="auth-dashboard-section" className="py-24 bg-[#021816] text-left text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
@@ -335,21 +336,25 @@ export default function AuthDashboard({
                 </div>
               </div>
 
-              {/* Secure Google sign in simulation trigger */}
+              {/* Plain registration submit button — no Google branding or
+                  colors, since this form does not use real Google Sign-In/
+                  OAuth. Using Google's brand color and a bare "G" here would
+                  visually impersonate "Sign in with Google" while actually
+                  being an ordinary name/email form, which is both a brand
+                  misuse and a deceptive-functionality risk. */}
               <button
-                id="google-signin-trigger"
+                id="devotee-register-trigger"
                 type="submit"
                 disabled={isLoggingIn}
-                className="w-full bg-[#EA4335] hover:bg-[#D62E1F] text-white font-bold py-3 rounded-xl text-xs transition-colors shadow flex items-center justify-center space-x-2 cursor-pointer"
+                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-3 rounded-xl text-xs transition-colors shadow flex items-center justify-center space-x-2 cursor-pointer"
               >
                 {isLoggingIn ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#021816]" />
                     <span>Connecting to Sri Dwar...</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm font-black text-center">G</span>
                     <span className="tracking-wider">GENERATE DIGITAL DHARMIC ID</span>
                   </>
                 )}
@@ -538,7 +543,7 @@ export default function AuthDashboard({
                   <span>Registered: June 2026</span>
                   <span className="text-emerald-350 flex items-center">
                     <ShieldCheck className="w-3 h-3 text-emerald-400 mr-0.5" />
-                    <span>✓ Authenticated Secure</span>
+                    <span>✓ Secure Login</span>
                   </span>
                 </div>
               </div>
@@ -754,23 +759,6 @@ export default function AuthDashboard({
                 ) : (
                   <p className="text-xs text-white/40 py-4 italic text-left">No dynamic pujas scheduled in this current browser session yet. Use the header "Book a Puja" to watch live results.</p>
                 )}
-
-                {/* Simulated default history records */}
-                <div>
-                  <span className="text-xs font-bold text-white/40 uppercase tracking-wider font-mono block mb-2 text-left">Historic Devout Transactions</span>
-                  <div className="space-y-3">
-                    {simulatedHistory.map((hist, idx) => (
-                      <div key={idx} className="bg-[#092320] p-4 rounded-2xl border border-white/5 text-left text-white">
-                        <h4 className="text-xs font-bold text-white/95">{hist.name}</h4>
-                        <span className="text-[10px] text-white/45 font-mono font-medium block">Completed: {hist.date}</span>
-                        <div className="flex justify-between items-center mt-2 text-[10px] font-mono text-white/55">
-                          <span>Verified: Pundit Shastri</span>
-                          <span className="text-emerald-400 font-bold">✓ Delivered & Blessed</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
               </div>
 

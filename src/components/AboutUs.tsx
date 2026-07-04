@@ -24,7 +24,7 @@ const FOUNDERS: Founder[] = [
     name: "Kunu Rana",
     initials: "KR",
     title: "Founder & CEO — Shradhalu Private Limited",
-    bio: "Kunu built Sri Dwar to close the distance between devotees and their temples — pairing proprietary faith-tech with unwavering Vedic authenticity, so that a Sankalpa performed for someone thousands of miles away feels every bit as real as standing at the sanctum door.",
+    bio: "Kunu built Sri Dwar to close the distance between devotees and their temples — pairing proprietary faith-tech with a deep respect for Vedic tradition, so that a Sankalpa performed for someone thousands of miles away feels every bit as real as standing at the sanctum door.",
     pills: [
       { icon: <Sparkles className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Architect of Sri Dwar Technology" },
       { icon: <Heart className="w-3.5 h-3.5 text-[#FFB347]" />, label: "100+ Priests Empowered" },
@@ -38,7 +38,7 @@ const FOUNDERS: Founder[] = [
     name: "Harmohan Rana",
     initials: "HR",
     title: "Co-Founder — Shradhalu Private Limited",
-    bio: "Harmohan brings the discipline and vision that turns Sri Dwar's mission into a lasting institution — steering the platform's growth while staying rooted in the same commitment to authenticity and priest welfare that inspired its founding.",
+    bio: "Harmohan brings the discipline and vision that turns Sri Dwar's mission into a lasting institution — steering the platform's growth while staying rooted in the same commitment to tradition and priest welfare that inspired its founding.",
     pills: [
       { icon: <Sparkles className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Co-Founder, Sri Dwar" },
       { icon: <Heart className="w-3.5 h-3.5 text-[#FFB347]" />, label: "Champion of Priest Welfare" },
@@ -98,7 +98,7 @@ function FounderCard({ founder }: { founder: Founder }) {
             )}
           </div>
 
-          {/* Verified founder badge */}
+          {/* Founder badge */}
           <div className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-[#FFB347] border-4 border-[#092320] flex items-center justify-center shadow-lg">
             <ShieldCheck className="w-3.5 h-3.5 text-[#021816]" strokeWidth={2.75} />
           </div>
@@ -206,7 +206,7 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
             </h2>
 
             <p className="text-sm text-white/80 leading-relaxed font-sans">
-              Founded under the legal parent of <strong className="text-white font-semibold">Shradhalu Private Limited</strong> by visionary entrepreneur <strong className="text-white font-semibold">Kunu Rana</strong>, Sri Dwar is an AI-powered faith-tech platform built on proprietary Sri Dwar technology, designed to preserve Vedic culture and make remote temple worship deeply authentic.
+              Founded under the legal parent of <strong className="text-white font-semibold">Shradhalu Private Limited</strong> by visionary entrepreneur <strong className="text-white font-semibold">Kunu Rana</strong>, Sri Dwar is an AI-powered faith-tech platform built on proprietary Sri Dwar technology, designed to preserve Vedic culture and make remote temple worship feel deeply meaningful.
             </p>
 
             <blockquote className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl">
@@ -215,7 +215,7 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
             </blockquote>
 
             <p className="text-sm text-white/80 leading-relaxed font-sans">
-              Every Sankalpa we register is synchronized through Sri Dwar's secure compliance systems, with immediate payout structures ensuring a major portion of your Dakshina is transferred directly into verified priest trusts.
+              Every Sankalpa we register is synchronized through Sri Dwar's secure compliance systems, with immediate payout structures ensuring a major portion of your Dakshina is transferred directly to the priests and temples performing your ritual.
             </p>
           </div>
 
@@ -244,7 +244,7 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
             <div className="w-10 h-10 rounded-2xl bg-[#5EEAD4]/10 text-[#5EEAD4] flex items-center justify-center font-bold text-lg border border-[#5EEAD4]/20">
               ✓
             </div>
-            <h4 className="font-serif text-base font-bold text-white">Scriptural Authenticity</h4>
+            <h4 className="font-serif text-base font-bold text-white">Rooted in Scripture</h4>
             <p className="text-xs text-white/70 leading-relaxed">
               No mass prayers, ever. Every puja is voiced individually with your Gotra and Nakshatra, faithfully preserving thousands of years of strict Vedic tradition.
             </p>

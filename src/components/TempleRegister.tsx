@@ -467,7 +467,7 @@ function ShareLinkButton({
     const result = await shareOrCopy(
       url,
       "Sri Dwar — India's Sacred Temple Platform",
-      "Register on Sri Dwar and connect with India's sacred temples, verified priests, puja bookings, prasad, live darshan & more."
+      "Register on Sri Dwar and connect with India's sacred temples, trusted priests, puja bookings, prasad, live darshan & more."
     );
     setStatus(result);
     gaEvent(gaEventName, { method: result, page_target: page, utm_content: utmContent });
@@ -737,7 +737,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[#FFB347]">Your contribution helps Sridwar Technology:</p>
               <p className="text-[11px] text-white/55 leading-relaxed">
-                Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, verified priests, and dharmic services.
+                Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
                 <br /><strong className="text-white/75">A Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/75">24 hours</strong> after payment verification.
               </p>
             </div>
@@ -945,7 +945,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           {[
             { icon: "🔒", label: "Data is private" },
             { icon: "✅", label: "No spam, ever" },
-            { icon: "🕉", label: "Verified priests" },
+            { icon: "🕉", label: "Trusted priests" },
             { icon: "🌍", label: "Worldwide service" },
           ].map(f => (
             <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
@@ -1800,7 +1800,7 @@ function DharmicExpertSection() {
         )}
 
         <p className="text-center text-[10px] text-white/30 font-mono">
-          Securely managed by Sridwar Technology · Data is verified before listing
+          Securely managed by Sridwar Technology · Listings are reviewed before publishing
         </p>
 
         <SetuYatraFooterLinks />
@@ -2966,7 +2966,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               {[
                 { icon: "🆓", label: "Free Registration" },
                 { icon: "🔒", label: "Securely managed by Sridwar Technology" },
-                { icon: "✅", label: "Verified before listing" },
+                { icon: "✅", label: "Reviewed before listing" },
                 { icon: "📲", label: "Discoverable by devotees" },
               ].map(f => (
                 <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">

@@ -25,12 +25,12 @@ const PRESET_QA: PresetQA[] = [
   {
     keywords: ["founder", "kunu", "rana", "who started", "who made", "who created", "shradhalu"],
     question: "Who is the founder of Sri Dwar?",
-    answer: "Sri Dwar was founded by visionary entrepreneur Kunu Rana, under the legal parent Shradhalu Private Limited. It is an AI-powered faith-tech platform built to preserve Vedic culture and make remote temple worship deeply authentic. 🙏",
+    answer: "Sri Dwar was founded by visionary entrepreneur Kunu Rana, under the legal parent Shradhalu Private Limited. It is an AI-powered faith-tech platform built to preserve Vedic culture and make remote temple worship deeply meaningful. 🙏",
   },
   {
     keywords: ["book puja", "book a puja", "how to book", "puja booking", "sankalpa"],
     question: "How do I book a Puja?",
-    answer: "You can book a Puja anytime using the 'Book a Puja' button on our homepage or the Online Puja page. Simply choose your ritual, share your Name and Gotra, and our verified temple Acharyas will perform the Sankalpa on your behalf with live streaming coordinates shared afterward.",
+    answer: "You can book a Puja anytime using the 'Book a Puja' button on our homepage or the Online Puja page. Simply choose your ritual, share your Name and Gotra, and our trusted temple Acharyas will perform the Sankalpa on your behalf with live streaming coordinates shared afterward.",
   },
   {
     keywords: ["gotra", "don't know my gotra", "unknown gotra", "no gotra"],
@@ -50,7 +50,7 @@ const PRESET_QA: PresetQA[] = [
   {
     keywords: ["setu yatra", "challenge", "referral", "invite"],
     question: "What is the Setu Yatra Challenge?",
-    answer: "The Setu Yatra Challenge invites devotees to add genuine, verifiable entries — temples, puja committees, priests, or dharmic experts — to the Sri Dwar directory. Contributors help build India's trusted digital dharmic network. Look for the glowing 'Setu Yatra Challenge' button on our homepage to join!",
+    answer: "The Setu Yatra Challenge invites devotees to add real, checkable entries — temples, puja committees, priests, or dharmic experts — to the Sri Dwar directory. Contributors help build India's trusted digital dharmic network. Look for the glowing 'Setu Yatra Challenge' button on our homepage to join!",
   },
   {
     keywords: ["darshan certificate", "certificate", "darshan register"],
@@ -60,7 +60,7 @@ const PRESET_QA: PresetQA[] = [
   {
     keywords: ["seva", "sponsor seva", "gau seva", "annadanam", "diya", "cow feeding"],
     question: "What kinds of Seva can I sponsor?",
-    answer: "You can sponsor Annadanam (temple meal distribution), Gau Seva (holy cow feeding), Akhanda Diya (continuous lamp lighting), Vedic education support (Gurukul Dan), and more through our Seva Hub. Every sponsorship is verified with photos and updates.",
+    answer: "You can sponsor Annadanam (temple meal distribution), Gau Seva (holy cow feeding), Akhanda Diya (continuous lamp lighting), Vedic education support (Gurukul Dan), and more through our Seva Hub. Every sponsorship is documented with photos and updates.",
   },
   {
     keywords: ["cow", "gau seva timing", "wednesday", "thursday", "planetary"],
@@ -75,7 +75,7 @@ const PRESET_QA: PresetQA[] = [
   {
     keywords: ["astrology", "astrologer", "jyotish", "kundali", "horoscope"],
     question: "Can I consult a Vedic astrologer?",
-    answer: "Yes! Sri Dwar connects you with verified Jyotish experts for personalized horoscope readings, Kundali matching, and life guidance. You can explore our astrology consultations under Holistic Wellness on the Online Puja page.",
+    answer: "Yes! Sri Dwar connects you with experienced Jyotish experts for personalized horoscope readings, Kundali matching, and life guidance. You can explore our astrology consultations under Holistic Wellness on the Online Puja page.",
   },
   {
     keywords: ["register temple", "temple registration", "list my temple", "puja committee"],
@@ -100,7 +100,7 @@ const PRESET_QA: PresetQA[] = [
   {
     keywords: ["choose priest", "specific priest", "pick a pandit", "select acharya"],
     question: "Can I choose a specific priest for my Puja?",
-    answer: "Our chief verified Acharyas are assigned by default to ensure standard adherence. Devotees selecting Maha Puja tiers can request a specific pandit through the special-instructions field during the Book Now workflow.",
+    answer: "Our chief senior Acharyas are assigned by default to ensure standard adherence. Devotees selecting Maha Puja tiers can request a specific pandit through the special-instructions field during the Book Now workflow.",
   },
   {
     keywords: ["annadanam pure", "vegetarian", "onion garlic", "temple food"],
@@ -120,7 +120,7 @@ const PRESET_QA: PresetQA[] = [
   {
     keywords: ["temple bazaar", "buy", "shop", "rudraksha", "idol", "store"],
     question: "What can I buy from the Temple Bazaar?",
-    answer: "The Temple Bazaar offers authentic vacuum-packed Prasad, Rudraksha malas, brass idols, dhoop, incense, home puja kits, and other sacred items — all sourced from verified temple sources and shipped worldwide.",
+    answer: "The Temple Bazaar offers vacuum-packed Prasad, Rudraksha malas, brass idols, dhoop, incense, home puja kits, and other sacred items — all sourced with care from trusted temple sources and shipped worldwide.",
   },
 ];
 

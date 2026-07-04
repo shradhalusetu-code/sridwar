@@ -6,6 +6,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { Award, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Flame } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
+import { PRIEST_PROFILES } from "../data/priests";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
@@ -157,17 +158,34 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     }
   };
 
+  // Trust-bar stats — kept honest on purpose:
+  //  - "Priests Network" and "Temples Network" are computed live from the
+  //    actual data files, so they can never drift into a false claim as the
+  //    business grows or changes (and note: PRIEST_PROFILES currently marks
+  //    every priest isVerified: false, so we no longer claim "Verified
+  //    Priests" here — that word should only return once a real
+  //    verification process is in place and priests.ts reflects it).
+  //  - "Languages Supported" is computed from the app's own translations.
+  //  - The rest are genuine feature/policy claims (things Sri Dwar actually
+  //    does), not fabricated headcounts. Previous versions of this list
+  //    included specific-sounding but unverifiable numbers ("10k+ Devotees
+  //    Served", "1500+ Devotee Memberships", "12 Global Reps", "2 Festivals
+  //    Streamed", separate made-up counts for "Puja Committees" vs "Puja
+  //    Mandal") with no backing data anywhere in the codebase. Displaying
+  //    fabricated scale metrics like that is a real Play Store / Google
+  //    Business "deceptive claims" risk, so they've been removed rather
+  //    than just reworded. If you have real, verifiable figures for any of
+  //    those, add them back in — just make sure they're numbers you can
+  //    substantiate if asked.
   const trustStats = [
-    { value: "10k+", label: "Devotees Served" },
-    { value: "20+", label: "Verified Priests" },
+    { value: `${PRIEST_PROFILES.length}+`, label: "Priests Network" },
+    { value: `${TEMPLES_LIST.length}+`, label: "Temples Network" },
+    { value: `${Object.keys(TRANSLATIONS).length}`, label: "Languages Supported" },
     { value: "100%", label: "Secure Offerings" },
-    { value: "30", label: "Puja Committees" },
-    { value: "40", label: "Puja Mandal" },
-    { value: "33+", label: "Temples Network" },
-    { value: "1500+", label: "Devotee Memberships" },
-    { value: "12", label: "Global Reps" },
-    { value: "2", label: "Festivals Streamed" },
-    { value: "24/7", label: "Live Ritual Streams" }
+    { value: "24/7", label: "Live Ritual Streams" },
+    { value: "Free", label: "Temple Registration" },
+    { value: "Global", label: "Devotees Welcome" },
+    { value: "AI-Powered", label: "Faith-Tech Platform" },
   ];
 
   return (
@@ -282,7 +300,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             
             {/* Secondary note */}
             <div className="text-[11px] text-white/40 font-mono italic text-center">
-              * Fast-tracked certifications are managed by verified temple trusts & Shradhalu Private Ltd.
+              * Fast-tracked certifications are managed by our temple partners & Shradhalu Private Ltd.
             </div>
           </div>
 
@@ -292,7 +310,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       {/* Floating animated statistics card - Trust Bar Section */}
       <div id="trust-bar-section" className={`relative bg-[#092320]/80 z-10 w-full border-t border-b border-white/10 shadow-lg backdrop-blur-md ${isAndroidApp ? "mt-12 py-6" : "mt-4 py-3"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`grid ${isAndroidApp ? "grid-cols-2" : "grid-cols-3"} sm:grid-cols-5 lg:grid-cols-10 gap-4 text-center items-stretch`}>
+          <div className={`grid ${isAndroidApp ? "grid-cols-2" : "grid-cols-3"} sm:grid-cols-4 lg:grid-cols-8 gap-4 text-center items-stretch`}>
             {trustStats.map((stat, i) => (
               <div 
                 key={i} 

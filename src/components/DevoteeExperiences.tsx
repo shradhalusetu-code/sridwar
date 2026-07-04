@@ -43,10 +43,9 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     serviceName: "Kashi Vishwanath Rudrabhishek",
     story: "My father had been facing severe health issues of late. We sponsored the Kashi Vishwanath Rudrabhishek online through Sri Dwar. Seeing the live Sankalpa read with his name and gotra, and receiving the pure ashes and Belpatra Prasad within days brought immense peace. His recovery has been miraculous.",
     rating: 5,
-    badge: "Verified Sankalpa & Prasad Received",
+    badge: "Example Story",
     date: "June 2026",
     avatarSeed: "rohan",
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150"
   },
   {
     id: "t2",
@@ -55,22 +54,20 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     serviceName: "Vighnaharta Ganesha Success Puja",
     story: "Before launching our technology venture, we registered for the special Ganesha Sankalpa. The transparency was immaculate—real temple receipts, the chief shastri's digital seal on our certificate, and real-time aarti. We signed our first institutional partner last week! Grateful to Sri Dwar.",
     rating: 5,
-    badge: "Darshan Certificate Issued",
+    badge: "Example Story",
     date: "May 2026",
     avatarSeed: "ananya",
-    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150"
   },
   {
     id: "t3",
     name: "Meera Nair",
     location: "Ernakulam",
     serviceName: "Sanskrit Gurukul Book Kit Seva",
-    story: "I wanted to sponsor traditional education for my mother's birthday. Through the temple seva portal, I gifted Sanskrit books to young students. Sri Dwar shared actual verified photographs of children holding the exact kits stamped with the Gurukul seal. Deeply authentic and transparent. Highly recommended!",
+    story: "I wanted to sponsor traditional education for my mother's birthday. Through the temple seva portal, I gifted Sanskrit books to young students. Sri Dwar shared actual photographs of children holding the exact kits stamped with the Gurukul seal. Deeply moving and transparent. Highly recommended!",
     rating: 5,
-    badge: "Verified Seva Impact Witnessed",
+    badge: "Example Story",
     date: "June 2026",
     avatarSeed: "meera",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150"
   },
   {
     id: "t4",
@@ -79,10 +76,9 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     serviceName: "Shani Dev Malefic Relief Puja",
     story: "The transit of Saturn was bringing immense struggles in my profession. Initiating the special Saturday Shani-Taila Abhishekam through Sri Dwar brought high tranquil vibes. The live audio streaming was pristine, and the sacred black thread was received in a beautifully sealed package.",
     rating: 5,
-    badge: "Prasad & Thread Delivered",
+    badge: "Example Story",
     date: "April 2026",
     avatarSeed: "vikram",
-    avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=150"
   },
   {
     id: "t5",
@@ -91,10 +87,9 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     serviceName: "Puri Jagannath Mahaprasad Seva",
     story: "Sri Dwar made it incredibly easy to sponsor Chhappan Bhog at Puri on my daughter's birthday. We watched the live streams of the pandas carrying the holy pots. Our sanctified Prasad package containing the dry Nirmalya reached our doorstep in Cuttack with pristine packing. A truly divine blessing!",
     rating: 5,
-    badge: "Authentic Dry Prasad Received",
+    badge: "Example Story",
     date: "June 2026",
     avatarSeed: "sandeep",
-    avatarUrl: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=150"
   },
   {
     id: "t6",
@@ -103,22 +98,20 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     serviceName: "Maa Kamakhya Tantrik Archana",
     story: "Faced severe obstacles in life, blockages seemed endless. Sponsoring Maa Kamakhya's Tantrik Archana with Sri Dwar felt extremely sacred. Listening to the priest recite my Gotra over the water spring in Nilachal hills was deeply moving. Receival of the blessed vermilion and red thread brought a miraculous shift in my daily peace.",
     rating: 5,
-    badge: "Maa Kamakhya Blessings Received",
+    badge: "Example Story",
     date: "June 2026",
     avatarSeed: "rajeshwari",
-    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150"
   },
   {
     id: "t7",
     name: "Dr. Amit Varma",
     location: "Chicago, USA",
     serviceName: "Ayodhya Gausala Seva Ritual",
-    story: "Living thousands of miles away in Chicago, I always wanted to contribute to the sacred cows in Ayodhya. With Sri Dwar, I was able to sponsor food and fodder seamlessly. Within 24 hours, the team shared verified photos and live clip links showing fresh green grass delivered to Go-Mata. Deeply transparency-oriented governance!",
+    story: "Living thousands of miles away in Chicago, I always wanted to contribute to the sacred cows in Ayodhya. With Sri Dwar, I was able to sponsor food and fodder seamlessly. Within 24 hours, the team shared photos and live clip links showing fresh green grass delivered to Go-Mata. Deeply transparency-oriented governance!",
     rating: 5,
-    badge: "Live Feed Evidence Received",
+    badge: "Example Story",
     date: "May 2026",
     avatarSeed: "amit",
-    avatarUrl: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150"
   }
 ];
 
@@ -245,7 +238,7 @@ export default function DevoteeExperiences() {
       serviceName: newService,
       story: newStory,
       rating: newRating,
-      badge: "Verified Devotee Experience",
+      badge: "Submitted by a Devotee",
       date: "Received Today",
       avatarSeed: newName.toLowerCase().replace(/\s+/g, "")
     };
@@ -293,7 +286,7 @@ export default function DevoteeExperiences() {
             Divine Miracles & Success Stories
           </h2>
           <p className="text-xs md:text-sm text-white/70 max-w-xl mx-auto">
-            Witness the sacred testimonies of global devotees who connected with their roots, experienced holy resolution, and received authenticated prasadam.
+            Real stories shared by devotees who used Sri Dwar, alongside example stories illustrating the kinds of experiences devotees have.
           </p>
         </div>
 
@@ -375,7 +368,7 @@ export default function DevoteeExperiences() {
 
                 {/* Sri Dwar Digital signature guarantee stamp text */}
                 <div className="text-[10px] font-mono tracking-widest text-[#FFB347]/70 uppercase flex items-center space-x-1">
-                  <span>Sri Dwar Certified Sync</span>
+                  <span>Sri Dwar Confirmed Sync</span>
                 </div>
               </div>
 
@@ -558,7 +551,7 @@ export default function DevoteeExperiences() {
                   {/* Submission agreement check */}
                   <div className="flex items-start space-x-2 text-[10px] text-white/60">
                     <input type="checkbox" required defaultChecked className="mt-0.5" />
-                    <span>I permit Sridwar parameters to broadcast this testimony to other seekers.</span>
+                    <span>I agree Sri Dwar may review this testimony and feature it on this page for other devotees to read.</span>
                   </div>
 
                   <button

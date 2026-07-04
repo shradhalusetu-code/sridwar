@@ -37,7 +37,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
   {
     id: "bazaar-puri-prasad",
     name: "Jagannath Puri Mahaprasad Kit",
-    description: "Authentic Chhappan Bhog Mahaprasad from Puri Jagannath Temple — sun-dried, ritually sealed, and shipped with blessings.",
+    description: "Traditional Chhappan Bhog Mahaprasad from Puri Jagannath Temple — sun-dried, ritually sealed, and shipped with blessings.",
     price: 899,
     mrp: 1499,
     category: "Prasad",
@@ -59,12 +59,12 @@ const BAZAAR_ITEMS: BazaarItem[] = [
   {
     id: "bazaar-rudraksha",
     name: "5-Mukhi Rudraksha Mala",
-    description: "Certified Nepal-origin 5-faced Rudraksha mala — energised at Kashi Vishwanath Temple with proper Vedic mantras.",
+    description: "Traditional Nepal-origin 5-faced Rudraksha mala — energised at Kashi Vishwanath Temple with proper Vedic mantras.",
     price: 799,
     mrp: 1599,
     category: "Sacred Items",
     imageUrl: import.meta.env.BASE_URL + "images/Rudraksha Mala.jpg",
-    badge: "Certified",
+    badge: "Traditional",
     includes: ["108+1 Beads Mala", "Energisation Certificate", "Velvet Pouch"],
   },
   {
@@ -292,7 +292,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
             Temple Bazaar Store
           </h2>
           <p className="text-xs text-white/70 mt-2 leading-relaxed">
-            Authentic prasad, puja kits, sacred items & live puja services — sourced from temples across India,
+            Traditional prasad, puja kits, sacred items & live puja services — sourced from temples across India,
             performed in your Gotra, delivered to your doorstep.
           </p>
           <div className="inline-flex items-center gap-2 mt-3 bg-red-500/15 border border-red-400/30 text-red-300 text-xs font-bold px-4 py-1.5 rounded-full">
@@ -412,7 +412,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: <Truck className="w-5 h-5 text-[#FFB347]" />,          title: "Free Shipping",     desc: "On all product orders above ₹499" },
-            { icon: <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />,    title: "Temple Verified",   desc: "All items sourced from registered temples" },
+            { icon: <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />,    title: "Temple Sourced",   desc: "All items sourced from registered temples" },
             { icon: <Heart className="w-5 h-5 text-pink-400" fill="currentColor" />, title: "Seva Guarantee",   desc: "Live photo proof for every puja service" },
           ].map((badge, i) => (
             <div key={i} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">

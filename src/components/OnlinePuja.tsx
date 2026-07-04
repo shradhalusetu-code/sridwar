@@ -136,7 +136,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
           </h2>
           <p className="text-xs text-white/70 mt-2">
             Schedule a customized remote offering performed inside ancient temple sanctums.
-            All prayers are authenticated via live video recordings and physical Prasad dispatches.
+            All prayers are documented via live video recordings and physical Prasad dispatches.
           </p>
         </div>
 

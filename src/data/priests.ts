@@ -349,7 +349,7 @@ export const PRIEST_PROFILES: (PriestProfile & { localHighlight?: string })[] = 
   // ── VRINDAVAN — PREM MANDIR (Uttar Pradesh) ──────────────────────────
   {
     id: "pt-zubin-goswami",
-    priestDetails: "Pt. Zubin Goswami (Prem Peeth)",
+    priestDetails: "Pt. Zubin Goswami — 27 years of experience",
     name: "Pt. Zubin Goswami",
     yearsExperience: 27,
     yearsHelpingDevotees: 27,

@@ -40,7 +40,7 @@ function GuideContent() {
   return (
     <div>
       <P>
-        <strong className="text-white/85">Setu Yatra Challenge</strong> — add genuine, verifiable entries to
+        <strong className="text-white/85">Setu Yatra Challenge</strong> — add real, checkable entries to
         Sri Dwar's directory, get a personal acknowledgement for every valid one, and climb the contributor
         leaderboard. Top contributors win a fully-covered 1-week Yatra — the single top-ranked contributor
         wins the Grand Prize: a fully-covered All India Yatra.
@@ -49,9 +49,9 @@ function GuideContent() {
 
       <H3>How the Challenge Works</H3>
       <OL>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">You add genuine, verifiable entries — temples, puja mandals, puja committees, priests, dharmic experts, or yourself — to the Sri Dwar directory.</li>
+        <li className="text-[13px] text-white/65 leading-relaxed pl-1">You add real, checkable entries — temples, puja mandals, puja committees, priests, dharmic experts, or yourself — to the Sri Dwar directory.</li>
         <li className="text-[13px] text-white/65 leading-relaxed pl-1">Every valid entry receives a personal acknowledgement from the Sri Dwar team.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">At the end of the offer period, contributors are ranked by the number of valid, verified entries they have submitted.</li>
+        <li className="text-[13px] text-white/65 leading-relaxed pl-1">At the end of the offer period, contributors are ranked by the number of valid entries they have submitted.</li>
         <li className="text-[13px] text-white/65 leading-relaxed pl-1">Top contributors win a fully-covered 1-week Yatra. The single top-ranked contributor wins the Grand Prize — a fully-covered All India Yatra.</li>
       </OL>
 
@@ -127,14 +127,14 @@ function GuideContent() {
         <LI><strong className="text-white/80">Accurate</strong> — spelling, location, and contact details are correct to the best of your knowledge</LI>
         <LI><strong className="text-white/80">Consensual</strong> (for priests/experts) — the person you're adding is aware of and agrees to being listed</LI>
       </UL>
-      <P>Entries that are incomplete, fake, duplicate, or cannot be verified by our team will <strong className="text-white/80">not</strong> count toward the contributor ranking, even if the form submission itself goes through successfully.</P>
+      <P>Entries that are incomplete, fake, duplicate, or cannot be confirmed by our team will <strong className="text-white/80">not</strong> count toward the contributor ranking, even if the form submission itself goes through successfully.</P>
 
       <H3>Acknowledgement Message</H3>
       <P>Our team manually verifies each submission and sends an acknowledgement via WhatsApp or Email, typically within 24–48 hours, recording your contribution toward your contributor ranking with a Reference ID — and reminding you that top contributors win a fully-covered Yatra, with the Grand Prize being an All India Yatra for our top contributor.</P>
 
       <H3>How Winners Are Chosen</H3>
       <UL>
-        <LI>Contributors are ranked by their total number of <strong className="text-white/80">valid, verified</strong> entries during the offer period.</LI>
+        <LI>Contributors are ranked by their total number of <strong className="text-white/80">valid, confirmed</strong> entries during the offer period.</LI>
         <LI>Our team reviews submissions on an ongoing basis to confirm validity and avoid duplicates or fraudulent entries.</LI>
         <LI>The top-ranked contributors will be contacted directly via the phone number/email used during submission.</LI>
         <LI>Full rules, minimum entry requirements, and prize details are set out in the Terms &amp; Conditions tab — please read this before participating.</LI>
@@ -165,7 +165,7 @@ function TermsContent() {
       <P>
         The "Setu Yatra Challenge" ("the Offer") is a promotional initiative by <strong className="text-white/80">Shradhalu Private Limited</strong>,
         operating the platform <strong className="text-white/80">Sri Dwar</strong> (sridwar.com) ("Sri Dwar", "we", "us", "our"), encouraging users
-        to contribute genuine listings of temples, puja mandals, puja committees, priests, and dharmic experts to the Sri Dwar directory, and to
+        to contribute accurate listings of temples, puja mandals, puja committees, priests, and dharmic experts to the Sri Dwar directory, and to
         register themselves as devotees.
       </P>
 
@@ -186,14 +186,14 @@ function TermsContent() {
       <H3>5. Entry Validity &amp; Verification</H3>
       <UL>
         <LI>All submitted entries are subject to manual review and verification by the Sri Dwar team.</LI>
-        <LI>An entry will only count toward a participant's contributor ranking if it is genuine, accurate, complete, non-duplicate, and (where applicable) submitted with the knowledge and consent of the person being listed.</LI>
+        <LI>An entry will only count toward a participant's contributor ranking if it is accurate, complete, non-duplicate, and (where applicable) submitted with the knowledge and consent of the person being listed.</LI>
         <LI>Sri Dwar reserves the right, at its sole discretion, to reject, disqualify, or decline to count any entry it reasonably believes to be fake, duplicate, incomplete, misleading, or submitted in bad faith.</LI>
-        <LI>Submitting an entry does not guarantee it will count toward the contributor ranking; only entries verified as valid will be counted.</LI>
+        <LI>Submitting an entry does not guarantee it will count toward the contributor ranking; only entries confirmed as valid will be counted.</LI>
       </UL>
 
       <H3>6. Selection of Winners</H3>
       <UL>
-        <LI>Winners are determined based on the total number of valid, verified entries submitted by each participant during the Offer Period — a skill- and contribution-based ranking, not a lottery, raffle, or game of chance.</LI>
+        <LI>Winners are determined based on the total number of valid, confirmed entries submitted by each participant during the Offer Period — a skill- and contribution-based ranking, not a lottery, raffle, or game of chance.</LI>
         <LI>A minimum number of valid entries is required to be considered a "top contributor" — see the published offer terms on sridwar.com for the current minimum.</LI>
         <LI>In the event of a tie, Sri Dwar may consider the quality, completeness, and verification date of entries to determine final ranking, at its sole discretion.</LI>
         <LI>Sri Dwar's decision on the final ranking and selection of winners is final and binding.</LI>
@@ -242,7 +242,7 @@ function TermsContent() {
       </UL>
 
       <H3>10. Not a Lottery; No Cash Alternative</H3>
-      <P>This Offer is a skill- and merit-based contribution challenge. No participant is required to make any payment to participate or to be eligible for a prize. Winners are determined solely on the basis of valid, verified contributions, not by chance, draw, or random selection. No cash alternative is available in place of any prize.</P>
+      <P>This Offer is a skill- and merit-based contribution challenge. No participant is required to make any payment to participate or to be eligible for a prize. Winners are determined solely on the basis of valid, confirmed contributions, not by chance, draw, or random selection. No cash alternative is available in place of any prize.</P>
 
       <H3>11. Organizer's Rights</H3>
       <P>Sri Dwar reserves the right, at its sole discretion and without prior notice, to modify, suspend, extend, or terminate the Offer at any time; change the prize structure, number of winners, or prize inclusions due to circumstances such as travel partner availability, force majeure, or operational reasons; and verify, audit, or request supporting information for any submitted entry.</P>

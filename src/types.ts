@@ -59,8 +59,17 @@ export interface PriestProfile {
   languagesSpoken: string[];
   bio: string;
   isVerified: boolean;
-  rating: number;                  // out of 5
-  devoteesServedApprox: number;
+  // rating and devoteesServedApprox were removed as required fields: they
+  // used to hold a per-priest star rating (4.5–4.9) and a "devotees served"
+  // headcount that were invented placeholder numbers, not real review data,
+  // yet were displayed in PriestSection.tsx next to copy telling devotees
+  // to "read ratings and feedback from other devotees" — i.e. fabricated
+  // numbers presented as genuine reviews. Left optional (rather than
+  // deleted outright) in case a real review/rating system is wired up
+  // later; until then, no priest profile sets them and the UI no longer
+  // renders them.
+  rating?: number;                 // out of 5 — only set this from real, aggregated devotee reviews
+  devoteesServedApprox?: number;   // only set this from a real, countable figure
   associatedPujaIds: string[];     // links back to ON_LINE_PUJAS entries
 }
 

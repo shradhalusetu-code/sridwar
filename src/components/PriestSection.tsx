@@ -137,9 +137,6 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
               </div>
               <div className="text-right">
                 <StarRating rating={p.rating} />
-                <p className="text-[10px] text-white/40 font-mono mt-1">
-                  {p.devoteesServedApprox.toLocaleString("en-IN")}+ devotees served
-                </p>
               </div>
             </div>
 
@@ -161,8 +158,11 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
               <Stat label="Pujas Offered" value={p.associatedPujaIds.length.toString()} icon={BookOpenCheck} />
             </div>
 
-            {/* Bio */}
-            <p className="text-sm text-white/70 leading-relaxed mb-8">{p.bio}</p>
+            {/* Bio — the priest's real experience, not a fabricated booking history */}
+            <p className="text-sm text-white/70 leading-relaxed mb-3">{p.bio}</p>
+            <p className="text-xs text-white/50 leading-relaxed mb-8 italic">
+              Beyond {p.templesAssociated[0]}, {p.name.split(" ").slice(-1)[0]} also conducts various pujas across {p.currentCity} and other cities in India.
+            </p>
 
             <div className="grid sm:grid-cols-2 gap-6 mb-8">
               <InfoBlock title="Puja Expertise" items={p.pujaExpertise} />
@@ -227,7 +227,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
           </h3>
           <p className="text-xs text-white/50 mb-6">
             A few things to check before booking a puja or seeking advice, so your ritual is performed
-            with authenticity and care.
+            with sincerity and care.
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {GUIDANCE_POINTS.map(g => (

@@ -34,12 +34,12 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   );
 
   const steps = [
-    { title: "Select Temple & City", desc: "Choose from 33 verified major temples across the holy sub-continent." },
+    { title: "Select Temple & City", desc: "Choose from 33 major temples across the holy sub-continent." },
     { title: "Choose Ritual & Visit", desc: "Select specific Pujas, Aarti sponsorships, or virtual offering bundles." },
     { title: "Add Name & Sankalp", desc: "Specify name, Gotra, birth star, and personal prayer context for the priests." },
     { title: "Receive Video", desc: "Get high-clarity video captures of the Sankalpa and final Aarti chanting." },
-    { title: "Blessings & Prasad", desc: "Authentic physical Prasad and holy threads shipped eco-wrapped to your door." },
-    { title: "Receive Certificate", desc: "Download the handsigned Darshan Certificate with authentic seals." },
+    { title: "Blessings & Prasad", desc: "Physical Prasad and holy threads shipped eco-wrapped to your door." },
+    { title: "Receive Certificate", desc: "Download the handsigned Darshan Certificate with temple seals." },
     { title: "Share Feedback", desc: "Submit suggestions to empower global temple community preservation." }
   ];
 
@@ -403,7 +403,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   </div>
                   <div className="flex items-center justify-between text-xs text-white/85">
                     <span className="font-bold">Priests Chanting:</span>
-                    <span className="text-[#5EEAD4] font-semibold">Verified Shri Jagannath Sevayats</span>
+                    <span className="text-[#5EEAD4] font-semibold">Shri Jagannath Sevayats</span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-white/85">
                     <span className="font-bold">Sanctified Quality:</span>
@@ -448,7 +448,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               Your 7-Step Spiritual Journey
             </h2>
             <p className="text-xs text-white/70 mt-2">
-              From initiating a sacred vow (Sankalp) near your screen, to receiving certified physical Prasad from India's greatest shrines.
+              From initiating a sacred vow (Sankalp) near your screen, to receiving physical Prasad from India's greatest shrines.
             </p>
           </div>
 

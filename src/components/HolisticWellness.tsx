@@ -382,7 +382,7 @@ const SERVICES: WellnessService[] = [
     categoryBg: "#060F1F",
     icon: <Leaf className="w-5 h-5" />,
     title: "Kerala Panchakarma Retreat",
-    subtitle: "14-Night Authentic Detox Journey",
+    subtitle: "14-Night Traditional Detox Journey",
     description: "A curated 14-night stay at a NABH-accredited Kerala Ayurveda centre. Includes daily Panchakarma procedures, personalised Vaidya consultations, yoga, organic meals, and a post-retreat maintenance kit.",
     duration: "14 nights",
     participants: "1–2",

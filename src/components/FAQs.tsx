@@ -19,13 +19,13 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-1",
     category: "Rituals",
     question: "How do you perform Pujas individually in my name and Gotra?",
-    answer: "Every Puja booked on Sri Dwar is a strictly personalized ceremony. We collect your birth coordinate details—such as Devotee Name, Gotra ancestry, and Vedic Rashi—during booking. The certified temple Acharyas and chief priests voice your unique Sankalpa aloud inside the temple sanctorum, invoking celestial blessings specifically on your behalf."
+    answer: "Every Puja booked on Sri Dwar is a strictly personalized ceremony. We collect your birth coordinate details—such as Devotee Name, Gotra ancestry, and Vedic Rashi—during booking. Our temple Acharyas and chief priests voice your unique Sankalpa aloud inside the temple sanctorum, invoking celestial blessings specifically on your behalf."
   },
   {
     id: "faq-2",
     category: "Prasad",
     question: "How and when will I receive the sacred Prasad and consecrated items?",
-    answer: "Following the successful performance of your ritual, the temple priests sanctify the offerings. The high-grade Dry Fruits, sacred Kumkum, energized threads, and temple-certified Prasad are packaged in specialized hermetic food-grade pouches to prevent degradation. It is dispatched via express courier with live tracking, reaching your doorstep within 3-5 business days."
+    answer: "Following the successful performance of your ritual, the temple priests sanctify the offerings. The high-grade Dry Fruits, sacred Kumkum, energized threads, and temple Prasad are packaged in specialized hermetic food-grade pouches to prevent degradation. It is dispatched via express courier with live tracking, reaching your doorstep within 3-5 business days."
   },
   {
     id: "faq-3",
@@ -66,8 +66,8 @@ const FAQ_DATA: FAQItem[] = [
   {
     id: "faq-9",
     category: "Platform",
-    question: "How can I verify the authenticity of high-tech live telecasts?",
-    answer: "Every streaming link is custom emitted from our direct on-site representative or registered sevayats. To preserve absolute authenticity, the temple panda will clearly call out your registered name, Gotra, and city right in front of the deity prior to beginning the main chants, which will be visible in the live stream or high-definition recording."
+    question: "How can I be confident about the live telecasts?",
+    answer: "Every streaming link is custom emitted from our direct on-site representative or registered sevayats. To keep things personal and traceable, the temple panda will clearly call out your registered name, Gotra, and city right in front of the deity prior to beginning the main chants, which will be visible in the live stream or high-definition recording."
   },
   {
     id: "faq-10",
@@ -97,7 +97,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-14",
     category: "Prasad",
     question: "Do you ship sanctified water, like Ganga Jal or spring waters?",
-    answer: "Yes. For specific holy shrines (such as Maa Kamakhya's water spring Peetha or Dashashwamedh Ganga Ghat), a hermetically sealed copper or premium plastic vial containing the authentic, filtered holy water is securely bundled into your sacred Prasad kit."
+    answer: "Yes. For specific holy shrines (such as Maa Kamakhya's water spring Peetha or Dashashwamedh Ganga Ghat), a hermetically sealed copper or premium plastic vial containing filtered holy water is securely bundled into your sacred Prasad kit."
   },
   {
     id: "faq-15",
@@ -109,7 +109,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-16",
     category: "Rituals",
     question: "Can I choose a specific priest to perform my puja?",
-    answer: "While we assign our chief verified Acharyas from our temple boards by default to ensure standard adherence, devotees selecting the 'Maha Puja' tiers can request specific specialized pandits through the special instruction input during the Book Now workflow."
+    answer: "While we assign our chief senior Acharyas by default to ensure standard adherence, devotees selecting the 'Maha Puja' tiers can request specific specialized pandits through the special instruction input during the Book Now workflow."
   },
   {
     id: "faq-17",
@@ -193,7 +193,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-30",
     category: "Rituals",
     question: "What happens if my assigned priest is unavailable on the scheduled ritual date?",
-    answer: "In rare cases of priest unavailability due to illness or unforeseen temple duties, our temple coordination team immediately assigns an equally certified Acharya of the same lineage and tradition to perform your ritual at the original scheduled time, ensuring your Sankalpa is never delayed."
+    answer: "In rare cases of priest unavailability due to illness or unforeseen temple duties, our temple coordination team immediately assigns an equally experienced Acharya of the same lineage and tradition to perform your ritual at the original scheduled time, ensuring your Sankalpa is never delayed."
   },
   {
     id: "faq-31",
@@ -258,7 +258,7 @@ export default function FAQs() {
           </h2>
           
           <p className="text-sm text-white/75 font-sans max-w-xl mx-auto leading-relaxed">
-            Unraveling the deep Vedic guidelines, logistical transparency, and secure certified devotions provided by Sri Dwar's premium network.
+            Unraveling the deep Vedic guidelines, logistical transparency, and secure, respectful devotions provided by Sri Dwar's premium network.
           </p>
         </div>
 

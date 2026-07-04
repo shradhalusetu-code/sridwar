@@ -81,6 +81,27 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
       typeKey: "entry.1243420"
     },
     isEnabled: true
+  },
+  // ✅ Prayer Wall offerings (Seva Hub → "Sacred Moments" → Prayer Wall).
+  // Every prayer a devotee submits is sent here so it lands in a Google
+  // Sheet inside your Google Drive, where you can review it, confirm it
+  // came from a real devotee, and then manually copy the ones you want
+  // into the Sacred Moments gallery.
+  // 👉 IMPORTANT: This currently reuses the darshan_certificate form as a
+  //    placeholder. Create your own Google Form with Name, City/Location,
+  //    and Prayer Message fields, then replace formUrl and the entry.XXXX
+  //    IDs below with the values from YOUR form (view its prefilled link
+  //    to find each entry ID).
+  prayer_wall: {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScpddw8AbreZ5TuI-mYXptnTZiJd-Yu4aWXvihaAWKXU2wFuQ/formResponse",
+    mappedFields: {
+      nameKey: "entry.898437491",
+      emailKey: "entry.1017844880",
+      phoneKey: "entry.805333581",
+      detailsKey: "entry.790841631",
+      typeKey: "entry.1039747104"
+    },
+    isEnabled: true
   }
 };
 

@@ -3,10 +3,35 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
+import { syncToGoogleForm } from "../utils/googleFormSync";
+import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
+
+// Shuffles the devotee reviews so they don't render in the same fixed
+// (roughly alphabetical-by-first-letter) order every time, and nudges any
+// two consecutive entries that happen to start with the same letter apart
+// from each other, so the list doesn't visually read as "grouped by letter".
+function shuffleReviews(reviews: DevoteeReview[]): DevoteeReview[] {
+  const arr = [...reviews];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i].name[0].toLowerCase() === arr[i - 1].name[0].toLowerCase()) {
+      const swapIndex = arr.findIndex(
+        (r, idx) => idx > i && r.name[0].toLowerCase() !== arr[i - 1].name[0].toLowerCase()
+      );
+      if (swapIndex !== -1) {
+        [arr[i], arr[swapIndex]] = [arr[swapIndex], arr[i]];
+      }
+    }
+  }
+  return arr;
+}
 
 
 
@@ -69,7 +94,7 @@ const EXTRA_SEVAS = [
     id: "seva-gomata-puja",
     name: "Gomata Puja & Feeding",
     significance: "Ceremonial worship and feeding of sacred desi cows with tulsi, jaggery and sesame — performed on your behalf with photo proof.",
-    impactStat: "Done at certified Gaushalas in Mathura & Vrindavan",
+    impactStat: "Done at registered Gaushalas in Mathura & Vrindavan",
     templeAssociation: "Mathura Gaushala",
     donationTiers: [{ amount: 550, mrp: 1100 }],
     imageUrl: import.meta.env.BASE_URL + "images/Gaushala.jpg",
@@ -207,28 +232,23 @@ interface SevaExperienceProps {
   onSponsorSeva: (sevaName: string, price: number) => void;
 }
 
-const INITIAL_CHAT_MESSAGES = [
-  { name: "Ananya Misra",    msg: "Har Har Mahadev! Booked Rudrabhishek for my parents' anniversary.", location: "Bhubaneswar, Odisha" },
-  { name: "Rajesh K.",       msg: "Chanting Sri Ram Jai Ram. Sponsored cow feeding at Varanasi.",       location: "San Jose, CA" },
-  { name: "Preeti Goyal",    msg: "So peaceful to watch the Mahapuja happening live at Badrinath.",     location: "London, UK" },
-  { name: "Dr. Amit Varma",  msg: "Sponsored Ayodhya Gausala seva — verified photos within hours!",    location: "Chicago, USA" },
-  { name: "Sandeep Patnaik", msg: "Chhappan Bhog at Puri on my daughter's birthday. Live stream divine.", location: "Cuttack, Odisha" },
-  { name: "Meera Nair",      msg: "Gifted Sanskrit Gurukul book kits — children holding stamped kits!", location: "Ernakulam, Kerala" },
-  { name: "Vikram Aditya",   msg: "Shani Taila Abhishekam live audio was pristine. Thread arrived sealed.", location: "Mumbai, MH" },
-  { name: "Rohan Sharma",    msg: "Kashi Rudrabhishek with father's gotra brought immense peace.",      location: "New Delhi" },
-  { name: "Rajeshwari D.",   msg: "Maa Kamakhya Archana — priest reciting my Gotra over spring. Moving.", location: "Pune, MH" },
-  { name: "Swati Sen",       msg: "Om Namah Shivaya 🙏 Lighting Akhanda Diya for my mother's health.", location: "Kolkata, WB" },
-  { name: "Srinivas Rao",    msg: "Jai Jagannath! Puri Vishesh Seva — certificate on WhatsApp in 24 hrs.", location: "Hyderabad, TS" },
-  { name: "Preeya Patel",    msg: "Annadanam at Kashi — may all sadhus be fed today 🙏",               location: "London, UK" },
-];
+// The Prayer Wall starts empty — no example devotees or sample messages are
+// shown, since these looked like fake/placeholder activity to devotees. It
+// fills only with real messages the current visitor sends (plus the
+// automated reply), which are also synced to the Google Sheet for the team
+// to review.
+const INITIAL_CHAT_MESSAGES: { name: string; msg: string; location: string }[] = [];
 
+// Sample activity highlights shown in the ticker banner. Clearly labeled as
+// "Illustrative" (not "Real-Time") in the UI below, so it can't be mistaken
+// for a live feed of actual purchases.
 const LIVE_TICKERS = [
-  "Anurag Sharma (San Francisco) sponsored Gau Seva 🐄",
-  "Preeya Patel (London) sponsored Annadanam 🍚",
-  "Vikramaditya (New Delhi) booked Lingaraj Abhishek 🔱",
-  "Swati Sen (Kolkata) sponsored Akhanda Diya 🔥",
-  "Srinivas Rao (Hyderabad) sponsored Mahaprasad Distribution 🍱",
-  "Amit K. Rana (Seattle) booked Puri Jagannath Vishesh Seva 🐚",
+  "Example: a devotee sponsored Gau Seva 🐄",
+  "Example: a devotee sponsored Annadanam 🍚",
+  "Example: a devotee booked Lingaraj Abhishek 🔱",
+  "Example: a devotee sponsored Akhanda Diya 🔥",
+  "Example: a devotee sponsored Mahaprasad Distribution 🍱",
+  "Example: a devotee booked Puri Jagannath Vishesh Seva 🐚",
 ];
 
 export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
@@ -239,6 +259,10 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [tickerIndex, setTickerIndex] = useState(0);
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+  // Shuffled once when the component mounts, so the order stays stable
+  // while the user is on the page (won't re-shuffle on every keystroke or
+  // re-render) but varies between visits/page loads.
+  const [shuffledReviews] = useState(() => shuffleReviews(DEVOTEE_REVIEWS));
 
 
 
@@ -265,19 +289,46 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const handleSendMessage = (e: FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
-    setChatMessages((prev) => [...prev, { name: "You (Devotee)", msg: inputMessage.trim(), location: "Your Mandala" }]);
+    const offeredPrayer = inputMessage.trim();
+    setChatMessages((prev) => [...prev, { name: "You", msg: offeredPrayer, location: "Only visible to you" }]);
     setInputMessage("");
+
+    // Every prayer offered here is synced to the Google Sheet inside your
+    // Google Drive (via the "prayer_wall" form config in googleFormSync.ts),
+    // so the team can review it, confirm it's from a real devotee, and
+    // choose which ones to feature in the Sacred Moments gallery.
+    syncToGoogleForm("prayer_wall", {
+      name: "Devotee (Prayer Wall)",
+      email: "",
+      phone: "",
+      details: offeredPrayer,
+      type: "Prayer Wall Offering"
+    }).catch((err) => console.error("Prayer Wall sync error:", err));
+
     setTimeout(() => {
       const replies = [
         "Shubh Sankalpa! May your wishes be fulfilled by the Divine.",
         "Om Namah Shivaya. The puja vibrations are truly celestial.",
         "Jai Jagannath! Your name & Gotra has been registered safely.",
       ];
-      setChatMessages((prev) => [...prev, { name: "Pandit Shastri", msg: replies[Math.floor(Math.random() * replies.length)], location: "Puri Shrinand Kendra" }]);
+      // Clearly labeled as an automated response — not a real priest — so
+      // devotees aren't misled into thinking a real person replied live.
+      setChatMessages((prev) => [...prev, { name: "Sri Dwar Prayer Assistant (Automated)", msg: replies[Math.floor(Math.random() * replies.length)], location: "AI-generated" }]);
     }, 2000);
   };
 
   const slide = JAGANNATH_SLIDES[slideIndex];
+
+  // Devotee Reviews, reshaped to the same {name, msg, location} card shape as
+  // the Prayer Wall's own messages, so they render as one continuous,
+  // scrollable list of real devotee names + city + message cards — followed
+  // by anything the current visitor sends on the Prayer Wall below them.
+  const reviewCards = shuffledReviews.map((r) => ({
+    name: r.name,
+    msg: r.message,
+    location: r.city,
+  }));
+  const prayerWallCards = [...reviewCards, ...chatMessages];
 
   return (
     <section id="seva-dashboard-section" className="py-16 bg-[#021816] relative text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
@@ -287,13 +338,11 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         <div className="bg-[#FFB347]/10 border border-[#FFB347]/30 py-3 rounded-2xl mb-8 flex items-center justify-between px-4 sm:px-6 overflow-hidden gap-3">
           <div className="flex items-center space-x-2 text-[#FFB347] uppercase tracking-widest font-mono text-[10px] font-bold shrink-0">
             <span className="w-2.5 h-2.5 bg-[#FFB347] rounded-full animate-ping" />
-            <span className="hidden sm:inline">Devotional Ticker</span>
-            <span className="sm:hidden">Live</span>
+            <span>Examples</span>
           </div>
           <div className="flex-1 text-center text-xs text-white font-medium tracking-wide italic select-none truncate">
             {LIVE_TICKERS[tickerIndex]}
           </div>
-          <span className="text-[10px] text-white/45 font-mono hidden sm:inline shrink-0">Real-Time</span>
         </div>
 
         {/* Section Header */}
@@ -315,18 +364,19 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         {/*
           ── Main 2-column row ──
           The Sponsorship Services column (4 always-visible cards) and the
-          Live Feed column are the ONLY two items in this grid row, with
-          lg:items-stretch so the row's track height is the max of the two —
-          this is what makes the Live Feed card match the height of the
-          visible 4 Sponsorship cards exactly. The "More Sacred Sevas"
-          accordion lives in its OWN row further below (outside this grid),
-          so opening/closing it never changes this row's height and the
-          overall dashboard size stays fixed and stable.
+          Sacred Moments column are laid out independently now (lg:items-start,
+          not lg:items-stretch). Stretching used to force this row's height to
+          match Sacred Moments' full, unclamped review list, which pushed
+          Sponsorship Services to stretch far taller than its own content and
+          left big empty gaps. Instead, the review list below has its own
+          fixed, capped height (shows ~8-9 reviews, scrolls for the rest), so
+          the Sacred Moments card sizes naturally to its own content and
+          Sponsorship Services is never artificially stretched.
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-start">
 
           {/* LEFT: Sponsorship Services — col-span-7 */}
-          <div className="lg:col-span-7 flex flex-col gap-4 lg:h-full">
+          <div className="lg:col-span-7 flex flex-col gap-4">
 
             {/* Heading row */}
             <div className="flex items-center justify-between">
@@ -344,16 +394,18 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
             </div>
           </div>
 
-          {/* RIGHT: Live Feed + Chat — col-span-5, sticky top, stretched to match the Sponsorship Services column height */}
-          <div className="lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0 lg:h-full">
-            <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white min-h-[520px] lg:h-full">
+          {/* RIGHT: Live Feed + Chat — col-span-5, sticky top. Sized by its
+              own content (see the fixed-height review list below), not
+              stretched to match the Sponsorship Services column. */}
+          <div className="lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0">
+            <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white">
 
-              {/* Live Feed header */}
+              {/* Photo gallery header — this is a rotating slideshow of temple
+                  photos, not a live video feed, so it is labeled honestly. */}
               <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
-                <h3 className="font-serif text-base font-bold text-white">Live Feed</h3>
-                <div className="bg-red-500 text-white text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 uppercase">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
-                  Live
+                <h3 className="font-serif text-base font-bold text-white">Sacred Moments</h3>
+                <div className="bg-white/10 text-white/80 text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 uppercase border border-white/10">
+                  Gallery
                 </div>
               </div>
 
@@ -384,29 +436,36 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                 </div>
               </div>
 
-              {/* Devotee Chat */}
-              <div className="px-4 pb-4 flex flex-col flex-1 min-h-0">
+              {/* Devotee Chat — a card list: real devotee reviews first, then
+                  anything the current visitor sends below them. The list
+                  below has a fixed height sized for ~8-9 compact cards, with
+                  the rest reachable by scrolling inside it — it no longer
+                  grows to fit all reviews, which is what was inflating the
+                  whole card and forcing Sponsorship Services to stretch. */}
+              <div className="px-4 pb-4 flex flex-col">
                 <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3 shrink-0">
-                  <span className="text-xs font-bold text-white/80">Prabhuji Prayer Chat Rooms</span>
-                  <div className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                    8,495 Devotees online
-                  </div>
+                  <span className="text-xs font-bold text-white/80">Prayer Wall</span>
+                  <span className="text-[9px] font-mono text-white/40">Prayers</span>
                 </div>
+                <p className="text-[10px] text-white/40 -mt-2 mb-2 shrink-0">
+                  Devotee reviews, plus a private space to offer your own prayer. Your prayer is saved to our records so the team can include it here for other devotees; it is not shared publicly until reviewed. Automated replies are marked "AI-generated".
+                </p>
 
-                {/* Messages */}
+                {/* Messages — fixed height, shows ~8-9 cards at a glance;
+                    scroll for the rest. line-clamp-2 keeps every card a
+                    predictable height so that estimate holds regardless of
+                    how long an individual review is. */}
                 <div
                   id="chat-messages-container"
-                  className="flex-1 overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
-                  style={{ minHeight: "220px" }}
+                  className="h-[640px] overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
                 >
-                  {chatMessages.map((msg, i) => (
+                  {prayerWallCards.map((msg, i) => (
                     <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
                       <div className="flex items-center justify-between mb-0.5">
                         <span className="font-bold text-[#5EEAD4]">{msg.name}</span>
                         <span className="text-[9px] text-white/40 font-mono">{msg.location}</span>
                       </div>
-                      <p className="text-white/80">{msg.msg}</p>
+                      <p className="text-white/80 line-clamp-2">{msg.msg}</p>
                     </div>
                   ))}
                 </div>
