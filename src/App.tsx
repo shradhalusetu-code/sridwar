@@ -25,6 +25,7 @@ import HolisticWellness from "./components/HolisticWellness";
 import TempleRegister from "./components/TempleRegister";
 import UPIPaymentModal from "./components/UPIPaymentModal";
 import OfferPopup from "./components/OfferPopup";
+import sridwarQR from "./assets/images/SridwarQR.jpg";
 import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
 
 import { Language, TRANSLATIONS } from "./data/translations";
@@ -631,6 +632,15 @@ export default function App() {
                 >
                   <Mail className="w-4 h-4" />
                 </a>
+              </div>
+
+              {/* Sri Dwar QR code — scan to connect on the go */}
+              <div className="mt-5">
+                <img
+                  src={sridwarQR}
+                  alt="Sri Dwar QR code — scan to connect"
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-white/10 bg-white p-1 object-contain"
+                />
               </div>
             </div>
 

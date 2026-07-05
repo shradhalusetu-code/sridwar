@@ -6,6 +6,8 @@
 import { useState } from "react";
 import { Sparkles, Award, Heart, ShieldCheck, Users, Linkedin, ArrowUpRight, ChevronDown } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import kunuPhoto from "../assets/images/Kunu.jpg";
+import harmohanPhoto from "../assets/images/Harmohan.jpg";
 
 interface Founder {
   id: string;
@@ -30,7 +32,7 @@ const FOUNDERS: Founder[] = [
       { icon: <Heart className="w-3.5 h-3.5 text-[#FFB347]" />, label: "100+ Priests Empowered" },
       { icon: <Award className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Serving Devotees Worldwide" },
     ],
-    photo: "images/founder-kunu-rana.jpg",
+    photo: kunuPhoto,
     linkedin: "https://www.linkedin.com/in/kunurana/",
   },
   {
@@ -44,7 +46,7 @@ const FOUNDERS: Founder[] = [
       { icon: <Heart className="w-3.5 h-3.5 text-[#FFB347]" />, label: "Champion of Priest Welfare" },
       { icon: <Award className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Building for the Long Term" },
     ],
-    photo: "images/founder-harmohan-rana.jpg",
+    photo: harmohanPhoto,
     linkedin: "https://www.linkedin.com/in/harmohan-rana/",
   },
 ];
@@ -64,7 +66,7 @@ function FounderCard({ founder }: { founder: Founder }) {
 
       <div className="relative flex flex-col items-center text-center gap-5">
         {/* Photo + Halo */}
-        <div className="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0">
+        <div className="relative w-72 h-72 sm:w-80 sm:h-80 shrink-0">
           {/* Rotating dotted halo, evokes a japamala (prayer bead) ring */}
           <svg
             aria-hidden="true"
@@ -82,14 +84,14 @@ function FounderCard({ founder }: { founder: Founder }) {
             />
           </svg>
 
-          <div className="absolute inset-0 rounded-full glow-gold">
+          <div className="absolute inset-0 rounded-full glow-gold bg-[#092320] overflow-hidden">
             {!imgFailed ? (
               <img
-                src={import.meta.env.BASE_URL + founder.photo}
+                src={founder.photo}
                 alt={`${founder.name}, ${founder.title.split(" — ")[0]} of Sri Dwar`}
                 referrerPolicy="no-referrer"
                 onError={() => setImgFailed(true)}
-                className="w-full h-full object-cover rounded-full border-4 border-[#FFB347]"
+                className="w-full h-full object-contain rounded-full border-4 border-[#FFB347]"
               />
             ) : (
               <div className="w-full h-full rounded-full border-4 border-[#FFB347] bg-[#0F766E]/40 flex items-center justify-center">
@@ -99,8 +101,8 @@ function FounderCard({ founder }: { founder: Founder }) {
           </div>
 
           {/* Founder badge */}
-          <div className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-[#FFB347] border-4 border-[#092320] flex items-center justify-center shadow-lg">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#021816]" strokeWidth={2.75} />
+          <div className="absolute bottom-2 right-2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#FFB347] border-4 border-[#092320] flex items-center justify-center shadow-lg">
+            <ShieldCheck className="w-5 h-5 text-[#021816]" strokeWidth={2.75} />
           </div>
         </div>
 

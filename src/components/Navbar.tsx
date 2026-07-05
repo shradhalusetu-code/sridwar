@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye, Compass } from "lucide-react";
+import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye, Compass, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
@@ -420,46 +420,76 @@ export default function Navbar({
                 <span>Open Divine Share Portal</span>
               </button>
 
-              <div id="mobile-drawer-socials" className="grid grid-cols-5 gap-3 text-center">
+              <div id="mobile-drawer-socials" className="grid grid-cols-7 gap-2 text-center">
                 <a
                   href="https://www.linkedin.com/company/sri-dwar"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  title="LinkedIn"
                   className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-[#5EEAD4] hover:bg-white/10 hover:text-white"
                 >
-                  <span className="text-[10px] font-bold">IN</span>
+                  <Linkedin className="w-4 h-4" />
                 </a>
                 <a
                   href="https://www.instagram.com/sri_dwar/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  title="Instagram"
                   className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-[#FFB347] hover:bg-white/10 hover:text-white"
                 >
-                  <span className="text-[10px] font-bold">IG</span>
+                  <Instagram className="w-4 h-4" />
                 </a>
                 <a
                   href="https://www.youtube.com/@SriDwar"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="YouTube"
+                  title="YouTube"
                   className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-red-400 hover:bg-white/10 hover:text-white"
                 >
-                  <span className="text-[10px] font-bold">YT</span>
+                  <Youtube className="w-4 h-4" />
                 </a>
                 <a
                   href="https://x.com/Sri_Dwar"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Twitter / X"
+                  title="Twitter / X"
                   className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
                 >
-                  <span className="text-[10px] font-bold">X</span>
+                  <Twitter className="w-4 h-4" />
                 </a>
                 <a
                   href="https://wa.me/message/325QR2O5II3IH1"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  title="WhatsApp"
                   className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-emerald-400 hover:bg-white/10 hover:text-white"
                 >
-                  <span className="text-[10px] font-bold">WA</span>
+                  <MessageCircle className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://www.facebook.com/sridwar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  title="Facebook"
+                  className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-blue-400 hover:bg-white/10 hover:text-white"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://mail.google.com/mail/?view=cm&to=puja@sridwar.com&su=Sri%20Dwar%20Inquiry"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Email Us"
+                  title="Email: puja@sridwar.com"
+                  className="flex items-center justify-center p-2 rounded-lg bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                >
+                  <Mail className="w-4 h-4" />
                 </a>
               </div>
               <p className="text-[9px] text-white/40 mt-4 text-center">
