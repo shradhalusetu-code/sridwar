@@ -295,11 +295,40 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
             Traditional prasad, puja kits, sacred items & live puja services — sourced from temples across India,
             performed in your Gotra, delivered to your doorstep.
           </p>
-          <div className="inline-flex items-center gap-2 mt-3 bg-red-500/15 border border-red-400/30 text-red-300 text-xs font-bold px-4 py-1.5 rounded-full">
-            <Tag className="w-3.5 h-3.5" />
-            20% OFF — Limited Period Launch Offer
-          </div>
+          <button
+            type="button"
+            className="relative inline-flex items-center gap-2 mt-3 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest px-5 py-2 rounded-full transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
+            style={{
+              boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
+              animation: "bazaarOfferPulse 2s ease-in-out infinite",
+            }}
+          >
+            {/* Outer glow ring */}
+            <span
+              className="absolute inset-0 rounded-full"
+              style={{ animation: "bazaarOfferRing 2s ease-in-out infinite" }}
+              aria-hidden="true"
+            />
+            <Tag className="w-3.5 h-3.5 text-[#FFD700] shrink-0" style={{ animation: "bazaarOfferFlicker 1.5s ease-in-out infinite alternate" }} />
+            <span>20% OFF — Limited Period Launch Offer</span>
+          </button>
         </div>
+
+        {/* Keyframes for the launch-offer pulse — matches the Setu Yatra Challenge button treatment */}
+        <style>{`
+          @keyframes bazaarOfferPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
+            50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
+          }
+          @keyframes bazaarOfferRing {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+            50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+          }
+          @keyframes bazaarOfferFlicker {
+            0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
+            100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+          }
+        `}</style>
 
         {/* ── Category Filter ──────────────────────────────────────────── */}
         <div className="flex flex-wrap gap-2 justify-center mb-8">

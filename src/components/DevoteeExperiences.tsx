@@ -296,6 +296,16 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
   }
 ];
 
+/** Fisher–Yates shuffle — returns a new array in random order without mutating the input. */
+function shuffleArray<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function DevoteeExperiences() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -316,12 +326,12 @@ export default function DevoteeExperiences() {
     const saved = localStorage.getItem("sridwar_devotee_reviews");
     if (saved) {
       try {
-        setTestimonials(JSON.parse(saved));
+        setTestimonials(shuffleArray(JSON.parse(saved)));
       } catch (e) {
-        setTestimonials(DEFAULT_TESTIMONIALS);
+        setTestimonials(shuffleArray(DEFAULT_TESTIMONIALS));
       }
     } else {
-      setTestimonials(DEFAULT_TESTIMONIALS);
+      setTestimonials(shuffleArray(DEFAULT_TESTIMONIALS));
     }
   }, []);
 
@@ -589,12 +599,38 @@ export default function DevoteeExperiences() {
         <div className="mt-8 text-center" id="devotee-experiences-action">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#FFB347] to-[#e08e2f] text-[#021816] font-bold text-sm tracking-wide shadow-xl hover:opacity-95 transition-all hover:scale-[1.02] cursor-pointer"
+            className="relative inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest shadow-xl transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
+            style={{
+              boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
+              animation: "shareStoryPulse 2s ease-in-out infinite",
+            }}
           >
-            <Feather className="w-4 h-4" />
+            {/* Outer glow ring */}
+            <span
+              className="absolute inset-0 rounded-full"
+              style={{ animation: "shareStoryRing 2s ease-in-out infinite" }}
+              aria-hidden="true"
+            />
+            <Feather className="w-4 h-4 text-[#FFD700] shrink-0" style={{ animation: "shareStoryFlicker 1.5s ease-in-out infinite alternate" }} />
             <span>Share Your Devotion Story</span>
           </button>
         </div>
+
+        {/* Keyframes for the Share Story button pulse — matches the Setu Yatra Challenge button treatment */}
+        <style>{`
+          @keyframes shareStoryPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
+            50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
+          }
+          @keyframes shareStoryRing {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+            50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+          }
+          @keyframes shareStoryFlicker {
+            0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
+            100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+          }
+        `}</style>
 
       </div>
 

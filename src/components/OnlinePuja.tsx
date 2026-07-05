@@ -141,6 +141,22 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
     <section id="online-pujas-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+        {/* Keyframes for the Priest Directory button pulse — matches the Setu Yatra Challenge button treatment */}
+        <style>{`
+          @keyframes priestDirectoryPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
+            50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
+          }
+          @keyframes priestDirectoryRing {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+            50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+          }
+          @keyframes priestDirectoryFlicker {
+            0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
+            100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+          }
+        `}</style>
+
         {/* ── Title Block (unchanged) ─────────────────────────────────────────── */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">
@@ -238,9 +254,20 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                 <button
                   type="button"
                   onClick={() => onViewPriestProfile("")}
-                  className="text-[10px] text-[#5EEAD4] font-mono underline underline-offset-2 hover:text-[#5EEAD4]/80"
+                  className="relative inline-flex items-center gap-1.5 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-[10px] uppercase tracking-widest px-4 py-2 rounded-full transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
+                  style={{
+                    boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
+                    animation: "priestDirectoryPulse 2s ease-in-out infinite",
+                  }}
                 >
-                  Browse all priest profiles →
+                  {/* Outer glow ring */}
+                  <span
+                    className="absolute inset-0 rounded-full"
+                    style={{ animation: "priestDirectoryRing 2s ease-in-out infinite" }}
+                    aria-hidden="true"
+                  />
+                  <Sparkles className="w-3 h-3 text-[#FFD700] shrink-0" style={{ animation: "priestDirectoryFlicker 1.5s ease-in-out infinite alternate" }} />
+                  <span>PRIEST DIRECTORY</span>
                 </button>
               )}
             </div>

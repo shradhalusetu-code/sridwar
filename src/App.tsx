@@ -657,7 +657,10 @@ export default function App() {
                   Government of India Initiatives
                 </p>
                 <p className="text-[11px] text-white/55 leading-relaxed">
-                  Sri Dwar has applied for recognition under <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM</strong>, and <strong className="text-white/75">Digital India</strong>. Applications are currently <strong className="text-[#FFB347]">pending approval</strong>.
+                  Sri Dwar has applied for recognition under <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM</strong>, and <strong className="text-white/75">Digital India</strong>. Applications are currently <strong className="text-[#FFB347]">under process</strong>.
+                </p>
+                <p className="text-[11px] text-white/55 leading-relaxed">
+                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">FSSAI Registration</strong> (for Prasad &amp; Annadanam sevas), <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A &amp; 80G Recognition</strong> (for charitable sevas), <strong className="text-white/75">ISO 27001 Certification</strong> (data security), and <strong className="text-white/75">NITI Aayog Darpan Registration</strong>. All of the above are currently <strong className="text-[#FFB347]">under process</strong>.
                 </p>
               </div>
               <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
@@ -669,9 +672,9 @@ export default function App() {
                   Live darshans, one-tap puja booking, daily prayers, and personalised guidance — on Android and iOS.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center space-x-2 bg-[#0A1A18] border border-white/10 rounded-xl px-3 py-2 min-w-[130px] cursor-not-allowed opacity-80">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#1A1A2E]">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                  <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#1A1A2E]">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
                         <path d="M3.18 1.44A1 1 0 0 0 2 2.43v19.14a1 1 0 0 0 1.55.83l17-9.57a1 1 0 0 0 0-1.66L3.55 1.6a1 1 0 0 0-.37-.16z" fill="#00D26A"/>
                         <path d="M2 21.57V2.43L13.06 12 2 21.57z" fill="#00B0FF" fillOpacity="0.7"/>
                         <path d="M3.18 1.44l9.88 10.56L20.18 12 3.55 1.6a1 1 0 0 0-.37-.16z" fill="#FFD400" fillOpacity="0.9"/>
@@ -683,9 +686,9 @@ export default function App() {
                       <span className="block text-[11px] font-bold text-white">Google Play</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 bg-[#0A1A18] border border-white/10 rounded-xl px-3 py-2 min-w-[130px] cursor-not-allowed opacity-80">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[#1C1C1E]">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                  <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#1C1C1E]">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
                         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                       </svg>
                     </div>
@@ -873,6 +876,7 @@ export default function App() {
               <img
                 src={activeExploreTemple.imageUrl}
                 alt={activeExploreTemple.name}
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover filter brightness-75"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#092320] via-[#092320]/30 to-transparent" />
@@ -977,6 +981,8 @@ export default function App() {
                         <img
                           src={item.product.imageUrl}
                           alt={item.product.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-xl object-cover shrink-0"
                           referrerPolicy="no-referrer"
                         />
@@ -2499,7 +2505,7 @@ Where permitted by law, we may use cookies to:</p>
                   Shradhalu Private Limited operates in compliance with: (a) the Information Technology Act, 2000 and its amendments; (b) the IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021; (c) the Consumer Protection (E-Commerce) Rules, 2020; (d) the Digital Personal Data Protection Act, 2023; (e) the Foreign Exchange Management Act (FEMA), 1999, for cross-border transactions; and (f) applicable GST and taxation laws of India.
                 </DocSection>
                 <DocSection title="3. Startup India / DPIIT Recognition">
-                  Shradhalu Private Limited has applied for recognition under the Startup India Initiative (DPIIT), GeM, and Digital India; these applications are currently pending approval by the Government of India.
+                  Shradhalu Private Limited has applied for recognition under the Startup India Initiative (DPIIT), GeM, and Digital India, and has also initiated applications for ISO 9001:2015 Certification, MSME/Udyam Registration, FSSAI Registration, Trademark Registration, 12A &amp; 80G Recognition, ISO 27001 Certification, and NITI Aayog Darpan Registration; all of these applications are currently under process with the respective Government of India authorities.
                 </DocSection>
                 <DocSection title="4. Payment Compliance">
                   All digital payments are facilitated through UPI, regulated by the Reserve Bank of India (RBI) and the National Payments Corporation of India (NPCI). We operate as a collection facilitator and do not hold escrow accounts. Payment verification is generally completed manually within 24–48 hours.

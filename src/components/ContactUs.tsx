@@ -334,7 +334,7 @@ export default function ContactUs() {
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>SUBMIT MESSAGE TO DEVOTEE Care</span>
+                      <span>SUBMIT</span>
                     </>
                   )}
                 </button>
