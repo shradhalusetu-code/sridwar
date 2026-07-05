@@ -331,6 +331,10 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
                   <img
                     src={item.imageUrl}
                     alt={item.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={480}
+                    height={320}
                     className="w-full h-full object-cover filter brightness-90"
                   />
                 ) : (

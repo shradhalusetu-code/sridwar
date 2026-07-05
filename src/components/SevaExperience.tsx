@@ -237,24 +237,15 @@ interface SevaExperienceProps {
 // to review.
 const INITIAL_CHAT_MESSAGES: { name: string; msg: string; location: string }[] = [];
 
-// Sample activity highlights shown in the ticker banner. Clearly labeled as
-// "Illustrative" (not "Real-Time") in the UI below, so it can't be mistaken
-// for a live feed of actual purchases.
-const LIVE_TICKERS = [
-  "Example: a devotee sponsored Gau Seva 🐄",
-  "Example: a devotee sponsored Annadanam 🍚",
-  "Example: a devotee booked Lingaraj Abhishek 🔱",
-  "Example: a devotee sponsored Akhanda Diya 🔥",
-  "Example: a devotee sponsored Mahaprasad Distribution 🍱",
-  "Example: a devotee booked Puri Jagannath Vishesh Seva 🐚",
-];
+// Note: the sample "Illustrative activity" ticker (fake example sponsorships
+// like "Example: a devotee sponsored Gau Seva") has been removed — it looked
+// like fake/misleading live activity to devotees.
 
 export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   // Note: UPI/Details state removed — Sponsor Seva now routes through
   // the Puja Sankalpa Portal (BookNowWizard) via onSponsorSeva prop.
-  const [tickerIndex, setTickerIndex] = useState(0);
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   // Shuffled once when the component mounts, so the order stays stable
@@ -263,11 +254,6 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [shuffledReviews] = useState(() => shuffleReviews(DEVOTEE_REVIEWS));
 
 
-
-  useEffect(() => {
-    const t = setInterval(() => setTickerIndex((p) => (p + 1) % LIVE_TICKERS.length), 4500);
-    return () => clearInterval(t);
-  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setSlideIndex((p) => (p + 1) % JAGANNATH_SLIDES.length), 5000);
@@ -331,17 +317,6 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   return (
     <section id="seva-dashboard-section" className="py-16 bg-[#021816] relative text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Live Ticker Bar */}
-        <div className="bg-[#FFB347]/10 border border-[#FFB347]/30 py-3 rounded-2xl mb-8 flex items-center justify-between px-4 sm:px-6 overflow-hidden gap-3">
-          <div className="flex items-center space-x-2 text-[#FFB347] uppercase tracking-widest font-mono text-[10px] font-bold shrink-0">
-            <span className="w-2.5 h-2.5 bg-[#FFB347] rounded-full animate-ping" />
-            <span>Examples</span>
-          </div>
-          <div className="flex-1 text-center text-xs text-white font-medium tracking-wide italic select-none truncate">
-            {LIVE_TICKERS[tickerIndex]}
-          </div>
-        </div>
 
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-8">

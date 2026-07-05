@@ -91,6 +91,10 @@ function FounderCard({ founder }: { founder: Founder }) {
                 alt={`${founder.name}, ${founder.title.split(" — ")[0]} of Sri Dwar`}
                 referrerPolicy="no-referrer"
                 onError={() => setImgFailed(true)}
+                loading="lazy"
+                decoding="async"
+                width={320}
+                height={320}
                 className="w-full h-full object-contain rounded-full border-4 border-[#FFB347]"
               />
             ) : (
@@ -227,6 +231,10 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
               <img
                 src={import.meta.env.BASE_URL + "images/connect.jpg"}
                 alt="Sri Dwar Divine Mission - Sacred Temple Devotion & Priestly Connection"
+                loading="lazy"
+                decoding="async"
+                width={480}
+                height={480}
                 className="w-full h-full object-cover rounded-2xl hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
               />

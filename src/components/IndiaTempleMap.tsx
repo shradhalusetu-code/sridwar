@@ -25,6 +25,10 @@ export default function IndiaTempleMap() {
         <img
           src={indiaTempleImg}
           alt="Map of India with iconic temples"
+          loading="lazy"
+          decoding="async"
+          width={520}
+          height={602}
           className="w-full h-auto rounded-2xl drop-shadow-2xl"
         />
       </div>

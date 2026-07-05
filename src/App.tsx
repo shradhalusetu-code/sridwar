@@ -639,6 +639,10 @@ export default function App() {
                 <img
                   src={sridwarQR}
                   alt="Sri Dwar QR code — scan to connect"
+                  loading="lazy"
+                  decoding="async"
+                  width={112}
+                  height={112}
                   className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-white/10 bg-white p-1 object-contain"
                 />
               </div>

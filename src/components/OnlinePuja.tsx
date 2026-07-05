@@ -56,8 +56,22 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
     health: false, wealth: false, protection: false, career: false, marriage: false,
   });
 
+  // Tracks which sections have EVER been opened. Puja thumbnail images are only
+  // mounted into the DOM once a section has been opened at least once — while a
+  // section is still collapsed, none of its <img> tags exist yet, so the browser
+  // never requests those images. Previously all ~100 puja thumbnails (many
+  // pointing at large, shared temple/deity photos) were mounted immediately and
+  // only hidden with CSS (max-height: 0), so they were still downloaded on page
+  // load even though nothing was visible yet. This was the main cause of slow
+  // loading on this section.
+  const [openedOnce, setOpenedOnce] = useState<Record<string, boolean>>({});
+
   const toggleSection = (cat: string) =>
-    setOpenSections(prev => ({ ...prev, [cat]: !prev[cat] }));
+    setOpenSections(prev => {
+      const next = !prev[cat];
+      if (next) setOpenedOnce(o => (o[cat] ? o : { ...o, [cat]: true }));
+      return { ...prev, [cat]: next };
+    });
 
   // ── Derived dropdown options ──────────────────────────────────────────────────
   const uniqueTemples = useMemo(
@@ -119,6 +133,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
     // Auto-open matching section when a specific category is chosen from dropdown/tab
     if (val !== "all" && ACCORDION_ORDER.includes(val as AccordionCat)) {
       setOpenSections(prev => ({ ...prev, [val]: true }));
+      setOpenedOnce(prev => (prev[val] ? prev : { ...prev, [val]: true }));
     }
   };
 
@@ -333,7 +348,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                   }}
                 >
                   <div className="border-t border-white/8 divide-y divide-white/5">
-                    {pujas.map(puja => {
+                    {openedOnce[cat] && pujas.map(puja => {
                       const discountedPrice = getDiscountedPrice(puja.price);
                       return (
                         <div
@@ -347,6 +362,10 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                               <img
                                 src={puja.imageUrl}
                                 alt={puja.name}
+                                loading="lazy"
+                                decoding="async"
+                                width={128}
+                                height={128}
                                 className="w-full h-full object-cover filter brightness-90"
                                 referrerPolicy="no-referrer"
                               />
@@ -502,7 +521,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                 }}
               >
                 <div className="border-t border-white/8 divide-y divide-white/5">
-                  {otherPujas.map(puja => {
+                  {openedOnce["other"] && otherPujas.map(puja => {
                     const discountedPrice = getDiscountedPrice(puja.price);
                     return (
                       <div
@@ -516,6 +535,10 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                             <img
                               src={puja.imageUrl}
                               alt={puja.name}
+                              loading="lazy"
+                              decoding="async"
+                              width={128}
+                              height={128}
                               className="w-full h-full object-cover filter brightness-90"
                               referrerPolicy="no-referrer"
                             />

@@ -158,7 +158,15 @@ function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: Drop
     <div className="bg-[#092320]/80 rounded-2xl border border-white/10 h-full flex flex-col relative">
       {imageUrl && (
         <div className="w-full aspect-[3/2] overflow-hidden rounded-t-2xl">
-          <img src={imageUrl} alt={label} className="w-full h-full object-cover" />
+          <img
+            src={imageUrl}
+            alt={label}
+            loading="lazy"
+            decoding="async"
+            width={480}
+            height={320}
+            className="w-full h-full object-cover"
+          />
         </div>
       )}
       <div className="p-5 flex flex-col flex-1">

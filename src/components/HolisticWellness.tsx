@@ -543,7 +543,7 @@ interface HolisticWellnessProps {
   onBookService?: (serviceName: string, price: number) => void;
 }
 
-const VISIBLE_COUNT = 8; // Cards always shown; rest go into accordion
+const VISIBLE_COUNT = 9; // Cards always shown; rest go into accordion
 
 export default function HolisticWellness({ onBookService }: HolisticWellnessProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");

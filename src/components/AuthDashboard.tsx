@@ -560,6 +560,10 @@ export default function AuthDashboard({
                   <img
                     src={sridwarQR}
                     alt="Sri Dwar verification QR code"
+                    loading="lazy"
+                    decoding="async"
+                    width={48}
+                    height={48}
                     className="shrink-0 w-12 h-12 rounded-md object-cover border border-white/10"
                   />
                 </div>
