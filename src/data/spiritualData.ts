@@ -135,9 +135,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Receive a consecrated Prasad certificate and visual video capturing the cooked Mahaprasad being distributed lovingly to sadhus and devotees.",
     impactStat: "Over 15,000+ meals cooked daily by temple cooks.",
     donationTiers: [
-      { amount: 900, label: "Feed 10 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 10 visiting sadhus." },
-      { amount: 1800, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
-      { amount: 4500, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
+      { amount: 2000, label: "Feed 10 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 10 visiting sadhus." },
+      { amount: 2700, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
+      { amount: 6750, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/Annadanam Seva.jpg"
   },
@@ -149,9 +149,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Fosters home peace, prosperity, and dissolves ancestors' karmic blockages. You will receive pictures with your name Sankalpa displayed at the Gaushala.",
     impactStat: "350+ native cows nurtured in green sanctuaries.",
     donationTiers: [
-      { amount: 1000, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 5 cows." },
-      { amount: 2000, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
-      { amount: 5000, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
+      { amount: 2000, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 5 cows." },
+      { amount: 3000, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
+      { amount: 7500, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/Gau Seva.jpg"
   },
@@ -163,9 +163,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "A copper diya will be lit on your behalf in front of Maa Tarini, continuously fueled with pure mustard/cow ghee.",
     impactStat: "12,000+ lamps glowing at the sacred shrine.",
     donationTiers: [
-      { amount: 550, label: "3-Day Continuous Diya", description: "A beautiful clay diya constantly fed with quality oils on your behalf." },
-      { amount: 1100, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
-      { amount: 2200, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
+      { amount: 1000, label: "3-Day Continuous Diya", description: "A beautiful clay diya constantly fed with quality oils on your behalf." },
+      { amount: 1650, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
+      { amount: 3300, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/Diya Lighting.jpg"
   },
@@ -177,9 +177,9 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Sponsor textbooks, nutritious meals, clean accommodation, and spiritual training for young Vedic pandas.",
     impactStat: "80+ Gurukul children training in ancient scriptures.",
     donationTiers: [
-      { amount: 2100, label: "Vedic Scholar Kits", description: "Provides Sanskrit manuscripts, notebooks, sacred threads, and dress." },
-      { amount: 5000, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
-      { amount: 12000, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
+      { amount: 3150, label: "Vedic Scholar Kits", description: "Provides Sanskrit manuscripts, notebooks, sacred threads, and dress." },
+      { amount: 7500, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
+      { amount: 18000, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
     ],
     imageUrl: import.meta.env.BASE_URL + "images/Vedic Education.jpg"
   }
@@ -196,7 +196,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pt. Hari Jha — 24 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1599,
+    price: 2399,
     duration: "60 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg"
   },
@@ -210,7 +210,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pt. Karan Shinde — 11 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3999,
+    price: 5999,
     duration: "90 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
   },
@@ -224,7 +224,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pt. Kishore Panda — 12 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2499,
+    price: 3749,
     duration: "75 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/maa.jpg"
   },
@@ -238,7 +238,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pt. Sai Pattajoshi — 29 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     duration: "45 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg"
   },
@@ -252,7 +252,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pt. Zubin Goswami — 27 years of experience",
     videoAvailable: true,
     prasadIncluded: false,
-    price: 3299,
+    price: 4949,
     duration: "60 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja.jpg"
   },
@@ -272,7 +272,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Baikuntha Nath Panda — 28 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -287,7 +287,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Krushna Chandra Mishra — 22 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1099,
+    price: 1649,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -302,7 +302,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Niranjan Dash — 17 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3799,
+    price: 5699,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "60 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -317,7 +317,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Sudarshan Mahapatra — 19 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("bbsr-lingaraj"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -332,7 +332,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bishnu Charan Behera — 26 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("bbsr-lingaraj"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -347,7 +347,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Akshaya Kumar Nayak — 15 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("bbsr-lingaraj"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -362,7 +362,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Trinath Rath — 23 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("ghatgaon-tarini"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -377,7 +377,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Gouranga Pradhan — 18 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("ghatgaon-tarini"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -392,7 +392,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bibhuti Bhusan Swain — 14 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("ghatgaon-tarini"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -407,7 +407,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Rabindra Nath Patnaik — 21 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("purushottampur-tara-tarini"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -422,7 +422,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Manoj Kumar Senapati — 12 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("purushottampur-tara-tarini"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -437,7 +437,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Surendra Mohapatra — 30 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("purushottampur-tara-tarini"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -452,7 +452,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Jagannath Jena — 25 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("jajpur-biraja"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -467,7 +467,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ananta Charan Sahu — 14 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("jajpur-biraja"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -482,7 +482,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Pitambar Routray — 20 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("jajpur-biraja"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -497,7 +497,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Gopinath Pattnaik — 17 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("sambalpur-samaleswari"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -512,7 +512,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ratikant Bhoi — 28 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("sambalpur-samaleswari"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -527,7 +527,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Dukhishyam Naik — 23 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("sambalpur-samaleswari"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -542,7 +542,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Biswambar Mahapatra — 30 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("jagatsinghpur-sarala"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -557,7 +557,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Chintamani Das — 13 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("jagatsinghpur-sarala"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -572,7 +572,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Satyabrata Tripathy — 26 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("jagatsinghpur-sarala"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -587,7 +587,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Madhusudan Samal — 19 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kakatpur-mangala"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -602,7 +602,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Pradyumna Mohanty — 22 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("kakatpur-mangala"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -617,7 +617,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Kailash Chandra Panda — 34 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("kakatpur-mangala"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -632,7 +632,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bhagaban Mishra — 11 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("cuttack-dhabaleswar"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -647,7 +647,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Chittaranjan Pati — 27 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("cuttack-dhabaleswar"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -662,7 +662,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ramakrushna Behera — 18 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("cuttack-dhabaleswar"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -677,7 +677,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bipin Bihari Sahoo — 24 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -692,7 +692,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Hrushikesh Mallick — 16 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -707,7 +707,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Nityananda Jagadev — 29 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -722,7 +722,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bholanath Mishra — 21 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -737,7 +737,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ramachandra Pujari — 32 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "50 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -752,7 +752,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Gangadhar Panigrahi — 22 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 4999,
+    price: 7499,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "75 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -767,7 +767,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Dayanidhi Pati — 18 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("jajpur-chhatia-bata"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -782,7 +782,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bansidhar Tripathy — 27 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1099,
+    price: 1649,
     imageUrl: getTempleImage("jajpur-chhatia-bata"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -797,7 +797,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Loknath Acharya — 15 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3799,
+    price: 5699,
     imageUrl: getTempleImage("jajpur-chhatia-bata"),
     duration: "60 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -812,7 +812,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Lakshman Mohapatra — 31 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi leaves", "Dahi-Pakhila (curd-rice)", "White flowers", "Sandalwood paste", "Areca leaves"]
@@ -827,7 +827,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Harihar Sahu — 19 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1099,
+    price: 1649,
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "35 minutes",
     materialsIncluded: ["Tulsi leaves", "Dahi-Pakhila (curd-rice)", "White flowers", "Sandalwood paste", "Areca leaves"]
@@ -842,7 +842,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Krushna Chandra Behera — 24 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Dahi-Pakhila (curd-rice)", "White flowers", "Sandalwood paste", "Areca leaves"]
@@ -857,7 +857,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bhubaneswar Pradhan — 29 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("dhenkanal-kapilash"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -872,7 +872,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Raghunath Dash — 16 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("dhenkanal-kapilash"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -887,7 +887,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Surya Narayan Rout — 21 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("dhenkanal-kapilash"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -902,7 +902,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Shyam Sundar Tiwari — 12 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("varanasi-kashi-vishwanath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -917,7 +917,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Mahesh Chandra Dubey — 33 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("varanasi-kashi-vishwanath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -932,7 +932,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Jagannath Upadhyay — 25 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("varanasi-kashi-vishwanath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -947,7 +947,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ananta Prasad Bhatt — 14 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kedarnath-kedarnath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -962,7 +962,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bhuvneshwar Dimri — 20 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("kedarnath-kedarnath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -977,7 +977,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Gopal Krishna Tiwari — 17 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("kedarnath-kedarnath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -992,7 +992,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Rajendra Dharmadhikari — 28 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("badrinath-badrinath"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -1007,7 +1007,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Narasimha Naithani — 23 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("badrinath-badrinath"),
     duration: "50 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -1022,7 +1022,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Subodh Semwal — 30 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 4999,
+    price: 7499,
     imageUrl: getTempleImage("badrinath-badrinath"),
     duration: "75 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -1037,7 +1037,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Hari Om Sharma — 13 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("katra-vaishno-devi"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1052,7 +1052,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Satyanarayan Raina — 26 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("katra-vaishno-devi"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1067,7 +1067,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Madhusudan Kaul — 19 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("katra-vaishno-devi"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1082,7 +1082,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Vinod Kumar Chaturvedi — 22 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("vrindavan-banke-bihari"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1097,7 +1097,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Kashinath Goswami — 34 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1099,
+    price: 1649,
     imageUrl: getTempleImage("vrindavan-banke-bihari"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1112,7 +1112,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Brajesh Sharma — 11 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("vrindavan-banke-bihari"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1127,7 +1127,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Omkar Nath Goswami — 27 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("vrindavan-prem-mandir"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1142,7 +1142,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Durga Prasad Chaturvedi — 18 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1099,
+    price: 1649,
     imageUrl: getTempleImage("vrindavan-prem-mandir"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1157,7 +1157,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Yogendra Sharma — 24 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("vrindavan-prem-mandir"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1172,7 +1172,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Chandrashekhar Pant — 16 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("haridwar-har-ki-pauri"),
     duration: "60 minutes",
     materialsIncluded: ["Sesame seeds", "Copper vessel", "Holy Ganga jal", "Cotton wicks", "Marigold flowers"]
@@ -1187,7 +1187,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Nityananda Joshi — 29 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("haridwar-har-ki-pauri"),
     duration: "45 minutes",
     materialsIncluded: ["Sesame seeds", "Copper vessel", "Holy Ganga jal", "Cotton wicks", "Marigold flowers"]
@@ -1202,7 +1202,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bholanath Kothari — 21 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3799,
+    price: 5699,
     imageUrl: getTempleImage("haridwar-har-ki-pauri"),
     duration: "75 minutes",
     materialsIncluded: ["Sesame seeds", "Copper vessel", "Holy Ganga jal", "Cotton wicks", "Marigold flowers"]
@@ -1217,7 +1217,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ramanath Sharma — 32 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("kangra-jwala-ji"),
     duration: "40 minutes",
     materialsIncluded: ["Ghee lamp wicks", "Camphor", "Red flowers", "Kheer (rice pudding) offering", "Coconut"]
@@ -1232,7 +1232,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Devraj Katoch — 22 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kangra-jwala-ji"),
     duration: "35 minutes",
     materialsIncluded: ["Ghee lamp wicks", "Camphor", "Red flowers", "Kheer (rice pudding) offering", "Coconut"]
@@ -1247,7 +1247,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Suresh Mehta — 18 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 4999,
+    price: 7499,
     imageUrl: getTempleImage("kangra-jwala-ji"),
     duration: "90 minutes",
     materialsIncluded: ["Ghee lamp wicks", "Camphor", "Red flowers", "Kheer (rice pudding) offering", "Coconut"]
@@ -1262,7 +1262,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bipin Trivedi — 27 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("somnath-somnath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1277,7 +1277,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Govind Joshi — 15 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("somnath-somnath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1292,7 +1292,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Lakshman Pandya — 31 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("somnath-somnath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1307,7 +1307,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Harihar Vyas — 19 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("dwarka-dwarkadhish"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1322,7 +1322,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Krishna Murthy Mehta — 24 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1099,
+    price: 1649,
     imageUrl: getTempleImage("dwarka-dwarkadhish"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1337,7 +1337,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Vishnu Prasad Trivedi — 29 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("dwarka-dwarkadhish"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1352,7 +1352,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Raghunath Joshi — 16 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("nashik-trimbakeshwar"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1367,7 +1367,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Devendra Kulkarni — 21 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("nashik-trimbakeshwar"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1382,7 +1382,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Shyam Sundar Deshpande — 12 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("nashik-trimbakeshwar"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1397,7 +1397,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Mahesh Chandra Bhide — 33 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("mumbai-siddhivinayak"),
     duration: "35 minutes",
     materialsIncluded: ["Durva grass", "Modak sweets", "Red flowers", "Coconut", "Sindoor"]
@@ -1412,7 +1412,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Jagannath Gokhale — 25 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("mumbai-siddhivinayak"),
     duration: "40 minutes",
     materialsIncluded: ["Durva grass", "Modak sweets", "Red flowers", "Coconut", "Sindoor"]
@@ -1427,7 +1427,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ananta Phadke — 14 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("mumbai-siddhivinayak"),
     duration: "45 minutes",
     materialsIncluded: ["Durva grass", "Modak sweets", "Red flowers", "Coconut", "Sindoor"]
@@ -1442,7 +1442,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bhubaneswar Patwardhan — 20 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kolhapur-mahalakshmi"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1457,7 +1457,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Gopal Krishna Apte — 17 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("kolhapur-mahalakshmi"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1472,7 +1472,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Rajendra Karmarkar — 28 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("kolhapur-mahalakshmi"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1487,7 +1487,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Narasimha Patel — 23 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("sarangpur-kashtabhanjan-hanuman"),
     duration: "45 minutes",
     materialsIncluded: ["Sindoor (vermilion)", "Til (sesame) oil", "Betel leaves", "Red flowers", "Coconut"]
@@ -1502,7 +1502,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Subramaniam Desai — 30 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("sarangpur-kashtabhanjan-hanuman"),
     duration: "40 minutes",
     materialsIncluded: ["Sindoor (vermilion)", "Til (sesame) oil", "Betel leaves", "Red flowers", "Coconut"]
@@ -1517,7 +1517,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Hari Om Vyas — 13 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("sarangpur-kashtabhanjan-hanuman"),
     duration: "35 minutes",
     materialsIncluded: ["Sindoor (vermilion)", "Til (sesame) oil", "Betel leaves", "Red flowers", "Coconut"]
@@ -1532,7 +1532,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Satyanarayan Bora — 26 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("guwahati-kamakhya"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1547,7 +1547,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Madhusudan Sharma — 19 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("guwahati-kamakhya"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1562,7 +1562,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Vinod Baruah — 22 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("guwahati-kamakhya"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1577,7 +1577,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Kashinath Chattopadhyay — 34 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kolkata-kalighat"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1592,7 +1592,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Brajesh Mukherjee — 11 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("kolkata-kalighat"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1607,7 +1607,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Omkar Nath Bhattacharya — 27 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("kolkata-kalighat"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1622,7 +1622,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Durga Prasad Chakraborty — 18 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("kolkata-dakshineswar"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1637,7 +1637,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Yogendra Banerjee — 24 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1499,
+    price: 2249,
     imageUrl: getTempleImage("kolkata-dakshineswar"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1652,7 +1652,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Chandrashekhar Ganguly — 16 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2199,
+    price: 3299,
     imageUrl: getTempleImage("kolkata-dakshineswar"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1667,7 +1667,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Nityananda Jha — 29 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 2799,
+    price: 4199,
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1682,7 +1682,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Bholanath Thakur — 21 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 1999,
+    price: 2999,
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1697,7 +1697,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     priestDetails: "Pandit Ramanath Choubey — 32 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
-    price: 3299,
+    price: 4949,
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]

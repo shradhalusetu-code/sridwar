@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
-import { getDiscountedPrice, isDiscountActive } from "../utils/discount";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 
 interface OnlinePujaProps {
   onBookNowClick: (pujaName: string, price: number) => void;
@@ -433,7 +433,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                                     ₹{discountedPrice}
                                   </span>
                                   <span className="block text-[9px] text-[#FFB347] font-mono">
-                                    30% OFF
+                                    {DISCOUNT_TAG}
                                   </span>
                                 </>
                               ) : (
@@ -583,7 +583,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                               <>
                                 <span className="block text-[10px] line-through text-white/30 font-mono">₹{puja.price}</span>
                                 <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
-                                <span className="block text-[9px] text-[#FFB347] font-mono">30% OFF</span>
+                                <span className="block text-[9px] text-[#FFB347] font-mono">{DISCOUNT_TAG}</span>
                               </>
                             ) : (
                               <span className="block text-base font-black text-white font-serif">₹{puja.price}</span>

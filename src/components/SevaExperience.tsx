@@ -9,6 +9,7 @@ import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronU
 import { gaSevaSelect } from "../utils/analytics";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 
 // Shuffles the devotee reviews so they don't render in the same fixed
 // (roughly alphabetical-by-first-letter) order every time, and nudges any
@@ -35,15 +36,10 @@ function shuffleReviews(reviews: DevoteeReview[]): DevoteeReview[] {
 
 
 
-// ─── Market-researched prices with 50% off applied ─────────────────────────
-// Market avg → Sri Dwar price (50% off market avg, rounded to auspicious ₹)
-// Rudrabhishek:    market ₹2,200 → 50% off = ₹1,100
-// Mahaprasad Dist: market ₹2,000 → 50% off = ₹1,000
-// Tulsi Vivah:     market ₹900  → 50% off = ₹450
-// Navagraha Homa:  market ₹8,000 → 50% off = ₹4,000
-// Akhand Ramayan:  market ₹8,500 → 50% off = ₹4,250
-// Gomata Puja:     market ₹1,100 → 50% off = ₹550
-
+// ─── Sevas below use `amount` as the pre-discount base price (same
+// convention as FEATURED_SEVAS' donationTiers) — the 20% sitewide discount
+// is applied at render time via getDiscountedPrice, so this value should
+// NOT be pre-discounted.
 const EXTRA_SEVAS = [
   {
     id: "seva-rudrabhishek",
@@ -51,7 +47,7 @@ const EXTRA_SEVAS = [
     significance: "Sacred abhishek of Shivalinga with Panchamrit, Gangajal & bilva leaves with Vedic Rudra chanting by qualified pandits.",
     impactStat: "Performed at Kashi Vishwanath & Lingaraj Mandir, Bhubaneswar",
     templeAssociation: "Kashi Vishwanath",
-    donationTiers: [{ amount: 1100, mrp: 2200 }],
+    donationTiers: [{ amount: 3300 }],
     imageUrl: import.meta.env.BASE_URL + "images/Rudrabhishek Puja.jpg",
   },
   {
@@ -60,7 +56,7 @@ const EXTRA_SEVAS = [
     significance: "Sponsor distribution of sacred Chhappan Bhog Mahaprasad to pilgrims and underprivileged devotees at Jagannath Puri.",
     impactStat: "Feeds 200+ devotees per sponsorship at Jagannath Puri",
     templeAssociation: "Jagannath Puri",
-    donationTiers: [{ amount: 1000, mrp: 2000 }],
+    donationTiers: [{ amount: 3000 }],
     imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
   },
   {
@@ -69,7 +65,7 @@ const EXTRA_SEVAS = [
     significance: "Sacred marriage ceremony of Tulsi plant with Lord Vishnu — an auspicious ritual that removes dosha and blesses families.",
     impactStat: "Conducted during Kartik Maas at Vrindavan & Dwarka temples",
     templeAssociation: "Vrindavan Dham",
-    donationTiers: [{ amount: 450, mrp: 900 }],
+    donationTiers: [{ amount: 1350 }],
     imageUrl: import.meta.env.BASE_URL + "images/Tulsi Vivah.jpg",
   },
   {
@@ -78,7 +74,7 @@ const EXTRA_SEVAS = [
     significance: "Nine-planet pacification homa to remove planetary doshas, improve fortune, health and career using specific samidha and herbal offerings.",
     impactStat: "Performed by Jyotish-trained Acharyas at Ujjain Mahakaleshwar",
     templeAssociation: "Mahakaleshwar, Ujjain",
-    donationTiers: [{ amount: 4000, mrp: 8000 }],
+    donationTiers: [{ amount: 12000 }],
     imageUrl: import.meta.env.BASE_URL + "images/Navagraha.jpg",
   },
   {
@@ -87,7 +83,7 @@ const EXTRA_SEVAS = [
     significance: "Uninterrupted 24-hour recitation of the complete Valmiki Ramayana by a team of trained pandits to bring peace and blessings.",
     impactStat: "Organised at Ram Janmabhoomi, Ayodhya for devotee sankalpa",
     templeAssociation: "Ram Janmabhoomi, Ayodhya",
-    donationTiers: [{ amount: 4250, mrp: 8500 }],
+    donationTiers: [{ amount: 12750 }],
     imageUrl: import.meta.env.BASE_URL + "images/Akhand Ramayan.jpg",
   },
   {
@@ -96,7 +92,7 @@ const EXTRA_SEVAS = [
     significance: "Ceremonial worship and feeding of sacred desi cows with tulsi, jaggery and sesame — performed on your behalf with photo proof.",
     impactStat: "Done at registered Gaushalas in Mathura & Vrindavan",
     templeAssociation: "Mathura Gaushala",
-    donationTiers: [{ amount: 550, mrp: 1100 }],
+    donationTiers: [{ amount: 2000 }],
     imageUrl: import.meta.env.BASE_URL + "images/Gaushala.jpg",
   },
 ];
@@ -136,12 +132,12 @@ const renderSevaIcon = (id: string) => {
   }
 };
 
-// Compute 50% off from MRP (or fall back to amount as already-discounted)
-const getSevaDiscountedPrice = (amount: number, mrp?: number): { display: number; original: number | null } => {
-  if (mrp) return { display: amount, original: mrp };
-  // FEATURED_SEVAS pass only amount — treat as MRP, show 50% off
-  const half = Math.round(amount / 2);
-  return { display: half, original: amount };
+// donationTiers store the pre-discount base price; the sitewide 20%
+// discount (see utils/discount.ts) is applied here at render time.
+const getSevaDiscountedPrice = (amount: number): { display: number; original: number | null } => {
+  return isDiscountActive()
+    ? { display: getDiscountedPrice(amount), original: amount }
+    : { display: amount, original: null };
 };
 
 interface SevaCardProps {
@@ -151,7 +147,7 @@ interface SevaCardProps {
     significance: string;
     impactStat: string;
     templeAssociation: string;
-    donationTiers: Array<{ amount: number; mrp?: number; label?: string }>;
+    donationTiers: Array<{ amount: number; label?: string }>;
     imageUrl?: string | null;
   };
   onSponsor: (name: string, price: number) => void;
@@ -159,7 +155,7 @@ interface SevaCardProps {
 
 function SevaCard({ seva, onSponsor }: SevaCardProps) {
   const tier = seva.donationTiers[0];
-  const { display, original } = getSevaDiscountedPrice(tier.amount, tier.mrp);
+  const { display, original } = getSevaDiscountedPrice(tier.amount);
 
   return (
     <div
@@ -180,10 +176,12 @@ function SevaCard({ seva, onSponsor }: SevaCardProps) {
                 {seva.templeAssociation}
               </span>
             </div>
-            {/* 50% OFF badge on image */}
-            <div className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
-              50% OFF
-            </div>
+            {/* Discount badge on image */}
+            {isDiscountActive() && (
+              <div className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
+                {DISCOUNT_TAG}
+              </div>
+            )}
           </div>
         ) : (
           <div className="w-full h-20 rounded-2xl mb-4 border border-white/5 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-between px-4">
@@ -222,7 +220,7 @@ function SevaCard({ seva, onSponsor }: SevaCardProps) {
         className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow flex items-center justify-center gap-1.5"
       >
         <Tag className="w-3.5 h-3.5" />
-        SPONSOR SEVA — 50% OFF 🙏
+        {isDiscountActive() ? `SPONSOR SEVA — ${DISCOUNT_TAG} 🙏` : "SPONSOR SEVA 🙏"}
       </button>
     </div>
   );
@@ -354,11 +352,13 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           <p className="text-xs text-white/70 mt-2 leading-relaxed">
             Participate in active charity rituals — feed holy cows, distribute Annadanam meals, or light sacred Akhanda Diyas at renowned temples across India.
           </p>
-          {/* Global 50% OFF banner */}
-          <div className="inline-flex items-center gap-2 mt-3 bg-red-500/15 border border-red-400/30 text-red-300 text-xs font-bold px-4 py-1.5 rounded-full">
-            <Tag className="w-3.5 h-3.5" />
-            🎉 50% OFF on all Seva Sponsorships — Limited Period Offer
-          </div>
+          {/* Global discount banner */}
+          {isDiscountActive() && (
+            <div className="inline-flex items-center gap-2 mt-3 bg-red-500/15 border border-red-400/30 text-red-300 text-xs font-bold px-4 py-1.5 rounded-full">
+              <Tag className="w-3.5 h-3.5" />
+              🎉 {DISCOUNT_TAG} on all Seva Sponsorships — Limited Period Offer
+            </div>
+          )}
         </div>
 
         {/*
@@ -381,9 +381,11 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
             {/* Heading row */}
             <div className="flex items-center justify-between">
               <h3 className="font-serif text-xl font-bold text-white">Sponsorship Services</h3>
-              <span className="text-[10px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
-                50% OFF All Sevas
-              </span>
+              {isDiscountActive() && (
+                <span className="text-[10px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
+                  {DISCOUNT_TAG} All Sevas
+                </span>
+              )}
             </div>
 
             {/* Always-visible: first 4 FEATURED_SEVAS in 2×2 grid */}
@@ -516,14 +518,16 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                   <div>
                     <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
                     <span className="block text-[10px] text-white/50 font-mono mt-0.5">
-                      {FEATURED_SEVAS.slice(4).length + EXTRA_SEVAS.length} additional offerings — all 50% off
+                      {FEATURED_SEVAS.slice(4).length + EXTRA_SEVAS.length} additional offerings{isDiscountActive() ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
-                    50% OFF
-                  </span>
+                  {isDiscountActive() && (
+                    <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
+                      {DISCOUNT_TAG}
+                    </span>
+                  )}
                   <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
                     {accordionOpen
                       ? <ChevronUp className="w-4 h-4 text-[#5EEAD4]" />

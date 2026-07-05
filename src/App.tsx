@@ -29,7 +29,7 @@ import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack"
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
-import { getDiscountedPrice, isDiscountActive } from "./utils/discount";
+import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "./utils/discount";
 import {
   gaPageView, gaBookNowOpen, gaBookingComplete, gaCartCheckout, gaCartPurchase,
   gaSevaSelect, gaAddToCart, gaNavClick, gaSocialClick, gaWhatsAppClick,
@@ -801,10 +801,10 @@ export default function App() {
               
               <div className="space-y-2.5">
                 {[
-                  { name: "Annadanam (Feed visiting sadhus)", price: 501, symbol: "🍚" },
-                  { name: "Gau Seva (Feed organic fodder)", price: 251, symbol: "🐄" },
-                  { name: "Akhanda Diya (Lit clay gold lamp)", price: 151, symbol: "🪔" },
-                  { name: "Sanskrit Gurukul School book kit", price: 1001, symbol: "📚" }
+                  { name: "Annadanam (Feed visiting sadhus)", price: 752, symbol: "🍚" },
+                  { name: "Gau Seva (Feed organic fodder)", price: 377, symbol: "🐄" },
+                  { name: "Akhanda Diya (Lit clay gold lamp)", price: 227, symbol: "🪔" },
+                  { name: "Sanskrit Gurukul School book kit", price: 1502, symbol: "📚" }
                 ].map((item, idx) => (
                   <button
                     key={idx}
@@ -1022,7 +1022,7 @@ export default function App() {
                 <div>
                   <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
                   {isDiscountActive() && (
-                    <span className="block text-[9px] font-mono text-[#FFB347]">🎉 50% OFF</span>
+                    <span className="block text-[9px] font-mono text-[#FFB347]">🎉 {DISCOUNT_TAG}</span>
                   )}
                 </div>
                 <div className="text-right">

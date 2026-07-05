@@ -8,9 +8,9 @@
  * itself off once the deadline passes, with no manual cleanup needed.
  */
 
-export const DISCOUNT_RATE = 0.30; // 30% off
+export const DISCOUNT_RATE = 0.20; // 20% off
 export const DISCOUNT_DEADLINE = new Date("2026-08-01T00:00:00+05:30"); // midnight IST, Aug 1
-export const DISCOUNT_TAG = "30% OFF";
+export const DISCOUNT_TAG = "20% OFF";
 
 /** Whether the promotional window is still open. */
 export function isDiscountActive(now: Date = new Date()): boolean {
