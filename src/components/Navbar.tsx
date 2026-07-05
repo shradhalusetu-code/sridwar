@@ -99,6 +99,7 @@ export default function Navbar({
     { id: "home", label: t.navHome },
     { id: "seva", label: t.navSeva },
     { id: "puja", label: t.navOnlinePuja },
+    { id: "live-darshan", label: "Darshan" },
     { id: "products", label: t.navProducts },
     { id: "about", label: t.navAbout },
     { id: "contact", label: t.navContact }
@@ -255,7 +256,7 @@ export default function Navbar({
                   className="bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#818CF8]/30 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
                 >
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
-                  <span>Explore Shrines</span>
+                  <span>Shrines</span>
                 </button>
                 <button
                   id="nav-direct-donate-seva"
@@ -378,7 +379,7 @@ export default function Navbar({
                   className="w-full bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#818CF8]/30 shadow hover:scale-[1.01] transition-transform"
                 >
                   <Compass className="w-4 h-4 text-[#C7D2FE]" />
-                  <span>Explore Shrines</span>
+                  <span>Shrines</span>
                 </button>
 
                 <button

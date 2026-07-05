@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TempleExperience from "./components/TempleExperience";
+import LiveDarshan from "./components/LiveDarshan";
 import SevaExperience from "./components/SevaExperience";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import OnlinePuja from "./components/OnlinePuja";
@@ -462,6 +463,12 @@ export default function App() {
           </div>
         )}
 
+        {currentPage === "live-darshan" && (
+          <div className="animate-fadeIn">
+            <LiveDarshan onNavigate={handleNavigate} />
+          </div>
+        )}
+
         {currentPage === "temple-register" && (
           <div className="animate-fadeIn">
             <TempleRegister standaloneTempleReg onNavigate={handleNavigate} />
@@ -499,12 +506,13 @@ export default function App() {
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
               <ul className="space-y-2 text-xs text-white/60 font-medium">
                 <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
-                <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
-                <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
-                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
-                <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
-                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
-                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
+                <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva</button></li>
+                <li><button onClick={() => handleNavigate("live-darshan")} className="hover:text-white transition-colors">Darshan</button></li>
+                <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Puja</button></li>
+                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Bazaar</button></li>
+                <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Mission</button></li>
+                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Support</button></li>
+                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">Login</button></li>
                 <li>
                   <button
                     onClick={() => {
@@ -515,7 +523,7 @@ export default function App() {
                     }}
                     className="hover:text-white transition-colors"
                   >
-                    Explore Shrines
+                    Shrines
                   </button>
                 </li>
                 <li>
@@ -673,9 +681,12 @@ export default function App() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white shadow-sm">
-                      <svg viewBox="0 0 16 16" width="19" height="19" fill="none">
-                        <path d="M14.222 9.374c1.037-.61 1.037-2.137 0-2.748L11.528 5.04 8.32 8l3.207 2.96zm-3.595 2.116L7.583 8.68 1.03 14.73c.201 1.029 1.36 1.61 2.303 1.055zM1 13.396V2.603L6.846 8zM1.03 1.27l6.553 6.05 3.044-2.81L3.333.215C2.39-.341 1.231.24 1.03 1.27" fill="#00C853"/>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white/8 border border-white/10">
+                      <svg viewBox="0 0 24 24" width="19" height="19">
+                        <path fill="#4285F4" d="M4,3.6 L12.8,8.2 L9.9,11.2 Z" />
+                        <path fill="#EA4335" d="M12.8,8.2 L20,12 L9.9,11.2 Z" />
+                        <path fill="#FBBC04" d="M20,12 L12.8,15.8 L9.9,11.2 Z" />
+                        <path fill="#34A853" d="M12.8,15.8 L4,20.4 L9.9,11.2 Z" />
                       </svg>
                     </div>
                     <div>

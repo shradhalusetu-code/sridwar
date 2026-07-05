@@ -456,7 +456,7 @@ export default function DevoteeExperiences() {
   const currentDevotee = testimonials[currentIndex];
 
   return (
-    <section id="devotee-experiences-section" className="relative py-16 bg-gradient-to-b from-[#021816] to-[#042825] border-t border-white/10 overflow-hidden" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
+    <section id="devotee-experiences-section" className="relative py-16 bg-gradient-to-b from-[#021816] to-[#042825] border-t border-white/10 overflow-hidden">
       {/* Sacred background patterns */}
       <div className="absolute inset-0 pointer-events-none opacity-5">
         <div className="absolute top-1/2 left-1/4 w-80 h-80 rounded-full bg-[#FFB347] blur-[120px]" />

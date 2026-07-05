@@ -238,7 +238,7 @@ export default function FAQs() {
   return (
     <section 
       id="faq-accordion-section" 
-      className="py-16 bg-[#021816]/95 border-t border-white/15 relative z-10 text-left" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
+      className="py-16 bg-[#021816]/95 border-t border-white/15 relative z-10 text-left"
     >
       {/* Decorative background visual elements */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#FFB347]/5 rounded-full blur-[120px] pointer-events-none -translate-x-1/2" />
