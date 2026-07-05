@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { ChevronDown, Sparkles, Flame, BookOpen, Sun, Moon } from "lucide-react";
+import { ChevronDown, Sparkles, Flame, BookOpen, Sun, Moon, Music2 } from "lucide-react";
 
 const MANTRAS = [
   "JAGANNATH MANTRA",
@@ -82,6 +82,33 @@ const CHALISAS = [
   "RADHA CHALISA",
   "BRAHMA CHALISA",
   "KUBER CHALISA"
+];
+
+const STOTRAMS = [
+  "VISHNU SAHASRANAMA STOTRAM",
+  "LALITA SAHASRANAMA STOTRAM",
+  "SHIVA TANDAVA STOTRAM",
+  "RAM RAKSHA STOTRAM",
+  "KANAKADHARA STOTRAM",
+  "ADITYA HRIDAYAM STOTRAM",
+  "ANNAPURNA STOTRAM",
+  "BHAVANI ASHTAKAM",
+  "KALABHAIRAVA ASHTAKAM",
+  "SARASWATI STOTRAM",
+  "HANUMAN STOTRAM",
+  "SHRI SUKTAM",
+  "MAHISHASURA MARDINI STOTRAM",
+  "KRISHNA ASHTAKAM",
+  "GURU STOTRAM",
+  "NAVAGRAHA STOTRAM",
+  "SHANI STOTRAM",
+  "AYYAPPA SHARANAM STOTRAM",
+  "VENKATESWARA SUPRABHATAM",
+  "RUDRASHTAKAM",
+  "GANGA STOTRAM",
+  "KALI STOTRAM",
+  "MEENAKSHI STOTRAM",
+  "SUBRAMANYA BHUJANGAM"
 ];
 
 const CITIES = [
@@ -193,7 +220,7 @@ export default function SacredResources() {
             Daily devotion tools
           </span>
           <h2 className="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight">
-            Mantras, Aartis, Chalisas &amp; Sacred Timings
+            Mantras, Aartis, Chalisas, Bhajans/Stotrams &amp; Sacred Timings
           </h2>
           <p className="text-xs text-white/60">
             Pick a deity, ritual, or city below — full chanting guides, audio, and live timings are rolling out soon.
@@ -221,6 +248,13 @@ export default function SacredResources() {
             options={CHALISAS}
             imageUrl={import.meta.env.BASE_URL + "images/Chalisa.jpg"}
             placeholderNote={(s) => `🙏 ${s} selected. Full verses & audio will be available here soon.`}
+          />
+          <DropdownGroup
+            label="Bhajan/Stotram"
+            icon={<Music2 className="w-4 h-4 text-[#5EEAD4]" />}
+            options={STOTRAMS}
+            imageUrl={import.meta.env.BASE_URL + "images/Stotram.jpg"}
+            placeholderNote={(s) => `🙏 ${s} selected. Full lyrics & audio will be available here soon.`}
           />
           <DropdownGroup
             label="Sun Rise & Sun Set Timings"
