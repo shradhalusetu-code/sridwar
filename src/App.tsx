@@ -673,12 +673,9 @@ export default function App() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#1A1A2E]">
-                      <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                        <path d="M3.18 1.44A1 1 0 0 0 2 2.43v19.14a1 1 0 0 0 1.55.83l17-9.57a1 1 0 0 0 0-1.66L3.55 1.6a1 1 0 0 0-.37-.16z" fill="#00D26A"/>
-                        <path d="M2 21.57V2.43L13.06 12 2 21.57z" fill="#00B0FF" fillOpacity="0.7"/>
-                        <path d="M3.18 1.44l9.88 10.56L20.18 12 3.55 1.6a1 1 0 0 0-.37-.16z" fill="#FFD400" fillOpacity="0.9"/>
-                        <path d="M3.18 22.56l9.88-10.56 7.12.44L3.55 22.4a1 1 0 0 1-.37.16z" fill="#FF3D00" fillOpacity="0.9"/>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white shadow-sm">
+                      <svg viewBox="0 0 16 16" width="19" height="19" fill="none">
+                        <path d="M14.222 9.374c1.037-.61 1.037-2.137 0-2.748L11.528 5.04 8.32 8l3.207 2.96zm-3.595 2.116L7.583 8.68 1.03 14.73c.201 1.029 1.36 1.61 2.303 1.055zM1 13.396V2.603L6.846 8zM1.03 1.27l6.553 6.05 3.044-2.81L3.333.215C2.39-.341 1.231.24 1.03 1.27" fill="#00C853"/>
                       </svg>
                     </div>
                     <div>
@@ -688,7 +685,7 @@ export default function App() {
                   </div>
                   <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#1C1C1E]">
-                      <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                      <svg viewBox="0 0 24 24" width="19" height="19" fill="white">
                         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                       </svg>
                     </div>
