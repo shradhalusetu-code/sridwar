@@ -506,13 +506,13 @@ export default function App() {
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
               <ul className="space-y-2 text-xs text-white/60 font-medium">
                 <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
-                <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva</button></li>
-                <li><button onClick={() => handleNavigate("live-darshan")} className="hover:text-white transition-colors">Darshan</button></li>
-                <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Puja</button></li>
-                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Bazaar</button></li>
-                <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Mission</button></li>
-                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Support</button></li>
-                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">Login</button></li>
+                <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
+                <li><button onClick={() => handleNavigate("live-darshan")} className="hover:text-white transition-colors">Live Darshan</button></li>
+                <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
+                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
+                <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
+                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
+                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
                 <li>
                   <button
                     onClick={() => {
@@ -523,7 +523,7 @@ export default function App() {
                     }}
                     className="hover:text-white transition-colors"
                   >
-                    Shrines
+                    Explore Shrines
                   </button>
                 </li>
                 <li>
@@ -913,21 +913,38 @@ export default function App() {
               <div className="space-y-2 text-left">
                 <h4 className="font-serif text-base font-bold text-[#FFB347]">Holy Pilgrimage Narrative & History:</h4>
                 <p className="text-white/80 leading-relaxed font-sans">
-                  The holy shrine stands as a cornerstone of spiritual resonance built across centuries of devotion. Celebrated by legendary sages, it continues to echo ancient Vedic mantras, inviting pilgrims to find profound inner silence.
-                </p>
-                <p className="text-white/80 leading-relaxed font-sans">
-                  Our remote co-ordinators have confirmed all physical offerings and pujaris inside this specific sanctum to allow high-integrity virtual devotion.
+                  {activeExploreTemple.history}
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-left">
                 <div>
-                  <h5 className="font-bold text-[#5EEAD4]">Aarti Timings:</h5>
-                  <p className="text-white/70 font-sans">{activeExploreTemple.timings}</p>
+                  <h5 className="font-bold text-[#5EEAD4]">GPS Coordinates:</h5>
+                  <p className="text-white/70 font-sans font-mono text-[11px]">
+                    {Math.abs(activeExploreTemple.coordinates.lat).toFixed(4)}° {activeExploreTemple.coordinates.lat >= 0 ? "N" : "S"}, {Math.abs(activeExploreTemple.coordinates.lng).toFixed(4)}° {activeExploreTemple.coordinates.lng >= 0 ? "E" : "W"}
+                  </p>
                 </div>
+                <div>
+                  <h5 className="font-bold text-[#5EEAD4]">Aarti Timings:</h5>
+                  <p className="text-white/70 font-sans">
+                    Morning: {activeExploreTemple.aartiTimings.morning}<br />
+                    Afternoon: {activeExploreTemple.aartiTimings.afternoon}<br />
+                    Evening: {activeExploreTemple.aartiTimings.evening}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-left">
                 <div>
                   <h5 className="font-bold text-[#5EEAD4]">Authorized rituals:</h5>
                   <p className="text-white/70 font-sans italic">{activeExploreTemple.rituals.join(", ")}</p>
                 </div>
+                <div>
+                  <h5 className="font-bold text-[#5EEAD4]">Sample rituals & offerings:</h5>
+                  <p className="text-white/70 font-sans italic">{activeExploreTemple.sampleOfferings.join(", ")}</p>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-white/10 text-left">
+                <h5 className="font-bold text-[#5EEAD4]">Priest Information:</h5>
+                <p className="text-white/70 font-sans">{activeExploreTemple.priestInfo}</p>
               </div>
               <div className="pt-6 flex justify-end space-x-3">
                 <button

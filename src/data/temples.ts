@@ -6,6 +6,14 @@
 import { Temple } from "../types";
 import deityJagannath from "../assets/images/deity_jagannath_1781872890111.jpg";
 
+// NOTE ON TIMINGS: Where a temple trust publishes a fixed, verifiable daily aarti
+// schedule, that schedule is given directly. Where published schedules are known to
+// vary seasonally, by festival calendar, or are set informally by local temple
+// committees (common for smaller regional shrines), the `note` field says so plainly
+// rather than inventing a false precise time. Devotees should always reconfirm
+// same-day timings with the temple trust or Sri Dwar's verified priest network,
+// especially around festivals.
+
 export const TEMPLES_LIST: Temple[] = [
   {
     id: "puri-jagannath",
@@ -16,9 +24,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "An ancient, revered temple constructed in the 12th century by King Anantavarman Chodaganga Deva. The temple is famous for its annual Ratha Yatra (Chariot Festival) and the sacred, wooden idols of Lord Jagannath, Balabhadra, and Subhadra, which are periodically replaced.",
     deityInfo: "Lord Jagannath, along with siblings Balabhadra and Subhadra. Made of sacred neem wood, representing the formless divine manifest in nature.",
     timings: "5:00 AM — 11:00 PM",
-    rituals: ["Mangal Alati (Sudarshan Puja)", "Kotha Bhoga Offering", "Sahanamela Darshan", "Sandhya Alati & Vesha Changer"],
+    rituals: [
+      "Mangal Alati (Sudarshan Puja)",
+      "Kotha Bhoga Offering",
+      "Sahanamela Darshan",
+      "Sandhya Alati & Vesha Changer",
+      "Gopal Ballav Dhupa",
+      "Sakala Dhupa",
+      "Madhyahna Dhupa",
+      "Sandhya Dhupa",
+      "Chandan Lagi",
+      "Mailam (deity attire change)",
+      "Rosha Homa",
+      "Rath Yatra Sevas"
+    ],
     imageUrl: deityJagannath,
-    symbol: "ॐ"
+    symbol: "ॐ",
+    coordinates: { lat: 19.8047, lng: 85.8181 },
+    history: "The Jagannath Temple of Puri is one of the four Char Dham pilgrimage sites of Hinduism, alongside Badrinath, Dwarka, and Rameswaram. Built in its present form in the 12th century CE by King Anantavarman Chodaganga Deva of the Eastern Ganga dynasty, it is the paramount seat of Vaishnavism in eastern India. Its 214-foot Kalinga-style shikhara is crowned by the Nila Chakra, an eight-spoked wheel of Vishnu, visible across the coastal skyline. Uniquely, the deities of Jagannath, Balabhadra, and Subhadra are carved afresh from sacred neem wood (daru) during the rare Nabakalebara ceremony, symbolising cyclical renewal of the divine body. The temple is world-famous for the annual Rath Yatra, when the deities are pulled through Puri's Grand Road on colossal wooden chariots before millions of devotees — a festival widely believed to have given rise to the English word 'juggernaut'. Its Ananda Bazaar and Rosaghara kitchen, among the largest temple kitchens on earth, prepare Mahaprasad for tens of thousands of pilgrims daily, embodying Puri's tradition that no devotee ever leaves hungry.",
+    aartiTimings: {
+      morning: "Dwarapitha darshan and Mangal Alati begin around 5:00 AM, followed by Mailam and Abakash (morning ablution) rituals",
+      afternoon: "Madhyahna Dhupa (midday food offering) is generally performed between 12:00 PM and 1:00 PM",
+      evening: "Sandhya Dhupa/Aarti is offered around 7:00 PM, followed by Chandanlagi during the appropriate season",
+      note: "Puri's seva calendar (Niti) has 24+ daily rituals whose exact minute-by-minute timing shifts with the lunar calendar and festivals — please reconfirm same-day timings with the temple administration."
+    },
+    sampleOfferings: [
+      "Mahaprasad (Abadha bhog) sponsorship",
+      "Tulsi leaf offering",
+      "Fresh coconut (Nadia) offering",
+      "Kheer (rice pudding) bhog",
+      "Khaja & Odia sweets tray",
+      "Silk vastra (patta) for the deities",
+      "Betel leaf & areca nut arpan",
+      "Sandalwood paste (chandan) seva",
+      "Camphor aarti lamp sponsorship",
+      "Ghee lamp (deep) seva",
+      "Flower garland (mala) offering",
+      "Tulsi mala offering"
+    ],
+    priestInfo: "Sevas at the Jagannath Temple are performed exclusively by hereditary sevayats — Daitapati, Pujapanda, Suar, Pratihari and other traditional servitor families whose rights are recorded by the Shree Jagannath Temple Administration. Sri Dwar coordinates only with verified priest representatives for authorised virtual sankalp and puja bookings."
   },
   {
     id: "bbsr-lingaraj",
@@ -29,9 +73,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Dating back to the 11th century, Lingaraj Temple stands as a masterpiece of Kalinga architecture built by the Somavamsi dynasty. It houses the swayambhu (self-manifested) lingam that embodies both Shiva (Hara) and Vishnu (Hari).",
     deityInfo: "The massive Harihara Lingam, bathed daily in water, milk, and bhang.",
     timings: "6:00 AM — 9:00 PM",
-    rituals: ["Mahadipam Lighting", "Rudra Abhishek", "Sankalpa Puja", "Sringar Puja"],
+    rituals: [
+      "Mahadipam Lighting",
+      "Rudra Abhishek",
+      "Sankalpa Puja",
+      "Sringar Puja",
+      "Bhog Offering (with bhang)",
+      "Chandan Yatra Seva",
+      "Ashokashtami Car Festival Puja",
+      "Maha Shivaratri Jagara",
+      "Panchamrit Abhishek",
+      "Dhupa Bhoga",
+      "Sandhya Aarti",
+      "Rukuna Rath Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_lingaraj_1781872903761.jpg",
-    symbol: "🔱"
+    symbol: "🔱",
+    coordinates: { lat: 20.2380, lng: 85.8345 },
+    history: "Lingaraj Temple, at the heart of Bhubaneswar's ancient Ekamra Kshetra, is one of the oldest and largest temples in Odisha, with its present 180-foot deul largely built during the reign of the Somavamsi king Jajati Keshari in the 11th century CE, though the site's worship traditions are far older. The temple enshrines a swayambhu (self-manifested) lingam worshipped as Harihara — a composite form uniting Shiva and Vishnu, reflecting the syncretic religious culture of medieval Odisha. The temple complex spans over 250,000 square feet and contains more than 150 smaller shrines within its outer compound, making it a living museum of Kalinga temple architecture. Only Hindus are permitted inside the main sanctum; a viewing platform was built in the 19th century for non-Hindu visitors, including Lord Curzon. The temple observes the annual Chandan Yatra and Ashokashtami car festival, and draws immense crowds during Maha Shivaratri, when devotees keep an all-night vigil chanting to Lord Hara.",
+    aartiTimings: {
+      morning: "Dwarafita and Mangal Aarti typically begin around 6:00 AM, followed by morning Abhisheka with water, milk and bhang",
+      afternoon: "Madhyahna Bhoga (midday offering) is usually performed between 12:00 PM and 1:00 PM",
+      evening: "Sandhya Aarti and Sayana Bhoga are offered in the evening, generally between 7:00 PM and 8:00 PM",
+      note: "Exact seva timings are set by the temple trust's Niti calendar and shift on festival days such as Maha Shivaratri and Ashokashtami — please confirm on the day of visit."
+    },
+    sampleOfferings: [
+      "Bel Patra (bilva leaf) offering",
+      "Milk & Panchamrit abhishek",
+      "Bhang & vibhuti (sacred ash) seva",
+      "Chandan (sandalwood) lepa",
+      "Ganga jal abhishek",
+      "Dhatura flower offering",
+      "Rudraksha mala offering",
+      "Ghee deepam sponsorship",
+      "Bel fruit & seasonal fruit tray",
+      "Camphor aarti lamp",
+      "Silk vastra for the lingam",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are conducted by the temple's hereditary Badu and Pujapanda priest families under the Lingaraj Temple Trust (managed jointly with the Endowment Department of Odisha). Sri Dwar works only with verified priest representatives listed in our Priest Directory for virtual sankalp bookings."
   },
   {
     id: "ghatgaon-tarini",
@@ -41,10 +121,46 @@ export const TEMPLES_LIST: Temple[] = [
     deity: "Maa Tarini",
     story: "Maa Tarini is the presiding Shakti deity of the Keonjhar district, famous for receiving offerings of fresh green coconuts. Legend states she rode with King Gobinda Bhanja on horse from Puri, demanding he never turn back to look at her until they reached Ghatgaon.",
     deityInfo: "Revered as the manifestation of Adi Shakti, represented by a beautiful vermilion face with distinct golden eyes.",
-    timings: "5:30 AM — 8:30 PM",
-    rituals: ["Narkela (Coconut) Arpan", "Maha Snana & Shringar", "Prasad Offering", "Sandhya Dhupa"],
+    timings: "5:00 AM — 9:45 PM",
+    rituals: [
+      "Narkela (Coconut) Arpan",
+      "Maha Snana & Shringar",
+      "Prasad Offering",
+      "Sandhya Dhupa",
+      "Raksha Sutra (red thread) Tying",
+      "Chaiti Jatra Puja",
+      "Patua Yatra Seva",
+      "Ashadhi Parba Puja",
+      "Makar Sankranti Archana",
+      "Kali Puja",
+      "Basanti Puja",
+      "Dehuri Tribal Rites"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_maa_tarini_1781872917967.jpg",
-    symbol: "🌸"
+    symbol: "🌸",
+    coordinates: { lat: 21.3833, lng: 85.8833 },
+    history: "Nestled deep within the sal forests of Keonjhar district, the Maa Tarini Temple at Ghatgaon is regarded as the most visited Shakti shrine in Odisha, drawing pilgrims from every corner of the state. According to local tradition, in 1480 the ruler of Keonjhar, Sri Gobinda Bhanja Deo, brought the Goddess from Puri on the condition that he would never look back — Maa Tarini followed silently behind his horse, her ornaments' tinkling proof of her presence, until forest mud muffled the sound near Ghatgaon and the king, fearing she had stopped, glanced backward, fixing her divine seat at that very spot. The temple's tribal-origin worship, conducted by hereditary Dehuri priests, blends indigenous rites with later Vedic influence, reflecting Odisha's syncretic Shakta tradition. The temple's pyramidal Kalinga-style structure is surrounded by dense forest and hills, and Tuesdays and Saturdays are considered especially auspicious for seeking the Goddess's blessings, with fresh green coconut remaining her most beloved offering.",
+    aartiTimings: {
+      morning: "The temple opens for Mangal Aarti and darshan at approximately 5:00 AM",
+      afternoon: "Midday bhoga and archana continue through the afternoon with brief closure for cleaning between sevas",
+      evening: "The temple closes for the night around 9:45 PM following the final evening aarti",
+      note: "As a regional temple administered by a local trust, exact minute-level seva timings can vary by season and festival — please confirm with the temple committee or Sri Dwar's local coordinators before travelling."
+    },
+    sampleOfferings: [
+      "Fresh green coconut offering",
+      "Red saree (chunri) for the Goddess",
+      "Vermilion (sindoor) offering",
+      "Mandar flower garland",
+      "Raksha sutra (protective red thread)",
+      "Hibiscus flower offering",
+      "Camphor aarti lamp",
+      "Fruit basket offering",
+      "Bangles (chuda) offering",
+      "Kumkum archana",
+      "Ghee lamp seva",
+      "Sweets (khaja/laddoo) prasad"
+    ],
+    priestInfo: "Worship at Ghatgaon is traditionally conducted by the Dehuri community of hereditary tribal priests, who follow customary Shakta rites passed down for generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory for remote sankalp and puja coordination."
   },
   {
     id: "purushottampur-tara-tarini",
@@ -54,23 +170,95 @@ export const TEMPLES_LIST: Temple[] = [
     deity: "Maa Tara & Maa Tarini",
     story: "Located on the sacred Kumari Hills on the banks of Rushikulya river, this is one of India's ancient four major Shakti Peethas (Breast Peetha). It has been a seat of Tantric learning and pilgrimage for thousands of years.",
     deityInfo: "Two gemstone anthropomorphic deities representing Tara (wisdom) and Tarini (salvation).",
-    timings: "5:00 AM — 8:00 PM",
-    rituals: ["Mundan Sanskar Puja", "Shakti Abhishek", "Sankalpa Archana", "Sandhya Aarti"],
+    timings: "6:30 AM — 12:30 PM, 2:00 PM — 8:30 PM",
+    rituals: [
+      "Mundan Sanskar Puja",
+      "Shakti Abhishek",
+      "Sankalpa Archana",
+      "Sandhya Aarti",
+      "Chaitra Parba Puja",
+      "999-Step Pilgrimage Rite",
+      "Tantrik Homa",
+      "Kumari Puja",
+      "Yagna Offering",
+      "Vasu Praharaja Smaran Puja",
+      "Ratnagiri Pradakshina",
+      "Deep Daan"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_tara_tarini_1781872931738.jpg",
-    symbol: "📿"
+    symbol: "📿",
+    coordinates: { lat: 19.3667, lng: 84.8000 },
+    history: "The Tara Tarini Pitha sits atop Kumari Hill (also called Ratnagiri) beside the Rushikulya river near Purushottampur in Odisha's Ganjam district, roughly 30 km from Brahmapur. It is revered as one of the four principal Adi Shakti Peethas of India — alongside Kamakhya, Kalighat, and Vimala — sites where, per legend, parts of Sati's body fell after Shiva's grief-stricken cosmic dance; here it is believed her breasts (stana) fell, making the shrine a Stana Peetha of extraordinary tantric significance. The presiding twin goddesses, Tara and Tarini, are depicted as two carved stone faces adorned in gold and silver, worshipped as a unified Shakti embodying wisdom and deliverance. Pilgrims traditionally ascend 999 stone steps carved into the hillside, though a ropeway and motorable road now also serve devotees. The temple has functioned as a center of Tantra and Shakta worship for many centuries and remains one of South Odisha's most important pilgrimage destinations, especially during the biennial Chaitra Yatra festival.",
+    aartiTimings: {
+      morning: "Morning darshan and Shringar begin around 6:30 AM and continue until the midday closure at 12:30 PM",
+      afternoon: "The temple reopens at 2:00 PM for afternoon archana and darshan",
+      evening: "Sandhya Aarti is offered in the evening, with the temple closing for the day around 8:30 PM",
+      note: "Timings may extend on special puja occasions and during the Chaitra Yatra festival — please confirm with the temple committee before visiting."
+    },
+    sampleOfferings: [
+      "Red chunri (sacred cloth) offering",
+      "Vermilion (sindoor) archana",
+      "Coconut offering",
+      "Hibiscus & marigold garlands",
+      "Gold/silver ornament seva for the deities",
+      "Camphor aarti lamp",
+      "Fruit & sweets prasad tray",
+      "Tonsure (mundan) ceremony sponsorship",
+      "Ghee lamp offering",
+      "Kumkum & turmeric archana",
+      "Betel leaf offering",
+      "Silk vastra for the sanctum"
+    ],
+    priestInfo: "Pujas are conducted by hereditary temple priests (pandas) associated with the Tara Tarini Peetha Trust, following centuries-old Shakta and tantric traditions. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "jajpur-biraja",
     name: "Maa Biraja Temple — Jajpur",
-    city: "Jaipur",
+    city: "Jajpur",
     state: "Odisha",
     deity: "Maa Biraja (Girija)",
     story: "Mentioned in the Mahabharata, Jajpur is the sacred Biraja Kshetra. It is a highly powerful Shakti Peetha (Navel Peetha) where Maa Biraja is worshiped as Dwibhuja (Two-Handed) Mahishasuramardini, piercing the buffalo of ego.",
     deityInfo: "Maa Biraja, riding a lion and holding a trident which plunges into the crown of Mahishasura.",
     timings: "4:00 AM — 9:00 PM",
-    rituals: ["Savitri Vrata Puja", "Sharadiya Rathayatra Puja", "Navratri Shringar", "Anna Bhoga Sadasya"],
+    rituals: [
+      "Savitri Vrata Puja",
+      "Sharadiya Rathayatra Puja",
+      "Navratri Shringar",
+      "Anna Bhoga Sadasya",
+      "Pinda Daan (ancestral rites)",
+      "Mahishasuramardini Archana",
+      "Durga Saptashati Patha",
+      "Kumari Puja",
+      "Chandi Homa",
+      "Sandhya Aarti",
+      "Vijayadashami Puja",
+      "Navami Bhog Offering"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_maa_biraja_1781874129633.jpg",
-    symbol: "🕉️"
+    symbol: "🕉️",
+    coordinates: { lat: 20.8500, lng: 86.3333 },
+    history: "Jajpur, on the banks of the Vaitarani river in Odisha, is revered in Hindu scripture as Biraja Kshetra and finds mention in the Mahabharata and several Puranas as a site of profound sanctity. The Biraja Temple is counted among the 51 Shakti Peethas, specifically as the Nabhi (navel) Peetha, marking the spot where, per legend, Sati's navel fell. The presiding deity, Maa Biraja, is depicted as the two-armed Mahishasuramardini, plunging her trident into the buffalo demon Mahishasura, symbolising the triumph of divine consciousness over ego and ignorance. Jajpur is also historically significant as an ancient capital of the Kalinga and later Bhauma-Kara dynasties, and the region is dotted with archaeological remains of Buddhist, Jain, and Shaiva sites, reflecting its layered religious history. Pilgrims traditionally perform Pinda Daan (ancestral offerings) at Jajpur, considering it equal in merit to performing the rite at Gaya, and the temple sees intense devotion during Navratri when the Goddess is worshipped in her nine forms.",
+    aartiTimings: {
+      morning: "The temple opens early for Mangal Aarti, generally around 4:00 AM, followed by morning Shringar",
+      afternoon: "Madhyahna Bhoga is offered around midday, typically between 12:00 PM and 1:00 PM",
+      evening: "Sandhya Aarti is performed in the evening before the temple closes around 9:00 PM",
+      note: "Timings extend considerably during Navratri and Sharadiya Durga Puja — please confirm the festival schedule with the temple trust."
+    },
+    sampleOfferings: [
+      "Red hibiscus & lotus garlands",
+      "Vermilion (sindoor) archana",
+      "Pinda Daan (ancestral offering) sponsorship",
+      "Chandi Path recitation seva",
+      "Coconut & fruit basket offering",
+      "Camphor aarti lamp",
+      "Kumkum & turmeric archana",
+      "Silk red saree offering",
+      "Ghee lamp seva",
+      "Betel leaf & areca nut arpan",
+      "Sweets (kheer/khaja) prasad",
+      "Durga Saptashati patha sponsorship"
+    ],
+    priestInfo: "Rituals are performed by hereditary pandas of the Biraja Temple, whose families have conducted Shakta worship and Pinda Daan ceremonies at this site for generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "sambalpur-samaleswari",
@@ -81,9 +269,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "A majestic 16th-century temple on the banks of the Mahanadi river. Maa Samaleswari is the guardian goddess of Western Odisha, worshipped with intense devotion and folk music of the region.",
     deityInfo: "Represented by a rock sculpture resembling a trunk-like face with gold ornamentations.",
     timings: "5:00 AM — 9:00 PM",
-    rituals: ["Nuakhai Offering", "Maha Snana & Pushpanjali", "Karuna Arati", "Alati Vesha"],
+    rituals: [
+      "Nuakhai Offering",
+      "Maha Snana & Pushpanjali",
+      "Karuna Arati",
+      "Alati Vesha",
+      "Sital Sasthi Puja",
+      "Dussehra Shringar",
+      "Sambalpuri Folk Music Seva",
+      "Kumkum Archana",
+      "Ghee Deep Seva",
+      "Chandan Yatra",
+      "Navaratri Puja",
+      "Sandhya Dhupa"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_maa_samaleswari_1781874145172.jpg",
-    symbol: "🪔"
+    symbol: "🪔",
+    coordinates: { lat: 21.4669, lng: 83.9756 },
+    history: "Standing on the banks of the Mahanadi in Sambalpur, the Samaleswari Temple has served as the guardian shrine of Western Odisha since at least the 16th century, when the Chauhan rulers of the Sambalpur kingdom formally established the deity's worship. Maa Samaleswari is regarded as the presiding tutelary goddess of the entire Sambalpur region, deeply woven into local identity and the famous Sambalpuri weaving and folk-music traditions. The deity is represented by a distinctive rock-carved, trunk-like face adorned in gold ornaments, worshipped without an accompanying idol in the conventional anthropomorphic sense, reflecting an older tribal-Shakta lineage of worship later absorbed into mainstream Hindu ritual. The temple is central to the region's biggest folk festival, Nuakhai, when the new harvest is first offered to the Goddess before being consumed by devotees, and to Sital Sasthi, a unique folk-theatre celebration of Shiva-Parvati's wedding performed with great pomp in Sambalpur town.",
+    aartiTimings: {
+      morning: "Mangal Aarti and morning Pushpanjali generally begin around 5:00 AM",
+      afternoon: "Midday bhog offering typically takes place between 12:00 PM and 1:00 PM",
+      evening: "Sandhya Aarti (Karuna Arati) is performed in the evening before the temple closes around 9:00 PM",
+      note: "Timings extend substantially during Nuakhai and Sital Sasthi festivals — please confirm the festival-day schedule with the temple trust."
+    },
+    sampleOfferings: [
+      "Nuakhai new-harvest rice offering",
+      "Sambalpuri silk saree offering",
+      "Vermilion & turmeric archana",
+      "Fresh flower garland (marigold/hibiscus)",
+      "Camphor aarti lamp",
+      "Ghee deepam sponsorship",
+      "Coconut & fruit basket",
+      "Betel leaf & areca nut",
+      "Kheer & sweets prasad",
+      "Kumkum archana",
+      "Chandan (sandalwood) offering",
+      "Folk music (Sambalpuri) seva sponsorship"
+    ],
+    priestInfo: "Worship is conducted by hereditary temple priests of the Samaleswari Devasthan Trust, custodians of Western Odisha's distinct Shakta ritual traditions. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "jagatsinghpur-sarala",
@@ -94,9 +318,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Saraswati manifest in Odisha, she blessed the medieval peasant poet Sarala Das to write the Odia Mahabharata. Devotees visit this shrine to seek wisdom, intellect, and proficiency in literature, arts, and science.",
     deityInfo: "The Goddess is depicted with eight hands (Ashtabhuja) holding weapons represents universal wisdom.",
     timings: "5:00 AM — 8:30 PM",
-    rituals: ["Saraswati Puja Archana", "Vidyarambha Sanskar", "Akhanda Diya Seva", "Raja Parba Puja"],
+    rituals: [
+      "Saraswati Puja Archana",
+      "Vidyarambha Sanskar",
+      "Akhanda Diya Seva",
+      "Raja Parba Puja",
+      "Ashtabhuja Shringar",
+      "Basant Panchami Puja",
+      "Navaratri Archana",
+      "Balijatra Homage Rites",
+      "Sandhya Dhupa",
+      "Chandan Lepa",
+      "Kumkum Archana",
+      "Bhog Naivedya Offering"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_maa_sarala_1781874159752.jpg",
-    symbol: "📒"
+    symbol: "📒",
+    coordinates: { lat: 20.1000, lng: 86.2833 },
+    history: "The Maa Sarala Temple, near Jagatsinghpur in coastal Odisha, is dedicated to a form of the Goddess believed to be a manifestation of Saraswati blended with Shakti — a distinctly Odia devotional tradition. According to legend, the 15th-century peasant-poet Sarala Das, largely unlettered, received the Goddess's direct blessing here and went on to compose the Odia Mahabharata, the Chandi Purana, and the Vilanka Ramayana, works considered foundational to Odia literature; he adopted her name in gratitude, becoming known as Sarala Das. The presiding deity is depicted with eight arms (Ashtabhuja), each holding a symbolic weapon, representing the multifaceted power of divine wisdom overcoming ignorance. The shrine is especially favoured by students, writers, and artists seeking blessings for learning and creative clarity, and sees a surge of devotees during Basant Panchami and the Raja Parba festival, when Odisha traditionally celebrates womanhood and the fertility of the earth.",
+    aartiTimings: {
+      morning: "Mangal Aarti generally begins around 5:00 AM followed by Ashtabhuja Shringar",
+      afternoon: "Midday bhog and archana continue through the early afternoon",
+      evening: "Sandhya Dhupa/Aarti is offered in the evening before closing around 8:30 PM",
+      note: "As with many regional Odisha temples, exact seva timings are set locally and may shift on festival days — please confirm with the temple committee."
+    },
+    sampleOfferings: [
+      "Book & pen blessing (Vidya Arambha) seva",
+      "White flower & lotus garland",
+      "Kumkum & chandan archana",
+      "Camphor aarti lamp",
+      "Fruit basket offering",
+      "Sweets (kheer/khaja) prasad",
+      "Ghee lamp seva",
+      "Basant Panchami yellow-flower offering",
+      "Betel leaf & areca nut",
+      "Silk vastra for the deity",
+      "Akhanda deepam (perpetual lamp) sponsorship",
+      "Saraswati Vandana recitation seva"
+    ],
+    priestInfo: "Pujas are performed by hereditary priests attached to the Maa Sarala Temple committee, following Odia Shakta-Saraswat traditions linked to the legacy of poet Sarala Das. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kakatpur-mangala",
@@ -107,9 +367,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "An ancient shrine on the Prachi river basin. In Hindology, this temple is famously associated with Puri's Nabakalebara; the senior priests of Puri sleep here to receive dream-directives from Maa Mangala revealing where to find the sacred Neem trees for building new Chariot deities.",
     deityInfo: "The glowing stone Goddess seated in padmasana, carrying lotus and counting beads.",
     timings: "6:00 AM — 9:00 PM",
-    rituals: ["Nabakalebara Prarthana", "Majana Ritual (Morning bath)", "Sankalpa Archana", "Sandhya Dhupa Bhoga"],
+    rituals: [
+      "Nabakalebara Prarthana",
+      "Majana Ritual (Morning bath)",
+      "Sankalpa Archana",
+      "Sandhya Dhupa Bhoga",
+      "Padmasana Shringar",
+      "Kumkum Archana",
+      "Chandan Lepa",
+      "Deep Daan",
+      "Dwadasha Yatra Puja",
+      "Navaratri Archana",
+      "Betel-leaf Naivedya",
+      "Ghee Deepam Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_maa_mangala_1781874172509.jpg",
-    symbol: "🏮"
+    symbol: "🏮",
+    coordinates: { lat: 19.9333, lng: 86.1333 },
+    history: "The Maa Mangala Temple at Kakatpur, on the ancient Prachi river basin in Puri district, holds a unique place in Odia religious life as the shrine from which the Daitapati priests of the Jagannath Temple receive divine direction before the rare Nabakalebara ceremony. When new sacred neem (daru) trees must be located to carve fresh idols of Jagannath, Balabhadra, and Subhadra, senior priests undertake a ritual vigil (Majana and Ratri Jagarana) at this temple, sleeping here in the belief that Maa Mangala will reveal, through dreams or signs, the exact location of the trees bearing the required auspicious markings. The presiding Goddess is depicted seated in padmasana (lotus posture), carrying a lotus and prayer beads, radiating a serene, luminous countenance distinct from the fiercer iconography of many Odia Shakti shrines. Beyond its Nabakalebara role, the temple is an active centre of everyday Shakta worship for the surrounding Prachi valley, an area rich with ancient temple ruins reflecting more than a thousand years of continuous devotion.",
+    aartiTimings: {
+      morning: "The temple opens for Majana and Mangal Aarti around 6:00 AM",
+      afternoon: "Midday archana and bhog offering typically continue through early afternoon",
+      evening: "Sandhya Dhupa Bhoga is offered in the evening before the temple closes around 9:00 PM",
+      note: "Timings shift markedly during the Nabakalebara ceremony years, when special all-night vigils are held — please confirm with the temple trust for festival-specific schedules."
+    },
+    sampleOfferings: [
+      "Lotus flower offering",
+      "Kumkum & chandan archana",
+      "Camphor aarti lamp",
+      "Betel leaf naivedya",
+      "Coconut & fruit basket",
+      "Ghee deepam sponsorship",
+      "Silk vastra for the deity",
+      "Sweets (kheer) prasad",
+      "Prayer bead (japa mala) offering",
+      "Turmeric & vermilion archana",
+      "Deep Daan (lamp donation) seva",
+      "Sandalwood paste offering"
+    ],
+    priestInfo: "Rituals here are conducted by local hereditary priests in close ceremonial coordination with the Daitapati sevayats of the Jagannath Temple during Nabakalebara years. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "cuttack-dhabaleswar",
@@ -120,9 +416,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Situated on an island in the Mahanadi river, connected by an elegant hanging suspension bridge. The temple is dedicated to the white form of Shiva, who is said to have turned a black bull white to save a devotee from a false charge of theft.",
     deityInfo: "Revered as Dhabaleswar (The White Shiva Lingam). Symbol of absolute purity and forgiveness.",
     timings: "5:00 AM — 9:00 PM",
-    rituals: ["Bada Osha Feast offering", "Rudra Abhishek Puja", "Jalaabhishek offering", "Panchamrut bath Puja"],
+    rituals: [
+      "Bada Osha Feast Offering",
+      "Rudra Abhishek Puja",
+      "Jalaabhishek Offering",
+      "Panchamrut Bath Puja",
+      "Bel Patra Archana",
+      "Chandan Lepa",
+      "Maha Shivaratri Jagara",
+      "Sandhya Aarti",
+      "Ganga Jal Abhishek",
+      "Dhoop Deep Naivedya",
+      "Kartik Purnima Boita Bandana Seva",
+      "Shravan Somvar Puja"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_dhabaleswar_1781874189204.jpg",
-    symbol: "🔔"
+    symbol: "🔔",
+    coordinates: { lat: 20.4833, lng: 85.7667 },
+    history: "Dhabaleswar Temple stands on a scenic river island in the Mahanadi, a short distance from Cuttack, reached via a picturesque hanging suspension bridge that has become a landmark in its own right. The temple enshrines a Shiva lingam worshipped as Dhabaleswar, 'the White Lord', and is associated with a well-loved local legend in which Shiva miraculously turned a farmer's black bull white overnight, thereby proving the animal's innocence against a false accusation of theft and symbolising the deity's role as a dispenser of justice and forgiveness. The island setting, surrounded by the sacred Mahanadi's waters, is considered spiritually purifying, and the temple draws large crowds of devotees particularly on Mondays during the holy month of Shravan and during Maha Shivaratri, when an all-night jagarana (vigil) is observed. The annual Bada Osha festival sees a special community feast and puja held in the temple's honour, reflecting its deep integration into local Cuttack tradition.",
+    aartiTimings: {
+      morning: "Mangal Aarti and Jalabhishek typically begin around 5:00 AM",
+      afternoon: "Midday Panchamrut puja and bhog offering are generally performed around noon",
+      evening: "Sandhya Aarti is offered in the evening before the temple closes around 9:00 PM",
+      note: "Timings are extended on Shravan Mondays and during Maha Shivaratri — please confirm with the temple committee for festival-day schedules."
+    },
+    sampleOfferings: [
+      "Bel patra (bilva leaf) offering",
+      "Ganga jal / river water abhishek",
+      "Milk & panchamrit abhishek",
+      "Chandan (sandalwood) lepa",
+      "Camphor aarti lamp",
+      "Dhatura flower offering",
+      "Vibhuti (sacred ash) seva",
+      "Ghee lamp sponsorship",
+      "Fruit & sweets prasad",
+      "Rudraksha mala offering",
+      "Betel leaf naivedya",
+      "Silk vastra for the lingam"
+    ],
+    priestInfo: "Sevas are performed by the temple's resident priests under the local temple trust, following Shaiva ritual traditions typical of the Mahanadi delta region. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "bhadrak-akhandaalamani",
@@ -133,9 +465,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Located on the banks of Baitarani river, the Lingam here was discovered by a local farmer in the 17th century. The temple is renowned for curing chronic diseases and fulfills prayers of seekers from all parts of India.",
     deityInfo: "A unique dark black granite Shiva Lingam, constantly bathed in soothing sandalwood paste.",
     timings: "4:30 AM — 9:00 PM",
-    rituals: ["Chhamu Vesha Alati", "Suna Vesha Puja", "Maha Mrityunjaya Puja", "Roga Nibarana Sankalpa"],
+    rituals: [
+      "Chhamu Vesha Alati",
+      "Suna Vesha Puja",
+      "Maha Mrityunjaya Puja",
+      "Roga Nibarana Sankalpa",
+      "Rudra Abhishek",
+      "Chandan Lepa Seva",
+      "Bel Patra Archana",
+      "Shravan Somvar Puja",
+      "Maha Shivaratri Jagara",
+      "Ganga Jal Abhishek",
+      "Sandhya Aarti",
+      "Annadaan Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_akhandaalamani_1781874203434.jpg",
-    symbol: "🐚"
+    symbol: "🐚",
+    coordinates: { lat: 21.0500, lng: 86.6167 },
+    history: "The Akhandalamani Temple stands on the banks of the Baitarani river near Bhadrak in northern Odisha, home to a distinctive dark granite Shiva lingam that, according to local tradition, was unearthed by a farmer while ploughing his field in the 17th century, revealing the deity's presence to the local community. Since then the temple has grown into one of North Odisha's most visited Shaiva pilgrimage sites, renowned particularly for devotees seeking relief from chronic illness and affliction, with the lingam kept perpetually coated in a cooling paste of sandalwood as part of its daily worship. The temple's Maha Mrityunjaya rituals — invoking Shiva's death-conquering form — are especially popular among those praying for healing on behalf of unwell family members. Bhadrak district's broader religious landscape, shaped by both Shaiva and Shakta traditions, finds one of its most important anchors in this temple, which sees dense crowds every Shravan Monday and during Maha Shivaratri's all-night vigil.",
+    aartiTimings: {
+      morning: "Mangal Aarti and Chhamu Vesha rituals typically begin around 4:30 AM",
+      afternoon: "Midday abhishek and bhog offering are generally performed around noon",
+      evening: "Sandhya Aarti is offered in the evening before the temple closes around 9:00 PM",
+      note: "Timings extend on Shravan Mondays and Maha Shivaratri — please confirm with the temple trust for festival-day schedules."
+    },
+    sampleOfferings: [
+      "Sandalwood paste (chandan) seva",
+      "Bel patra offering",
+      "Milk & panchamrit abhishek",
+      "Ganga jal abhishek",
+      "Camphor aarti lamp",
+      "Vibhuti (sacred ash) offering",
+      "Maha Mrityunjaya recitation sponsorship",
+      "Ghee lamp seva",
+      "Fruit & sweets prasad",
+      "Dhatura flower offering",
+      "Rudraksha mala offering",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Worship is conducted by the temple's resident priests under the Akhandalamani Temple Trust, specialising in healing-focused Shaiva rites such as Maha Mrityunjaya puja. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kantilo-nilamadhab",
@@ -146,9 +514,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Perched atop Twin Hills on the banks of Mahanadi, this is the precursor root of the Jagannath Cult. Legend says Lord Nilamadhab was secretly worshipped in cave bushes by tribal Biswabasu before being manifested as Jagannath in Puri.",
     deityInfo: "A beautiful black stone carving of Lord Vishnu, representing cosmic beauty (Nila Madhab).",
     timings: "5:00 AM — 8:30 PM",
-    rituals: ["Saba Snana (Springwater bath)", "Tulsi Archana", "Maha-naivedya Bhoga", "Sandhya Dipam"],
+    rituals: [
+      "Saba Snana (Springwater bath)",
+      "Tulsi Archana",
+      "Maha-naivedya Bhoga",
+      "Sandhya Dipam",
+      "Vishnu Sahasranama Patha",
+      "Ekadashi Vrata Puja",
+      "Chandan Lepa",
+      "Kartik Purnima Boita Bandana",
+      "Tulsi Vivah Seva",
+      "Deep Daan",
+      "Sankalpa Archana",
+      "Panchamrit Abhishek"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_nilamadhab_1781874217698.jpg",
-    symbol: "👑"
+    symbol: "👑",
+    coordinates: { lat: 20.4833, lng: 85.3833 },
+    history: "Perched atop the Twin Hills of Gopinathpur and Baladevjew Sahi on the banks of the Mahanadi near Kantilo, the Nilamadhab Temple is regarded by many Odia traditions as the original root shrine of the Jagannath cult. According to the Madala Panji chronicles and local legend, Lord Nilamadhab was first secretly worshipped by the tribal chief Biswabasu deep in a forest cave, guided to the deity by a mysterious blue jay (Nila Kaentha). When King Indradyumna of Puri later sought the deity to install in his temple, the original stone image is said to have vanished into the Mahanadi's waters, prompting the carving of the wooden Jagannath, Balabhadra, and Subhadra images now enshrined at Puri — with Nilamadhab himself remaining eternally at Kantilo as a black stone image of Vishnu, radiating what devotees describe as the cosmic beauty (Nila Madhab) that gives the deity his name. The temple remains an important stop for Vaishnava pilgrims tracing the roots of the Jagannath tradition.",
+    aartiTimings: {
+      morning: "Saba Snana and Mangal Aarti generally begin around 5:00 AM",
+      afternoon: "Maha-naivedya bhoga is typically offered around midday",
+      evening: "Sandhya Dipam is performed in the evening before the temple closes around 8:30 PM",
+      note: "Timings extend during Ekadashi and Kartik Purnima observances — please confirm with the temple committee for festival-day schedules."
+    },
+    sampleOfferings: [
+      "Tulsi leaf offering",
+      "Panchamrit abhishek",
+      "Sandalwood paste (chandan) seva",
+      "Kheer bhog offering",
+      "Camphor aarti lamp",
+      "Ghee lamp sponsorship",
+      "Fruit basket offering",
+      "Silk vastra for the deity",
+      "Vishnu Sahasranama recitation seva",
+      "Betel leaf & areca nut arpan",
+      "Flower garland (mala) offering",
+      "Deep Daan (lamp donation) seva"
+    ],
+    priestInfo: "Pujas are performed by hereditary priests of the Nilamadhab Temple Trust, custodians of a Vaishnava tradition considered foundational to the wider Jagannath cult. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "jajpur-chhatia-bata",
@@ -159,9 +563,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Historically aligned with Achyutananda Das's prophecies ('Malika'), this temple is famous for its grand Banyan tree ('Bata'). It is predicted that Lord Jagannath will reside here for a period during the transition of ages.",
     deityInfo: "Lord Jagannath, Balabhadra and Subhadra shown standing with Kalki Avatar symbols.",
     timings: "5:30 AM — 8:30 PM",
-    rituals: ["Malika Pathan Seva", "Bata Puja", "Nama Sankirtan Sadasya", "Sankalpa Bhoga"],
+    rituals: [
+      "Malika Pathan Seva",
+      "Bata Puja",
+      "Nama Sankirtan Sadasya",
+      "Sankalpa Bhoga",
+      "Mangal Aarti",
+      "Tulsi Archana",
+      "Sandhya Dhupa",
+      "Panchamrit Abhishek",
+      "Bhajan Sandhya",
+      "Ekadashi Vrata Puja",
+      "Kartik Masa Deep Daan",
+      "Chandan Lepa"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_chhatia_jagannath_1781874473437.jpg",
-    symbol: "🌳"
+    symbol: "🌳",
+    coordinates: { lat: 20.7167, lng: 86.2667 },
+    history: "The Chhatia Bata Jagannath Temple, near Jajpur on the banks of the Baitarani river, is renowned for its ancient, sprawling banyan (bata) tree, beneath which the shrine's deities are enshrined. The temple holds special prophetic significance in Odia Vaishnava tradition through its association with the 16th-century saint-poet Achyutananda Das, one of the celebrated Pancha Sakha (five companions) of the Odia bhakti movement, whose Malika texts are believed to foretell future events. According to these prophecies, Lord Jagannath is destined to reside temporarily at Chhatia Bata during a future transition between cosmic ages (yuga parivartan), lending the temple deep eschatological importance for devotees who study the Malika literature. The deities here are depicted standing, accompanied by symbols associated with the Kalki avatar, distinguishing the iconography from the seated or ceremonial forms seen at Puri. The site remains an active centre of devotional singing (nama sankirtan) and scriptural recitation drawing pilgrims from across Odisha.",
+    aartiTimings: {
+      morning: "Mangal Aarti generally begins around 5:30 AM followed by Bata Puja beneath the sacred banyan tree",
+      afternoon: "Midday bhoga and sankalpa offerings are typically performed around noon",
+      evening: "Sandhya Dhupa is offered in the evening before the temple closes around 8:30 PM",
+      note: "Timings extend during Kartik month and on occasions tied to Achyutananda Das's Malika prophecies — please confirm with the temple committee."
+    },
+    sampleOfferings: [
+      "Tulsi leaf offering",
+      "Banyan tree (Bata) puja sponsorship",
+      "Panchamrit abhishek",
+      "Camphor aarti lamp",
+      "Kheer & sweets prasad",
+      "Ghee lamp seva",
+      "Silk vastra for the deities",
+      "Malika text recitation sponsorship",
+      "Nama Sankirtan (devotional singing) seva",
+      "Betel leaf & areca nut arpan",
+      "Flower garland offering",
+      "Deep Daan (lamp donation) seva"
+    ],
+    priestInfo: "Rituals are conducted by resident priests of the Chhatia Bata Temple Trust, who also preserve and recite Achyutananda Das's Malika prophetic literature. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kendrapara-baladevjew",
@@ -172,9 +612,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Kendrapara is the 'Tulasi Kshetra', completely dedicated to Lord Baladevjew, elder brother of Lord Jagannath. It has its own historic Chariot festival, known for pulling areca-leaved wooden cars.",
     deityInfo: "A monumental standing figure of Lord Balaram carrying his sacred Plough (Halayudh).",
     timings: "5:00 AM — 9:00 PM",
-    rituals: ["Ratha Snana Alati", "Tulasi Arpan Seva", "Balarama Sahasranama", "Dahi-Pakhila offering"],
+    rituals: [
+      "Ratha Snana Alati",
+      "Tulasi Arpan Seva",
+      "Balarama Sahasranama",
+      "Dahi-Pakhila Offering",
+      "Mangal Aarti",
+      "Sandhya Dhupa",
+      "Rath Yatra Puja",
+      "Panchamrit Abhishek",
+      "Ekadashi Vrata Puja",
+      "Chandan Yatra",
+      "Kartik Purnima Tulsi Puja",
+      "Deep Daan"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_baladevjew_1781874491309.jpg",
-    symbol: "🌾"
+    symbol: "🌾",
+    coordinates: { lat: 20.5000, lng: 86.4167 },
+    history: "Kendrapara, known devotionally as Tulasi Kshetra, is home to the Baladevjew Temple, entirely dedicated to Lord Balaram (Baladevjew), the elder brother of Lord Jagannath and an avatar of Sheshanaga, the cosmic serpent upon whom Vishnu reclines. The temple's presiding deity is depicted as a monumental standing figure bearing his signature plough (Halayudh) and mace, emphasising his role as an agrarian protector deity closely tied to the fertility of Odisha's coastal delta lands. The temple hosts its own historic Rath Yatra, distinct from Puri's, in which the deity is drawn on a chariot uniquely decorated with areca palm leaves rather than the customary cloth canopies used elsewhere, a distinctive local tradition unique to Kendrapara. The extensive Tulsi (holy basil) plantations surrounding the temple complex give the town its Sanskrit epithet, and the shrine remains an important pilgrimage stop for devotees of the wider Jagannath cult tracing Balaram's regional presence outside Puri.",
+    aartiTimings: {
+      morning: "Mangal Aarti generally begins around 5:00 AM followed by Tulasi Arpan seva",
+      afternoon: "Midday bhog offering is typically performed around noon",
+      evening: "Sandhya Dhupa is offered in the evening before the temple closes around 9:00 PM",
+      note: "Timings extend significantly during the local Rath Yatra festival — please confirm the festival schedule with the temple trust."
+    },
+    sampleOfferings: [
+      "Tulsi leaf & tulsi mala offering",
+      "Panchamrit abhishek",
+      "Dahi-Pakhila (curd-rice) bhog",
+      "Camphor aarti lamp",
+      "Ghee lamp sponsorship",
+      "Areca leaf decoration seva (Rath Yatra)",
+      "Fruit & sweets prasad",
+      "Silk vastra for the deity",
+      "Betel leaf & areca nut arpan",
+      "Flower garland offering",
+      "Balarama Sahasranama recitation seva",
+      "Deep Daan (lamp donation) seva"
+    ],
+    priestInfo: "Sevas are performed by hereditary priests of the Baladevjew Temple Trust, custodians of Kendrapara's distinct Balaram worship tradition. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "dhenkanal-kapilash",
@@ -185,9 +661,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Located 1400 feet high on Kapilash hill, built in the Kalinga dynamic era of Narasinghdev-I. Devotees climb 1352 stone steps during Maha Shivratri carrying holy water on 'Kavadi' poles.",
     deityInfo: "Lord Chandrasekhar Shiva, the moon-crowned Lord of universe, situated in a pristine mountain cave atmosphere.",
     timings: "5:00 AM — 7:00 PM",
-    rituals: ["Kavad Yatra Jala Abhishek", "Sankalpa Rudra Patra offering", "Chandana Vesha", "Giri Pradaksina lamp Seva"],
+    rituals: [
+      "Kavad Yatra Jala Abhishek",
+      "Sankalpa Rudra Patra Offering",
+      "Chandana Vesha",
+      "Giri Pradaksina Lamp Seva",
+      "Rudra Abhishek",
+      "Bel Patra Archana",
+      "Maha Shivaratri Jagara",
+      "Shravan Somvar Puja",
+      "Ganga Jal Abhishek",
+      "Sandhya Aarti",
+      "Panchamrit Abhishek",
+      "Annadaan Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kapilash_1781874508076.jpg",
-    symbol: "🏔️"
+    symbol: "🏔️",
+    coordinates: { lat: 20.7167, lng: 85.6167 },
+    history: "The Kapilash Temple crowns a hill roughly 1,400 feet high near Dhenkanal in central Odisha, enshrining Lord Shiva in his Chandrasekhar form — the moon-crowned lord of the universe — within a naturally cave-like sanctum that lends the shrine an atmosphere of raw, ancient asceticism. The temple in its present form is attributed to the Kalinga-era ruler Narasingha Deva of the Bhanja dynasty of Dhenkanal, though the hill's association with Shiva worship is believed to predate the built structure considerably. Pilgrims traditionally ascend 1,352 stone steps carved into the hillside, a climb undertaken with particular fervour during Maha Shivaratri, when devotees known as 'Kavadias' carry holy water suspended from bamboo poles (kavad) balanced across their shoulders, walking long distances from rivers such as the Brahmani to pour the sacred water over the lingam in an act of devotion and physical penance. The temple's remote hilltop setting, framed by forest and rock formations, makes it both a major Shaiva pilgrimage centre and a site of striking natural beauty.",
+    aartiTimings: {
+      morning: "Mangal Aarti and Jala Abhishek generally begin around 5:00 AM",
+      afternoon: "Midday abhishek and bhog offering are typically performed around noon",
+      evening: "Sandhya Aarti is offered before the temple closes for the evening around 7:00 PM given the hill's remote access",
+      note: "Timings extend dramatically during the Kavad Yatra pilgrimage season around Maha Shivaratri — please confirm with the temple trust before planning a visit."
+    },
+    sampleOfferings: [
+      "Kavad (holy water) abhishek sponsorship",
+      "Bel patra offering",
+      "Chandan (sandalwood) vesha seva",
+      "Ganga/river jal abhishek",
+      "Camphor aarti lamp",
+      "Vibhuti (sacred ash) offering",
+      "Ghee lamp seva",
+      "Rudraksha mala offering",
+      "Fruit & sweets prasad",
+      "Dhatura flower offering",
+      "Giri Pradakshina lamp seva",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by the hill temple's resident priests under the Kapilash Temple Trust, who also assist pilgrims undertaking the traditional Kavad Yatra climb. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "varanasi-kashi-vishwanath",
@@ -198,9 +710,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "The iconic heart of Hindu spirituality, situated on the sacred Ganges river banks. Visited by saints like Adi Shankara, Ramakrishna, and Vivekananda, this temple holds one of the twelve divine Jyotirlingas representing cosmic Shiva consciousness.",
     deityInfo: "The sacred gold-plated Jyotirlinga, representing infinite light and detachment.",
     timings: "3:00 AM — 11:00 PM",
-    rituals: ["Mangla Aarti (Pre-dawn)", "Bhog Aarti", "Saptarishi Aarti (7 priests)", "Shringar Aarti"],
+    rituals: [
+      "Mangla Aarti (Pre-dawn)",
+      "Bhog Aarti",
+      "Saptarishi Aarti (7 priests)",
+      "Shringar Aarti",
+      "Madhyahna Bhog Aarti",
+      "Sandhya Aarti",
+      "Shayan Aarti",
+      "Rudrabhishek",
+      "Bel Patra Archana",
+      "Ganga Jal Abhishek",
+      "Panchamrit Abhishek",
+      "Kashi Vishwanath Corridor Pradakshina"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kashi_vishwanath_1781874522891.jpg",
-    symbol: "🕉️"
+    symbol: "🕉️",
+    coordinates: { lat: 25.3109, lng: 83.0107 },
+    history: "The Kashi Vishwanath Temple in Varanasi is one of the twelve Jyotirlingas of Shiva and among the most sacred sites in all of Hinduism, standing on the western bank of the Ganges in a city considered eternal in Hindu cosmology. The present temple structure was rebuilt in 1780 by the Maratha queen Ahilyabai Holkar of Indore after earlier structures were repeatedly destroyed during periods of conflict; the golden spires that gave the shrine its popular name 'Golden Temple' were donated in 1839 by Maharaja Ranjit Singh of Punjab. In 2021 the temple complex was dramatically expanded through the Kashi Vishwanath Corridor project, connecting the sanctum directly to the Ganges ghats and vastly improving pilgrim access. The temple has drawn saints and philosophers across centuries, including Adi Shankaracharya, who is said to have debated here, and later figures such as Ramakrishna Paramahansa and Swami Vivekananda. Varanasi's tradition holds that dying within the city and receiving darshan of Vishwanath grants moksha (liberation), making this temple a lifelong aspiration for countless devotees.",
+    aartiTimings: {
+      morning: "Mangala Aarti is performed pre-dawn, generally between 3:00 AM and 4:00 AM, followed by the Bhog Aarti later in the morning",
+      afternoon: "Madhyahna Bhog Aarti is typically offered around midday",
+      evening: "Saptarishi Aarti (performed by seven priests) takes place in the early evening, followed by Shringar and Shayan (night rest) Aarti later at night",
+      note: "Aarti passes are limited and allotted through the temple trust's official booking system; exact slot timings can shift slightly by season — please check the current schedule before travelling."
+    },
+    sampleOfferings: [
+      "Bel patra (bilva leaf) offering",
+      "Ganga jal abhishek",
+      "Milk & panchamrit abhishek",
+      "Rudrabhishek sponsorship",
+      "Camphor aarti lamp",
+      "Vibhuti (sacred ash) offering",
+      "Ghee lamp seva",
+      "Rudraksha mala offering",
+      "Dhatura & datura flower offering",
+      "Betel leaf naivedya",
+      "Silk vastra for the lingam",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by the temple's Vedic priest lineages (including the Saptarishi Aarti team of seven priests) registered with the Sri Kashi Vishwanath Temple Trust. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kedarnath-kedarnath",
@@ -211,9 +759,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Built originally by the Pandavas over 3,000 years ago in the snowy Garhwal Himalayas. It is the highest of the 12 Jyotirlingas, enduring severe snowstorms and floods through divine protection. Accessible only for 6 months a year.",
     deityInfo: "A triangular, natural stone humped lingam representing Shiva as the Bull in Mahabharata.",
     timings: "4:00 AM — 9:00 PM (May to Nov)",
-    rituals: ["Pratah Abhishek", "Maha Abhishek Puja", "Shiva Sahasranama Patha", "Ganga Jal offering"],
+    rituals: [
+      "Pratah Abhishek",
+      "Maha Abhishek Puja",
+      "Shiva Sahasranama Patha",
+      "Ganga Jal Offering",
+      "Rudra Abhishek",
+      "Bel Patra Archana",
+      "Bhasma Aarti",
+      "Shringar Darshan",
+      "Sandhya Aarti",
+      "Samadhi Puja (Adi Shankara)",
+      "Kapat Udghatan Puja (Opening)",
+      "Kapat Band Puja (Closing)"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kedarnath_1781874538288.jpg",
-    symbol: "❄️"
+    symbol: "❄️",
+    coordinates: { lat: 30.7346, lng: 79.0669 },
+    history: "Kedarnath Temple, set at 3,583 metres in the Garhwal Himalayas near the source of the Mandakini river, is the highest and most physically arduous of Shiva's twelve Jyotirlingas. Hindu tradition holds that the Pandava brothers, seeking Shiva's forgiveness after the Kurukshetra war, built the original shrine here more than three millennia ago; the stone temple visible today, built from massive interlocked grey slabs without mortar, is widely attributed to the 8th-century philosopher Adi Shankaracharya, who is believed to have attained his final samadhi at this very site — a memorial to him stands just behind the temple. The temple enshrines a naturally formed, irregular conical rock representing the hump of Shiva in his bull (Nandi) form, according to the legend in which Shiva evaded the Pandavas by transforming into a bull and diving underground. Accessible only between April/May and November due to extreme Himalayan winters, the temple withstood the catastrophic 2013 Uttarakhand floods largely unscathed, an event devotees regard as a testament to its enduring sanctity.",
+    aartiTimings: {
+      morning: "Pratah/Maha Abhishek Puja begins around 4:00 AM during the pilgrimage season (May–November)",
+      afternoon: "Bhog Aarti and darshan continue through the day for pilgrims",
+      evening: "Shringar Darshan and Sandhya Aarti are performed in the evening, with the temple closing around 9:00 PM",
+      note: "The temple is entirely closed to pilgrims outside the May–November season due to snow; the annual opening and closing dates are set by temple priests each year via the Kapat Udghatan/Band ceremonies — please confirm current-year dates before planning travel."
+    },
+    sampleOfferings: [
+      "Bel patra (bilva leaf) offering",
+      "Ganga/Mandakini jal abhishek",
+      "Rudra Abhishek sponsorship",
+      "Bhasma (sacred ash) aarti seva",
+      "Camphor aarti lamp",
+      "Ghee lamp seva",
+      "Rudraksha mala offering",
+      "Shiva Sahasranama recitation sponsorship",
+      "Woolen shawl/blanket offering (winter seva)",
+      "Dry fruits & sweets prasad",
+      "Panchamrit abhishek",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Karnataka) and associated pandas of the Badrinath-Kedarnath Temple Committee (BKTC). Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "badrinath-badrinath",
@@ -224,9 +808,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "One of the pristine Char Dham pilgrimage spots, located gracefully between Nar and Narayana mountain ranges. Adi Shankara discovered the Shaligram statue of Badri-Vishnu in the Alaknanda River in the 8th century.",
     deityInfo: "Lord Badrinarayan carved from a single black Shaligram stone, posture in meditation.",
     timings: "4:30 AM — 9:00 PM (May to Nov)",
-    rituals: ["Maha Abhishek", "Geeta Path Offerings", "Kapoora Aarti", "Vishnu Sahasranama"],
+    rituals: [
+      "Maha Abhishek",
+      "Geeta Path Offerings",
+      "Kapoora Aarti",
+      "Vishnu Sahasranama",
+      "Mahabhishek (Tapt Kund Bath)",
+      "Nirjana Aarti",
+      "Shringar Darshan",
+      "Sandhya Aarti",
+      "Kapat Udghatan Puja (Opening)",
+      "Kapat Band Puja (Closing)",
+      "Tulsi Archana",
+      "Panchamrit Abhishek"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_badrinath_1781874552955.jpg",
-    symbol: "🌅"
+    symbol: "🌅",
+    coordinates: { lat: 30.7433, lng: 79.4938 },
+    history: "Badrinath Temple, at 3,133 metres between the Nar and Narayana mountain ranges beside the Alaknanda river, is one of the four Char Dham pilgrimage sites and one of the 108 Divya Desams sacred to Vaishnavism. Tradition holds that the 8th-century philosopher Adi Shankaracharya recovered the temple's black Shaligram stone image of Vishnu, in his meditative Badrinarayan form, from the Alaknanda river and re-established formal worship here, though local legend traces devotion at the site back to the Vedic period, when the area is said to have been shaded by wild berry (badri) trees that gave the shrine its name. The temple is administered jointly by priests traditionally drawn from Kerala (the Rawal) working alongside local Garhwali pandas, a distinctive pan-Indian arrangement reflecting Adi Shankara's own journey. Like Kedarnath, it remains open only from roughly May to November owing to extreme Himalayan winters, and the nearby Tapt Kund hot springs are traditionally used by pilgrims for a purifying bath before darshan.",
+    aartiTimings: {
+      morning: "Maha Abhishek and Mahabhishek begin around 4:30 AM during the pilgrimage season (May–November)",
+      afternoon: "Geeta Path and Vishnu Sahasranama recitations continue through the day",
+      evening: "Shringar and Sandhya Aarti, including the Nirjana Aarti, are performed in the evening, with the temple closing around 9:00 PM",
+      note: "The temple is fully closed outside the May–November season; exact annual opening/closing dates are announced by temple authorities each year — please confirm current dates before planning travel."
+    },
+    sampleOfferings: [
+      "Tulsi leaf offering",
+      "Panchamrit abhishek",
+      "Tapt Kund holy-water sponsorship",
+      "Ghee lamp (Kapoora Aarti) seva",
+      "Camphor aarti lamp",
+      "Vishnu Sahasranama recitation sponsorship",
+      "Bhagavad Gita path sponsorship",
+      "Dry fruits & sweets prasad",
+      "Woolen shawl/blanket offering (winter seva)",
+      "Silk vastra for the deity",
+      "Betel leaf & areca nut arpan",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Kerala) with local Garhwali pandas, under the Badrinath-Kedarnath Temple Committee (BKTC). Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "katra-vaishno-devi",
@@ -237,9 +857,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Nestled in the beautiful Trikuta Hills at an elevation of 5200 feet. Devotees trek 13 km with chants of 'Jai Mata Di' to witness the natural holy cave where Vaishno Devi practiced penance and rid the world of demonic forces.",
     deityInfo: "A holy cave containing three natural rock formations called 'Pindies'—Maha Kali, Maha Lakshmi and Maha Saraswati.",
     timings: "24 Hours (Open throughout)",
-    rituals: ["Maha Atka Aarti (Twice daily)", "Chandi Patha Recitation", "Shishupala Archana", "Maha Prasad Offering"],
+    rituals: [
+      "Maha Atka Aarti (Twice daily)",
+      "Chandi Patha Recitation",
+      "Shishupala Archana",
+      "Maha Prasad Offering",
+      "Kumari Puja",
+      "Sundarkand Path",
+      "Havan (Yajna) Seva",
+      "Bhairav Baba Darshan Puja",
+      "Ardh Kuwari Cave Puja",
+      "Navaratri Special Aarti",
+      "Chunri Chadhana (veil offering)",
+      "Deep Daan"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_vaishno_devi_1781874568865.jpg",
-    symbol: "🦁"
+    symbol: "🦁",
+    coordinates: { lat: 33.0303, lng: 74.9495 },
+    history: "The Vaishno Devi shrine sits within a natural limestone cave in the Trikuta Hills near Katra, Jammu, at an elevation of roughly 5,200 feet, and ranks among the most visited pilgrimage sites in India, drawing several million devotees annually. Devotees undertake a roughly 13-km trek from the base camp at Katra, chanting 'Jai Mata Di', pausing en route at the Ardh Kuwari cave where the Goddess is said to have meditated for nine months while evading the demon Bhairavnath. The sanctum itself contains no crafted idol; instead, three naturally formed rock outcroppings known as Pindies are worshipped as manifestations of Maha Kali, Maha Lakshmi, and Maha Saraswati — the united forms of Adi Shakti. According to the Puranic legend, the Goddess ultimately vanquished Bhairavnath near the cave, and tradition holds that a complete pilgrimage should conclude with darshan at the nearby Bhairav temple. The shrine is managed by the Shri Mata Vaishno Devi Shrine Board and remains open to devotees continuously, day and night.",
+    aartiTimings: {
+      morning: "Maha Atka Aarti is performed once in the early morning, generally before sunrise",
+      afternoon: "Continuous darshan and Chandi Patha recitations continue through the day at the cave shrine",
+      evening: "The second Maha Atka Aarti is performed in the evening, typically around dusk",
+      note: "Because the shrine operates 24 hours with continuous darshan queues, exact aarti timing can shift slightly with pilgrim volume and season — please check the Shrine Board's current schedule before travelling."
+    },
+    sampleOfferings: [
+      "Chunri (red veil) offering",
+      "Coconut offering",
+      "Bangles (chuda) offering",
+      "Kumkum & vermilion archana",
+      "Camphor aarti lamp",
+      "Prasad (dry fruit & sweets) sponsorship",
+      "Chandi Patha recitation sponsorship",
+      "Havan (sacred fire ritual) seva",
+      "Flower garland (hibiscus/marigold) offering",
+      "Silver/gold ornament seva for the Pindies",
+      "Betel leaf offering",
+      "Ghee lamp seva"
+    ],
+    priestInfo: "Rituals are conducted by priests registered with the Shri Mata Vaishno Devi Shrine Board, which administers all religious and pilgrim services at the shrine. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "vrindavan-banke-bihari",
@@ -250,9 +906,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Established by the legendary musician saint Swami Haridas. The deity has a mesmerizing three-fold bent stance. Curtains are periodically drawn across his eyes so his intense, love-filled gaze does not overwhelm devotees.",
     deityInfo: "Lord Krishna as a sweet, dark child playing the flute, radiating divine romance.",
     timings: "7:45 AM — 9:30 PM",
-    rituals: ["Shringar Aarti (Without Bells)", "Rajbhog Feast Puja", "Sandhya Aarti", "Phool Bangla Decoration"],
+    rituals: [
+      "Shringar Aarti (Without Bells)",
+      "Rajbhog Feast Puja",
+      "Sandhya Aarti",
+      "Phool Bangla Decoration",
+      "Mangla Jhanki",
+      "Rajbhog Jhanki",
+      "Utthapan Jhanki",
+      "Chappan Bhog Naivedya",
+      "Janmashtami Special Shringar",
+      "Holi Rang Utsav Puja",
+      "Tulsi Archana",
+      "Deep Daan"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_banke_bihari_1781874587703.jpg",
-    symbol: "🪶"
+    symbol: "🪶",
+    coordinates: { lat: 27.5806, lng: 77.7006 },
+    history: "The Banke Bihari Temple in Vrindavan enshrines a form of Krishna installed by the 16th-century mystic-musician Swami Haridas, a foundational figure of the Nimbarka-linked Haridasi sampradaya and a revered guru of classical Indian music. Legend recounts that Haridas, through the intensity of his devotional singing at Nidhivan, caused Krishna and Radha to merge into a single dark, gracefully triple-bent (tribhanga) form — Banke Bihari — which he then enshrined for public worship in 1864 at the temple's present location. A distinctive feature of worship here is that a curtain is drawn across the deity's eyes at intervals throughout darshan, since devotees believe Banke Bihari's gaze is so intensely magnetic and loving that prolonged, unbroken eye contact could overwhelm even the most devoted onlooker. Unlike most Krishna temples, no bells are rung during the daily aarti, in deference to Swami Haridas's teaching that constant divine remembrance requires no external summons. The temple remains one of the most emotionally intimate and beloved shrines in the Braj region, especially during Janmashtami and the riotous colour celebrations of Holi.",
+    aartiTimings: {
+      morning: "The temple opens later than most Krishna shrines, with Shringar/Mangla Jhanki beginning around 8:00 AM–9:00 AM (curtain darshan resumes periodically through the morning)",
+      afternoon: "Rajbhog Jhanki (midday darshan after the deity's feast offering) is typically held from around 12:00 PM to 1:00 PM before a midday closure",
+      evening: "The temple reopens in the late afternoon; Sandhya and Shringar Aarti are performed in the evening, with the temple closing around 9:30 PM",
+      note: "Banke Bihari keeps unusually short darshan windows compared to most temples, with periodic curtain closures throughout the day — please check the temple's current daily jhanki schedule before visiting."
+    },
+    sampleOfferings: [
+      "Phool Bangla (flower bower) decoration sponsorship",
+      "Tulsi leaf & tulsi mala offering",
+      "Chappan Bhog (56-dish feast) sponsorship",
+      "Panchamrit abhishek",
+      "Camphor aarti lamp",
+      "Silk/pichwai vastra for the deity",
+      "Peda & makhan-mishri prasad",
+      "Flower garland (mala) offering",
+      "Ghee lamp seva",
+      "Betel leaf naivedya",
+      "Rajbhog feast sponsorship",
+      "Holi colour (gulal) seva"
+    ],
+    priestInfo: "Sevas are performed exclusively by the Goswami priest families descended from Swami Haridas's lineage, hereditary custodians of the temple's unique worship traditions. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "vrindavan-prem-mandir",
@@ -263,9 +955,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "A modern architectural marvel made entirely of Italian Carrara white marble. It depicts beautiful scenes from Radha-Krishna's divine pastimes ('Leelas') with stunning 3D sculptured displays and dynamic illumination.",
     deityInfo: "Pran-Pratistha Radha Krishna deities representing absolute celestial love (Prem).",
     timings: "8:30 AM — 8:30 PM",
-    rituals: ["Prem Dhuni Prayers", "Bhajanamela Sadasya", "Maha Aarti", "Dynamic Musical Fountain Show"],
+    rituals: [
+      "Prem Dhuni Prayers",
+      "Bhajanamela Sadasya",
+      "Maha Aarti",
+      "Dynamic Musical Fountain Show",
+      "Shringar Darshan",
+      "Sandhya Aarti",
+      "Radha-Krishna Leela Darshan",
+      "Sita Ram Puja",
+      "Tulsi Archana",
+      "Deep Daan",
+      "Janmashtami Special Puja",
+      "Guru Purnima Puja"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_prem_mandir_krishna_1781874602481.jpg",
-    symbol: "🦚"
+    symbol: "🦚",
+    coordinates: { lat: 27.5731, lng: 77.6864 },
+    history: "Prem Mandir is among the youngest temples on this list, consecrated in 2012 by Jagadguru Kripalu Maharaj (Shri Kripalu Ji Maharaj) after roughly eleven years of construction, built almost entirely from Italian Carrara white marble intricately carved on-site by hundreds of artisans. Rather than centring on an ancient legend, the temple is designed as an immersive devotional experience: its outer walls and surrounding gardens depict, in vivid three-dimensional sculpture, key episodes from Krishna's childhood pastimes (leelas) in Vrindavan and from the Ramayana, illuminated at night by a spectacular sound-and-light show and choreographed musical fountains that draw large evening crowds. The main sanctum enshrines both Radha-Krishna and Sita-Ram, worshipped as twin embodiments of divine love (prem), the concept from which the temple takes its name. Despite its modern construction, Prem Mandir has rapidly become one of the most visited temples in the Braj region, admired for combining traditional devotional themes with contemporary architectural spectacle, and is especially popular with families and first-time visitors to Vrindavan.",
+    aartiTimings: {
+      morning: "Shringar Darshan and morning aarti generally begin around 8:30 AM",
+      afternoon: "Darshan continues through the afternoon with periodic aarti and bhajan sessions",
+      evening: "Sandhya Aarti and the illuminated musical fountain show take place in the evening, typically around dusk, before the temple closes around 8:30 PM",
+      note: "The evening light-and-fountain show timing shifts seasonally with sunset — please check the current show schedule before visiting."
+    },
+    sampleOfferings: [
+      "Tulsi leaf offering",
+      "Flower garland offering",
+      "Camphor aarti lamp",
+      "Ghee lamp seva",
+      "Peda & sweets prasad",
+      "Musical fountain show sponsorship",
+      "Bhajan/kirtan session sponsorship",
+      "Silk vastra for the deities",
+      "Panchamrit abhishek",
+      "Betel leaf naivedya",
+      "Deep Daan (lamp donation) seva",
+      "Janmashtami special puja sponsorship"
+    ],
+    priestInfo: "Pujas are conducted by resident priests trained under the Jagadguru Kripalu Parishat, the trust founded by Jagadguru Kripalu Maharaj that built and administers Prem Mandir. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "haridwar-har-ki-pauri",
@@ -276,9 +1004,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "This pristine bathing ghat is the exact point where the Ganges leaves the high mountains to enter the plains of India. King Vikramaditya built it in memory of his brother Bhartrihari who meditated on these banks.",
     deityInfo: "Revered as Mother Goddess Ganga. In Vedic lore, Lord Vishnu's footprint is locked in stone on these steps.",
     timings: "24 Hours (Aarti at Sunset)",
-    rituals: ["Maha Ganga Evening Aarti", "Pitra Tarpan Puja", "Rudrabhishek on Riverbed", "Deep Daan (Floating diyas)"],
+    rituals: [
+      "Maha Ganga Evening Aarti",
+      "Pitra Tarpan Puja",
+      "Rudrabhishek on Riverbed",
+      "Deep Daan (Floating diyas)",
+      "Morning Ganga Snan Sankalpa",
+      "Vishnu Charan Paduka Puja",
+      "Kanwar Yatra Jal Sangrah",
+      "Kumbh Mela Shahi Snan Rites",
+      "Ganga Sahasranama Patha",
+      "Pind Daan (ancestral offering)",
+      "Havan (Yajna) Seva",
+      "Chandi Path"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_haridwar_shiva_1781874619655.jpg",
-    symbol: "🌊"
+    symbol: "🌊",
+    coordinates: { lat: 29.9457, lng: 78.1642 },
+    history: "Har Ki Pauri, meaning 'the footsteps of the Lord', is the most sacred bathing ghat on the Ganges at Haridwar, marking the precise point where the river completes its descent from the Himalayan foothills and enters the plains of northern India. According to Vedic tradition, an imprint of Lord Vishnu's foot (charan paduka) is preserved in stone at this ghat, one reason the site is held to be of comparable sanctity to a direct temple to Vishnu and Ganga combined. Local legend attributes the ghat's construction, or at least its restoration, to the legendary king Vikramaditya, built in memory of his brother Bhartrihari, who is said to have meditated on these very banks. Haridwar, along with Ujjain, Nashik, and Prayagraj, is one of the four sites of the Kumbh Mela, and Har Ki Pauri serves as the ceremonial epicentre of the festival's Shahi Snan (royal bath) processions once every twelve years. Its nightly Ganga Aarti, performed at sunset with rows of floating oil lamps set adrift on the river, is among the most visually and spiritually striking rituals in North Indian Hinduism.",
+    aartiTimings: {
+      morning: "Devotees bathe and perform Ganga Snan sankalpa from the early morning hours onward",
+      afternoon: "Pitra Tarpan and other riverside rites continue through the day at the ghat",
+      evening: "The Maha Ganga Aarti is performed daily at sunset, with the exact time shifting seasonally (roughly 6:00 PM in winter to 7:00 PM in summer)",
+      note: "Because Har Ki Pauri's evening aarti is timed to sunset rather than a fixed clock hour, please check the local sunset time for the day of your visit."
+    },
+    sampleOfferings: [
+      "Floating diya (lamp) offering",
+      "Ganga jal sponsorship",
+      "Pitra Tarpan (ancestral water offering) seva",
+      "Camphor aarti lamp",
+      "Flower garland offered to the river",
+      "Rudrabhishek sponsorship",
+      "Chandi Path recitation sponsorship",
+      "Havan (sacred fire ritual) seva",
+      "Ganga Sahasranama recitation sponsorship",
+      "Kumkum & vermilion archana",
+      "Silk cloth offering to the ghat shrine",
+      "Prasad (sweets) distribution seva"
+    ],
+    priestInfo: "Rituals at Har Ki Pauri are performed by hereditary Gangaputra pandas and purohits registered with the Ganga Sabha, the body that has overseen ghat rituals here for generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kangra-jwala-ji",
@@ -289,9 +1053,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "A unique Shakti Peetha (Tongue Peetha) where there is no physical idol or statue. Instead, the Goddess is worshipped as nine eternal, natural blue flames burning continuously from rock fissures without any fuel supply.",
     deityInfo: "Nine sacred blue flames, representing Goddesses Mahakali, Mahalakshmi, Mahasaraswati and sisters.",
     timings: "5:00 AM — 10:00 PM",
-    rituals: ["Jwala Abhishek Puja", "Kheer Bhog Arpan", "Sringar Aarti (Midnight)", "Akhand Jyot Seva"],
+    rituals: [
+      "Jwala Abhishek Puja",
+      "Kheer Bhog Arpan",
+      "Sringar Aarti (Midnight)",
+      "Akhand Jyot Seva",
+      "Mangal Aarti",
+      "Sandhya Aarti",
+      "Navaratri Special Puja",
+      "Havan (Yajna) Seva",
+      "Chunri Chadhana",
+      "Kumkum Archana",
+      "Deep Daan",
+      "Chandi Path Recitation"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_jwala_ji_1781874631955.jpg",
-    symbol: "🔥"
+    symbol: "🔥",
+    coordinates: { lat: 31.8797, lng: 76.3247 },
+    history: "The Jwala Ji Temple, in the Kangra Valley of Himachal Pradesh, is one of the most unusual of the 51 Shakti Peethas, worshipped not through a carved idol but through nine naturally occurring blue flames that burn continuously from fissures in the temple's rock floor, believed to be fed by underground natural gas seepage yet regarded by devotees as an eternal, self-manifested (akhand jyoti) form of the Goddess. According to the Shakti Peetha legend, this is the site where Sati's tongue fell after her body was cut apart by Vishnu's discus, giving the shrine its designation as the Jihva (tongue) Peetha. The temple gained added historical fame through a well-known episode involving the Mughal emperor Akbar, who, sceptical of the flame's supernatural origin, is said to have attempted unsuccessfully to extinguish it with a diverted water channel and later, humbled, offered a golden umbrella to the shrine — an offering local legend says the Goddess caused to tarnish, symbolising her rejection of arrogance. The temple remains an important stop on the Himachal pilgrimage circuit alongside nearby Chintpurni and Chamunda Devi.",
+    aartiTimings: {
+      morning: "Mangal Aarti generally begins around 5:00 AM as the temple opens for the day",
+      afternoon: "Kheer bhog and midday archana continue through the afternoon",
+      evening: "Sandhya Aarti is performed in the evening, with a special Shringar Aarti often held around midnight on major festival nights",
+      note: "As a hill shrine administered by a state temple trust, precise seva timings can shift with season and festival calendar (especially during Navratri) — please confirm with the temple trust before visiting."
+    },
+    sampleOfferings: [
+      "Kheer (rice pudding) bhog offering",
+      "Red chunri (veil) offering",
+      "Ghee for the eternal flame (Akhand Jyot) sponsorship",
+      "Camphor aarti lamp",
+      "Kumkum & vermilion archana",
+      "Coconut offering",
+      "Flower garland (marigold/hibiscus) offering",
+      "Chandi Path recitation sponsorship",
+      "Havan (sacred fire ritual) seva",
+      "Bangles (chuda) offering",
+      "Betel leaf offering",
+      "Prasad (sweets) distribution seva"
+    ],
+    priestInfo: "Worship is conducted by hereditary priests (pujaris) registered with the Himachal Pradesh temple trust that administers Jwala Ji, custodians of the shrine's unique flame-based rituals. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "somnath-somnath",
@@ -302,9 +1102,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "The legendary 'shrine eternal' rebuilt seven times over history, representing the indestructible spirit of Sanatan Dharma. According to Vedic legend, the Moon God (Soma) built the temple out of gold to seek freedom from Shiva's curse.",
     deityInfo: "Lord Somnath Swayambhu Mahadev Lingam, seated majestically over looking the Arabian Sea.",
     timings: "6:00 AM — 9:30 PM",
-    rituals: ["Somnath Maha Abhishek", "Soma Aarti & Damru concert", "Samudra Snana Puja", "Mrityunjaya chanting"],
+    rituals: [
+      "Somnath Maha Abhishek",
+      "Soma Aarti & Damru Concert",
+      "Samudra Snana Puja",
+      "Mrityunjaya Chanting",
+      "Shrungar Aarti",
+      "Madhyahna Aarti",
+      "Sandhya Aarti",
+      "Sound & Light Show Puja Narration",
+      "Kartik Purnima Special Aarti",
+      "Maha Shivaratri Jagara",
+      "Rudra Abhishek",
+      "Bel Patra Archana"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_somnath_shiva_1781874647893.jpg",
-    symbol: "🔱"
+    symbol: "🔱",
+    coordinates: { lat: 20.8880, lng: 70.4013 },
+    history: "The Somnath Temple at Prabhas Patan on Gujarat's Saurashtra coast is traditionally regarded as the first of Shiva's twelve Jyotirlingas and is often described as the 'Shrine Eternal' for having been destroyed and rebuilt at least seven times across recorded history, most notoriously following Mahmud of Ghazni's raid in 1026 CE. According to Puranic legend, the Moon God Soma, cursed with waning by Daksha for favouring one wife over the others, built the original temple in gold to atone and regain his lustre — a myth that gives the temple and the town its name. The current structure was rebuilt in the Chalukya style of temple architecture and consecrated in 1951, with Indian statesman Sardar Vallabhbhai Patel playing a central role in the post-independence reconstruction effort, making the temple a powerful symbol of cultural resilience in modern India. Positioned directly on the Arabian Sea coast, the temple's sanctum reportedly lies on an unobstructed sea line stretching all the way to Antarctica, and a nightly sound-and-light show narrates its dramatic history to visitors.",
+    aartiTimings: {
+      morning: "Shrungar Aarti is generally performed around 7:00 AM",
+      afternoon: "Madhyahna Aarti is typically offered around noon",
+      evening: "Sandhya Aarti is performed in the evening, generally around 7:00 PM, followed by the sound-and-light show later at night",
+      note: "The temple trust publishes a fixed three-aarti daily schedule, though exact clock times may be adjusted slightly for festivals — please confirm on the trust's notice board or website before visiting."
+    },
+    sampleOfferings: [
+      "Bel patra (bilva leaf) offering",
+      "Milk & panchamrit abhishek",
+      "Sea-water (samudra snan) puja sponsorship",
+      "Camphor aarti lamp",
+      "Vibhuti (sacred ash) offering",
+      "Rudra Abhishek sponsorship",
+      "Maha Mrityunjaya recitation sponsorship",
+      "Ghee lamp seva",
+      "Rudraksha mala offering",
+      "Dhatura flower offering",
+      "Silk vastra for the lingam",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by resident priests under the Shree Somnath Trust, the body responsible for the temple's post-independence reconstruction and ongoing administration. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "dwarka-dwarkadhish",
@@ -315,9 +1151,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Known as Jagat Mandir, the 5-story building sits on the confluence of Gomti river and the sea, constructed over 2,200 years ago. Its legendary banner (dhwaj) is changed five times daily, billowing gracefully in the sea breeze.",
     deityInfo: "Lord Krishna manifest as Dwarkadhish, the King of Kings, draped in magnificent royal attire.",
     timings: "6:30 AM — 9:30 PM",
-    rituals: ["Dhwaja Arohan (Flag custom)", "Suna Snana (Gold bath)", "Chhappan Bhog Offerings", "Sandhya Shringar"],
+    rituals: [
+      "Dhwaja Arohan (Flag Custom)",
+      "Suna Snana (Gold Bath)",
+      "Chhappan Bhog Offerings",
+      "Sandhya Shringar",
+      "Mangla Aarti",
+      "Abhishek Puja",
+      "Rajbhog Aarti",
+      "Sandhya Aarti",
+      "Shayan Aarti",
+      "Janmashtami Special Puja",
+      "Tulsi Archana",
+      "Panchamrit Abhishek"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_dwarkadhish_1781874666725.jpg",
-    symbol: "🚩"
+    symbol: "🚩",
+    coordinates: { lat: 22.2442, lng: 68.9685 },
+    history: "The Dwarkadhish Temple, known also as Jagat Mandir, stands at the confluence of the Gomti river and the Arabian Sea in Dwarka, Gujarat, and is counted among both the Char Dham and Sapta Puri sacred city traditions of Hinduism. Tradition holds that the original shrine was established over 2,200 years ago by Vajranabha, Krishna's great-grandson, on the site believed to have been Krishna's residential palace after he established his kingdom of Dwarka. The current five-storey structure, built largely of sandstone in Chalukya style, dates substantially from the 15th–16th centuries with later renovations. The temple's most visually iconic feature is its towering flag (dhwaj) bearing sun and moon symbols, hoisted anew on a fresh banner five times daily by temple priests, regarded as a sacred duty rather than a mere maintenance task. Dwarka's association with the submerged ancient city believed to have been Krishna's capital adds archaeological intrigue to its religious significance, and marine excavations off the coast have uncovered structures that some scholars link to the legendary sunken city.",
+    aartiTimings: {
+      morning: "Mangla Aarti is generally performed around 6:30 AM–7:00 AM, followed by Abhishek Puja",
+      afternoon: "Rajbhog Aarti (following the deity's midday feast offering) is typically performed around noon",
+      evening: "Sandhya Aarti and Shayan (night rest) Aarti are performed in the evening, with the temple closing around 9:30 PM",
+      note: "The dhwaja (flag) is changed five times daily at set intervals published by the temple trust — please confirm the current schedule with temple authorities, especially around Janmashtami."
+    },
+    sampleOfferings: [
+      "Dhwaja (temple flag) sponsorship",
+      "Tulsi leaf offering",
+      "Chhappan Bhog (56-dish feast) sponsorship",
+      "Panchamrit abhishek",
+      "Camphor aarti lamp",
+      "Silk/gold-bordered vastra for the deity",
+      "Peda & sweets prasad",
+      "Ghee lamp seva",
+      "Flower garland offering",
+      "Betel leaf naivedya",
+      "Janmashtami special puja sponsorship",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Sevas are performed by hereditary Brahmin priest families (Abhoti and Pujari communities) attached to the Dwarkadhish Devasthanam Trust. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "nashik-trimbakeshwar",
@@ -328,9 +1200,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "An extraordinary Jyotirlinga at the foothills of Brahmagiri mountains, the source of Godavari river. Unlike standard single lingams, the lingam here has three distinct faces representing the ultimate cosmic trinity: Brahma, Vishnu, and Maheshwar.",
     deityInfo: "A unique hollow lingam holding three small miniature lingams of Brahma, Vishnu, and Shiva.",
     timings: "5:30 AM — 9:00 PM",
-    rituals: ["Trideva Shringar Puja", "Kalsarpa Shanti Puja", "Narayan Nagbali Puja", "Rudra Abhishek"],
+    rituals: [
+      "Trideva Shringar Puja",
+      "Kalsarpa Shanti Puja",
+      "Narayan Nagbali Puja",
+      "Rudra Abhishek",
+      "Kakad Aarti (Pre-dawn)",
+      "Madhyahna Naivedya",
+      "Sandhya Aarti",
+      "Shej Aarti",
+      "Tripindi Shraddha",
+      "Bel Patra Archana",
+      "Maha Shivaratri Jagara",
+      "Ganga (Godavari) Jal Abhishek"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_trimbakeshwar_1781874679788.jpg",
-    symbol: "🕉️"
+    symbol: "🕉️",
+    coordinates: { lat: 19.9333, lng: 73.5333 },
+    history: "Trimbakeshwar Temple, at the foothills of the Brahmagiri mountains near Nashik, marks the sacred origin point of the Godavari river, one of India's holiest waterways, and enshrines one of the twelve Jyotirlingas of Shiva. What makes this lingam extraordinary is its form: rather than a single conventional shaft, it is a small, unusually shaped hollow rock containing three tiny embedded lingams representing Brahma, Vishnu, and Shiva together, an iconographic rarity understood as the ultimate trinity (Trimbak, 'three-eyed lord') from which the temple takes its name. The present black-stone temple structure was built in the 18th century under the patronage of the Peshwa ruler Balaji Baji Rao, replacing earlier, more modest shrines. Trimbakeshwar is also renowned as a major centre for specific remedial Vedic rituals believed to counter astrological afflictions, particularly Kalsarpa Dosha and Narayan Nagbali, drawing pilgrims from across India specifically to perform these rites under the guidance of specialised local priests. The temple and the adjoining Brahmagiri hill trek remain deeply significant to Nashik's identity as a Puranic pilgrimage centre and host to the Kumbh Mela.",
+    aartiTimings: {
+      morning: "Kakad Aarti is performed pre-dawn, generally around 5:30 AM, followed by Trideva Shringar",
+      afternoon: "Madhyahna Naivedya (midday food offering) is typically performed around noon",
+      evening: "Sandhya Aarti and the closing Shej Aarti are performed in the evening, with the temple closing around 9:00 PM",
+      note: "Special remedial pujas (Kalsarpa Shanti, Narayan Nagbali) are scheduled separately by appointment with temple priests — please confirm timing directly when booking these specific rites."
+    },
+    sampleOfferings: [
+      "Bel patra (bilva leaf) offering",
+      "Godavari jal abhishek",
+      "Milk & panchamrit abhishek",
+      "Kalsarpa Shanti puja sponsorship",
+      "Narayan Nagbali puja sponsorship",
+      "Camphor aarti lamp",
+      "Vibhuti (sacred ash) offering",
+      "Ghee lamp seva",
+      "Rudraksha mala offering",
+      "Dhatura flower offering",
+      "Silk vastra for the lingam",
+      "Tripindi Shraddha sponsorship"
+    ],
+    priestInfo: "Rituals — especially specialised remedial pujas such as Kalsarpa Shanti and Narayan Nagbali — are performed by empanelled Vedic priests (Gurujis) registered with the Trimbakeshwar Devasthan Trust. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "mumbai-siddhivinayak",
@@ -341,9 +1249,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Constructed in 1801, this is Mumbai's most beloved shrine. The Lord is styled with the trunk turned to the right (Siddhi-breaking obstacles), fulfilling every sincere wish brought to his massive Golden dome.",
     deityInfo: "A beautiful black stone Ganesha carved out of single rock, accompanied by Siddhi and Riddhi.",
     timings: "5:00 AM — 10:00 PM",
-    rituals: ["Kakad Aarti (Pre-dawn)", "Atharvashirsha Chanting", "Modak Maha-Naivedya Offerings", "Sankashti Chaturthi Special Aarti"],
+    rituals: [
+      "Kakad Aarti (Pre-dawn)",
+      "Atharvashirsha Chanting",
+      "Modak Maha-Naivedya Offerings",
+      "Sankashti Chaturthi Special Aarti",
+      "Madhyahna Aarti",
+      "Shej Aarti",
+      "Sandhya Aarti",
+      "Ganesh Chaturthi Special Puja",
+      "Panchamrit Abhishek",
+      "Durva Grass Archana",
+      "Sindoor Archana",
+      "Deep Daan"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_siddhivinayak_1781874694879.jpg",
-    symbol: "🐘"
+    symbol: "🐘",
+    coordinates: { lat: 19.0170, lng: 72.8302 },
+    history: "The Siddhivinayak Temple in Prabhadevi, Mumbai, was originally built in 1801 by a local contractor, Laxman Vithu and Deubai Patil, in a modest wada-style structure that has since grown into one of India's most visited and wealthiest temples. The presiding deity is a black stone image of Ganesha carved from a single rock, flanked by consorts Riddhi (prosperity) and Siddhi (spiritual accomplishment) — a rare iconographic detail that gives the temple its name, Siddhivinayak, 'Ganesha who grants siddhi (attainment)'. Unusually, the deity's trunk curves to the right rather than the more common left, a form traditionally considered more powerful and rigorous in its worship requirements, associated with unusually swift fulfilment of sincere prayers. The temple gained enormous popularity through the 20th century, particularly after renovations in 1952 attributed to spiritual growth following a local businessman's fulfilled prayers, and has since become closely associated with Mumbai's film industry, business community, and political figures, who visit regularly before major undertakings. Tuesdays and the monthly Sankashti Chaturthi are its busiest and most spiritually significant days.",
+    aartiTimings: {
+      morning: "Kakad Aarti is performed pre-dawn, generally around 5:30 AM, marking the temple's opening",
+      afternoon: "Madhyahna Aarti (midday) is typically performed around noon after the deity's food offering",
+      evening: "Sandhya Aarti is performed in the early evening and Shej (night rest) Aarti closes the day, with the temple shutting around 10:00 PM",
+      note: "Timings extend considerably on Tuesdays, Sankashti Chaturthi, and Ganesh Chaturthi due to very high footfall — please confirm current queue-managed timings with the temple trust."
+    },
+    sampleOfferings: [
+      "Modak (sweet dumpling) offering",
+      "Durva grass (21 blades) archana",
+      "Sindoor (vermilion) archana",
+      "Panchamrit abhishek",
+      "Camphor aarti lamp",
+      "Ganesh Atharvashirsha recitation sponsorship",
+      "Ghee lamp seva",
+      "Red flower (hibiscus) garland offering",
+      "Coconut & fruit basket offering",
+      "Silk vastra for the deity",
+      "Betel leaf naivedya",
+      "Sankashti Chaturthi special puja sponsorship"
+    ],
+    priestInfo: "Rituals are performed by resident priests of the Shree Siddhivinayak Ganapati Mandir Trust, one of India's most professionally organised temple trusts. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kolhapur-mahalakshmi",
@@ -354,9 +1298,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "One of the six major Shakti Peethas mentioned in the Puranas. The temple is designed so twice a year, the rays of the setting sun fall directly on the face of the Goddess's gemstone idol through a small window lattice.",
     deityInfo: "The Goddess carved from gemstone, carrying a club, shield, and a precious citrus fruit.",
     timings: "5:30 AM — 10:00 PM",
-    rituals: ["Maha Puja & Abhishek", "Suna Vesha Puja", "Kumkum Archana", "Laxmi Sahasranama"],
+    rituals: [
+      "Maha Puja & Abhishek",
+      "Suna Vesha Puja",
+      "Kumkum Archana",
+      "Laxmi Sahasranama",
+      "Kirnotsav (Sunray Ceremony)",
+      "Kakad Aarti",
+      "Madhyahna Aarti",
+      "Panchaarti (Five-Lamp Evening Aarti)",
+      "Navaratri Special Shringar",
+      "Chandan Lepa",
+      "Deep Daan",
+      "Annadaan Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kolhapur_mahalakshmi_1781874711476.jpg",
-    symbol: "🌸"
+    symbol: "🌸",
+    coordinates: { lat: 16.6947, lng: 74.2325 },
+    history: "The Mahalakshmi (Ambabai) Temple of Kolhapur, believed to date back to the 7th–8th century with substantial later renovation under the Chalukya and Shilahara dynasties, is counted among the Shakti Peethas and is also revered as one of the Ashtadasha (eighteen) Maha Shakti Peethas described in the Puranas. The Goddess is enshrined as a striking gemstone image, standing on a demon, holding a mace, shield, and a citrus fruit (a matulinga), her four arms symbolising the totality of worldly and spiritual prosperity she bestows. The temple's most celebrated architectural feature is its precise astronomical alignment: for three days around specific dates each year (notably in late January/early February and early November), the setting sun's rays pass directly through a lattice window to illuminate the Goddess's face — an event called Kirnotsav that draws enormous crowds. Kolhapur's Mahalakshmi is deeply woven into Maharashtrian cultural identity, worshipped widely as 'Ambabai', and the temple observes an elaborate five-times-daily aarti tradition (Panchaarti) considered unique among Maharashtra's major shrines.",
+    aartiTimings: {
+      morning: "Kakad Aarti is performed pre-dawn, generally around 5:30 AM–6:00 AM",
+      afternoon: "Madhyahna Aarti (midday) is typically performed around noon following the day's principal abhishek",
+      evening: "The temple's distinctive Panchaarti (five-lamp evening aarti) is performed in the evening, generally between 7:00 PM and 8:00 PM",
+      note: "The Kirnotsav sunray ceremony occurs only on specific dates around late January and early November each year — please confirm exact dates with the temple trust as they shift slightly annually."
+    },
+    sampleOfferings: [
+      "Kumkum & turmeric archana",
+      "Chandan (sandalwood) lepa seva",
+      "Panchamrit abhishek",
+      "Camphor aarti lamp",
+      "Red silk saree offering",
+      "Lotus & hibiscus garland offering",
+      "Laxmi Sahasranama recitation sponsorship",
+      "Ghee lamp seva",
+      "Coconut & fruit basket offering",
+      "Betel leaf naivedya",
+      "Kirnotsav (sunray ceremony) darshan sponsorship",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by hereditary priest families (Bhat/Upadhye lineages) registered with the Shri Mahalakshmi Devasthan Trust, custodians of Kolhapur's distinctive Panchaarti tradition. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "sarangpur-kashtabhanjan-hanuman",
@@ -367,9 +1347,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "A extraordinarily potent temple founded by Sadguru Gopalanand Swami. The deity of Hanuman here is renowned worldwide for crushing planetary malefic effects (especially Shani Dev) and curing emotional or psychiatric distress.",
     deityInfo: "Lord Hanuman standing in a majestic warrior posture, with Shani Dev pressed submissively underneath his foot.",
     timings: "6:00 AM — 9:00 PM",
-    rituals: ["Maruti Yajna Puja", "Shani-Shanti Oil Offering", "Hanuman Chalisa Chants", "Swarna Chola Alati"],
+    rituals: [
+      "Maruti Yajna Puja",
+      "Shani-Shanti Oil Offering",
+      "Hanuman Chalisa Chants",
+      "Swarna Chola Alati",
+      "Mangla Aarti",
+      "Sundarkand Path",
+      "Bhoot-Preta Nivaran Puja (relief rites)",
+      "Sandhya Aarti",
+      "Shej Aarti",
+      "Ram Navami Special Puja",
+      "Hanuman Jayanti Shringar",
+      "Sindoor Archana"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kashtabhanjan_hanuman_1781874800576.jpg",
-    symbol: "🐒"
+    symbol: "🐒",
+    coordinates: { lat: 22.4500, lng: 71.8333 },
+    history: "The Kashtabhanjan Hanumanji Temple at Sarangpur, in Gujarat's Botad district, was established in 1848 by Sadguru Gopalanand Swami, a senior disciple of Swaminarayan and a revered saint of the Swaminarayan Sampradaya, following what devotees describe as a divine vision guiding him to consecrate the deity at this specific site. The temple's presiding form of Hanuman, named Kashtabhanjan ('destroyer of hardship/sorrow'), is depicted standing in commanding warrior posture with the malefic planetary deity Shani Dev pressed beneath his foot, symbolising Hanuman's power to neutralise astrological afflictions, particularly the notoriously difficult Shani (Saturn) dosha periods (Sade Sati). The temple has become especially renowned across India for devotees seeking relief from psychological distress, negative energies, and what is locally described as 'upri baadha' (spirit-related afflictions), with many pilgrims travelling specifically to undergo the temple's traditional relief rituals under trained priests. Administered by the Swaminarayan Sampradaya's Kundaldham/Sarangpur trust, the temple draws exceptionally large crowds every Saturday, considered Hanuman's most auspicious day.",
+    aartiTimings: {
+      morning: "Mangla Aarti generally begins around 6:00 AM as the temple opens",
+      afternoon: "Midday bhog offering and Sundarkand recitations continue through the afternoon",
+      evening: "Sandhya Aarti and the closing Shej Aarti are performed in the evening, with the temple closing around 9:00 PM",
+      note: "Timings extend considerably on Saturdays and during Hanuman Jayanti, the temple's busiest occasions — please confirm current schedules with the temple trust."
+    },
+    sampleOfferings: [
+      "Sindoor (vermilion) & oil archana",
+      "Til (sesame) oil offering",
+      "Swarna Chola (golden cloak) sponsorship",
+      "Camphor aarti lamp",
+      "Hanuman Chalisa recitation sponsorship",
+      "Ghee lamp seva",
+      "Betel leaf & jaggery prasad",
+      "Marigold garland offering",
+      "Sundarkand path sponsorship",
+      "Coconut & fruit basket offering",
+      "Silk vastra for the deity",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by trained priests of the Swaminarayan Sampradaya's Sarangpur temple trust, specialising in Hanuman-centred protective and relief-focused pujas. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "guwahati-kamakhya",
@@ -380,9 +1396,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Perched on Nilachal Hills, Kamakhya is the crown jewel of Tantric shrines in India, representing the womb of Adi Shakti. It is famous for celebrating Ambubachi Mela, commemorating the creative cycle of Earth.",
     deityInfo: "Worshipped as a natural spring flowing through a cleft in sacred schist bedrock (No physical statue).",
     timings: "5:30 AM — 8:00 PM",
-    rituals: ["Tantrik Chandi Archana", "Maha Snana & Dhupa", "Sankalpa Bali-Puja", "Ambubachi Dhupa"],
+    rituals: [
+      "Tantrik Chandi Archana",
+      "Maha Snana & Dhupa",
+      "Sankalpa Bali-Puja",
+      "Ambubachi Dhupa",
+      "Mangal Aarti",
+      "Sandhya Aarti",
+      "Durga Puja Special Rites",
+      "Navaratri Archana",
+      "Deep Daan",
+      "Chandi Path Recitation",
+      "Havan (Yajna) Seva",
+      "Kumari Puja"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kamakhya_1781874819380.jpg",
-    symbol: "📿"
+    symbol: "📿",
+    coordinates: { lat: 26.1665, lng: 91.7036 },
+    history: "The Kamakhya Temple crowns Nilachal Hill overlooking the Brahmaputra river in Guwahati, Assam, and is regarded as the foremost Shakti Peetha and the pre-eminent centre of Tantric Hinduism in India. According to the Shakti Peetha legend, this is the site where Sati's yoni (womb/genitals) fell after Vishnu's discus dismembered her body, and the temple, unlike almost any other major Hindu shrine, contains no carved idol; instead, the Goddess is worshipped as a natural underground spring flowing through a yoni-shaped cleft in the bedrock, kept perpetually covered with red cloth and flowers. The current temple structure, with its distinctive beehive-shaped shikhara typical of Assamese temple architecture, was rebuilt in the 16th century by the Koch king Naranarayan after an earlier structure's destruction, though the site's tantric worship traditions are documented in texts many centuries older. The temple's most significant annual event is the Ambubachi Mela, held during the monsoon, which commemorates the Goddess's menstrual cycle as a symbol of the earth's fertility — the temple closes for three days during this period and reopens amid enormous festive crowds for the resumption of worship.",
+    aartiTimings: {
+      morning: "Mangal Aarti generally begins around 5:30 AM as the temple opens for darshan",
+      afternoon: "Midday archana and ritual offerings continue through the day",
+      evening: "Sandhya Aarti is performed in the evening before the temple closes around 8:00 PM",
+      note: "The temple closes entirely for three days during the annual Ambubachi Mela (typically mid-June) — please confirm exact dates and any special-occasion timings with the temple trust."
+    },
+    sampleOfferings: [
+      "Red hibiscus & lotus garland offering",
+      "Red cloth (chunri) offering",
+      "Kumkum & vermilion archana",
+      "Camphor aarti lamp",
+      "Chandi Path recitation sponsorship",
+      "Havan (sacred fire ritual) seva",
+      "Ghee lamp seva",
+      "Coconut & fruit basket offering",
+      "Betel leaf & areca nut arpan",
+      "Ambubachi Mela special darshan sponsorship",
+      "Silk vastra for the sanctum",
+      "Durga Puja special rites sponsorship"
+    ],
+    priestInfo: "Rituals are performed by the temple's hereditary priest families (Doloi and Bordoloi lineages) who have overseen Kamakhya's distinctive tantric worship for centuries. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kolkata-kalighat",
@@ -393,9 +1445,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "A highly powerful Shakta center on the old course of the Hooghly river. The right toe of Sati is believed to have fallen here, forming one of India's most highly revered Shaktipiths.",
     deityInfo: "A unique Kali idol with dark eyes, silver crown, and an extending glowing golden tongue.",
     timings: "5:00 AM — 9:00 PM",
-    rituals: ["Nitya Puja & Chandi Bhoga", "Maha Snana Alati", "Balipatha Prarthana", "Sandhya Arati"],
+    rituals: [
+      "Nitya Puja & Chandi Bhoga",
+      "Maha Snana Alati",
+      "Balipatha Prarthana",
+      "Sandhya Arati",
+      "Mangal Aarti",
+      "Bhog Naivedya (Khichuri)",
+      "Kali Puja (Diwali night)",
+      "Durga Puja Special Rites",
+      "Kumkum Archana",
+      "Deep Daan",
+      "Chandi Path Recitation",
+      "Annadaan Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_kalighat_kali_1781874835951.jpg",
-    symbol: "🌺"
+    symbol: "🌺",
+    coordinates: { lat: 22.5193, lng: 88.3428 },
+    history: "The Kalighat Kali Temple, on the old bank of the Hooghly (Adi Ganga) river in south Kolkata, is one of the most important of the 51 Shakti Peethas, believed to mark the spot where the toes of Sati's right foot fell, giving the city of Kolkata its very name (from 'Kalikshetra' or, by some accounts, 'Kalighat'). The present temple structure dates to 1809, built by the Sabarna Roy Choudhury family, though worship at the site is documented to be considerably older, referenced in medieval Bengali texts such as the Mangalkavya. The deity is depicted with a distinctive iconography unique to Kalighat: three large dark eyes, a silver crown, and an extended golden tongue, worshipped without arms or a conventional full body, carved instead onto a stone slab representing the Goddess in her fierce, primordial form. The temple has long been a centre of intense Shakta devotion in Bengal and became closely associated with the 19th-century Bengal Renaissance through devotees and reformers who frequented its precincts, cementing its place as one of India's most visited and spiritually potent pilgrimage sites, especially during Kali Puja on Diwali night.",
+    aartiTimings: {
+      morning: "Mangal Aarti and the day's first bhog offering generally begin around 5:00 AM (slightly later in winter)",
+      afternoon: "Midday Chandi Bhoga (rice-based khichuri offering) is typically performed around noon",
+      evening: "Sandhya Aarti is performed in the evening before the temple closes around 9:00 PM",
+      note: "Timings extend considerably on Kali Puja (Diwali) night and during Durga Puja — please confirm current festival-day schedules with the temple trust."
+    },
+    sampleOfferings: [
+      "Red hibiscus garland offering",
+      "Kumkum & vermilion archana",
+      "Khichuri bhog (rice-lentil offering)",
+      "Camphor aarti lamp",
+      "Red silk saree offering",
+      "Ghee lamp seva",
+      "Chandi Path recitation sponsorship",
+      "Coconut & fruit basket offering",
+      "Betel leaf naivedya",
+      "Sweets (sandesh/rasgulla) prasad",
+      "Kali Puja special darshan sponsorship",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by hereditary priests of the Haldar-Adhikari community, custodians of Kalighat's ancient Shakta worship traditions for many generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "kolkata-dakshineswar",
@@ -406,9 +1494,45 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Built in 1855 by the philanthropic queen Rani Rashmoni. Sri Ramakrishna Paramahansa famously served as the head priest here, attaining mystical visions of Maa Kali and starting a world-sweeping spiritual renaissance.",
     deityInfo: "Maa Kali depicted as Bhavatarini, standing on the white basalt chest of Lord Shiva.",
     timings: "6:00 AM — 8:30 PM",
-    rituals: ["Sama Snana & Alati", "Bhog Offering (Kedgeree & sweets)", "Ramakrishna Room Pilgrimage", "Sandhya Alati"],
+    rituals: [
+      "Sama Snana & Alati",
+      "Bhog Offering (Kedgeree & Sweets)",
+      "Ramakrishna Room Pilgrimage",
+      "Sandhya Alati",
+      "Mangal Aarti",
+      "Madhyahna Bhog",
+      "Kali Puja (Diwali night)",
+      "Durga Puja Special Rites",
+      "Kumkum Archana",
+      "Deep Daan",
+      "Chandi Path Recitation",
+      "Annadaan Seva"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_dakshineswar_kali_1781874854203.jpg",
-    symbol: "🪷"
+    symbol: "🪷",
+    coordinates: { lat: 22.6551, lng: 88.3570 },
+    history: "The Dakshineswar Kali Temple, on the eastern bank of the Hooghly river in Kolkata, was built in 1855 by Rani Rashmoni, a wealthy and philanthropic widow of the Mallick zamindar family, after she is said to have received a dream instructing her to install and worship the Goddess at this exact spot before undertaking a planned pilgrimage to Varanasi. The temple's nine-spired (navaratna) main shrine enshrines Kali in her Bhavatarini form — 'She who liberates her devotees from the ocean of existence' — depicted standing upon the recumbent, white marble form of Shiva. The temple's greatest historical significance lies in its association with Sri Ramakrishna Paramahansa, who served as its priest in the mid-19th century and, through intense meditative practice at this shrine, is said to have attained profound mystical visions of the Divine Mother, later inspiring a spiritual revival that gave rise to the Ramakrishna Mission founded by his disciple Swami Vivekananda. The room where Ramakrishna lived and taught remains preserved within the temple complex and draws pilgrims from across the world alongside worshippers of the Goddess herself.",
+    aartiTimings: {
+      morning: "Mangal Aarti is generally performed around 6:00 AM as the temple opens",
+      afternoon: "Madhyahna Bhog (midday offering, traditionally including khichuri/kedgeree) is typically served around noon",
+      evening: "Sandhya Aarti is performed in the evening before the temple closes around 8:30 PM",
+      note: "Timings extend considerably on Kali Puja (Diwali) night and during Durga Puja — please confirm current festival-day schedules with the temple trust."
+    },
+    sampleOfferings: [
+      "Red hibiscus garland offering",
+      "Kumkum & vermilion archana",
+      "Khichuri/kedgeree bhog offering",
+      "Camphor aarti lamp",
+      "Red silk saree offering",
+      "Ghee lamp seva",
+      "Ramakrishna room darshan sponsorship",
+      "Coconut & fruit basket offering",
+      "Betel leaf naivedya",
+      "Sweets (sandesh) prasad",
+      "Chandi Path recitation sponsorship",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by resident priests of the Dakshineswar Kali Temple Trust, continuing the worship traditions established under Rani Rashmoni and Sri Ramakrishna Paramahansa. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   },
   {
     id: "deoghar-baidyanath",
@@ -419,8 +1543,44 @@ export const TEMPLES_LIST: Temple[] = [
     story: "Also known as Baba Dham. Legend tells that Ravana worshiped Shiva here, chopping off his ten heads to offer them. Lord Shiva healed him, acting as a Vaidya (Divine Physician), hence the name Baidyanath.",
     deityInfo: "A sacred Jyotirlinga, traditionally bound with sacred red threads connected to Gauri's temple opposite.",
     timings: "4:00 AM — 9:00 PM",
-    rituals: ["Sravani Mela Chardham Kanwar Jala Yatra", "Rudrabhishek", "Sankalpa Rog-Moksha Puja", "Sringar offering"],
+    rituals: [
+      "Sravani Mela Kanwar Jala Yatra",
+      "Rudrabhishek",
+      "Sankalpa Rog-Moksha Puja",
+      "Sringar Offering",
+      "Mangal Aarti",
+      "Bhog Aarti",
+      "Sandhya Aarti",
+      "Shringar Puja",
+      "Bel Patra Archana",
+      "Maha Shivaratri Jagara",
+      "Ganga Jal Abhishek",
+      "Panchamrit Abhishek"
+    ],
     imageUrl: import.meta.env.BASE_URL + "images/deity_akhandaalamani_1781874203434.jpg",
-    symbol: "⚕️"
+    symbol: "⚕️",
+    coordinates: { lat: 24.4833, lng: 86.7000 },
+    history: "The Baidyanath Temple at Deoghar, Jharkhand — popularly called Baba Dham or Baidyanath Dham — enshrines one of Shiva's twelve Jyotirlingas and is simultaneously counted among the 51 Shakti Peethas, believed to mark the spot where Sati's heart fell, making it uniquely significant as both a Shaiva and Shakta pilgrimage site. According to legend, the demon-king Ravana, a devoted worshipper of Shiva, performed severe penance here and offered his own ten heads in sacrifice to please the deity; Shiva, moved by his devotion, restored Ravana's heads and healed him, acting in the role of Vaidya (physician), which gives the temple its name Baidyanath. The temple is the culminating destination of the Sravani Mela, one of the largest annual pilgrim gatherings in India, during which millions of 'Kanwariyas' walk over 100 km carrying sacred Ganges water from Sultanganj on foot to pour over the lingam, a practice believed to fulfil deep spiritual and health-related prayers. A sacred red thread traditionally connects the main Baidyanath shrine to the adjacent Parvati (Gauri) temple, symbolising the union of Shiva and Shakti at this site.",
+    aartiTimings: {
+      morning: "The temple opens early for Mangal Aarti and Rudrabhishek, generally around 4:00 AM",
+      afternoon: "Bhog Aarti and midday abhishek are typically performed around noon",
+      evening: "Sandhya Aarti and Shringar Puja are performed in the evening before the temple closes around 9:00 PM",
+      note: "Timings extend dramatically and access is tightly queue-managed during the Sravani Mela (the holy month of Shravan) — please confirm the special festival schedule with the temple trust before visiting during this period."
+    },
+    sampleOfferings: [
+      "Ganga jal (Kanwar water) abhishek",
+      "Bel patra (bilva leaf) offering",
+      "Milk & panchamrit abhishek",
+      "Rudrabhishek sponsorship",
+      "Camphor aarti lamp",
+      "Vibhuti (sacred ash) offering",
+      "Ghee lamp seva",
+      "Red sacred thread (connecting Shiva-Gauri) offering",
+      "Rudraksha mala offering",
+      "Dhatura flower offering",
+      "Silk vastra for the lingam",
+      "Annadaan (food donation) seva"
+    ],
+    priestInfo: "Rituals are performed by hereditary Pandas (priests) of the Baidyanath Temple Trust, who manage both daily worship and the immense pilgrim volume of the annual Sravani Mela. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
   }
 ];

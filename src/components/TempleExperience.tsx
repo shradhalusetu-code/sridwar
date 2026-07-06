@@ -6,8 +6,7 @@
 import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
-import { Search, Compass, BookOpen, Clock, Sparkles, Check, Wifi, WifiOff, MapPin, ChevronDown } from "lucide-react";
-import SacredIcon from "./SacredIcon";
+import { Search, Clock, Sparkles, MapPin, ChevronDown, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
 
 interface TempleExperienceProps {
   onBookPuja: (templeName: string, deityName: string) => void;
@@ -18,7 +17,6 @@ interface TempleExperienceProps {
 export default function TempleExperience({ onBookPuja, onExploreTemple, onNavigate }: TempleExperienceProps) {
   const [selectedTempleId, setSelectedTempleId] = useState(TEMPLES_LIST[0].id);
   const [searchPhrase, setSearchPhrase] = useState("");
-  const [offlineMode, setOfflineMode] = useState(false);
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
 
   const selectedTemple = TEMPLES_LIST.find((t) => t.id === selectedTempleId) || TEMPLES_LIST[0];
@@ -33,7 +31,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   );
 
   const steps = [
-    { title: "Select Temple & City", desc: "Choose from 33 major temples across the holy sub-continent." },
+    { title: "Select Temple & City", desc: `Choose from ${TEMPLES_LIST.length} major temples across the holy sub-continent.` },
     { title: "Choose Ritual & Visit", desc: "Select specific Pujas, Aarti sponsorships, or virtual offering bundles." },
     { title: "Add Name & Sankalp", desc: "Specify name, Gotra, birth star, and personal prayer context for the priests." },
     { title: "Receive Video", desc: "Get high-clarity video captures of the Sankalpa and final Aarti chanting." },
@@ -42,11 +40,28 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
     { title: "Share Feedback", desc: "Submit suggestions to empower global temple community preservation." }
   ];
 
+  const formatCoordinate = (value: number, axis: "lat" | "lng") => {
+    const direction = axis === "lat" ? (value >= 0 ? "N" : "S") : value >= 0 ? "E" : "W";
+    return `${Math.abs(value).toFixed(4)}° ${direction}`;
+  };
+
   return (
     <section 
       id="temple-experience-section" 
       className="pb-8 sm:pb-10 pt-8 sm:pt-10 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white scroll-mt-20"
     >
+      {/* Keyframes for the pop-style CTA buttons — matches the Setu Yatra Challenge button treatment */}
+      <style>{`
+        @keyframes templeCtaPulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
+          50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.02); }
+        }
+        @keyframes templeCtaRing {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+          50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+        }
+      `}</style>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Block Section */}
@@ -57,7 +72,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               Featured Temple Experience
             </h2>
             <p className="text-sm text-white/70 max-w-xl">
-              Select or search from 33 of India’s most physically and spiritually potent shrines to start your remote devotion.
+              Explore India's most divine shrines and begin your devotional experience with a single selection.
             </p>
             {onNavigate && (
               <button
@@ -71,48 +86,20 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               </button>
             )}
           </div>
-
-          {/* Interactive Offline Mode Toggle */}
-          <div 
-            id="offline-connection-toggle"
-            className="mt-6 md:mt-0 flex items-center bg-white/5 p-2.5 rounded-2xl shadow-sm border border-white/10"
-          >
-            <div className="flex flex-col mr-4 text-right">
-              <span className="text-xs font-bold text-white">Pilgrim Offline Mode</span>
-              <span className="text-[10px] text-white/55 font-mono">
-                {offlineMode ? "Active: Cached Local Scriptures" : "Connected: Cloud Streams Active"}
-              </span>
-            </div>
-            <button
-               id="toggle-offline-mode"
-               type="button"
-               onClick={() => {
-                 setOfflineMode(!offlineMode);
-               }}
-               className={`p-2.5 rounded-xl transition-all ${
-                 offlineMode 
-                   ? "bg-amber-500/20 text-amber-300 animate-pulse border border-amber-300/40" 
-                   : "bg-white/5 text-[#5EEAD4] border border-white/10 hover:bg-white/10"
-               }`}
-               title="Toggle Offline Mode for remote mountain pilgrimages"
-            >
-              {offlineMode ? <WifiOff className="w-5 h-5" /> : <Wifi className="w-5 h-5" />}
-            </button>
-          </div>
         </div>
 
         {/* Search Console & Droplist */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           
           {/* Temple Navigation Drawer (cols 4) */}
-          <div className="lg:col-span-4 flex flex-col space-y-4 h-full">
+          <div className="lg:col-span-3 flex flex-col space-y-4 h-full">
             
             {/* Search Input */}
             <div className="relative">
               <input
                 id="temple-search"
                 type="text"
-                placeholder="Search 33 Holy Temples..."
+                placeholder="Search Holy Temples..."
                 value={searchPhrase}
                 onChange={(e) => setSearchPhrase(e.target.value)}
                 className="w-full text-xs pl-10 pr-4 py-3 rounded-2xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#092320] text-white placeholder-white/45 shadow-sm"
@@ -189,7 +176,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
             {/* List selector (desktop / large screens only) */}
             <div 
               id="temple-list-drawer"
-              className="hidden lg:block flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[380px]"
+              className="hidden lg:block flex-grow lg:h-0 overflow-y-auto bg-[#092320]/80 rounded-2xl border border-white/10 p-2 space-y-1 shadow-sm min-h-[320px]"
               style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
             >
               {filteredTemples.length > 0 ? (
@@ -222,31 +209,20 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                 <p className="text-center text-xs text-white/45 py-6">No holy shrines match your query.</p>
               )}
             </div>
-
-            {/* Offline Alert representation if active */}
-            {offlineMode && (
-              <div id="offline-mode-alert" className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-xs text-amber-200 flex space-x-2 animate-fadeIn text-left">
-                <WifiOff className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <div className="text-left">
-                  <span className="font-bold block text-white">Offline Mode Activated</span>
-                  <span className="text-white/70 block mt-0.5">
-                    Sri Dwar has pre-fetched the full catalog and holy specifications of these 33 shrines so you can continue to draft Pujas, read history, and chant mantras under zero network conditions. Forms will automatically sync once your connection is restored.
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Active Temple Spotlight Panel Showcase (cols 8) */}
-          <div id="temple-carousel" className="lg:col-span-8 h-full">
-            <div className="w-full h-full bg-[#092320] rounded-3xl shadow-xl overflow-hidden border border-white/10 grid grid-cols-1 md:grid-cols-12 min-h-[460px]">
-                            {/* Left Column: Image (cols 5) */}
-              <div className="md:col-span-5 relative min-h-[300px] md:min-h-full bg-[#021816] border-r border-white/10 overflow-hidden group">
+          <div id="temple-carousel" className="lg:col-span-9 h-full">
+            <div className="w-full h-full bg-[#092320] rounded-3xl shadow-xl overflow-hidden border border-white/10 grid grid-cols-1 md:grid-cols-12 md:h-[560px]">
+                            {/* Left Column: Image (cols 6) */}
+              <div className="md:col-span-6 relative min-h-[300px] md:h-full bg-[#021816] border-r border-white/10 overflow-hidden group">
                 {/* Deity Photo */}
                 <img
                   src={selectedTemple.imageUrl}
                   alt={`${selectedTemple.name} Deity`}
                   referrerPolicy="no-referrer"
+                  loading="lazy"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover select-none brightness-95 contrast-[1.05] transition-transform duration-700 ease-out group-hover:scale-105"
                 />
 
@@ -263,10 +239,18 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   <MapPin className="w-3 h-3 text-[#FFB347]" />
                   <span>{selectedTemple.state}, India</span>
                 </div>
+
+                {/* GPS Coordinates Tag */}
+                <div className="absolute bottom-4 right-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white/90 text-[9px] font-mono font-semibold px-2.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
+                  <Navigation className="w-3 h-3 text-[#5EEAD4]" />
+                  <span>
+                    {formatCoordinate(selectedTemple.coordinates.lat, "lat")}, {formatCoordinate(selectedTemple.coordinates.lng, "lng")}
+                  </span>
+                </div>
               </div>
 
               {/* Right Column: Complete Specifications (cols 7) */}
-              <div className="md:col-span-7 p-6 sm:p-8 flex flex-col justify-between text-left">
+              <div className="md:col-span-6 p-6 sm:p-8 flex flex-col justify-between text-left md:h-full md:overflow-y-auto no-scrollbar">
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <Sparkles className="w-4 h-4 text-[#FFB347] fill-[#FFB347]" />
@@ -281,22 +265,52 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                     <strong className="text-[#5EEAD4]">Presiding Deity:</strong> {selectedTemple.deity}
                   </div>
 
-                  <p className="text-xs text-white/70 leading-relaxed">
-                    {selectedTemple.story}
-                  </p>
-
-                  <div className="space-y-2 text-left">
-                    <span className="block text-xs font-bold text-white/80">Sacred timings:</span>
-                    <div className="flex items-center space-x-1.5 text-xs text-white/75">
-                      <Clock className="w-4 h-4 text-[#5EEAD4]" />
-                      <span>{selectedTemple.timings}</span>
-                    </div>
+                  {/* Holy Pilgrimage Narrative & History */}
+                  <div className="space-y-1.5">
+                    <span className="block text-xs font-bold text-white/80">Holy Pilgrimage Narrative & History:</span>
+                    <p className="text-xs text-white/70 leading-relaxed max-h-40 overflow-y-auto pr-1">
+                      {selectedTemple.history}
+                    </p>
                   </div>
 
-                  {/* Available Rituals */}
+                  {/* Aarti Timings */}
+                  <div className="space-y-2 text-left">
+                    <span className="block text-xs font-bold text-white/80">Aarti timings:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-1.5 text-[11px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
+                        <Sunrise className="w-3.5 h-3.5 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                        <div>
+                          <span className="block font-bold text-white/85">Morning</span>
+                          <span className="block text-white/65">{selectedTemple.aartiTimings.morning}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-1.5 text-[11px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
+                        <Sun className="w-3.5 h-3.5 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                        <div>
+                          <span className="block font-bold text-white/85">Afternoon</span>
+                          <span className="block text-white/65">{selectedTemple.aartiTimings.afternoon}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-1.5 text-[11px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
+                        <Sunset className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+                        <div>
+                          <span className="block font-bold text-white/85">Evening</span>
+                          <span className="block text-white/65">{selectedTemple.aartiTimings.evening}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {selectedTemple.aartiTimings.note && (
+                      <p className="text-[10px] text-white/45 italic flex items-start space-x-1">
+                        <Clock className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                        <span>{selectedTemple.aartiTimings.note}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Authorized Rituals */}
                   <div className="space-y-1.5">
-                    <span className="block text-xs font-bold text-white/80">Sample rituals & offerings:</span>
-                    <div className="flex flex-wrap gap-2">
+                    <span className="block text-xs font-bold text-white/80">Authorized rituals:</span>
+                    <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto pr-1">
                       {selectedTemple.rituals.map((ritual, idx) => (
                         <span
                           key={idx}
@@ -307,6 +321,30 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                       ))}
                     </div>
                   </div>
+
+                  {/* Sample Rituals & Offerings */}
+                  <div className="space-y-1.5">
+                    <span className="block text-xs font-bold text-white/80">Sample rituals & offerings:</span>
+                    <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto pr-1">
+                      {selectedTemple.sampleOfferings.map((offering, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-[#FFB347]/10 text-[#FFB347] text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-[#FFB347]/25"
+                        >
+                          {offering}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Priest Information */}
+                  <div className="flex items-start space-x-2 text-xs text-white/70 bg-white/5 px-3.5 py-2.5 rounded-xl border border-white/10">
+                    <UserCircle2 className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="block font-bold text-white/85 mb-0.5">Priest information:</span>
+                      <span className="block text-white/65 leading-relaxed">{selectedTemple.priestInfo}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Engagement CTAs */}
@@ -314,10 +352,37 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   <button
                     id={`spotlight-book-${selectedTemple.id}`}
                     onClick={() => onBookPuja(selectedTemple.name, selectedTemple.deity)}
-                    className="flex-1 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 px-5 rounded-xl text-xs transition-all tracking-widest uppercase shadow-[0_0_15px_rgba(255,179,71,0.35)]"
+                    className="relative flex-1 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold py-3.5 px-5 rounded-xl text-xs transition-all hover:scale-105 tracking-widest uppercase border border-[#FFD700]/60 cursor-pointer"
+                    style={{
+                      boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
+                      animation: "templeCtaPulse 2s ease-in-out infinite",
+                    }}
                   >
-                    BOOK PUJA NOW
+                    <span
+                      className="absolute inset-0 rounded-xl pointer-events-none"
+                      style={{ animation: "templeCtaRing 2s ease-in-out infinite" }}
+                      aria-hidden="true"
+                    />
+                    BOOK RITES NOW
                   </button>
+                  {onNavigate && (
+                    <button
+                      id={`spotlight-priest-directory-${selectedTemple.id}`}
+                      onClick={() => onNavigate("priests")}
+                      className="relative flex-1 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] hover:from-[#0D9488] hover:to-[#2DD4BF] text-white font-extrabold py-3.5 px-5 rounded-xl text-xs transition-all hover:scale-105 tracking-widest uppercase border border-[#5EEAD4]/60 cursor-pointer"
+                      style={{
+                        boxShadow: "0 0 20px rgba(20, 184, 166, 0.5), 0 0 40px rgba(20, 184, 166, 0.25)",
+                        animation: "templeCtaPulse 2s ease-in-out infinite",
+                      }}
+                    >
+                      <span
+                        className="absolute inset-0 rounded-xl pointer-events-none"
+                        style={{ animation: "templeCtaRing 2s ease-in-out infinite" }}
+                        aria-hidden="true"
+                      />
+                      PRIEST DIRECTORY
+                    </button>
+                  )}
                   <button
                     id={`spotlight-explore-${selectedTemple.id}`}
                     onClick={() => onExploreTemple(selectedTemple)}

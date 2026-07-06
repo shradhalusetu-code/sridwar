@@ -563,31 +563,35 @@ export default function DevoteeExperiences() {
           </div>
 
           {/* Nav Controls */}
-          <div className="flex items-center justify-between mt-6">
+          <div className="flex items-center gap-3 mt-6">
             <button
               id="devotee-carousel-prev"
               onClick={handlePrev}
-              className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
+              aria-label="Previous devotee story"
+              className="flex-shrink-0 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
-            {/* Pagination indicators dots */}
-            <div className="flex items-center space-x-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex ? "w-6 bg-[#FFB347]" : "w-2 bg-white/20 hover:bg-white/40"}`}
-                  title={`Go to story ${index + 1}`}
-                />
-              ))}
+            {/* Pagination indicators dots — scrolls horizontally instead of pushing the arrows off-screen when there are many stories */}
+            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
+              <div className="flex items-center justify-center space-x-2 w-max mx-auto px-1">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`h-2 rounded-full transition-all duration-300 flex-shrink-0 ${index === currentIndex ? "w-6 bg-[#FFB347]" : "w-2 bg-white/20 hover:bg-white/40"}`}
+                    title={`Go to story ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
 
             <button
               id="devotee-carousel-next"
               onClick={handleNext}
-              className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
+              aria-label="Next devotee story"
+              className="flex-shrink-0 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

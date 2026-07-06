@@ -3,6 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export interface TempleCoordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface AartiTimings {
+  morning: string;
+  afternoon: string;
+  evening: string;
+  note?: string; // used when exact published timings are not publicly confirmed / vary seasonally
+}
+
 export interface Temple {
   id: string;
   name: string;
@@ -12,9 +24,14 @@ export interface Temple {
   story: string;
   deityInfo: string;
   timings: string;
-  rituals: string[];
+  rituals: string[]; // "Authorized Rituals" — 10-15 rituals actually performed at the temple
   imageUrl: string;
   symbol: string; // Sanskrit/sacred characters or shorthand
+  coordinates: TempleCoordinates; // verified approximate GPS location of the temple
+  history: string; // "Holy Pilgrimage Narrative & History" — 100+ word researched account
+  aartiTimings: AartiTimings; // morning / afternoon / evening aarti schedule
+  sampleOfferings: string[]; // "Sample Rituals & Offerings" — 10-15 offerings devotees can sponsor
+  priestInfo: string; // information about the priests who perform pujas at this temple
 }
 
 export interface Seva {

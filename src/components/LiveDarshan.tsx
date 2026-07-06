@@ -63,10 +63,6 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
               </span>
             </div>
 
-            <h3 className="font-serif text-2xl sm:text-3xl font-black text-white leading-tight">
-              Live Sanctified Darshan
-            </h3>
-
             {/* Temple selector dropdown — same pattern as the Featured Temple Experience dropdown */}
             <div className="relative max-w-xl">
               <button
@@ -126,8 +122,8 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           </div>
 
           {/* Left side: Live Video screen player (cols 7) */}
-          <div className="lg:col-span-7 space-y-4">
-            <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight">
+          <div className="lg:col-span-7 flex flex-col">
+            <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.25rem] flex items-center mb-2">
               {darshanTemple.name} — Live Sanctified Stream
             </h4>
 
@@ -152,8 +148,12 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           </div>
 
           {/* Right side: Detailed notes, timing, interactive actions (cols 5) */}
-          <div className="lg:col-span-5 flex flex-col text-left space-y-6">
+          <div className="lg:col-span-5 flex flex-col justify-between text-left space-y-6 h-full">
             <div className="space-y-4">
+              <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.25rem] flex items-center mb-2">
+                Live Sanctified Darshan
+              </h4>
+
               <div className="text-xs text-white bg-white/5 px-3.5 py-2 rounded-xl border border-white/10">
                 <strong className="text-[#5EEAD4]">Presiding Deity:</strong> {darshanTemple.deity}
               </div>

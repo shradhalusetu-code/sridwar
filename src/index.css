@@ -275,3 +275,13 @@ body:not(.capacitor-android) #temple-finder-section {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+
+/* Hides scrollbar visuals for horizontally-scrollable strips (e.g. carousel
+   pagination dots) while keeping the element scrollable via touch/wheel/drag. */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
