@@ -6,10 +6,10 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Heart, Utensils, Flame, Wind, Flower2, Landmark,
-  Check, ChevronDown, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle,
+  Check, ChevronDown, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
-import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
+import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 
 const renderOfferingIcon = (id: string) => {
@@ -49,9 +49,12 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
   const [preferredDate, setPreferredDate] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  // Validation errors for Name/Email/Phone — shown inline under each field
-  // and cleared as soon as the devotee edits that specific field again.
-  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
+  // Pincode — same inline field used on the Simple Pujas cards, so location
+  // is captured up front and can be used for local seva logistics/routing.
+  const [pincode, setPincode] = useState("");
+  // Validation errors for Name/Email/Phone/Pincode — shown inline under each
+  // field and cleared as soon as the devotee edits that specific field again.
+  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string; pincode?: string }>({});
   // Brief "thank you" confirmation shown right after offering — the card
   // itself is never hidden or shrunk, so a devotee can immediately fill the
   // form again to offer the same seva for someone else (e.g. another cow,
@@ -80,8 +83,9 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     const nameErr = validateName(devoteeName);
     const emailErr = validateEmail(email);
     const phoneErr = validatePhone(phone);
-    if (nameErr || emailErr || phoneErr) {
-      setErrors({ name: nameErr || undefined, email: emailErr || undefined, phone: phoneErr || undefined });
+    const pincodeErr = validatePincode(pincode);
+    if (nameErr || emailErr || phoneErr || pincodeErr) {
+      setErrors({ name: nameErr || undefined, email: emailErr || undefined, phone: phoneErr || undefined, pincode: pincodeErr || undefined });
       return;
     }
     setErrors({});
@@ -94,6 +98,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     detailParts.push(`For: ${devoteeName.trim()}`);
     detailParts.push(`Email: ${email.trim()}`);
     detailParts.push(`Phone: ${phone.trim()}`);
+    detailParts.push(`Pincode: ${pincode.trim()}`);
     if (gotra.trim()) detailParts.push(`Gotra: ${gotra.trim()}`);
     if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
@@ -113,7 +118,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
       name: devoteeName.trim(),
       email: email.trim(),
       phone: phone.trim(),
-      details: `Seva: ${offering.title} | Amount: ₹${amount}` +
+      details: `Seva: ${offering.title} | Amount: ₹${amount} | Pincode: ${pincode.trim()}` +
         (gotra.trim() ? ` | Gotra: ${gotra.trim()}` : "") +
         (occasionLabel ? ` | Occasion: ${occasionLabel}` : "") +
         (preferredDate ? ` | Preferred Date: ${preferredDate}` : "") +
@@ -136,6 +141,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     setPreferredDate("");
     setEmail("");
     setPhone("");
+    setPincode("");
     setCustomAmount("");
     setJustOffered(true);
     if (justOfferedTimeoutRef.current) clearTimeout(justOfferedTimeoutRef.current);
@@ -319,6 +325,23 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                   className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
                 />
               </div>
+            </div>
+            <div>
+              <label className="flex items-center gap-1 text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">
+                <MapPin className="w-3 h-3 text-[#FFB347]" /> Pincode
+              </label>
+              <input
+                type="text" inputMode="numeric" value={pincode}
+                onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
+                placeholder="6-digit PIN code"
+                maxLength={6}
+                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                  errors.pincode ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                }`}
+              />
+              {errors.pincode && (
+                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
+              )}
             </div>
             <div>
               <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>

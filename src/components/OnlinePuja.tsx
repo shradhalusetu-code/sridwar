@@ -3,16 +3,468 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { ON_LINE_PUJAS } from "../data/spiritualData";
 import { getPriestByDetails } from "../data/priests";
 import {
   ShieldAlert, Heart, Briefcase, Award, TrendingUp, Sparkles,
-  CheckCircle2, Video, Clock, ChevronDown, X, UserCircle2
+  CheckCircle2, Video, Clock, ChevronDown, X, UserCircle2,
+  Flame, ShieldCheck, BadgeCheck, Check, AlertCircle
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
+import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
+import { syncToGoogleForm } from "../utils/googleFormSync";
+
+// ─────────────────────────────────────────────────────────────────────────
+// "Simple Pujas" — affordable, structured puja booking tier system.
+// Added as a self-contained data model + card component (same pattern as
+// SEVA_OFFERINGS / SevaOfferingCard used in the Seva Hub & Live Devotional
+// Dashboard), kept inside this file so this section can be booked, synced,
+// and reused without touching any other component or route.
+// ─────────────────────────────────────────────────────────────────────────
+
+interface SimplePujaPriceOption {
+  /** Rupee amount for this tier, or "custom" to reveal the custom-amount input. */
+  value: number | "custom";
+  label: string;
+}
+
+// Reference tier system (₹100 → ₹2,100+) shared by every Simple Puja card's
+// amount selector — mirrors the tier system used across Structured Seva
+// Offerings so pricing language stays consistent site-wide.
+const SIMPLE_PUJA_TIERS: SimplePujaPriceOption[] = [
+  { value: 100, label: "Simple Offering" },
+  { value: 250, label: "Enhanced Offering" },
+  { value: 500, label: "Special Offering" },
+  { value: 1100, label: "Premium Devotional Seva" },
+  { value: 2100, label: "Maha Seva / Major Offering" },
+  { value: "custom", label: "Custom Amount" },
+];
+
+interface SimplePujaOffering {
+  id: string;
+  title: string;
+  price: number;
+  duration: string;
+  category: "Simple Pujas";
+  description: string;
+  includes: string[];
+  devoteeReceives: string[];
+  certificateTimeline: string;
+  dropdownOptions: SimplePujaPriceOption[];
+  customAmountEnabled: boolean;
+  ctaLabel: string;
+  imageUrl: string;
+}
+
+const SIMPLE_PUJAS: SimplePujaOffering[] = [
+  {
+    id: "simple-puja-basic-sankalp",
+    title: "Basic Sankalp Puja",
+    price: 100,
+    duration: "2 minutes",
+    category: "Simple Pujas",
+    description: "A simple daily blessing puja where the devotee's name and gotra are included in the Sankalp.",
+    includes: [
+      "Devotee name will be read during the puja.",
+      "Gotra will be read.",
+      "Sankalp will be taken on behalf of the devotee.",
+      "Short prayer will be offered to the deity.",
+      "Suitable for devotees who want a simple daily blessing.",
+    ],
+    devoteeReceives: [
+      "Digital Puja Certificate as evidence.",
+      "Certificate issued within 3 working days.",
+    ],
+    certificateTimeline: "Certificate issued within 3 working days.",
+    dropdownOptions: [...SIMPLE_PUJA_TIERS],
+    customAmountEnabled: true,
+    ctaLabel: "Book Puja",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_jagannath_1781872890111.jpg",
+  },
+  {
+    id: "simple-puja-mansik-ichha",
+    title: "Mansik Ichha Puja",
+    price: 250,
+    duration: "5 minutes",
+    category: "Simple Pujas",
+    description: "A focused Sankalp puja where the devotee's personal wish, prayer, or intention is respectfully expressed.",
+    includes: [
+      "Devotee name will be read.",
+      "Gotra will be read.",
+      "Rashi will be read.",
+      "Devotee's Mansik Ichha / personal wish will be expressed during the Sankalp.",
+      "2 Dhoop will be offered during the prayer.",
+      "Suitable for family wellbeing, health, peace, success, protection, and personal prayer.",
+    ],
+    devoteeReceives: [
+      "Digital Puja Certificate as evidence.",
+      "Certificate issued within 3 working days.",
+    ],
+    certificateTimeline: "Certificate issued within 3 working days.",
+    dropdownOptions: [...SIMPLE_PUJA_TIERS],
+    customAmountEnabled: true,
+    ctaLabel: "Book Puja",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_lingaraj_1781872903761.jpg",
+  },
+  {
+    id: "simple-puja-sampoorna-bhog-deep",
+    title: "Sampoorna Bhog & Deep Puja",
+    price: 500,
+    duration: "10 minutes",
+    category: "Simple Pujas",
+    description: "A complete devotional puja with Sankalp, Bhog, Diya, camphor, and Dhoop offering.",
+    includes: [
+      "Devotee name will be read.",
+      "Gotra will be read.",
+      "Rashi will be read.",
+      "Sankalp will be performed.",
+      "Bhog will be offered to the deity.",
+      "Diya will be lit.",
+      "Camphor will be offered.",
+      "Dhoop will be used while praying.",
+      "Suitable for important prayers, special blessings, family protection, success, prosperity, and gratitude.",
+    ],
+    devoteeReceives: [
+      "Digital Puja Certificate as evidence.",
+      "For major pujas, certificate/evidence is issued within a 24-hour window.",
+      "For small pujas, certificate is issued within 3 working days.",
+    ],
+    certificateTimeline: "Major pujas: within 24 hours. Small pujas: within 3 working days.",
+    dropdownOptions: [...SIMPLE_PUJA_TIERS],
+    customAmountEnabled: true,
+    ctaLabel: "Book Puja",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kashi_vishwanath_1781874522891.jpg",
+  },
+];
+
+/** Accepts either a valid email or a valid WhatsApp/phone number in one field. */
+function validateContact(value: string): string | null {
+  const v = value.trim();
+  if (!v) return "Enter your email or WhatsApp number for certificate delivery.";
+  if (v.includes("@")) return validateEmail(v);
+  return validatePhone(v);
+}
+
+interface SimplePujaCardProps {
+  offering: SimplePujaOffering;
+  isActive: boolean;
+  onActivate: () => void;
+  onBook: (pujaName: string, amount: number) => void;
+}
+
+function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCardProps) {
+  // Lazy initializer — computed once, strictly from THIS offering's own base
+  // price, so each of the three Simple Puja cards always defaults its own
+  // amount selector independently (₹100 / ₹250 / ₹500) and can never pick up
+  // another card's selection.
+  const [selected, setSelected] = useState<string>(() => String(offering.price));
+  const [customAmount, setCustomAmount] = useState("");
+  const [devoteeName, setDevoteeName] = useState("");
+  const [gotra, setGotra] = useState("");
+  const [rashi, setRashi] = useState("");
+  const [mansikIchha, setMansikIchha] = useState("");
+  const [pujaDate, setPujaDate] = useState("");
+  const [contact, setContact] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; contact?: string; pincode?: string }>({});
+  const [justBooked, setJustBooked] = useState(false);
+  const justBookedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (justBookedTimeoutRef.current) clearTimeout(justBookedTimeoutRef.current);
+    };
+  }, []);
+
+  const isCustomSelected = selected === "custom";
+  const selectedOption = offering.dropdownOptions.find((p) => String(p.value) === selected);
+  const customAmountNumber = parseInt(customAmount, 10);
+  const customAmountValid = !isCustomSelected || (!isNaN(customAmountNumber) && customAmountNumber >= 100);
+
+  const handleSubmit = () => {
+    if (!isActive) { onActivate(); return; }
+    if (isCustomSelected && !customAmountValid) { alert("Custom sankalp amount starts from ₹100."); return; }
+
+    const nameErr = validateName(devoteeName);
+    const contactErr = validateContact(contact);
+    const pincodeErr = validatePincode(pincode);
+    if (nameErr || contactErr || pincodeErr) {
+      setErrors({ name: nameErr || undefined, contact: contactErr || undefined, pincode: pincodeErr || undefined });
+      return;
+    }
+    setErrors({});
+
+    const amount = isCustomSelected ? customAmountNumber : (selectedOption?.value as number);
+    const isEmailContact = contact.trim().includes("@");
+
+    const detailParts: string[] = [];
+    if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
+    detailParts.push(`For: ${devoteeName.trim()}`);
+    if (gotra.trim()) detailParts.push(`Gotra: ${gotra.trim()}`);
+    if (rashi.trim()) detailParts.push(`Rashi: ${rashi.trim()}`);
+    if (mansikIchha.trim()) detailParts.push(`Mansik Ichha: ${mansikIchha.trim()}`);
+    if (pujaDate) detailParts.push(`Puja Date Preference: ${pujaDate}`);
+    detailParts.push(`Certificate Delivery: ${contact.trim()}`);
+    detailParts.push(`Pincode: ${pincode.trim()}`);
+
+    const composedName = `${offering.title} — ${detailParts.join(", ")}`;
+
+    // Immediate sync — fired the moment "Book Puja" is clicked, so the
+    // devotee's validated Sankalp details (including Pincode) reach the
+    // Google Sheet right away, independent of whether the devotee goes on
+    // to complete the Puja Sankalp Portal (payment step) that follows.
+    syncToGoogleForm("puja", {
+      name: devoteeName.trim(),
+      email: isEmailContact ? contact.trim() : "",
+      phone: isEmailContact ? "" : contact.trim(),
+      whatsapp: isEmailContact ? "" : contact.trim(),
+      details: `Simple Puja: ${offering.title} | Amount: ₹${amount}` +
+        (gotra.trim() ? ` | Gotra: ${gotra.trim()}` : "") +
+        (rashi.trim() ? ` | Rashi: ${rashi.trim()}` : "") +
+        (mansikIchha.trim() ? ` | Mansik Ichha: ${mansikIchha.trim()}` : "") +
+        (pujaDate ? ` | Puja Date Preference: ${pujaDate}` : "") +
+        ` | Certificate Delivery: ${contact.trim()}` +
+        ` | Pincode: ${pincode.trim()}` +
+        ` | Captured immediately on 'Book Puja' click — Puja Sankalp Portal payment step not yet completed.`,
+      type: `Puja Booking - ${offering.title}`,
+      gotra: gotra.trim() || undefined,
+      rashi: rashi.trim() || undefined,
+      intent: mansikIchha.trim() || undefined,
+      dob: pujaDate || undefined,
+    }).catch((err) => console.error(`${offering.title} immediate sync error:`, err));
+
+    // onBook() hands the composed name + amount straight to onBookNowClick,
+    // which sets the Puja Sankalp Portal (BookNowWizard) defaults and opens
+    // it immediately — so devotee details are synced above, then the
+    // devotee is taken straight into that portal to complete payment.
+    gaBookNowOpen(composedName, amount);
+    onBook(composedName, amount);
+
+    setDevoteeName("");
+    setGotra("");
+    setRashi("");
+    setMansikIchha("");
+    setPujaDate("");
+    setContact("");
+    setPincode("");
+    setCustomAmount("");
+    setJustBooked(true);
+    if (justBookedTimeoutRef.current) clearTimeout(justBookedTimeoutRef.current);
+    justBookedTimeoutRef.current = setTimeout(() => setJustBooked(false), 6000);
+  };
+
+  return (
+    <div
+      id={`simple-puja-${offering.id}`}
+      onClick={() => { if (!isActive) onActivate(); }}
+      className={`bg-[#092320] rounded-3xl border text-left transition-all flex flex-col text-white overflow-hidden ${
+        isActive ? "border-[#FFB347]/60 shadow-lg shadow-[#FFB347]/10" : "border-white/10 hover:border-[#5EEAD4]/25 cursor-pointer"
+      }`}
+    >
+      <div className="w-full h-44 relative overflow-hidden">
+        <img src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
+          <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
+            {offering.category}
+          </span>
+        </div>
+      </div>
+
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">
+              <Flame className="w-4 h-4 text-orange-400" fill="currentColor" />
+            </div>
+            <h4 className="text-base font-serif font-bold text-white">{offering.title}</h4>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 mb-3 text-[10px] text-white/50 font-mono">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#FFB347]/60" />{offering.duration}</span>
+        </div>
+
+        {/* Badges */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {["Starts at ₹100", "Digital Certificate", "Temple Priest Puja", "Evidence Shared"].map((b) => (
+            <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[9px] text-white/55">
+              <BadgeCheck className="w-2.5 h-2.5 text-[#5EEAD4]" /><span>{b}</span>
+            </span>
+          ))}
+        </div>
+
+        <p className="text-[11px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
+
+        {justBooked && (
+          <div className="flex items-start space-x-1.5 text-[11px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
+            <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+            <span>{offering.title} — Sankalp recorded. Continuing to the Puja Sankalp Portal…</span>
+          </div>
+        )}
+
+        <div className="space-y-1.5 mb-3">
+          <span className="block text-[10px] font-bold text-white/60 uppercase tracking-wide">This puja includes</span>
+          <ul className="space-y-1">
+            {offering.includes.map((item, i) => (
+              <li key={i} className="flex items-start space-x-1.5 text-[11px] text-white/70">
+                <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="space-y-1.5 mb-4">
+          <span className="block text-[10px] font-bold text-white/60 uppercase tracking-wide">Devotee receives</span>
+          <ul className="space-y-1">
+            {offering.devoteeReceives.map((item, i) => (
+              <li key={i} className="flex items-start space-x-1.5 text-[11px] text-white/70">
+                <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Custom Sankalp Amount selector — always visible */}
+        <div className="mb-3" onClick={(e) => e.stopPropagation()}>
+          <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1.5">Custom Sankalp Amount</label>
+          <div className="relative">
+            <select
+              key={offering.id}
+              id={`simple-puja-select-${offering.id}`}
+              value={selected}
+              onChange={(e) => { setSelected(e.target.value); if (!isActive) onActivate(); }}
+              className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+            >
+              {offering.dropdownOptions.map((opt) => (
+                <option key={String(opt.value)} value={String(opt.value)} className="bg-[#092320] text-white">
+                  {typeof opt.value === "number" ? `₹${opt.value.toLocaleString("en-IN")} — ${opt.label}` : opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+          </div>
+
+          {isCustomSelected && offering.customAmountEnabled && (
+            <div className="mt-2">
+              <input
+                id={`simple-puja-custom-${offering.id}`}
+                type="number"
+                min={100}
+                placeholder="Enter custom amount (₹)"
+                value={customAmount}
+                onChange={(e) => setCustomAmount(e.target.value)}
+                className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
+              />
+              <p className="text-[9px] text-white/40 mt-1">Custom sankalp amount starts from ₹100.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Booking form fields — shown once this card is the active selection */}
+        {isActive && (
+          <div className="space-y-2.5 mb-4 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Devotee Name</label>
+              <input
+                type="text" value={devoteeName}
+                onChange={(e) => { setDevoteeName(e.target.value); if (errors.name) setErrors((p) => ({ ...p, name: undefined })); }}
+                placeholder="Your full name"
+                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                  errors.name ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                }`}
+              />
+              {errors.name && (
+                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.name}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Gotra</label>
+                <input
+                  type="text" value={gotra} onChange={(e) => setGotra(e.target.value)}
+                  placeholder="e.g. Kashyap Gotra"
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Rashi</label>
+                <input
+                  type="text" value={rashi} onChange={(e) => setRashi(e.target.value)}
+                  placeholder="e.g. Mesha (Aries)"
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Mansik Ichha / Personal Wish</label>
+              <textarea
+                rows={2} value={mansikIchha} onChange={(e) => setMansikIchha(e.target.value)}
+                placeholder="Your prayer or intention for this puja (optional)"
+                className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 resize-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Puja Date Preference</label>
+                <input
+                  type="date" value={pujaDate} onChange={(e) => setPujaDate(e.target.value)}
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Pincode</label>
+                <input
+                  type="text" inputMode="numeric" value={pincode}
+                  onChange={(e) => { setPincode(e.target.value); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
+                  placeholder="6-digit PIN code"
+                  maxLength={6}
+                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                    errors.pincode ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                  }`}
+                />
+                {errors.pincode && (
+                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Certificate Email / WhatsApp</label>
+              <input
+                type="text" value={contact}
+                onChange={(e) => { setContact(e.target.value); if (errors.contact) setErrors((p) => ({ ...p, contact: undefined })); }}
+                placeholder="name@gmail.com or WhatsApp number"
+                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                  errors.contact ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                }`}
+              />
+              {errors.contact && (
+                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.contact}</p>
+              )}
+            </div>
+            <p className="text-[9px] text-white/40 -mt-1">Your digital certificate will be sent to the email or WhatsApp number above.</p>
+          </div>
+        )}
+
+        <div className="flex items-center space-x-1.5 text-[10px] text-white/50 mb-3">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
+          <span>{offering.certificateTimeline}</span>
+        </div>
+
+        <button
+          id={`simple-puja-cta-${offering.id}`}
+          onClick={(e) => { e.stopPropagation(); handleSubmit(); }}
+          className="mt-auto w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow flex items-center justify-center gap-1.5"
+        >
+          <Flame className="w-4 h-4" fill="currentColor" />
+          {isActive ? offering.ctaLabel.toUpperCase() + " 🙏" : "SELECT THIS PUJA"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 interface OnlinePujaProps {
   onBookNowClick: (pujaName: string, price: number) => void;
@@ -50,6 +502,25 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
   const [selectedCategory, setSelectedCategory] = useState<"all" | AccordionCat>("all");
   const [selectedTemple,   setSelectedTemple]   = useState<string>("all");
   const [selectedPriest,   setSelectedPriest]   = useState<string>("all");
+
+  // ── Simple Pujas section state ────────────────────────────────────────────
+  // Kept independent of selectedCategory/ACCORDION_ORDER filtering above so
+  // the existing "Showing X of Y pujas" count, accordion groups, and empty
+  // state are never affected by this new tier system.
+  const [activeSimplePujaId, setActiveSimplePujaId] = useState<string | null>(null);
+  const [simpleTabActive, setSimpleTabActive] = useState(false);
+  const simplePujaSectionRef = useRef<HTMLDivElement | null>(null);
+
+  const handleSimplePujaTabClick = () => {
+    setSimpleTabActive(true);
+    gaCategoryFilter("simple", "online_puja");
+    simplePujaSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleBookSimplePuja = (pujaName: string, amount: number) => {
+    onBookNowClick(pujaName, amount);
+    setActiveSimplePujaId(null);
+  };
 
   // ── Accordion open state — all collapsed by default ──────────────────────────
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -129,6 +600,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
 
   const handleCategoryChange = (val: string) => {
     setSelectedCategory(val as any);
+    setSimpleTabActive(false);
     gaCategoryFilter(val, "online_puja");
     // Auto-open matching section when a specific category is chosen from dropdown/tab
     if (val !== "all" && ACCORDION_ORDER.includes(val as AccordionCat)) {
@@ -168,6 +640,49 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
           <p className="text-xs text-white/70 mt-2">
             Schedule a customized remote offering performed inside ancient temple sanctums.
             All prayers are documented via live video recordings and physical Prasad dispatches.
+          </p>
+        </div>
+
+        {/* ── Simple Pujas — affordable, structured tier system ─────────────────
+            Placed at the top of the section, above the existing filter bar,
+            accordions, and dropdowns — none of which are altered below. */}
+        <div ref={simplePujaSectionRef} id="simple-pujas-section" className="mb-12 scroll-mt-24">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+            <div>
+              <h3 className="font-serif text-xl font-bold text-white flex items-center gap-2">
+                <Flame className="w-4 h-4 text-orange-400" fill="currentColor" />
+                Simple Pujas
+              </h3>
+              <p className="text-[11px] text-white/60 mt-1 max-w-2xl">
+                Worship, prayer, ritual, ceremony, and devotion-based pujas — affordable, structured Sankalp offerings starting at ₹100.
+              </p>
+            </div>
+            <span className="text-[10px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full shrink-0">
+              Starts at ₹100
+            </span>
+          </div>
+
+          {/* Trust note */}
+          <div className="flex items-start space-x-2.5 text-xs text-white/70 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 mb-6 max-w-3xl">
+            <ShieldCheck className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+            <span>Every puja is performed with devotion by temple priests. A digital certificate/evidence will be shared after completion.</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SIMPLE_PUJAS.map((offering) => (
+              <SimplePujaCard
+                key={offering.id}
+                offering={offering}
+                isActive={activeSimplePujaId === offering.id}
+                onActivate={() => setActiveSimplePujaId(offering.id)}
+                onBook={handleBookSimplePuja}
+              />
+            ))}
+          </div>
+
+          {/* Disclaimer */}
+          <p className="text-[10px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl">
+            Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple schedule, festival rush, priest availability, and temple rituals.
           </p>
         </div>
 
@@ -305,6 +820,23 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                 </button>
               );
             })}
+          {/* Simple Pujas — worship, prayer, ritual, ceremony, and devotion-based
+              pujas. Scrolls to the structured tier cards above rather than
+              filtering ON_LINE_PUJAS, so the existing category counts,
+              accordions, and empty state are left completely untouched. */}
+          <button
+            id="puja-tab-simple"
+            onClick={handleSimplePujaTabClick}
+            title="Includes worship, prayer, ritual, ceremony, and devotion-based pujas"
+            className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              simpleTabActive
+                ? "bg-[#FFB347] text-[#021816] shadow-md border border-[#FFB347]"
+                : "bg-[#092320] text-white/80 hover:bg-white/5 hover:text-white border border-white/10"
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span>Simple Pujas</span>
+          </button>
         </div>
 
         {/* ── Empty state ───────────────────────────────────────────────────────── */}

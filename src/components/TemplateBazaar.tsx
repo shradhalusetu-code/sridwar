@@ -7,10 +7,10 @@
  * Flow: Browse → Puja Sankalpa Portal → Complete Your Sacred Offering (UPI)
  */
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import {
   ShoppingBag, X, Star, Package, Truck, ShieldCheck,
-  Tag, ChevronDown, ChevronUp, Flame, BookOpen, Heart
+  ChevronDown, ChevronUp, Flame, BookOpen, Heart
 } from "lucide-react";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
@@ -187,7 +187,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   // directly through the Puja Sankalpa Portal below), so this mirrors that
   // existing pattern rather than introducing a second, inconsistent cart.
   const [newBazaarCart, setNewBazaarCart] = useState<
-    { id: string; label: string; amount: number; isService: boolean }[]
+    { id: string; label: string; amount: number; isService: boolean; pincode: string }[]
   >([]);
 
   const filteredItems = selectedCategory === "All"
@@ -195,17 +195,21 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
     : BAZAAR_ITEMS.filter(i => i.category === selectedCategory);
 
   // ── Open Sankalpa Portal ────────────────────────────────────────────────
-  const handleBuyNow = (item: BazaarItem) => {
+  // `prefillPincode` lets callers that already captured a PIN code inline on
+  // the offering card (Devotional Shopping Offerings) carry it straight into
+  // the Delivery Address section here, instead of asking the devotee twice.
+  const handleBuyNow = (item: BazaarItem, prefillPincode?: string) => {
     gaAddToCart(item.name, item.price, item.id);
     setSelectedItem(item);
     setRefId((item.isService ? "SDV-" : "SDB-") + Math.floor(100000 + Math.random() * 900000));
+    if (prefillPincode) setDevoteePincode(prefillPincode);
     setShowSankalpa(true);
   };
 
   // ── Devotional Shopping Offerings: primary CTA ("Offer in Temple"/"Buy
   //    Now") — reuses handleBuyNow's exact pipeline (GA event, Sankalpa
   //    Portal, UPI payment) so checkout and data sync stay unchanged. ──────
-  const handleOfferNewProduct = (product: BazaarProduct, composedName: string, amount: number) => {
+  const handleOfferNewProduct = (product: BazaarProduct, composedName: string, amount: number, pincode: string) => {
     if (!amount || amount <= 0) { alert("Please choose a valid amount before continuing."); return; }
     handleBuyNow({
       id: product.id,
@@ -216,14 +220,14 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
       category: "Devotional Shopping",
       imageUrl: product.imageUrl,
       isService: product.isService,
-    });
+    }, pincode);
   };
 
   // ── Devotional Shopping Offerings: "Add to Cart" ─────────────────────────
-  const handleAddToNewCart = (product: BazaarProduct, composedName: string, amount: number) => {
+  const handleAddToNewCart = (product: BazaarProduct, composedName: string, amount: number, pincode: string) => {
     if (!amount || amount <= 0) { alert("Please choose a valid amount before adding to cart."); return; }
     gaAddToCart(composedName, amount, product.id);
-    setNewBazaarCart((prev) => [...prev, { id: product.id, label: composedName, amount, isService: product.isService }]);
+    setNewBazaarCart((prev) => [...prev, { id: product.id, label: composedName, amount, isService: product.isService, pincode }]);
   };
 
   const handleClearNewCart = () => setNewBazaarCart([]);
@@ -237,6 +241,8 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
     // If everything in the cart is temple-performed (no shipping needed),
     // skip the delivery address fields; otherwise collect delivery details.
     const allService = newBazaarCart.every((i) => i.isService);
+    // Carry over a PIN code already captured on one of the cart's cards, if any.
+    const cartPincode = newBazaarCart.find((i) => i.pincode)?.pincode;
     handleBuyNow({
       id: "bazaar-new-cart-checkout",
       name: combinedName,
@@ -246,7 +252,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
       category: "Devotional Shopping",
       imageUrl: null,
       isService: allService,
-    });
+    }, cartPincode);
     setNewBazaarCart([]);
   };
 
@@ -343,7 +349,104 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
     setDevoteeGotra(""); setDevoteeRashi("Mesh (Aries)");
     setSankalpaIntent(""); setDevoteeAddress(""); setDevoteePincode("");
     setSelectedItem(null);
+    lastSyncedDraftRef.current = "";
   };
+
+  // ── Autosave the Puja Sankalpa Portal, field-by-field ───────────────────
+  // Devotees often fill in their name, WhatsApp number, and delivery address
+  // to arrange prasad shipment, then get pulled away before paying, or close
+  // the tab mid-way. Without this, that lead (and delivery address) would be
+  // lost entirely. So as soon as there's enough to act on (name + phone), we
+  // sync a "Draft — Not Submitted Yet" row a moment after the devotee stops
+  // typing — well before they hit "Proceed to Sacred Offering" or pay.
+  // Every keystroke fires this effect, but the debounce + de-dupe guard below
+  // ensure we only actually POST when the content has meaningfully changed.
+  const lastSyncedDraftRef = useRef<string>("");
+  useEffect(() => {
+    if (!showSankalpa || !selectedItem) return;
+    const hasMinimalInfo = devoteeName.trim().length >= 2 && devoteePhone.trim().length >= 7;
+    if (!hasMinimalInfo) return;
+
+    const snapshot = JSON.stringify({
+      devoteeName, devoteePhone, devoteeEmail, devoteeGotra, devoteeRashi,
+      sankalpaIntent, devoteeAddress, devoteePincode,
+    });
+
+    const timer = setTimeout(() => {
+      if (snapshot === lastSyncedDraftRef.current) return;
+      lastSyncedDraftRef.current = snapshot;
+      syncToGoogleForm("seva_booking", {
+        name:  devoteeName.trim(),
+        email: devoteeEmail.trim(),
+        phone: devoteePhone.trim(),
+        gotra: devoteeGotra || undefined,
+        rashi: devoteeRashi || undefined,
+        intent: sankalpaIntent.trim() || undefined,
+        type:  selectedItem.isService
+                 ? `Puja Service — ${selectedItem.name}`
+                 : `Temple Bazaar Order — ${selectedItem.name}`,
+        details: `Item: ${selectedItem.name} | ` +
+                 `Amount: ₹${selectedItem.price} | ` +
+                 `Payment Status: Draft — Devotee Still Filling Form | ` +
+                 `Gotra: ${devoteeGotra || "Not provided"} | ` +
+                 `Rashi: ${devoteeRashi} | ` +
+                 (selectedItem.isService
+                   ? `Intent: ${sankalpaIntent || "General blessings"}`
+                   : `Address: ${devoteeAddress.trim() || "Not provided yet"} | PIN: ${devoteePincode.trim() || "Not provided yet"}`) +
+                 ` | Ref: ${refId}`,
+        fee:   selectedItem.price,
+        city:  selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
+        whatsapp: devoteePhone.trim(),
+      }).catch((err) => console.error("Sankalpa Portal draft autosave failed:", err));
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [
+    showSankalpa, selectedItem, refId,
+    devoteeName, devoteePhone, devoteeEmail, devoteeGotra, devoteeRashi,
+    sankalpaIntent, devoteeAddress, devoteePincode,
+  ]);
+
+  // Extra safety net: if the devotee closes/hides the tab mid-fill (faster
+  // than the debounce above could fire), flush one last sync attempt
+  // immediately so partially entered details — including the delivery
+  // address — are not lost.
+  useEffect(() => {
+    const flushDraft = () => {
+      if (!showSankalpa || !selectedItem) return;
+      if (!devoteeName.trim() && !devoteePhone.trim() && !devoteeAddress.trim()) return;
+      syncToGoogleForm("seva_booking", {
+        name:  devoteeName.trim(),
+        email: devoteeEmail.trim(),
+        phone: devoteePhone.trim(),
+        gotra: devoteeGotra || undefined,
+        rashi: devoteeRashi || undefined,
+        intent: sankalpaIntent.trim() || undefined,
+        type:  selectedItem.isService
+                 ? `Puja Service — ${selectedItem.name}`
+                 : `Temple Bazaar Order — ${selectedItem.name}`,
+        details: `Item: ${selectedItem.name} | Amount: ₹${selectedItem.price} | ` +
+                 `Payment Status: Draft — Page Closed Before Submitting | ` +
+                 (selectedItem.isService
+                   ? `Intent: ${sankalpaIntent || "General blessings"}`
+                   : `Address: ${devoteeAddress.trim() || "Not provided yet"} | PIN: ${devoteePincode.trim() || "Not provided yet"}`) +
+                 ` | Ref: ${refId}`,
+        fee:   selectedItem.price,
+        city:  selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
+        whatsapp: devoteePhone.trim(),
+      }).catch(() => {});
+    };
+    document.addEventListener("visibilitychange", flushDraft);
+    window.addEventListener("pagehide", flushDraft);
+    return () => {
+      document.removeEventListener("visibilitychange", flushDraft);
+      window.removeEventListener("pagehide", flushDraft);
+    };
+  }, [
+    showSankalpa, selectedItem, refId,
+    devoteeName, devoteePhone, devoteeEmail, devoteeGotra, devoteeRashi,
+    sankalpaIntent, devoteeAddress, devoteePincode,
+  ]);
 
   return (
     <section
@@ -365,40 +468,7 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
             Traditional prasad, puja kits, sacred items & live puja services — sourced from temples across India,
             performed in your Gotra, delivered to your doorstep.
           </p>
-          <button
-            type="button"
-            className="relative inline-flex items-center gap-2 mt-3 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest px-5 py-2 rounded-full transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
-            style={{
-              boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
-              animation: "bazaarOfferPulse 2s ease-in-out infinite",
-            }}
-          >
-            {/* Outer glow ring */}
-            <span
-              className="absolute inset-0 rounded-full"
-              style={{ animation: "bazaarOfferRing 2s ease-in-out infinite" }}
-              aria-hidden="true"
-            />
-            <Tag className="w-3.5 h-3.5 text-[#FFD700] shrink-0" style={{ animation: "bazaarOfferFlicker 1.5s ease-in-out infinite alternate" }} />
-            <span>20% OFF — Limited Period Launch Offer</span>
-          </button>
         </div>
-
-        {/* Keyframes for the launch-offer pulse — matches the Setu Yatra Challenge button treatment */}
-        <style>{`
-          @keyframes bazaarOfferPulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
-            50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
-          }
-          @keyframes bazaarOfferRing {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
-            50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
-          }
-          @keyframes bazaarOfferFlicker {
-            0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
-            100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
-          }
-        `}</style>
 
         {/* ══════════════════════════════════════════════════════════════
             Devotional Shopping Offerings — new structured products,
@@ -466,6 +536,17 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
             <ShieldCheck className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
             <span>{BAZAAR_TRUST_COPY}</span>
           </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            Current Offerings — original Temple Bazaar catalogue
+        ══════════════════════════════════════════════════════════════ */}
+        <div className="text-center max-w-2xl mx-auto mb-5">
+          <h3 className="font-serif text-xl font-bold text-white">Current Offerings</h3>
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-white/60 mt-1.5 leading-relaxed">
+            <Truck className="w-3.5 h-3.5 text-[#FFB347] shrink-0" />
+            Shipping charges will apply on physical items and may vary based on your delivery PIN code.
+          </p>
         </div>
 
         {/* ── Category Filter ──────────────────────────────────────────── */}

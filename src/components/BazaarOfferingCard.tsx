@@ -12,21 +12,23 @@
 
 import { useState } from "react";
 import {
-  ShoppingBag, Flame, Check, ChevronDown, ShieldCheck, BadgeCheck, Gift,
+  ShoppingBag, Flame, Check, ChevronDown, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
 } from "lucide-react";
 import { BazaarProduct, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
+import { validatePincode } from "../utils/formValidation";
 
 interface BazaarOfferingCardProps {
   product: BazaarProduct;
   isActive: boolean;
   onActivate: () => void;
   /** Fires the primary CTA ("Offer in Temple" / "Buy Now") — hands a fully
-   *  composed, human-readable item name and final amount straight to the
-   *  existing Puja Sankalpa Portal + UPI payment flow in TemplateBazaar. */
-  onOffer: (product: BazaarProduct, composedName: string, amount: number) => void;
+   *  composed, human-readable item name, final amount, and (for physical
+   *  items) the delivery PIN code straight to the existing Puja Sankalpa
+   *  Portal + UPI payment flow in TemplateBazaar. */
+  onOffer: (product: BazaarProduct, composedName: string, amount: number, pincode: string) => void;
   /** Fires "Add to Cart" — adds the composed item to the lightweight
    *  Devotional Shopping cart in TemplateBazaar. */
-  onAddToCart: (product: BazaarProduct, composedName: string, amount: number) => void;
+  onAddToCart: (product: BazaarProduct, composedName: string, amount: number, pincode: string) => void;
 }
 
 export default function BazaarOfferingCard({ product, isActive, onActivate, onOffer, onAddToCart }: BazaarOfferingCardProps) {
@@ -40,6 +42,11 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({});
   const [addOnText, setAddOnText] = useState<Record<string, string>>({});
   const [justAdded, setJustAdded] = useState<"offer" | "cart" | null>(null);
+  // Delivery PIN code — only relevant for physical (non-service) items, since
+  // shipping cost/availability depends on it. Captured inline on the card
+  // (same pattern as Simple Pujas) so it's known before checkout even opens.
+  const [pincode, setPincode] = useState("");
+  const [pincodeError, setPincodeError] = useState<string | undefined>(undefined);
 
   const isCustomSelected = selected === "custom";
   const selectedOption = product.priceOptions.find((p) => String(p.value) === selected);
@@ -69,12 +76,18 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   const resetAfterAction = () => {
     setSelectedAddOns({});
     setAddOnText({});
+    setPincode("");
+    setPincodeError(undefined);
   };
 
   const handlePrimary = () => {
     if (!isActive) { onActivate(); return; }
     if (isCustomSelected && !customAmountValid) { alert(BAZAAR_CUSTOM_AMOUNT_NOTE); return; }
-    onOffer(product, buildComposedName(), finalAmount);
+    if (!product.isService) {
+      const err = validatePincode(pincode);
+      if (err) { setPincodeError(err); return; }
+    }
+    onOffer(product, buildComposedName(), finalAmount, pincode.trim());
     resetAfterAction();
     setJustAdded("offer");
     setTimeout(() => setJustAdded(null), 5000);
@@ -83,7 +96,11 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   const handleAddToCart = () => {
     if (!isActive) { onActivate(); return; }
     if (isCustomSelected && !customAmountValid) { alert(BAZAAR_CUSTOM_AMOUNT_NOTE); return; }
-    onAddToCart(product, buildComposedName(), finalAmount);
+    if (!product.isService) {
+      const err = validatePincode(pincode);
+      if (err) { setPincodeError(err); return; }
+    }
+    onAddToCart(product, buildComposedName(), finalAmount, pincode.trim());
     resetAfterAction();
     setJustAdded("cart");
     setTimeout(() => setJustAdded(null), 5000);
@@ -238,6 +255,29 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Delivery PIN code — shown once active, only for physical (shippable) items */}
+        {isActive && !product.isService && (
+          <div className="mb-3 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
+            <label className="flex items-center gap-1.5 text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">
+              <MapPin className="w-3 h-3 text-[#FFB347]" /> Delivery PIN Code
+            </label>
+            <input
+              type="text" inputMode="numeric" maxLength={6}
+              value={pincode}
+              onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (pincodeError) setPincodeError(undefined); }}
+              placeholder="6-digit PIN code"
+              className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                pincodeError ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+              }`}
+            />
+            {pincodeError ? (
+              <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{pincodeError}</p>
+            ) : (
+              <p className="text-[9px] text-white/40 mt-1">Shipping charges apply and may vary based on your PIN code.</p>
+            )}
           </div>
         )}
 
