@@ -42,8 +42,8 @@ const FAQ_DATA: FAQItem[] = [
   {
     id: "faq-5",
     category: "Platform",
-    question: "Is Sri Dwar officially affiliated with the listed temples?",
-    answer: "Yes. Sri Dwar is an AI-powered faith-tech platform operated under official service level agreements and legal partnerships with validated temple trusts, apex dharmic authorities, and managing pandas. All actions, dakshinas, and logistics are registered securely under the corporate governance of Shradhalu Private Ltd."
+    question: "How does Sri Dwar coordinate rituals at the listed temples?",
+    answer: "Sri Dwar is an AI-powered faith-tech platform that works with revered pujaris who bring deep experience in their respective devotional and ritual domains. Every puja, seva, and dakshina is recorded, verified, and managed by Sri Dwar's administration together with the performing priest, under the corporate governance of Shradhalu Private Ltd."
   },
   {
     id: "faq-6",
@@ -67,7 +67,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-9",
     category: "Platform",
     question: "How can I be confident about the live telecasts?",
-    answer: "Every streaming link is custom emitted from our direct on-site representative or registered sevayats. To keep things personal and traceable, the temple panda will clearly call out your registered name, Gotra, and city right in front of the deity prior to beginning the main chants, which will be visible in the live stream or high-definition recording."
+    answer: "Every streaming link is custom emitted from our direct on-site representative or the revered pujari performing your ritual. To keep things personal and traceable, the priest will clearly call out your name, Gotra, and city right in front of the deity prior to beginning the main chants, which will be visible in the live stream or high-definition recording."
   },
   {
     id: "faq-10",

@@ -198,6 +198,14 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
         {/* Founder Profile */}
         <FounderProfile onNavigate={onNavigate} />
 
+        {/* World's One of the First AI-Powered Faith-Tech Platforms Badge */}
+        <div className="flex justify-center mb-14 sm:mb-16 -mt-6">
+          <div className="inline-flex items-center space-x-2 bg-white/5 border border-[#5EEAD4]/20 px-3.5 py-1.5 rounded-full text-[#5EEAD4] text-xs font-semibold uppercase tracking-widest animate-fadeIn">
+            <Sparkles className="w-3.5 h-3.5 text-[#FFB347] fill-[#FFB347]" />
+            <span>World's One of the First AI-Powered Faith-Tech Platforms</span>
+          </div>
+        </div>
+
         {/* Banner Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-20 animate-fadeIn">
           {/* Narrative Text (cols 7) */}

@@ -1206,46 +1206,54 @@ function DharmicExpertSection() {
   if (expertStep === "category-select") {
     return (
       <div className="space-y-3">
-        {/* 2-by-2 grid of registration option cards */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+        {/* Compact registration option cards — single row on desktop, 2-up on mobile */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
           <button
             type="button"
             onClick={() => setExpertStep("form-basic")}
-            className="flex flex-col items-start gap-1.5 bg-[#FFB347]/8 hover:bg-[#FFB347]/14 border border-[#FFB347]/15 hover:border-[#FFB347]/30 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+            className="flex items-center gap-2 bg-[#FFB347]/8 hover:bg-[#FFB347]/14 border border-[#FFB347]/15 hover:border-[#FFB347]/30 rounded-xl px-3 py-2.5 transition-all cursor-pointer text-left"
           >
-            <span className="text-xl sm:text-2xl">🪔</span>
-            <p className="text-[11px] sm:text-xs font-bold text-[#FFB347] leading-snug">Register Local Pujari / Pandit</p>
-            <p className="text-[9px] sm:text-[10px] text-white/40">Tap to fill the form</p>
+            <span className="text-lg shrink-0">🪔</span>
+            <span className="min-w-0">
+              <p className="text-[11px] font-bold text-[#FFB347] leading-snug truncate">Register Local Pujari / Pandit</p>
+              <p className="text-[9px] text-white/40 truncate">Tap to fill the form</p>
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setExpertStep("form-basic")}
-            className="flex flex-col items-start gap-1.5 bg-[#5EEAD4]/6 hover:bg-[#5EEAD4]/12 border border-[#5EEAD4]/15 hover:border-[#5EEAD4]/30 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+            className="flex items-center gap-2 bg-[#5EEAD4]/6 hover:bg-[#5EEAD4]/12 border border-[#5EEAD4]/15 hover:border-[#5EEAD4]/30 rounded-xl px-3 py-2.5 transition-all cursor-pointer text-left"
           >
-            <span className="text-xl sm:text-2xl">🧘</span>
-            <p className="text-[11px] sm:text-xs font-bold text-[#5EEAD4] leading-snug">Register Guru / Sant / Sadhu</p>
-            <p className="text-[9px] sm:text-[10px] text-white/40">Tap to fill the form</p>
+            <span className="text-lg shrink-0">🧘</span>
+            <span className="min-w-0">
+              <p className="text-[11px] font-bold text-[#5EEAD4] leading-snug truncate">Register Guru / Sant / Sadhu</p>
+              <p className="text-[9px] text-white/40 truncate">Tap to fill the form</p>
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setExpertStep("form-basic")}
-            className="flex flex-col items-start gap-1.5 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+            className="flex items-center gap-2 bg-white/4 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl px-3 py-2.5 transition-all cursor-pointer text-left"
           >
-            <span className="text-xl sm:text-2xl">📿</span>
-            <p className="text-[11px] sm:text-xs font-bold text-white/70 leading-snug">Register Dharmic Expert</p>
-            <p className="text-[9px] sm:text-[10px] text-white/40">Jyotish, Vastu, Scholar…</p>
+            <span className="text-lg shrink-0">📿</span>
+            <span className="min-w-0">
+              <p className="text-[11px] font-bold text-white/70 leading-snug truncate">Register Dharmic Expert</p>
+              <p className="text-[9px] text-white/40 truncate">Jyotish, Vastu, Scholar…</p>
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowDevoteeFlow(true)}
-            className="flex flex-col items-start gap-1.5 bg-[#FFB347]/10 hover:bg-[#FFB347]/18 border border-[#FFB347]/25 hover:border-[#FFB347]/45 rounded-2xl px-3 py-3.5 sm:px-4 transition-all cursor-pointer text-left"
+            className="flex items-center gap-2 bg-[#FFB347]/10 hover:bg-[#FFB347]/18 border border-[#FFB347]/25 hover:border-[#FFB347]/45 rounded-xl px-3 py-2.5 transition-all cursor-pointer text-left"
           >
-            <span className="text-xl sm:text-2xl">🙏</span>
-            <p className="text-[11px] sm:text-xs font-bold text-[#FFB347] leading-snug">Register as Devotee</p>
-            <p className="text-[9px] sm:text-[10px] text-white/40">Pujas, prasad, darshan &amp; more</p>
+            <span className="text-lg shrink-0">🙏</span>
+            <span className="min-w-0">
+              <p className="text-[11px] font-bold text-[#FFB347] leading-snug truncate">Register as Devotee</p>
+              <p className="text-[9px] text-white/40 truncate">Pujas, prasad, darshan &amp; more</p>
+            </span>
           </button>
         </div>
 
@@ -2715,7 +2723,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="temple-finder-section"
-      className="pt-8 sm:pt-10 pb-16 sm:pb-20 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
+      className="pt-8 sm:pt-10 pb-10 sm:pb-12 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#FFB347]/5 rounded-full blur-3xl" />
@@ -2726,21 +2734,60 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
         {/* Single centred card — stretched to the same width as other sections */}
         <div className="glass-panel-dark rounded-3xl border border-white/10 overflow-hidden">
+          <div className="flex flex-col lg:flex-row">
 
-          {/* Image at the top of the card — full image visible, no cropping, no side gaps */}
-          <div className="w-full aspect-[3/2] bg-black/20">
-            <img
-              src={registerPriestImg}
-              alt="Find & register your native temple or puja committee — Sri Dwar"
-              className="w-full h-full object-contain"
-              style={{ display: "block", opacity: 0.97 }}
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
+            {/* Image — left column on desktop, top on mobile. No wasted margin around it. */}
+            <div className="w-full lg:w-[38%] lg:shrink-0 p-5 pb-0 lg:p-6 lg:pr-3">
+              <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden bg-black/20 shadow-lg">
+                <img
+                  src={registerPriestImg}
+                  alt="Find & register your native temple or puja committee — Sri Dwar"
+                  className="h-full w-full object-contain object-center"
+                  style={{ display: "block", opacity: 0.97 }}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
 
-          {/* Card body */}
-          <div className="p-6 sm:p-8 space-y-6">
+              {/* Receive Prasad — moved directly under the "Find & Register Your Native
+                  Temple" image, right-aligned to line up with the Search Temple / Puja
+                  Committee / Mandal field on the right */}
+              <div className="flex justify-center sm:justify-end mt-4">
+                <button
+                  id="temple-reg-receive-prasad-cta"
+                  onClick={() => { gaEvent("prasad_cta_click", { source: "temple_register_section" }); onNavigate?.("products"); }}
+                  className="sd-glow-cta w-full sm:w-auto bg-[#9F1239] hover:bg-[#BE123C] text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center justify-center space-x-2 border border-[#FDA4AF]/60 cursor-pointer"
+                  style={{
+                    boxShadow: "0 0 20px rgba(244,63,94,0.5), 0 0 40px rgba(244,63,94,0.25)",
+                    animation: "setuYatraPulse 2s ease-in-out infinite",
+                  }}
+                >
+                  <span className="absolute inset-0 rounded-full" style={{ animation: "setuYatraRing 2s ease-in-out infinite" }} aria-hidden="true" />
+                  <Gift className="w-4 h-4 text-[#FDA4AF]" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
+                  <span>Receive Prasad</span>
+                </button>
+              </div>
+
+              {/* Shared glow keyframes for the relocated Hero CTA buttons on this page */}
+              <style>{`
+                .sd-glow-cta { position: relative; }
+                @keyframes setuYatraPulse {
+                  0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
+                  50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
+                }
+                @keyframes setuYatraRing {
+                  0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+                  50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+                }
+                @keyframes setuYatraFlicker {
+                  0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
+                  100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+                }
+              `}</style>
+            </div>
+
+            {/* Card body */}
+            <div className="flex-1 min-w-0 p-5 sm:p-6 lg:pl-3 space-y-5">
 
             {/* Badge only — full description already shown inside the image above */}
             <div className="space-y-2">
@@ -2872,39 +2919,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               />
             </div>
 
-            {/* Receive Prasad — rose/pink, same glow/pop effect as Setu Yatra Challenge */}
-            <button
-              id="temple-reg-receive-prasad-cta"
-              onClick={() => { gaEvent("prasad_cta_click", { source: "temple_register_section" }); onNavigate?.("products"); }}
-              className="sd-glow-cta w-full sm:w-auto bg-[#9F1239] hover:bg-[#BE123C] text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center justify-center space-x-2 border border-[#FDA4AF]/60 cursor-pointer"
-              style={{
-                boxShadow: "0 0 20px rgba(244,63,94,0.5), 0 0 40px rgba(244,63,94,0.25)",
-                animation: "setuYatraPulse 2s ease-in-out infinite",
-              }}
-            >
-              <span className="absolute inset-0 rounded-full" style={{ animation: "setuYatraRing 2s ease-in-out infinite" }} aria-hidden="true" />
-              <Gift className="w-4 h-4 text-[#FDA4AF]" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
-              <span>Receive Prasad</span>
-            </button>
-
-            {/* Shared glow keyframes for the relocated Hero CTA buttons on this page */}
-            <style>{`
-              .sd-glow-cta { position: relative; }
-              @keyframes setuYatraPulse {
-                0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
-                50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
-              }
-              @keyframes setuYatraRing {
-                0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
-                50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
-              }
-              @keyframes setuYatraFlicker {
-                0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
-                100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
-              }
-            `}</style>
-
-          </div>{/* end card body */}
+            </div>{/* end card body */}
+          </div>{/* end flex row */}
         </div>{/* end card */}
 
         <p className="text-center text-[10px] text-white/25 font-mono mt-6 tracking-wider">
@@ -2919,7 +2935,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="dharmic-expert-section"
-      className="pt-16 sm:pt-20 pb-8 sm:pb-10 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden scroll-mt-20"
+      className="pt-10 sm:pt-12 pb-8 sm:pb-10 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden scroll-mt-20"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#5EEAD4]/4 rounded-full blur-3xl" />
@@ -2930,21 +2946,43 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
         {/* Single centred card — stretched to the same width as other sections */}
         <div className="glass-panel-dark rounded-3xl border border-white/10 overflow-hidden">
+          <div className="flex flex-col lg:flex-row">
 
-          {/* Image at the top of the card — full image visible, no cropping, no side gaps */}
-          <div className="w-full aspect-[3/2] bg-black/20">
-            <img
-              src={registerDevotteeImg}
-              alt="Find & register your local pujari, pandit, guru, sant, sadhu & dharmic experts — Sri Dwar"
-              className="w-full h-full object-contain"
-              style={{ display: "block", opacity: 0.97 }}
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
+            {/* Image — left column on desktop, top on mobile. No wasted margin around it. */}
+            <div className="w-full lg:w-[38%] lg:shrink-0 p-5 pb-0 lg:p-6 lg:pr-3">
+              <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden bg-black/20 shadow-lg">
+                <img
+                  src={registerDevotteeImg}
+                  alt="Find & register your local pujari, pandit, guru, sant, sadhu & dharmic experts — Sri Dwar"
+                  className="h-full w-full object-contain object-center"
+                  style={{ display: "block", opacity: 0.97 }}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
 
-          {/* Card body */}
-          <div className="p-6 sm:p-8 space-y-6">
+              {/* Book a Puja — moved directly under the "Find & Register Your Local
+                  Pujari" image; spacing matches the right-side card body (mt-4 mirrors
+                  the space-y-5 rhythm used in the content column) */}
+              <div className="flex justify-center sm:justify-end mt-4">
+                <button
+                  id="dharmic-expert-book-puja-cta"
+                  onClick={() => { gaEvent("book_puja_cta_click", { source: "dharmic_expert_section" }); onOpenBookNow?.(); }}
+                  className="sd-glow-cta w-full sm:w-auto bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center justify-center space-x-2 border border-[#FCD34D]/60 cursor-pointer"
+                  style={{
+                    boxShadow: "0 0 20px rgba(217,119,6,0.5), 0 0 40px rgba(217,119,6,0.25)",
+                    animation: "setuYatraPulse 2s ease-in-out infinite",
+                  }}
+                >
+                  <span className="absolute inset-0 rounded-full" style={{ animation: "setuYatraRing 2s ease-in-out infinite" }} aria-hidden="true" />
+                  <Calendar className="w-4 h-4 text-[#FCD34D]" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
+                  <span>Book a Puja</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Card body */}
+            <div className="flex-1 min-w-0 p-5 sm:p-6 lg:pl-3 space-y-5">
 
             {/* Badge only — full description already shown inside the image above */}
             <div className="space-y-2">
@@ -3003,22 +3041,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               </div>
             </div>
 
-            {/* Book a Puja — saffron/amber, same glow/pop effect as Setu Yatra Challenge */}
-            <button
-              id="dharmic-expert-book-puja-cta"
-              onClick={() => { gaEvent("book_puja_cta_click", { source: "dharmic_expert_section" }); onOpenBookNow?.(); }}
-              className="sd-glow-cta w-full sm:w-auto bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center justify-center space-x-2 border border-[#FCD34D]/60 cursor-pointer"
-              style={{
-                boxShadow: "0 0 20px rgba(217,119,6,0.5), 0 0 40px rgba(217,119,6,0.25)",
-                animation: "setuYatraPulse 2s ease-in-out infinite",
-              }}
-            >
-              <span className="absolute inset-0 rounded-full" style={{ animation: "setuYatraRing 2s ease-in-out infinite" }} aria-hidden="true" />
-              <Calendar className="w-4 h-4 text-[#FCD34D]" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
-              <span>Book a Puja</span>
-            </button>
-
-          </div>{/* end card body */}
+            </div>{/* end card body */}
+          </div>{/* end flex row */}
         </div>{/* end card */}
 
         <p className="text-center text-[10px] text-white/25 font-mono mt-6 tracking-wider">

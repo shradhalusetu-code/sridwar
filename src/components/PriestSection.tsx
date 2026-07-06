@@ -33,7 +33,7 @@ const GUIDANCE_POINTS: { icon: React.ElementType; title: string; desc: string }[
   {
     icon: MapPin,
     title: "Current City / Temple Location",
-    desc: "Check which temple and city the priest is currently associated with — this affects ritual tradition, regional customs, and how Prasad or certificates will be dispatched to you."
+    desc: "Check which temple and city the priest is currently serving in — this affects ritual tradition, regional customs, and how Prasad or certificates will be dispatched to you."
   },
   {
     icon: Star,
@@ -167,7 +167,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             <div className="grid sm:grid-cols-2 gap-6 mb-8">
               <InfoBlock title="Puja Expertise" items={p.pujaExpertise} />
               <InfoBlock title="Advice & Specialization Areas" items={p.adviceAreas} />
-              <InfoBlock title="Temples Associated" items={p.templesAssociated} />
+              <InfoBlock title="Temples Served" items={p.templesAssociated} />
               <InfoBlock title="Deities Served" items={p.deitiesServed} />
             </div>
 
@@ -214,9 +214,9 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             Meet Our Priests
           </h2>
           <p className="text-xs text-white/70 mt-2">
-            Every priest on Sri Dwar is a local Brahmin priest associated with their temple.
-            Browse experience, regional puja traditions, and devotee-facing details before choosing who
-            performs your ritual.
+            Every priest on Sri Dwar is a revered pujari with deep experience in their respective devotional
+            and ritual domain. Browse experience, regional puja traditions, and devotee-facing details before
+            choosing who performs your ritual.
           </p>
         </div>
 

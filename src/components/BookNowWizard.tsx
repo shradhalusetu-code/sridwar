@@ -359,7 +359,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-gradient-to-b from-[#14B8A6]/20 to-transparent rounded-full" />
                     <div className="absolute right-3 top-3 text-[#FFB347] opacity-10 text-6xl font-serif select-none pointer-events-none">ॐ</div>
                     <div className="space-y-3 relative z-10 text-center">
-                      <span className="text-xs font-serif text-[#FFB347] font-extrabold uppercase tracking-widest font-sans border-b border-[#FFB347]/30 pb-1 inline-block">SRI DWAR DEVALAYA BOARD</span>
+                      <div className="border-b border-[#FFB347]/30 pb-1.5 inline-flex justify-center">
+                        <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="justify-center" />
+                      </div>
                       <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">Sacred Sankalpa Patrika</h5>
                       <p className="text-[10px] text-white/50 font-mono">This is to certify that sacred Rites and offering chants of:</p>
                       <h6 className="font-serif text-base font-black text-[#FFB347] border-b border-white/15 inline-block px-4 pb-0.5">{devoteeName}</h6>
@@ -388,7 +390,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <span>Powered by Sri Dwar Technology Reference: {refId}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <button id="pdf-download-btn" onClick={() => { gaCertificateAction("download", refId); alert("Your premium high-resolution blessed Sankalpa Patrika PDF is compiled and will be dispatched to your WhatsApp within 3 minutes!"); }}
+                    <button id="pdf-download-btn" onClick={() => { gaCertificateAction("download", refId); alert("Your premium high-resolution blessed Sankalpa Patrika PDF is compiled and will be dispatched to your WhatsApp within 24 hours!"); }}
                       className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
                       <Download className="w-3.5 h-3.5 text-[#FFB347]" />
                       <span>Download patra PDF</span>

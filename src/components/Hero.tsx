@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, FormEvent } from "react";
-import { Award, Sparkles, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Flame } from "lucide-react";
+import { Award, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Flame } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { PRIEST_PROFILES } from "../data/priests";
 import SacredIcon from "./SacredIcon";
@@ -225,12 +225,6 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
           {/* Headline and Copy (Centered layout) */}
           <div className={`flex flex-col items-center max-w-4xl mx-auto text-center ${isAndroidApp ? "space-y-6" : "space-y-3"}`}>
             
-            {/* Saffron & Teal Badge */}
-            <div className="inline-flex items-center space-x-2 bg-white/5 border border-[#5EEAD4]/20 px-3.5 py-1.5 rounded-full text-[#5EEAD4] text-xs font-semibold uppercase tracking-widest animate-fadeIn mx-auto">
-              <Sparkles className="w-3.5 h-3.5 text-[#FFB347] fill-[#FFB347]" />
-              <span>World's First AI-Powered Faith-Tech Platform</span>
-            </div>
-
             {/* Headline — single line on Android APK; split tagline on website */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-white leading-tight text-center">
               {isAndroidApp ? (

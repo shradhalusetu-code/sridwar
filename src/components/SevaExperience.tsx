@@ -5,11 +5,56 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag } from "lucide-react";
+import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
+import { SEVA_OFFERINGS } from "../data/sevaOfferings";
+import SevaOfferingCard from "./SevaOfferingCard";
+import SevaLiveDashboard from "./SevaLiveDashboard";
+
+// ─── Persisted "completed seva offering" records ───────────────────────────
+// These power ONLY the Live Devotional Dashboard's "Recent Seva Completed"
+// list — the Structured Seva Offering cards (Gau Seva, Annadan, etc.) are
+// never hidden or shrunk after offering, since a devotee may want to offer
+// the same seva again for a different person, cow, occasion, etc. Without
+// this persistence, a devotee's own recently-offered seva would disappear
+// from the dashboard as soon as this component unmounts (e.g. navigating
+// away and back, or reopening the app) since it only lived in memory.
+// Saved to localStorage using the same pattern as the devotee profile
+// cache in BookNowWizard/TempleRegister.
+const COMPLETED_SEVAS_KEY = "sridwar_completed_sevas";
+
+interface CompletedSevaRecord {
+  offeringId: string;
+  seva: string;
+  devotee: string;
+  ts: number;
+}
+
+function loadCompletedSevas(): CompletedSevaRecord[] {
+  try {
+    const raw = localStorage.getItem(COMPLETED_SEVAS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("Failed to load saved seva offerings", e);
+    return [];
+  }
+}
+
+function saveCompletedSeva(record: CompletedSevaRecord) {
+  try {
+    const existing = loadCompletedSevas();
+    // Keep only the most recent 20 so this never grows unbounded.
+    const updated = [...existing, record].slice(-20);
+    localStorage.setItem(COMPLETED_SEVAS_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error("Failed to save seva offering", e);
+  }
+}
 
 // Shuffles the devotee reviews so they don't render in the same fixed
 // (roughly alphabetical-by-first-letter) order every time, and nudges any
@@ -248,6 +293,16 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   // the Puja Sankalpa Portal (BookNowWizard) via onSponsorSeva prop.
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+  const [activeOfferingId, setActiveOfferingId] = useState<string | null>(null);
+  // Offered sevas (this device, most recent first), shown at the top of the
+  // Live Devotional Dashboard's "Recent Seva Completed" list so a devotee's
+  // own seva stays visibly reflected there even after returning to the page.
+  // Note: this only feeds the dashboard — the Structured Seva Offering
+  // cards themselves are never hidden after offering, since a devotee may
+  // want to offer the same seva again for a different person, cow, etc.
+  const [sessionRecentSevas, setSessionRecentSevas] = useState<{ seva: string; devotee: string; status: "Pending" }[]>(
+    () => loadCompletedSevas().reverse().map((r) => ({ seva: r.seva, devotee: r.devotee, status: "Pending" as const }))
+  );
   // Shuffled once when the component mounts, so the order stays stable
   // while the user is on the page (won't re-shuffle on every keystroke or
   // re-render) but varies between visits/page loads.
@@ -266,6 +321,20 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
     // flow — all in one consistent flow used across the rest of the site.
     gaSevaSelect(name, amount);
     onSponsorSeva(name, amount);
+  };
+
+  // Structured Seva Offering cards call this with an already-composed,
+  // human-readable seva name (title + selected option + devotee details) —
+  // it plugs straight into the same handleSponsor pipeline used by the
+  // existing Sponsorship Services cards, so checkout, GA events, and the
+  // Puja Sankalpa Portal all keep working unchanged.
+  const handleOfferSeva = (offeringId: string, composedName: string, amount: number, devoteeName: string) => {
+    handleSponsor(composedName, amount);
+    const sevaLabel = composedName.split(" — ")[0];
+    const devoteeLabel = devoteeName ? `Devotee — ${devoteeName}` : "Devotee";
+    setSessionRecentSevas((prev) => [{ seva: sevaLabel, devotee: devoteeLabel, status: "Pending" }, ...prev]);
+    saveCompletedSeva({ offeringId, seva: sevaLabel, devotee: devoteeLabel, ts: Date.now() });
+    if (activeOfferingId === offeringId) setActiveOfferingId(null);
   };
 
 
@@ -327,14 +396,37 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           <p className="text-xs text-white/70 mt-2 leading-relaxed">
             Participate in active charity rituals — feed holy cows, distribute Annadanam meals, or light sacred Akhanda Diyas at renowned temples across India.
           </p>
-          {/* Global discount banner */}
-          {isDiscountActive() && (
-            <div className="inline-flex items-center gap-2 mt-3 bg-red-500/15 border border-red-400/30 text-red-300 text-xs font-bold px-4 py-1.5 rounded-full">
-              <Tag className="w-3.5 h-3.5" />
-              🎉 {DISCOUNT_TAG} on all Seva Sponsorships — Limited Period Offer
-            </div>
-          )}
         </div>
+
+        {/* Trust note — devotional transparency about how seva & certificates work */}
+        <div className="flex items-start space-x-2.5 text-xs text-white/70 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 mb-6 max-w-3xl mx-auto">
+          <ShieldCheck className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+          <span>Your seva is performed with devotion and recorded digitally. After completion, you will receive a digital certificate/evidence for your seva.</span>
+        </div>
+
+        {/* Seva Offerings — tiered from ₹100 upward */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-serif text-xl font-bold text-white">Seva Offerings</h3>
+            <span className="text-[10px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full">
+              All Sevas Start at ₹100
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SEVA_OFFERINGS.map((offering) => (
+              <SevaOfferingCard
+                key={offering.id}
+                offering={offering}
+                isActive={activeOfferingId === offering.id}
+                onActivate={() => setActiveOfferingId(offering.id)}
+                onOffer={handleOfferSeva}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Live Devotional Dashboard */}
+        <SevaLiveDashboard extraRecentSevas={sessionRecentSevas} />
 
         {/*
           ── Main 2-column row ──
@@ -527,6 +619,12 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           </div>
         </div>
 
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p className="text-center text-[10px] text-white/35 font-mono mt-8 leading-relaxed max-w-2xl mx-auto">
+          Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple schedule, festival rush, priest availability, and temple rituals.
+        </p>
       </div>
 
     </section>

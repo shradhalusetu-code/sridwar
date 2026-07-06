@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
-import { Search, Clock, Sparkles, MapPin, ChevronDown, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
+import { Search, Sparkles, MapPin, ChevronDown, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
 
 interface TempleExperienceProps {
   onBookPuja: (templeName: string, deityName: string) => void;
@@ -299,12 +299,6 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                         </div>
                       </div>
                     </div>
-                    {selectedTemple.aartiTimings.note && (
-                      <p className="text-[10px] text-white/45 italic flex items-start space-x-1">
-                        <Clock className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                        <span>{selectedTemple.aartiTimings.note}</span>
-                      </p>
-                    )}
                   </div>
 
                   {/* Authorized Rituals */}

@@ -11,7 +11,7 @@ import deityJagannath from "../assets/images/deity_jagannath_1781872890111.jpg";
 // vary seasonally, by festival calendar, or are set informally by local temple
 // committees (common for smaller regional shrines), the `note` field says so plainly
 // rather than inventing a false precise time. Devotees should always reconfirm
-// same-day timings with the temple trust or Sri Dwar's verified priest network,
+// same-day timings with the temple trust or Sri Dwar's priest network,
 // especially around festivals.
 
 export const TEMPLES_LIST: Temple[] = [
@@ -62,7 +62,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Flower garland (mala) offering",
       "Tulsi mala offering"
     ],
-    priestInfo: "Sevas at the Jagannath Temple are performed exclusively by hereditary sevayats — Daitapati, Pujapanda, Suar, Pratihari and other traditional servitor families whose rights are recorded by the Shree Jagannath Temple Administration. Sri Dwar coordinates only with verified priest representatives for authorised virtual sankalp and puja bookings."
+    priestInfo: "Sevas at the Jagannath Temple are performed exclusively by hereditary sevayats — Daitapati, Pujapanda, Suar, Pratihari and other traditional servitor families who have carried these devotional roles for generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "bbsr-lingaraj",
@@ -111,7 +111,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the lingam",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are conducted by the temple's hereditary Badu and Pujapanda priest families under the Lingaraj Temple Trust (managed jointly with the Endowment Department of Odisha). Sri Dwar works only with verified priest representatives listed in our Priest Directory for virtual sankalp bookings."
+    priestInfo: "Rituals are conducted by the temple's hereditary Badu and Pujapanda priest families, who have carried these devotional roles for generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "ghatgaon-tarini",
@@ -160,7 +160,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Ghee lamp seva",
       "Sweets (khaja/laddoo) prasad"
     ],
-    priestInfo: "Worship at Ghatgaon is traditionally conducted by the Dehuri community of hereditary tribal priests, who follow customary Shakta rites passed down for generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory for remote sankalp and puja coordination."
+    priestInfo: "Worship at Ghatgaon is traditionally conducted by the Dehuri community of hereditary tribal priests, who follow customary Shakta rites passed down for generations. All Sankalp bookings, records, and completion proof for remote puja coordination are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "purushottampur-tara-tarini",
@@ -209,7 +209,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf offering",
       "Silk vastra for the sanctum"
     ],
-    priestInfo: "Pujas are conducted by hereditary temple priests (pandas) associated with the Tara Tarini Peetha Trust, following centuries-old Shakta and tantric traditions. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Pujas are conducted by hereditary temple priests (pandas), following centuries-old Shakta and tantric traditions. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "jajpur-biraja",
@@ -258,7 +258,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Sweets (kheer/khaja) prasad",
       "Durga Saptashati patha sponsorship"
     ],
-    priestInfo: "Rituals are performed by hereditary pandas of the Biraja Temple, whose families have conducted Shakta worship and Pinda Daan ceremonies at this site for generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by hereditary pandas of the Biraja Temple, whose families have conducted Shakta worship and Pinda Daan ceremonies at this site for generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "sambalpur-samaleswari",
@@ -307,7 +307,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Chandan (sandalwood) offering",
       "Folk music (Sambalpuri) seva sponsorship"
     ],
-    priestInfo: "Worship is conducted by hereditary temple priests of the Samaleswari Devasthan Trust, custodians of Western Odisha's distinct Shakta ritual traditions. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Worship is conducted by hereditary temple priests, custodians of Western Odisha's distinct Shakta ritual traditions. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "jagatsinghpur-sarala",
@@ -356,7 +356,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Akhanda deepam (perpetual lamp) sponsorship",
       "Saraswati Vandana recitation seva"
     ],
-    priestInfo: "Pujas are performed by hereditary priests attached to the Maa Sarala Temple committee, following Odia Shakta-Saraswat traditions linked to the legacy of poet Sarala Das. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Pujas are performed by hereditary priests serving at the Maa Sarala Temple, following Odia Shakta-Saraswat traditions linked to the legacy of poet Sarala Das. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kakatpur-mangala",
@@ -405,7 +405,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Deep Daan (lamp donation) seva",
       "Sandalwood paste offering"
     ],
-    priestInfo: "Rituals here are conducted by local hereditary priests in close ceremonial coordination with the Daitapati sevayats of the Jagannath Temple during Nabakalebara years. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals here are conducted by local hereditary priests in close ceremonial coordination with the Daitapati sevayats of the Jagannath Temple during Nabakalebara years. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "cuttack-dhabaleswar",
@@ -454,7 +454,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf naivedya",
       "Silk vastra for the lingam"
     ],
-    priestInfo: "Sevas are performed by the temple's resident priests under the local temple trust, following Shaiva ritual traditions typical of the Mahanadi delta region. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Sevas are performed by the temple's resident priests, following Shaiva ritual traditions typical of the Mahanadi delta region. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "bhadrak-akhandaalamani",
@@ -503,7 +503,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Rudraksha mala offering",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Worship is conducted by the temple's resident priests under the Akhandalamani Temple Trust, specialising in healing-focused Shaiva rites such as Maha Mrityunjaya puja. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Worship is conducted by the temple's resident priests, specialising in healing-focused Shaiva rites such as Maha Mrityunjaya puja. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kantilo-nilamadhab",
@@ -552,7 +552,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Flower garland (mala) offering",
       "Deep Daan (lamp donation) seva"
     ],
-    priestInfo: "Pujas are performed by hereditary priests of the Nilamadhab Temple Trust, custodians of a Vaishnava tradition considered foundational to the wider Jagannath cult. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Pujas are performed by hereditary priests, custodians of a Vaishnava tradition considered foundational to the wider Jagannath cult. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "jajpur-chhatia-bata",
@@ -601,7 +601,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Flower garland offering",
       "Deep Daan (lamp donation) seva"
     ],
-    priestInfo: "Rituals are conducted by resident priests of the Chhatia Bata Temple Trust, who also preserve and recite Achyutananda Das's Malika prophetic literature. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are conducted by resident priests, who also preserve and recite Achyutananda Das's Malika prophetic literature. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kendrapara-baladevjew",
@@ -650,7 +650,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Balarama Sahasranama recitation seva",
       "Deep Daan (lamp donation) seva"
     ],
-    priestInfo: "Sevas are performed by hereditary priests of the Baladevjew Temple Trust, custodians of Kendrapara's distinct Balaram worship tradition. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Sevas are performed by hereditary priests, custodians of Kendrapara's distinct Balaram worship tradition. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "dhenkanal-kapilash",
@@ -699,7 +699,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Giri Pradakshina lamp seva",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by the hill temple's resident priests under the Kapilash Temple Trust, who also assist pilgrims undertaking the traditional Kavad Yatra climb. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by the hill temple's resident priests, who also assist pilgrims undertaking the traditional Kavad Yatra climb. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "varanasi-kashi-vishwanath",
@@ -748,7 +748,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the lingam",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by the temple's Vedic priest lineages (including the Saptarishi Aarti team of seven priests) registered with the Sri Kashi Vishwanath Temple Trust. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by the temple's Vedic priest lineages, including the Saptarishi Aarti team of seven priests. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kedarnath-kedarnath",
@@ -797,7 +797,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Panchamrit abhishek",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Karnataka) and associated pandas of the Badrinath-Kedarnath Temple Committee (BKTC). Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Karnataka) together with local pandas. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "badrinath-badrinath",
@@ -846,7 +846,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf & areca nut arpan",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Kerala) with local Garhwali pandas, under the Badrinath-Kedarnath Temple Committee (BKTC). Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Kerala) with local Garhwali pandas. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "katra-vaishno-devi",
@@ -895,7 +895,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf offering",
       "Ghee lamp seva"
     ],
-    priestInfo: "Rituals are conducted by priests registered with the Shri Mata Vaishno Devi Shrine Board, which administers all religious and pilgrim services at the shrine. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are conducted by resident priests who have served pilgrims at the shrine for generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "vrindavan-banke-bihari",
@@ -944,7 +944,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Rajbhog feast sponsorship",
       "Holi colour (gulal) seva"
     ],
-    priestInfo: "Sevas are performed exclusively by the Goswami priest families descended from Swami Haridas's lineage, hereditary custodians of the temple's unique worship traditions. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Sevas are performed exclusively by the Goswami priest families descended from Swami Haridas's lineage, hereditary custodians of the temple's unique worship traditions. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "vrindavan-prem-mandir",
@@ -993,7 +993,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Deep Daan (lamp donation) seva",
       "Janmashtami special puja sponsorship"
     ],
-    priestInfo: "Pujas are conducted by resident priests trained under the Jagadguru Kripalu Parishat, the trust founded by Jagadguru Kripalu Maharaj that built and administers Prem Mandir. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Pujas are conducted by resident priests trained in the devotional tradition established by Jagadguru Kripalu Maharaj, who envisioned and built Prem Mandir. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "haridwar-har-ki-pauri",
@@ -1042,7 +1042,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk cloth offering to the ghat shrine",
       "Prasad (sweets) distribution seva"
     ],
-    priestInfo: "Rituals at Har Ki Pauri are performed by hereditary Gangaputra pandas and purohits registered with the Ganga Sabha, the body that has overseen ghat rituals here for generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals at Har Ki Pauri are performed by hereditary Gangaputra pandas and purohits who have overseen ghat rituals here for generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kangra-jwala-ji",
@@ -1091,7 +1091,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf offering",
       "Prasad (sweets) distribution seva"
     ],
-    priestInfo: "Worship is conducted by hereditary priests (pujaris) registered with the Himachal Pradesh temple trust that administers Jwala Ji, custodians of the shrine's unique flame-based rituals. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Worship is conducted by hereditary priests (pujaris), custodians of the shrine's unique flame-based rituals. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "somnath-somnath",
@@ -1140,7 +1140,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the lingam",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by resident priests under the Shree Somnath Trust, the body responsible for the temple's post-independence reconstruction and ongoing administration. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by resident priests serving at the temple, which was reconstructed in the post-independence era. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "dwarka-dwarkadhish",
@@ -1189,7 +1189,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Janmashtami special puja sponsorship",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Sevas are performed by hereditary Brahmin priest families (Abhoti and Pujari communities) attached to the Dwarkadhish Devasthanam Trust. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Sevas are performed by hereditary Brahmin priest families of the Abhoti and Pujari communities. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "nashik-trimbakeshwar",
@@ -1238,7 +1238,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the lingam",
       "Tripindi Shraddha sponsorship"
     ],
-    priestInfo: "Rituals — especially specialised remedial pujas such as Kalsarpa Shanti and Narayan Nagbali — are performed by empanelled Vedic priests (Gurujis) registered with the Trimbakeshwar Devasthan Trust. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals — especially specialised remedial pujas such as Kalsarpa Shanti and Narayan Nagbali — are performed by experienced Vedic priests (Gurujis) serving at the temple. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "mumbai-siddhivinayak",
@@ -1287,7 +1287,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf naivedya",
       "Sankashti Chaturthi special puja sponsorship"
     ],
-    priestInfo: "Rituals are performed by resident priests of the Shree Siddhivinayak Ganapati Mandir Trust, one of India's most professionally organised temple trusts. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by resident priests at one of India's most visited temples. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kolhapur-mahalakshmi",
@@ -1336,7 +1336,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Kirnotsav (sunray ceremony) darshan sponsorship",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by hereditary priest families (Bhat/Upadhye lineages) registered with the Shri Mahalakshmi Devasthan Trust, custodians of Kolhapur's distinctive Panchaarti tradition. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by hereditary priest families (Bhat/Upadhye lineages), custodians of Kolhapur's distinctive Panchaarti tradition. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "sarangpur-kashtabhanjan-hanuman",
@@ -1385,7 +1385,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the deity",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by trained priests of the Swaminarayan Sampradaya's Sarangpur temple trust, specialising in Hanuman-centred protective and relief-focused pujas. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by trained priests of the Swaminarayan Sampradaya tradition, specialising in Hanuman-centred protective and relief-focused pujas. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "guwahati-kamakhya",
@@ -1434,7 +1434,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the sanctum",
       "Durga Puja special rites sponsorship"
     ],
-    priestInfo: "Rituals are performed by the temple's hereditary priest families (Doloi and Bordoloi lineages) who have overseen Kamakhya's distinctive tantric worship for centuries. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by the temple's hereditary priest families (Doloi and Bordoloi lineages) who have overseen Kamakhya's distinctive tantric worship for centuries. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kolkata-kalighat",
@@ -1483,7 +1483,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Kali Puja special darshan sponsorship",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by hereditary priests of the Haldar-Adhikari community, custodians of Kalighat's ancient Shakta worship traditions for many generations. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by hereditary priests of the Haldar-Adhikari community, custodians of Kalighat's ancient Shakta worship traditions for many generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "kolkata-dakshineswar",
@@ -1532,7 +1532,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Chandi Path recitation sponsorship",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by resident priests of the Dakshineswar Kali Temple Trust, continuing the worship traditions established under Rani Rashmoni and Sri Ramakrishna Paramahansa. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by resident priests, continuing the worship traditions established under Rani Rashmoni and Sri Ramakrishna Paramahansa. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
   {
     id: "deoghar-baidyanath",
@@ -1581,6 +1581,6 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the lingam",
       "Annadaan (food donation) seva"
     ],
-    priestInfo: "Rituals are performed by hereditary Pandas (priests) of the Baidyanath Temple Trust, who manage both daily worship and the immense pilgrim volume of the annual Sravani Mela. Sri Dwar connects devotees only with verified priest representatives via the Priest Directory."
+    priestInfo: "Rituals are performed by hereditary Pandas (priests), who manage both daily worship and the immense pilgrim volume of the annual Sravani Mela. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   }
 ];
