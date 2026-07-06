@@ -17,6 +17,11 @@ import { syncToGoogleForm } from "../utils/googleFormSync";
 import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
+import BazaarOfferingCard from "./BazaarOfferingCard";
+import {
+  BAZAAR_PRODUCTS, BAZAAR_CATEGORIES, BAZAAR_DELIVERY_NOTE, BAZAAR_TRUST_COPY,
+  BAZAAR_DISCLAIMER, BazaarProduct,
+} from "../data/bazaarOfferings";
 
 // ─── Product catalogue ─────────────────────────────────────────────────────
 interface BazaarItem {
@@ -174,6 +179,17 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   const [showUPI, setShowUPI]   = useState(false);
   const [refId, setRefId]       = useState("");
 
+  // ── Devotional Shopping Offerings (new, structured products) state ──────
+  const [newSelectedCategory, setNewSelectedCategory] = useState("All");
+  const [activeNewOfferingId, setActiveNewOfferingId] = useState<string | null>(null);
+  // Lightweight, section-local cart for "Add to Cart" — this Temple Bazaar
+  // Store section has never used the site's global cart (it checks out
+  // directly through the Puja Sankalpa Portal below), so this mirrors that
+  // existing pattern rather than introducing a second, inconsistent cart.
+  const [newBazaarCart, setNewBazaarCart] = useState<
+    { id: string; label: string; amount: number; isService: boolean }[]
+  >([]);
+
   const filteredItems = selectedCategory === "All"
     ? BAZAAR_ITEMS
     : BAZAAR_ITEMS.filter(i => i.category === selectedCategory);
@@ -185,6 +201,60 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
     setRefId((item.isService ? "SDV-" : "SDB-") + Math.floor(100000 + Math.random() * 900000));
     setShowSankalpa(true);
   };
+
+  // ── Devotional Shopping Offerings: primary CTA ("Offer in Temple"/"Buy
+  //    Now") — reuses handleBuyNow's exact pipeline (GA event, Sankalpa
+  //    Portal, UPI payment) so checkout and data sync stay unchanged. ──────
+  const handleOfferNewProduct = (product: BazaarProduct, composedName: string, amount: number) => {
+    if (!amount || amount <= 0) { alert("Please choose a valid amount before continuing."); return; }
+    handleBuyNow({
+      id: product.id,
+      name: composedName,
+      description: product.description,
+      price: amount,
+      mrp: amount,
+      category: "Devotional Shopping",
+      imageUrl: product.imageUrl,
+      isService: product.isService,
+    });
+  };
+
+  // ── Devotional Shopping Offerings: "Add to Cart" ─────────────────────────
+  const handleAddToNewCart = (product: BazaarProduct, composedName: string, amount: number) => {
+    if (!amount || amount <= 0) { alert("Please choose a valid amount before adding to cart."); return; }
+    gaAddToCart(composedName, amount, product.id);
+    setNewBazaarCart((prev) => [...prev, { id: product.id, label: composedName, amount, isService: product.isService }]);
+  };
+
+  const handleClearNewCart = () => setNewBazaarCart([]);
+
+  // Combines every cart line into one composed order and hands it to the
+  // same Sankalpa Portal + UPI flow used everywhere else in this section.
+  const handleCheckoutNewCart = () => {
+    if (newBazaarCart.length === 0) return;
+    const total = newBazaarCart.reduce((sum, i) => sum + i.amount, 0);
+    const combinedName = `Devotional Shopping Cart — ${newBazaarCart.map((i) => i.label).join(" | ")}`;
+    // If everything in the cart is temple-performed (no shipping needed),
+    // skip the delivery address fields; otherwise collect delivery details.
+    const allService = newBazaarCart.every((i) => i.isService);
+    handleBuyNow({
+      id: "bazaar-new-cart-checkout",
+      name: combinedName,
+      description: "Combined Devotional Shopping cart order.",
+      price: total,
+      mrp: total,
+      category: "Devotional Shopping",
+      imageUrl: null,
+      isService: allService,
+    });
+    setNewBazaarCart([]);
+  };
+
+  const filteredNewProducts = newSelectedCategory === "All"
+    ? BAZAAR_PRODUCTS
+    : BAZAAR_PRODUCTS.filter((p) => p.category === newSelectedCategory);
+
+  const newCartTotal = newBazaarCart.reduce((sum, i) => sum + i.amount, 0);
 
   // ── Submit Sankalpa Portal → go to payment ──────────────────────────────
   // Sends ONE row immediately with payment status "Pending — Payment Not Yet
@@ -330,6 +400,74 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
           }
         `}</style>
 
+        {/* ══════════════════════════════════════════════════════════════
+            Devotional Shopping Offerings — new structured products,
+            shown at the top of Temple Bazaar Store per the same tiered
+            (₹100 → ₹2,100+) pattern used by Seva Offerings.
+        ══════════════════════════════════════════════════════════════ */}
+        <div className="mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-5">
+            <h3 className="font-serif text-xl font-bold text-white">Devotional Shopping Offerings</h3>
+            <p className="text-[11px] text-white/60 mt-1.5 leading-relaxed">{BAZAAR_DELIVERY_NOTE}</p>
+          </div>
+
+          {/* New products category filter */}
+          <div className="flex flex-wrap gap-2 justify-center mb-6">
+            {["All", ...BAZAAR_CATEGORIES].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => { gaCategoryFilter(cat, "temple_bazaar_devotional_shopping"); setNewSelectedCategory(cat); }}
+                className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
+                  newSelectedCategory === cat
+                    ? "bg-[#FFB347] text-[#021816] border-[#FFB347]"
+                    : "bg-white/5 text-white/70 border-white/10 hover:border-white/30"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+            {filteredNewProducts.map((product) => (
+              <BazaarOfferingCard
+                key={product.id}
+                product={product}
+                isActive={activeNewOfferingId === product.id}
+                onActivate={() => setActiveNewOfferingId(product.id)}
+                onOffer={handleOfferNewProduct}
+                onAddToCart={handleAddToNewCart}
+              />
+            ))}
+          </div>
+
+          {/* Section-local cart summary — only shown once something's been added */}
+          {newBazaarCart.length > 0 && (
+            <div className="max-w-md mx-auto mb-6 bg-[#092320] border border-[#FFB347]/40 rounded-2xl px-4 py-3 shadow-lg flex items-center justify-between gap-3">
+              <div className="text-xs text-white/80">
+                <span className="font-bold text-[#FFB347]">{newBazaarCart.length} item{newBazaarCart.length > 1 ? "s" : ""}</span> in cart · ₹{newCartTotal.toLocaleString("en-IN")}
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={handleClearNewCart} className="text-[10px] text-white/50 underline hover:text-white/70">
+                  Clear
+                </button>
+                <button
+                  onClick={handleCheckoutNewCart}
+                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] text-[10px] font-extrabold px-3.5 py-2 rounded-xl uppercase tracking-wide"
+                >
+                  Checkout
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Trust copy */}
+          <div className="flex items-start space-x-2.5 text-xs text-white/70 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 max-w-3xl mx-auto">
+            <ShieldCheck className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+            <span>{BAZAAR_TRUST_COPY}</span>
+          </div>
+        </div>
+
         {/* ── Category Filter ──────────────────────────────────────────── */}
         <div className="flex flex-wrap gap-2 justify-center mb-8">
           {CATEGORIES.map(cat => (
@@ -463,6 +601,11 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
           <IndiaTempleMap />
         </div>
 
+        {/* Disclaimer */}
+        <div className="mt-8 max-w-3xl mx-auto text-center">
+          <p className="text-[10px] text-white/40 leading-relaxed">{BAZAAR_DISCLAIMER}</p>
+        </div>
+
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════
@@ -518,7 +661,9 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
                   <span className="text-xs text-white/70 font-mono truncate">{selectedItem.name}</span>
                 </div>
                 <div className="text-right shrink-0 ml-2">
-                  <span className="block text-[9px] line-through text-white/30 font-mono">₹{selectedItem.mrp}</span>
+                  {selectedItem.mrp > selectedItem.price && (
+                    <span className="block text-[9px] line-through text-white/30 font-mono">₹{selectedItem.mrp}</span>
+                  )}
                   <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{selectedItem.price}</span>
                 </div>
               </div>
