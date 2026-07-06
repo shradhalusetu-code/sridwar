@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "./lib/supabaseClient";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TempleExperience from "./components/TempleExperience";
@@ -245,11 +246,40 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    supabase.auth.signOut();
     setIsLoggedIn(false);
     setUserProfile({ name: "", email: "" });
     localStorage.removeItem("sd_dev_name");
     localStorage.removeItem("sd_dev_email");
   };
+
+  // Keep a devotee logged in across page refreshes/app restarts by checking
+  // for an existing Supabase session on load, and staying in sync with
+  // Supabase Auth (real login/signup/logout) going forward.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const name = (session.user.user_metadata?.name as string) || session.user.email || "Devotee";
+        setIsLoggedIn(true);
+        setUserProfile({ name, email: session.user.email || "" });
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const name = (session.user.user_metadata?.name as string) || session.user.email || "Devotee";
+        setIsLoggedIn(true);
+        setUserProfile({ name, email: session.user.email || "" });
+      } else {
+        setIsLoggedIn(false);
+        setUserProfile({ name: "", email: "" });
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => {

@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useEffect, FormEvent } from "react";
-import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save } from "lucide-react";
+import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
+import { supabase } from "../lib/supabaseClient";
 import SriDwarLogo from "./SriDwarLogo";
 import dharmicIdBg from "../assets/images/Dharmic_ID.jpg";
 import sridwarQR from "../assets/images/SridwarQR.jpg";
@@ -41,6 +42,11 @@ export default function AuthDashboard({
   const [userGotra, setUserGotra] = useState("Vatsasa Gotra");
   const [userRashi, setUserRashi] = useState("Dhanu (Sagittarius)");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Real Supabase email/password authentication
+  const [authFormMode, setAuthFormMode] = useState<"signup" | "signin">("signup");
+  const [passwordField, setPasswordField] = useState("");
+  const [authErrorMessage, setAuthErrorMessage] = useState("");
 
   // Dharmic ID generation step + temple-redevelopment contribution step
   const [authStep, setAuthStep] = useState<"login" | "contribute">("login");
@@ -151,20 +157,70 @@ export default function AuthDashboard({
 
   const t = TRANSLATIONS[currentLanguage];
 
-  const handleGoogleLogin = (e: FormEvent) => {
+  const handleGoogleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    if (!userNameField || !userEmailField) {
-      alert("Please specify a Devotee Name and Email to register your Digital Gotra identity.");
+    setAuthErrorMessage("");
+
+    if (authFormMode === "signup" && !userNameField) {
+      setAuthErrorMessage("Please specify a Devotee Name to register your Digital Gotra identity.");
+      return;
+    }
+    if (!userEmailField || !passwordField) {
+      setAuthErrorMessage("Please specify an Email and Password.");
+      return;
+    }
+    if (passwordField.length < 6) {
+      setAuthErrorMessage("Password must be at least 6 characters.");
       return;
     }
 
     setIsLoggingIn(true);
-    setTimeout(() => {
-      setPendingLogin({ name: userNameField, email: userEmailField });
-      setIsLoggingIn(false);
-      setAuthStep("contribute");
-      gaRegistrationSubmit("devotee_registration");
-    }, 1200);
+
+    if (authFormMode === "signup") {
+      // Create the account in Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: userEmailField,
+        password: passwordField,
+        options: { data: { name: userNameField } },
+      });
+
+      if (error) {
+        setAuthErrorMessage(error.message);
+        setIsLoggingIn(false);
+        return;
+      }
+
+      // Save the devotee's profile details in our own "profiles" table
+      if (data.user) {
+        const { error: profileError } = await supabase.from("profiles").upsert({
+          id: data.user.id,
+          name: userNameField,
+          email: userEmailField,
+          gotra: userGotra,
+          rashi: userRashi,
+        });
+        if (profileError) {
+          console.error("Could not save profile:", profileError.message);
+        }
+      }
+    } else {
+      // Existing devotee logging in
+      const { error } = await supabase.auth.signInWithPassword({
+        email: userEmailField,
+        password: passwordField,
+      });
+
+      if (error) {
+        setAuthErrorMessage(error.message);
+        setIsLoggingIn(false);
+        return;
+      }
+    }
+
+    setPendingLogin({ name: userNameField, email: userEmailField });
+    setIsLoggingIn(false);
+    setAuthStep("contribute");
+    gaRegistrationSubmit("devotee_registration");
   };
 
   // Step 7 — Skip Contribution: go directly to Dharmic Portal
@@ -272,8 +328,36 @@ export default function AuthDashboard({
 
             {authStep === "login" && (
             <form onSubmit={handleGoogleLogin} className="space-y-4">
-              
-              {/* Devotee Name */}
+
+              {/* Sign Up / Log In toggle */}
+              <div className="flex rounded-xl overflow-hidden border border-white/10 text-xs font-bold">
+                <button
+                  type="button"
+                  id="auth-mode-signup-tab"
+                  onClick={() => { setAuthFormMode("signup"); setAuthErrorMessage(""); }}
+                  className={`flex-1 py-2 transition-colors ${authFormMode === "signup" ? "bg-[#5EEAD4] text-[#021816]" : "bg-[#021816] text-white/60"}`}
+                >
+                  New Devotee — Sign Up
+                </button>
+                <button
+                  type="button"
+                  id="auth-mode-signin-tab"
+                  onClick={() => { setAuthFormMode("signin"); setAuthErrorMessage(""); }}
+                  className={`flex-1 py-2 transition-colors ${authFormMode === "signin" ? "bg-[#5EEAD4] text-[#021816]" : "bg-[#021816] text-white/60"}`}
+                >
+                  Already a Devotee — Log In
+                </button>
+              </div>
+
+              {authErrorMessage && (
+                <div className="flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-xs rounded-xl px-3 py-2.5">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{authErrorMessage}</span>
+                </div>
+              )}
+
+              {/* Devotee Name — only needed when creating a new account */}
+              {authFormMode === "signup" && (
               <div>
                 <label className="block text-xs font-bold text-white/80 mb-1">Devotee Full Name *</label>
                 <div className="relative">
@@ -289,6 +373,7 @@ export default function AuthDashboard({
                   <User className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
                 </div>
               </div>
+              )}
 
               {/* Devotee Email */}
               <div>
@@ -307,6 +392,25 @@ export default function AuthDashboard({
                 </div>
               </div>
 
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">Password *</label>
+                <div className="relative">
+                  <input
+                    id="login-field-password"
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="At least 6 characters"
+                    value={passwordField}
+                    onChange={(e) => setPasswordField(e.target.value)}
+                    className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
+                  />
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
+                </div>
+              </div>
+
+              {authFormMode === "signup" && (
               <div className="grid grid-cols-2 gap-4 text-left">
                 {/* Gotra */}
                 <div>
@@ -337,6 +441,7 @@ export default function AuthDashboard({
                   </select>
                 </div>
               </div>
+              )}
 
               {/* Plain registration submit button — no Google branding or
                   colors, since this form does not use real Google Sign-In/
@@ -357,7 +462,9 @@ export default function AuthDashboard({
                   </>
                 ) : (
                   <>
-                    <span className="tracking-wider">GENERATE DIGITAL DHARMIC ID</span>
+                    <span className="tracking-wider">
+                      {authFormMode === "signup" ? "GENERATE DIGITAL DHARMIC ID" : "LOG IN TO MY DHARMIC ID"}
+                    </span>
                   </>
                 )}
               </button>
