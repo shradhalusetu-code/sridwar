@@ -291,11 +291,6 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
               }
             `}</style>
-            
-            {/* Secondary note */}
-            <div className="text-[11px] text-white/40 font-mono italic text-center">
-              * Fast-tracked certifications are managed by our temple partners & Shradhalu Private Ltd.
-            </div>
           </div>
 
         </div>

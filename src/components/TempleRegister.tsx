@@ -2723,7 +2723,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="temple-finder-section"
-      className="pt-8 sm:pt-10 pb-10 sm:pb-12 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
+      className="pt-6 sm:pt-10 pb-6 sm:pb-12 bg-gradient-to-b from-[#051F1A] via-[#021816] to-[#051F1A] relative text-white overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-[#FFB347]/5 rounded-full blur-3xl" />
@@ -2922,10 +2922,6 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             </div>{/* end card body */}
           </div>{/* end flex row */}
         </div>{/* end card */}
-
-        <p className="text-center text-[10px] text-white/25 font-mono mt-6 tracking-wider">
-          🕉️ An Initiative by Sridwar Technology · Empowering Every Temple, Every Devotee
-        </p>
       </div>{/* end max-w-7xl */}
     </section>
 
@@ -2935,7 +2931,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         ══════════════════════════════════════════════════════════════════════ */}
     <section
       id="dharmic-expert-section"
-      className="pt-10 sm:pt-12 pb-8 sm:pb-10 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden scroll-mt-20"
+      className="pt-6 sm:pt-12 pb-6 sm:pb-10 bg-gradient-to-b from-[#021816] via-[#061A16] to-[#021816] relative text-white overflow-hidden scroll-mt-20"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#5EEAD4]/4 rounded-full blur-3xl" />
@@ -3044,10 +3040,6 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             </div>{/* end card body */}
           </div>{/* end flex row */}
         </div>{/* end card */}
-
-        <p className="text-center text-[10px] text-white/25 font-mono mt-6 tracking-wider">
-          🕉️ An Initiative by Sridwar Technology · Connecting Every Devotee with Dharmic Wisdom
-        </p>
       </div>{/* end max-w-7xl */}
     </section>
     </>
