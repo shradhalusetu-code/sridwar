@@ -47,6 +47,9 @@ export default function AuthDashboard({
   const [authFormMode, setAuthFormMode] = useState<"signup" | "signin">("signup");
   const [passwordField, setPasswordField] = useState("");
   const [authErrorMessage, setAuthErrorMessage] = useState("");
+  // True once we've asked a brand-new devotee to confirm their email —
+  // shown instead of the form until they switch back to "Log In".
+  const [signupNeedsConfirmation, setSignupNeedsConfirmation] = useState(false);
 
   // Dharmic ID generation step + temple-redevelopment contribution step
   const [authStep, setAuthStep] = useState<"login" | "contribute">("login");
@@ -190,22 +193,33 @@ export default function AuthDashboard({
         return;
       }
 
-      // Save the devotee's profile details in our own "profiles" table
-      if (data.user) {
-        const { error: profileError } = await supabase.from("profiles").upsert({
-          id: data.user.id,
-          name: userNameField,
-          email: userEmailField,
-          gotra: userGotra,
-          rashi: userRashi,
-        });
-        if (profileError) {
-          console.error("Could not save profile:", profileError.message);
-        }
+      // If "Confirm email" is enabled in Supabase, `data.session` is null
+      // here even though the account was created — there is no logged-in
+      // session yet. In that case we must NOT try to write to "profiles"
+      // (Row Level Security correctly rejects an unauthenticated insert,
+      // which is the 401 / 42501 error) and we must NOT treat the devotee
+      // as logged in or move them past the login step.
+      if (!data.session) {
+        setIsLoggingIn(false);
+        setSignupNeedsConfirmation(true);
+        return;
+      }
+
+      // A session exists (email confirmation is off, or already confirmed),
+      // so it's safe to save the devotee's profile details now.
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: data.user!.id,
+        name: userNameField,
+        email: userEmailField,
+        gotra: userGotra,
+        rashi: userRashi,
+      });
+      if (profileError) {
+        console.error("Could not save profile:", profileError.message);
       }
     } else {
       // Existing devotee logging in
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: userEmailField,
         password: passwordField,
       });
@@ -214,6 +228,34 @@ export default function AuthDashboard({
         setAuthErrorMessage(error.message);
         setIsLoggingIn(false);
         return;
+      }
+
+      // Make sure their profile row exists — it may not, if it couldn't be
+      // created at signup time because email confirmation was still
+      // pending. We now have a real session, so this insert is allowed.
+      // We only INSERT (never overwrite): the sign-in form doesn't show
+      // the name/gotra/rashi fields, so blindly upserting here would
+      // silently blank out or reset an existing devotee's saved details
+      // on every ordinary login.
+      if (data.user) {
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          const { error: profileError } = await supabase.from("profiles").insert({
+            id: data.user.id,
+            name: data.user.user_metadata?.name || userEmailField,
+            email: userEmailField,
+            gotra: userGotra,
+            rashi: userRashi,
+          });
+          if (profileError) {
+            console.error("Could not save profile:", profileError.message);
+          }
+        }
       }
     }
 
@@ -326,7 +368,26 @@ export default function AuthDashboard({
               </p>
             </div>
 
-            {authStep === "login" && (
+            {authStep === "login" && signupNeedsConfirmation && (
+              <div className="space-y-4 text-center animate-fadeIn">
+                <div className="flex items-start space-x-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl px-3 py-3 text-left">
+                  <Mail className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    We've sent a confirmation link to <strong>{userEmailField}</strong>. Please check your inbox
+                    and verify your email, then log in below to continue.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setAuthFormMode("signin"); setSignupNeedsConfirmation(false); }}
+                  className="w-full bg-[#5EEAD4] hover:bg-[#14B8A6] text-[#021816] font-bold py-3 rounded-xl text-xs transition-colors shadow cursor-pointer"
+                >
+                  GO TO LOG IN
+                </button>
+              </div>
+            )}
+
+            {authStep === "login" && !signupNeedsConfirmation && (
             <form onSubmit={handleGoogleLogin} className="space-y-4">
 
               {/* Sign Up / Log In toggle */}
@@ -334,7 +395,7 @@ export default function AuthDashboard({
                 <button
                   type="button"
                   id="auth-mode-signup-tab"
-                  onClick={() => { setAuthFormMode("signup"); setAuthErrorMessage(""); }}
+                  onClick={() => { setAuthFormMode("signup"); setAuthErrorMessage(""); setSignupNeedsConfirmation(false); }}
                   className={`flex-1 py-2 transition-colors ${authFormMode === "signup" ? "bg-[#5EEAD4] text-[#021816]" : "bg-[#021816] text-white/60"}`}
                 >
                   New Devotee — Sign Up
@@ -342,7 +403,7 @@ export default function AuthDashboard({
                 <button
                   type="button"
                   id="auth-mode-signin-tab"
-                  onClick={() => { setAuthFormMode("signin"); setAuthErrorMessage(""); }}
+                  onClick={() => { setAuthFormMode("signin"); setAuthErrorMessage(""); setSignupNeedsConfirmation(false); }}
                   className={`flex-1 py-2 transition-colors ${authFormMode === "signin" ? "bg-[#5EEAD4] text-[#021816]" : "bg-[#021816] text-white/60"}`}
                 >
                   Already a Devotee — Log In
