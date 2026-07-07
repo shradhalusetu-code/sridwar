@@ -101,7 +101,25 @@
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         STRUCTURED DATA (JSON-LD)
+         STRUCTURED DATA (JSON-LD) — WEBSITE
+         NEW BLOCK — This is the specific signal Google uses to decide
+         your "Site Name" in search results (the bold text shown above
+         your URL, e.g. how LinkedIn shows "LinkedIn India").
+         Without this block, Google often falls back to showing your
+         raw domain instead of your brand name.
+    ═══════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Sri Dwar",
+      "alternateName": ["SriDwar", "Shradhalu", "sridwar.com"],
+      "url": "https://sridwar.com/"
+    }
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         STRUCTURED DATA (JSON-LD) — ORGANIZATION
          This helps Google understand your business and can earn
          rich results (star ratings, prices) in search results
     ═══════════════════════════════════════════════════════════════ -->
