@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, FormEvent } from "react";
-import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle } from "lucide-react";
+import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import { supabase } from "../lib/supabaseClient";
@@ -17,6 +17,8 @@ import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/anal
 import {
   recordActivity, fetchProfileExtra, saveProfileExtra,
   fetchFamilyMembers, syncFamilyMembers,
+  fetchActivities, fetchFormSubmissions,
+  ActivityRecord, FormSubmissionRecord,
 } from "../lib/activities";
 
 interface FamilyMember {
@@ -81,6 +83,22 @@ export default function AuthDashboard({
   const [saveProfileSuccess, setSaveProfileSuccess] = useState(false);
   const [userPhone, setUserPhone] = useState("");
 
+  // Full synced activity ledger (all pujas/sevas/products/contributions/
+  // registrations, with real payment status) + non-monetary form
+  // submissions (Contact Us, testimonials, Darshan Certificate requests,
+  // registrations) for the logged-in devotee — read directly from Supabase
+  // so "My Sacred Profile" reflects the devotee's complete account
+  // activity on any device, not just this browser's session.
+  const [activityRecords, setActivityRecords] = useState<ActivityRecord[]>([]);
+  const [formSubmissions, setFormSubmissions] = useState<FormSubmissionRecord[]>([]);
+
+  // Post-login "Contribute / Donate" panel — lets an already-logged-in
+  // devotee start a new temple contribution from their Profile page,
+  // reusing the same temple/amount selection + Sankalpa + UPI payment flow
+  // used during first-time Dharmic ID generation.
+  const [showPostLoginContribute, setShowPostLoginContribute] = useState(false);
+  const [postLoginContributionSuccess, setPostLoginContributionSuccess] = useState(false);
+
   // Sync profile details on mount or auth state change.
   // Supabase is the source of truth (so the Dharmic ID looks the same on
   // any device); localStorage is read first only as an instant-paint cache
@@ -101,7 +119,12 @@ export default function AuthDashboard({
       }
 
       // Now reconcile against the real Supabase record.
-      Promise.all([fetchProfileExtra(), fetchFamilyMembers()]).then(([extra, family]) => {
+      Promise.all([
+        fetchProfileExtra(),
+        fetchFamilyMembers(),
+        fetchActivities(),
+        fetchFormSubmissions(),
+      ]).then(([extra, family, activities, submissions]) => {
         if (extra) {
           if (extra.gotra) setUserGotra(extra.gotra);
           if (extra.rashi) setUserRashi(extra.rashi);
@@ -114,6 +137,8 @@ export default function AuthDashboard({
         if (family.length > 0) {
           setFamilyMembers(family.map((f) => ({ name: f.name, relation: f.relation })));
         }
+        setActivityRecords(activities);
+        setFormSubmissions(submissions);
       });
     } else {
       // Reset the Dharmic ID generation flow back to the start after logout
@@ -123,6 +148,10 @@ export default function AuthDashboard({
       setCustomMandapName("");
       setCustomMandapAddress("");
       setContributionAmount(0);
+      setActivityRecords([]);
+      setFormSubmissions([]);
+      setShowPostLoginContribute(false);
+      setPostLoginContributionSuccess(false);
     }
   }, [isLoggedIn]);
 
@@ -142,6 +171,23 @@ export default function AuthDashboard({
     // this browser.
     saveProfileExtra({ gotra: userGotra, rashi: userRashi, phone: userPhone });
     syncFamilyMembers(familyMembers);
+
+    // Also sync to Google Forms/Sheets, same as every other form on the
+    // site, so My Sacred Profile updates land in the devotee records sheet
+    // too — not just in Supabase.
+    syncToGoogleForm("devotee_support", {
+      name: userProfile.name,
+      email: userProfile.email,
+      phone: userPhone,
+      type: "Sacred Profile Update",
+      details: `Gotra: ${userGotra} | Rashi: ${userRashi} | Family Members: ${
+        familyMembers.length > 0
+          ? familyMembers.map((m) => `${m.name} (${m.relation})`).join(", ")
+          : "None"
+      }`,
+      gotra: userGotra,
+      rashi: userRashi,
+    });
 
     setSaveProfileSuccess(true);
     setTimeout(() => {
@@ -190,6 +236,34 @@ export default function AuthDashboard({
   };
 
   const t = TRANSLATIONS[currentLanguage];
+
+  // Display helpers for the synced activity ledger below.
+  const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+    puja: "Puja Booking",
+    seva: "Seva / Sponsorship",
+    product: "Bazaar Order",
+    contribution: "Temple Contribution",
+    temple_registration: "Temple Registration",
+    darshan_certificate: "Darshan Certificate",
+    other: "Other Offering",
+  };
+  const FORM_TYPE_LABELS: Record<string, string> = {
+    contact_us: "Contact Us Message",
+    testimonial: "Devotion Story Shared",
+    darshan_certificate: "Darshan Certificate Request",
+    devotee_registration: "Devotee Registration",
+    expert_registration: "Dharmic Expert Registration",
+    temple_committee_registration: "Temple Committee Registration",
+  };
+  const paymentStatusBadge = (status: string) => {
+    if (status === "confirmed") {
+      return { label: "Confirmed", cls: "bg-emerald-950/60 text-emerald-300 border-emerald-500/30" };
+    }
+    if (status === "failed") {
+      return { label: "Payment Failed", cls: "bg-red-950/50 text-red-300 border-red-500/30" };
+    }
+    return { label: "Pending Verification", cls: "bg-[#FFB347]/10 text-[#FFB347] border-[#FFB347]/20" };
+  };
 
   const handleGoogleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -303,6 +377,7 @@ export default function AuthDashboard({
     if (pendingLogin) {
       gaLogin("email");
       onLoginSuccess(pendingLogin.name, pendingLogin.email);
+      setPendingLogin(null);
     }
   };
 
@@ -331,8 +406,8 @@ export default function AuthDashboard({
     // corrected Final row (with real payment method) is sent from
     // finalizeContribution below, sharing the same Ref ID.
     syncToGoogleForm("seva_booking", {
-      name:         pendingLogin?.name || "",
-      email:        pendingLogin?.email || "",
+      name:         pendingLogin?.name || userProfile.name || "",
+      email:        pendingLogin?.email || userProfile.email || "",
       phone:        sankalpaPhone.trim(),
       gotra:        sankalpaGotra || userGotra || undefined,
       intent:       sankalpaIntent || undefined,
@@ -358,8 +433,8 @@ export default function AuthDashboard({
       ? TEMPLES_LIST.find((t) => t.id === selectedTempleId)?.name || "Selected Temple"
       : customMandapName || "Custom Mandap";
     syncToGoogleForm("seva_booking", {
-      name:         pendingLogin?.name || "",
-      email:        pendingLogin?.email || "",
+      name:         pendingLogin?.name || userProfile.name || "",
+      email:        pendingLogin?.email || userProfile.email || "",
       phone:        sankalpaPhone.trim(),
       gotra:        sankalpaGotra || userGotra || undefined,
       intent:       sankalpaIntent || undefined,
@@ -382,8 +457,26 @@ export default function AuthDashboard({
       paymentStatus: "pending_verification",
     });
     if (pendingLogin) {
+      // First-time Dharmic ID generation flow — proceed into the app.
       gaLogin("email_with_contribution");
       onLoginSuccess(pendingLogin.name, pendingLogin.email);
+      setPendingLogin(null);
+    } else if (isLoggedIn) {
+      // Already-logged-in devotee contributing again from their Profile
+      // page — stay put, just refresh the ledger and show a confirmation
+      // instead of re-running the login flow.
+      gaDonationInitiate(details.amount);
+      setShowPostLoginContribute(false);
+      setSelectedTempleId("");
+      setCustomMandapName("");
+      setCustomMandapAddress("");
+      setContributionAmount(0);
+      setPostLoginContributionSuccess(true);
+      setTimeout(() => setPostLoginContributionSuccess(false), 6000);
+      Promise.all([fetchActivities(), fetchFormSubmissions()]).then(([activities, submissions]) => {
+        setActivityRecords(activities);
+        setFormSubmissions(submissions);
+      });
     }
   };
 
@@ -435,22 +528,32 @@ export default function AuthDashboard({
             <form onSubmit={handleGoogleLogin} className="space-y-4">
 
               {/* Sign Up / Log In toggle */}
-              <div className="flex rounded-xl overflow-hidden border border-white/10 text-xs font-bold">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   id="auth-mode-signup-tab"
                   onClick={() => { setAuthFormMode("signup"); setAuthErrorMessage(""); setSignupNeedsConfirmation(false); }}
-                  className={`flex-1 py-2 transition-colors ${authFormMode === "signup" ? "bg-[#5EEAD4] text-[#021816]" : "bg-[#021816] text-white/60"}`}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wide transition-all cursor-pointer ${
+                    authFormMode === "signup"
+                      ? "bg-[#5EEAD4] border-[#5EEAD4] text-[#021816]"
+                      : "bg-[#021816] border-white/10 text-white/60 hover:text-white/80"
+                  }`}
                 >
-                  New Devotee — Sign Up
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Signup</span>
                 </button>
                 <button
                   type="button"
                   id="auth-mode-signin-tab"
                   onClick={() => { setAuthFormMode("signin"); setAuthErrorMessage(""); setSignupNeedsConfirmation(false); }}
-                  className={`flex-1 py-2 transition-colors ${authFormMode === "signin" ? "bg-[#5EEAD4] text-[#021816]" : "bg-[#021816] text-white/60"}`}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-xs font-bold uppercase tracking-wide transition-all cursor-pointer ${
+                    authFormMode === "signin"
+                      ? "bg-[#5EEAD4] border-[#5EEAD4] text-[#021816]"
+                      : "bg-[#021816] border-white/10 text-white/60 hover:text-white/80"
+                  }`}
                 >
-                  Already a Devotee — Log In
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Login</span>
                 </button>
               </div>
 
@@ -818,6 +921,77 @@ export default function AuthDashboard({
                 </div>
               </div>
 
+              {/* SYNCED ACCOUNT ACTIVITY — every puja, seva, bazaar order,
+                  contribution and registration on this Dharmic ID, pulled
+                  straight from Supabase, so it's the same on every device
+                  and shows the real payment status (not just "this
+                  browser's session"). Purely additive to the ledger above. */}
+              <div className="w-full max-w-md mt-6 text-left" id="synced-activity-ledger">
+                <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
+                  All Account Activity
+                </h3>
+                {activityRecords.length > 0 ? (
+                  <div className="space-y-3">
+                    {activityRecords.map((rec) => {
+                      const badge = paymentStatusBadge(rec.paymentStatus);
+                      return (
+                        <div
+                          key={rec.id}
+                          id={`synced-activity-${rec.id}`}
+                          className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                        >
+                          <span className="text-[9px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
+                            {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
+                          </span>
+                          <h4 className="font-serif text-sm font-bold text-white pr-4">{rec.itemName}</h4>
+                          <span className="text-[10px] text-white/50 font-mono font-medium block">
+                            Ref: {rec.refId} | {new Date(rec.createdAt).toLocaleDateString()}
+                          </span>
+                          <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                            <span className="font-bold text-[#FFB347]">₹{rec.amount}{rec.paymentMethod ? ` · ${rec.paymentMethod}` : ""}</span>
+                            <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase border ${badge.cls}`}>
+                              {badge.label}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-white/40 py-4 italic text-left">
+                    No synced activity yet — bookings, sevas, orders and contributions made on this Dharmic ID will appear here.
+                  </p>
+                )}
+              </div>
+
+              {/* MY REQUESTS & SUBMISSIONS — non-monetary account activity:
+                  Contact Us messages, testimonials, Darshan Certificate
+                  requests, and registration submissions tied to this login. */}
+              {formSubmissions.length > 0 && (
+                <div className="w-full max-w-md mt-6 text-left" id="synced-form-submissions">
+                  <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
+                    My Requests & Submissions
+                  </h3>
+                  <div className="space-y-2.5">
+                    {formSubmissions.map((sub) => (
+                      <div
+                        key={sub.id}
+                        className="bg-[#092320] border border-white/10 px-4 py-3 rounded-2xl text-left flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-[#5EEAD4] font-mono uppercase tracking-wider block">
+                            {FORM_TYPE_LABELS[sub.formType] || sub.formType}
+                          </span>
+                          <span className="text-xs text-white/70 block truncate">
+                            {new Date(sub.createdAt).toLocaleDateString()}{sub.refId ? ` · Ref: ${sub.refId}` : ""}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Log out option */}
               <button
                 id="dashboard-logout-btn"
@@ -830,7 +1004,166 @@ export default function AuthDashboard({
             </div>
 
             {/* Right Box: My Sacred Profile management, moved to the right side (cols 7) */}
-            <div className="lg:col-span-7">
+            <div className="lg:col-span-7 space-y-6">
+
+              {/* SUPPORT OUR MISSION PANEL — restored so an already-logged-in
+                  devotee can start a new offering from their own Profile
+                  page, instead of only during first-time Dharmic ID
+                  generation. Also shows a 5-point summary of how offerings
+                  are used and impact is reported back to the devotee. */}
+              <div
+                id="profile-contribute-panel"
+                className="w-full bg-[#092320] border border-white/10 rounded-3xl p-5 text-left text-white space-y-3.5"
+              >
+                <div className="flex items-center space-x-2 border-b border-white/5 pb-2">
+                  <span className="text-lg">🙏</span>
+                  <h4 className="font-serif text-sm font-bold text-white uppercase tracking-wider">
+                    Support Our Mission
+                  </h4>
+                </div>
+
+                {postLoginContributionSuccess && (
+                  <div className="bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 p-2.5 rounded-xl text-[10px] text-center font-bold">
+                    ✓ Your support has been recorded! It now appears under "All Account Activity" — our team will confirm it shortly.
+                  </div>
+                )}
+
+                {!showPostLoginContribute ? (
+                  <>
+                    <p className="text-[10px] text-white/70 leading-relaxed font-sans">
+                      One Contribution. Countless Blessings. Be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas Through Sri Dwar. Together, let's build trust, serve devotees, and strengthen our sacred heritage. Your valuable contribution empowers our culture, community service, and our mission to make every act of devotion meaningful and transparent.
+                    </p>
+                    <button
+                      id="profile-contribute-open-btn"
+                      type="button"
+                      onClick={() => { setShowPostLoginContribute(true); setPostLoginContributionSuccess(false); }}
+                      className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wide transition-all cursor-pointer"
+                    >
+                      Support Now
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-3.5 animate-fadeIn">
+                    <div>
+                      <label className="block text-[10px] font-bold text-white/80 mb-1">Choose a temple from our network</label>
+                      <select
+                        id="profile-contribute-temple-select"
+                        value={selectedTempleId}
+                        onChange={(e) => {
+                          setSelectedTempleId(e.target.value);
+                          if (e.target.value) {
+                            setCustomMandapName("");
+                            setCustomMandapAddress("");
+                          }
+                        }}
+                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#5EEAD4] font-medium focus:outline-none focus:border-[#5EEAD4]"
+                      >
+                        <option value="">-- Select a temple --</option>
+                        {TEMPLES_LIST.map((temple) => (
+                          <option key={temple.id} value={temple.id}>{temple.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="sanskrit-divider text-[10px]">or</div>
+
+                    <div className="space-y-2">
+                      <input
+                        id="profile-contribute-custom-mandap-name"
+                        type="text"
+                        placeholder="Mandap / Temple name"
+                        value={customMandapName}
+                        onChange={(e) => {
+                          setCustomMandapName(e.target.value);
+                          if (e.target.value) setSelectedTempleId("");
+                        }}
+                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 focus:outline-none focus:border-[#5EEAD4]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-white/80 mb-1">Support Amount (₹)</label>
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {[51, 101, 251].map((amt) => (
+                          <button
+                            key={amt}
+                            id={`profile-contribute-amount-tier-${amt}`}
+                            type="button"
+                            onClick={() => setContributionAmount(amt)}
+                            className={`text-xs py-2 rounded-xl border font-bold transition-all ${
+                              contributionAmount === amt
+                                ? "bg-white/10 border-[#5EEAD4] text-[#5EEAD4] shadow-sm"
+                                : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"
+                            }`}
+                          >
+                            ₹{amt}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        id="profile-contribute-custom-amount"
+                        type="number"
+                        min={1}
+                        placeholder="Or enter a custom amount"
+                        value={contributionAmount || ""}
+                        onChange={(e) => setContributionAmount(Math.max(0, Number(e.target.value)))}
+                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 focus:outline-none focus:border-[#5EEAD4]"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <button
+                        id="profile-contribute-cancel-btn"
+                        type="button"
+                        onClick={() => setShowPostLoginContribute(false)}
+                        className="bg-white/5 hover:bg-white/10 text-white font-bold py-2.5 rounded-xl text-xs border border-white/10 transition-all cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        id="profile-contribute-proceed-btn"
+                        type="button"
+                        onClick={handleProceedToContributionPayment}
+                        disabled={!contributionAmount || contributionAmount <= 0}
+                        className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wide transition-all cursor-pointer"
+                      >
+                        Support with ₹{contributionAmount || 0}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* How your support is used — 5-point impact summary */}
+                <div className="border-t border-white/5 pt-3 space-y-2.5">
+                  <p className="text-[10px] text-white/60 italic leading-relaxed">
+                    Don't just offer your devotion — see it come alive.
+                  </p>
+                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                    <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>Every booking, seva, order, and contribution you make directly supports your chosen temple or local puja mandal.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                    <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>Your generosity funds Annadanam — free sacred meals served to devotees.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                    <Armchair className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>It also funds seating facilities, a shed, waiting halls, and comfort for devotees visiting the pilgrimage sites.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                    <Hammer className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>Your offering supports maintenance and other sacred initiatives.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                    <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
+                    <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
+                  </div>
+                  <p className="text-[10px] text-[#FFB347] italic leading-relaxed pt-1">
+                    Every offering becomes a blessing. Every blessing creates a difference.
+                  </p>
+                </div>
+              </div>
+
               {/* MY SACRED PROFILE MANAGEMENT CARD */}
               <div 
                 id="my-sacred-profile-card"
@@ -842,10 +1175,6 @@ export default function AuthDashboard({
                     My Sacred Profile
                   </h4>
                 </div>
-
-                <p className="text-[10px] text-white/70 leading-relaxed font-sans text-left">
-                  Configure your sacred lineage gotra, birth rashi, and primary family details. These are auto-filled whenever you initiate a dynamic Sankalpa booking ceremony in Sri Dwar.
-                </p>
 
                 <form onSubmit={handleSaveProfile} className="space-y-3.5">
                   {/* Phone number */}

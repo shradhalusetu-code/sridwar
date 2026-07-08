@@ -164,6 +164,55 @@ export async function fetchActivities(): Promise<ActivityRecord[]> {
   }
 }
 
+export interface FormSubmissionRecord {
+  id: string;
+  formType: FormSubmissionType;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  refId: string | null;
+  createdAt: string;
+}
+
+/**
+ * Fetches the logged-in devotee's own non-monetary form submissions
+ * (Contact Us messages, testimonials, Darshan Certificate requests, Temple/
+ * Priest registration details, etc) so they can be shown on the Profile
+ * page alongside the paid activity ledger. Guests always get an empty
+ * array back (RLS only allows a devotee to read rows where user_id matches
+ * their own auth uid — see "form_submissions_select_own" policy).
+ */
+export async function fetchFormSubmissions(): Promise<FormSubmissionRecord[]> {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) return [];
+
+    const { data, error } = await supabase
+      .from("form_submissions")
+      .select("id, form_type, name, email, phone, ref_id, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("fetchFormSubmissions failed:", error.message);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      formType: row.form_type,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      refId: row.ref_id,
+      createdAt: row.created_at,
+    }));
+  } catch (e) {
+    console.error("fetchFormSubmissions failed", e);
+    return [];
+  }
+}
+
 /** Fetches phone/gotra/rashi from the profiles table for the logged-in devotee. */
 export async function fetchProfileExtra(): Promise<ProfileExtra | null> {
   try {
