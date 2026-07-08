@@ -29,6 +29,7 @@ import UPIPaymentModal from "./components/UPIPaymentModal";
 import OfferPopup from "./components/OfferPopup";
 import sridwarQR from "./assets/images/SridwarQR.jpg";
 import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
+import { recordActivity, fetchActivities, ActivityRecord } from "./lib/activities";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import { Product, Temple, CartItem } from "./types";
@@ -78,6 +79,34 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState({ name: "", email: "" });
   const [bookedItems, setBookedItems] = useState<Array<{ pujaName: string; price: number; refId: string; date: string }>>([]);
+  // Supabase auth user id of the logged-in devotee, or null for guests.
+  // Used to pull the devotee's real activity ledger (pujas/sevas/products/
+  // contributions) from the "activities" table so it's the same on every
+  // device, instead of only ever reading from this browser's localStorage.
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Converts a DB ActivityRecord into the same shape the dashboard ledger
+  // UI has always rendered, so AuthDashboard needs no rendering changes.
+  const mapActivitiesToBookedItems = (records: ActivityRecord[]) =>
+    records.map((r) => ({
+      pujaName: r.itemName,
+      price: r.amount,
+      refId: r.refId,
+      date: new Date(r.createdAt).toLocaleDateString(),
+    }));
+
+  // Whenever a devotee is (or becomes) logged in, load their real activity
+  // ledger from Supabase — this is what makes the Profile page show the
+  // same booking/seva/order/contribution history on any device, not just
+  // the browser that made the purchase.
+  useEffect(() => {
+    if (!currentUserId) return;
+    fetchActivities().then((records) => {
+      if (records.length > 0) {
+        setBookedItems(mapActivitiesToBookedItems(records));
+      }
+    });
+  }, [currentUserId]);
 
   // Active Selected Temple Modal details for full page reviews
   const [activeExploreTemple, setActiveExploreTemple] = useState<Temple | null>(null);
@@ -249,6 +278,7 @@ export default function App() {
     supabase.auth.signOut();
     setIsLoggedIn(false);
     setUserProfile({ name: "", email: "" });
+    setCurrentUserId(null);
     localStorage.removeItem("sd_dev_name");
     localStorage.removeItem("sd_dev_email");
   };
@@ -262,6 +292,7 @@ export default function App() {
         const name = (session.user.user_metadata?.name as string) || session.user.email || "Devotee";
         setIsLoggedIn(true);
         setUserProfile({ name, email: session.user.email || "" });
+        setCurrentUserId(session.user.id);
       }
     });
 
@@ -270,9 +301,11 @@ export default function App() {
         const name = (session.user.user_metadata?.name as string) || session.user.email || "Devotee";
         setIsLoggedIn(true);
         setUserProfile({ name, email: session.user.email || "" });
+        setCurrentUserId(session.user.id);
       } else {
         setIsLoggedIn(false);
         setUserProfile({ name: "", email: "" });
+        setCurrentUserId(null);
       }
     });
 
@@ -338,6 +371,17 @@ export default function App() {
     setBookedItems(updatedBookings);
     localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
 
+    // Persist to Supabase too (no-ops silently for guests who aren't logged
+    // in) so this order shows up in the devotee's Profile page on any device.
+    recordActivity({
+      activityType: "product",
+      itemName: newBooking.pujaName,
+      amount: totalAmount,
+      refId,
+      paymentMethod: "UPI",
+      paymentStatus: "pending_verification",
+    });
+
     gaCartPurchase(totalAmount, refId);
 
     setIsCartPaymentOpen(false);
@@ -358,6 +402,18 @@ export default function App() {
     const updatedBookings = [newBooking, ...bookedItems];
     setBookedItems(updatedBookings);
     localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
+
+    // "Sponsorship donation: ..." is how SevaExperience labels seva
+    // sponsorships passed through this same success handler — everything
+    // else arriving here is a direct puja booking.
+    recordActivity({
+      activityType: item.pujaName.startsWith("Sponsorship contribution:") ? "seva" : "puja",
+      itemName: item.pujaName,
+      amount: item.price,
+      refId: item.refId,
+      paymentMethod: "UPI",
+      paymentStatus: "pending_verification",
+    });
   };
 
   return (
@@ -423,7 +479,7 @@ export default function App() {
           <div className="animate-fadeIn">
             <SevaExperience
               onSponsorSeva={(sevaName, price) => {
-                setWizardDefaults({ pujaName: `Sponsorship donation: ${sevaName}`, price });
+                setWizardDefaults({ pujaName: `Sponsorship contribution: ${sevaName}`, price });
                 setIsBookNowOpen(true);
               }}
             />
@@ -866,7 +922,7 @@ export default function App() {
                     id={`quick-seva-btn-${idx}`}
                     onClick={() => {
                       gaSevaSelect(item.name, getDiscountedPrice(item.price));
-                      setWizardDefaults({ pujaName: `Sponsorship donation: ${item.name}`, price: getDiscountedPrice(item.price) });
+                      setWizardDefaults({ pujaName: `Sponsorship contribution: ${item.name}`, price: getDiscountedPrice(item.price) });
                       setIsSevaModalOpen(false);
                       setIsBookNowOpen(true);
                     }}
@@ -890,7 +946,7 @@ export default function App() {
               </div>
 
               <p className="text-[9px] text-[#5EEAD4] font-mono text-center pt-2">
-                All donations are written securely under Shradhalu Private Limited records.
+                All contributions are written securely under Shradhalu Private Limited records.
               </p>
             </div>
             </div>

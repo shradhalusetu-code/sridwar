@@ -10,6 +10,7 @@ import { PRIEST_PROFILES } from "../data/priests";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
+import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
@@ -125,6 +126,11 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       setIsSubmitting(false);
       setIsSubmitted(true);
       gaContactFormSubmit(!!phone);
+      recordFormSubmission({
+        formType: "darshan_certificate",
+        name, email, phone, refId: newRefId,
+        payload: { temple, age, deity, city, feedback, contributionStatus },
+      });
       // ✅ Show UPI if user selected a contribution tier
       if (membershipTier) {
         setUpiAmount(membershipTier);
@@ -156,6 +162,14 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     } catch (err) {
       console.error(err);
     }
+    recordActivity({
+      activityType: "darshan_certificate",
+      itemName: `Darshan Certificate Contribution — ${temple}`,
+      amount: details.amount,
+      refId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
+    });
   };
 
   // Trust-bar stats — kept honest on purpose:

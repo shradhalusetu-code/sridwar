@@ -347,12 +347,13 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
     setInputMessage("");
 
     // Every prayer offered here is synced to the Google Sheet inside your
-    // Google Drive (via the "prayer_wall" form config in googleFormSync.ts),
-    // so the team can review it, confirm it's from a real devotee, and
-    // choose which ones to feature in the Sacred Moments gallery.
+    // Google Drive (via the "prayer_wall" form config in googleFormSync.ts,
+    // which now points at its own dedicated Prasad & Prayer Testimony
+    // sheet), so the team can review it, confirm it's from a real devotee,
+    // and choose which ones to feature in the Sacred Moments gallery.
     syncToGoogleForm("prayer_wall", {
       name: "Devotee (Prayer Wall)",
-      email: "",
+      email: "Seva Hub — Prayer Wall",
       phone: "",
       details: offeredPrayer,
       type: "Prayer Wall Offering"

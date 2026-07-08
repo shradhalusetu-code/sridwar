@@ -20,6 +20,7 @@ import registerPriestImg from "../assets/images/Register_Priest.jpg";
 import registerDevotteeImg from "../assets/images/Register_devottee.jpg";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { makeSubmissionRef } from "../utils/googleFormSync";
+import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
@@ -360,7 +361,7 @@ const DEVOTEE_INTERESTS = [
   { val: "Live Temple Darshan",    emoji: "📺", label: "Live Darshan" },
   { val: "Prasad Delivery",        emoji: "🍱", label: "Prasad Delivery" },
   { val: "Vedic Astrology",        emoji: "⭐", label: "Astrology" },
-  { val: "Temple Donation",        emoji: "💛", label: "Temple Donation" },
+  { val: "Temple Contribution",    emoji: "💛", label: "Temple Contribution" },
 ];
 
 // Rashi options (from devotee-register.html)
@@ -619,6 +620,16 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
     setSubmitting(true);
     try {
       await postDevoteePendingRow(buildPayload("Pending — Awaiting Decision"), refIdRef.current);
+      // ✅ FIX: Pending row now also recorded in Supabase, not just Google
+      // Forms — previously only the Final row was, so a devotee who
+      // abandoned before the donation step showed up in the Google Sheet
+      // but was invisible in Supabase, and the two counts didn't match.
+      recordFormSubmission({
+        formType: "devotee_registration",
+        name: form.name, email: form.email, phone: form.phone,
+        refId: refIdRef.current,
+        payload: { city: form.city, gotra: form.gotra, rashi: form.rashi, deity: form.deity, interests: form.selectedInterests, message: form.message, donation: "pending", status: "pending" },
+      });
       gaEvent("devotee_registration_submitted", {
         interests_count: form.selectedInterests.length,
         has_message: form.message.trim() ? 1 : 0,
@@ -636,6 +647,12 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
     try {
       await postDevoteeFinalRow(buildPayload("Skipped"), refIdRef.current);
       gaEvent("devotee_registration_completed", { donation: "skipped" });
+      recordFormSubmission({
+        formType: "devotee_registration",
+        name: form.name, email: form.email, phone: form.phone,
+        refId: refIdRef.current,
+        payload: { city: form.city, gotra: form.gotra, rashi: form.rashi, deity: form.deity, interests: form.selectedInterests, message: form.message, donation: "skipped" },
+      });
     } finally {
       setSubmitting(false);
       setStep("form-success");
@@ -645,7 +662,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   const handleSubmitWithDonation = () => {
     const amt = Number(form.donationAmount);
     if (!form.donationAmount || isNaN(amt) || amt < 1) {
-      alert("Please enter a valid donation amount (minimum ₹1), or tap Skip.");
+      alert("Please enter a valid contribution amount (minimum ₹1), or tap Skip.");
       return;
     }
     setUpiRefId(refIdRef.current);
@@ -664,6 +681,20 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         donation: "paid",
         value: details.amount,
         currency: "INR",
+      });
+      recordFormSubmission({
+        formType: "devotee_registration",
+        name: form.name, email: form.email, phone: form.phone,
+        refId: refIdRef.current,
+        payload: { city: form.city, gotra: form.gotra, rashi: form.rashi, deity: form.deity, interests: form.selectedInterests, message: form.message, donation: `₹${details.amount} via ${details.method}` },
+      });
+      recordActivity({
+        activityType: "temple_registration",
+        itemName: "Devotee Registration Contribution",
+        amount: details.amount,
+        refId: refIdRef.current,
+        paymentMethod: details.method,
+        paymentStatus: "pending_verification",
       });
     } finally {
       setSubmitting(false);
@@ -735,10 +766,10 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
             <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#FFB347]">Your contribution helps Sridwar Technology:</p>
+              <p className="text-xs font-semibold text-[#FFB347]">Your contribution helps preserve our heritage, temples, and Sridwar's mission:</p>
               <p className="text-[11px] text-white/55 leading-relaxed">
                 Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
-                <br /><strong className="text-white/75">A Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/75">24 hours</strong> after payment verification.
+                <br />A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification.
               </p>
             </div>
           </div>
@@ -779,19 +810,19 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
             {submitting ? (
               <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Processing…</span></>
             ) : (
-              <><Heart className="w-4 h-4" /><span>{form.donationAmount && Number(form.donationAmount) >= 1 ? `Contribute ₹${form.donationAmount}` : "Contribute / Donate"}</span></>
+              <><Heart className="w-4 h-4" /><span>{form.donationAmount && Number(form.donationAmount) >= 1 ? `Contribute ₹${form.donationAmount}` : "Contribute"}</span></>
             )}
           </button>
 
           <button onClick={handleSubmitWithoutDonation} disabled={submitting}
             className="w-full text-white/40 hover:text-white/70 text-xs py-2 transition-colors cursor-pointer flex items-center justify-center space-x-1.5">
             <ChevronRight className="w-3.5 h-3.5" />
-            <span>Skip Donation — Complete Registration</span>
+            <span>Skip Contribution — Complete Registration</span>
           </button>
         </div>
 
         <p className="text-center text-[10px] text-white/25 font-mono">
-          Donations are voluntary and non-refundable · Powered by Sridwar Technology
+          Contributions are voluntary and non-refundable · Powered by Sridwar Technology
         </p>
       </div>
 
@@ -1130,6 +1161,16 @@ function DharmicExpertSection() {
     setBasicSyncError(false);
     try {
       await postExpertPendingRow(buildPayload("Pending — Awaiting Decision"), expertRefIdRef.current);
+      // ✅ FIX: Pending row now also recorded in Supabase, not just Google
+      // Forms — previously only the Final row was, so an expert who
+      // abandoned before the donation step showed up in the Google Sheet
+      // but was invisible in Supabase, and the two counts didn't match.
+      recordFormSubmission({
+        formType: "expert_registration",
+        name: form.fullName, email: form.email, phone: form.phone,
+        refId: expertRefIdRef.current,
+        payload: { title: form.title, category: form.category, city: form.city, pincode: form.pincode, experience: form.experience, sampradaya: form.sampradaya, languages: form.languages, bio: form.bio, donation: "pending", status: "pending" },
+      });
       setBasicSubmitted(true);
       setExpertStep("form-services");
     } catch {
@@ -1148,6 +1189,12 @@ function DharmicExpertSection() {
     setSubmitting(true);
     await postExpertFinalRow(buildPayload("Skipped"), expertRefIdRef.current);
     gaEvent("dharmic_expert_registration_completed", { category: form.category, donation: "skipped" });
+    recordFormSubmission({
+      formType: "expert_registration",
+      name: form.fullName, email: form.email, phone: form.phone,
+      refId: expertRefIdRef.current,
+      payload: { title: form.title, category: form.category, city: form.city, pincode: form.pincode, experience: form.experience, sampradaya: form.sampradaya, languages: form.languages, bio: form.bio, donation: "skipped" },
+    });
     setSubmitting(false);
     setExpertStep("form-success");
   };
@@ -1155,7 +1202,7 @@ function DharmicExpertSection() {
   const handleSubmitWithDonation = () => {
     const amt = Number(form.donationAmount);
     if (!form.donationAmount || isNaN(amt) || amt < 1) {
-      alert("Please enter a valid donation amount (minimum ₹1), or tap Skip.");
+      alert("Please enter a valid contribution amount (minimum ₹1), or tap Skip.");
       return;
     }
     setUpiRefId(expertRefIdRef.current);
@@ -1172,6 +1219,20 @@ function DharmicExpertSection() {
       donation: "paid",
       value: details.amount,
       currency: "INR",
+    });
+    recordFormSubmission({
+      formType: "expert_registration",
+      name: form.fullName, email: form.email, phone: form.phone,
+      refId: expertRefIdRef.current,
+      payload: { title: form.title, category: form.category, city: form.city, pincode: form.pincode, experience: form.experience, sampradaya: form.sampradaya, languages: form.languages, bio: form.bio, donation: `₹${details.amount} via ${details.method}` },
+    });
+    recordActivity({
+      activityType: "temple_registration",
+      itemName: `Dharmic Expert Registration Contribution — ${form.category}`,
+      amount: details.amount,
+      refId: expertRefIdRef.current,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
     });
     setSubmitting(false);
     setExpertStep("form-success");
@@ -1389,10 +1450,10 @@ function DharmicExpertSection() {
           <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
             <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#FFB347]">Your contribution helps Sridwar Technology:</p>
+              <p className="text-xs font-semibold text-[#FFB347]">Your contribution helps preserve our heritage, temples, and Sridwar's mission:</p>
               <p className="text-[11px] text-white/55 leading-relaxed">
-                Build India's trusted digital dharmic directory and support devotees in discovering local pujaris, pandits, gurus, sants, sadhus, purohits, seers, and other dharmic experts.
-                <br /><strong className="text-white/75">A Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/75">24 hours</strong> after payment verification.
+                Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services — including this dharmic directory of local pujaris, pandits, gurus, sants, sadhus, purohits, and seers.
+                <br />A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification.
               </p>
             </div>
           </div>
@@ -1447,7 +1508,7 @@ function DharmicExpertSection() {
             {submitting ? (
               <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Processing…</span></>
             ) : (
-              <><Heart className="w-4 h-4" /><span>{form.donationAmount && Number(form.donationAmount) >= 1 ? `Contribute / Donate ₹${form.donationAmount}` : "Contribute / Donate"}</span></>
+              <><Heart className="w-4 h-4" /><span>{form.donationAmount && Number(form.donationAmount) >= 1 ? `Contribute ₹${form.donationAmount}` : "Contribute"}</span></>
             )}
           </button>
 
@@ -1457,12 +1518,12 @@ function DharmicExpertSection() {
             className="w-full text-white/40 hover:text-white/70 text-xs py-2 transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
           >
             <ChevronRight className="w-3.5 h-3.5" />
-            <span>Skip Donation — Submit Registration</span>
+            <span>Skip Contribution — Submit Registration</span>
           </button>
         </div>
 
         <p className="text-center text-[10px] text-white/25 font-mono">
-          Donations are voluntary and non-refundable · Powered by Sridwar Technology
+          Contributions are voluntary and non-refundable · Powered by Sridwar Technology
         </p>
       </div>
 
@@ -1956,6 +2017,15 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   // are easy to match to the same registration.
   const templeRegRefIdRef = useRef(makeSubmissionRef("TREG"));
 
+  // One stable Ref ID for the "search a temple → register as its devotee →
+  // get a Dharmic ID" flow below (separate from the "Register as Devotee"
+  // card's own DevoteeRegistrationSection above). Generated once and reused
+  // by BOTH the Pending row (sent the moment devotee details are confirmed,
+  // in handleDevoteeSubmit) and the Final row (sent by finalize() once the
+  // donation decision — Skip or Pay — is known), so the two rows in the
+  // sheet/table are easy to match to the same devotee.
+  const devoteeFlowRefIdRef = useRef(makeSubmissionRef("TDEV"));
+
   // ── Handlers ──
   const handleSelectTemple = (name: string, isNew = false) => {
     setSelectedTemple(name);
@@ -1976,14 +2046,56 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
     return Object.keys(clean).length === 0;
   };
 
-  const handleDevoteeSubmit = () => {
+  // ✅ FIX: Pending-row safety net. Previously this handler only validated
+  // the form and moved to the donation step — nothing was sent to Google
+  // Forms or Supabase until finalize() ran (Skip or Pay). If a devotee
+  // closed the tab on the donation screen, the whole registration was lost.
+  // Now, the instant details are confirmed here, we send ONE Pending row to
+  // BOTH Google Forms and Supabase (donation status "Pending — Awaiting
+  // Decision"), reusing devoteeFlowRefIdRef so it can be matched to the
+  // eventual Final row sent by finalize(). This mirrors the exact pattern
+  // already used by the "Register as Devotee" card (postDevoteePendingRow)
+  // and the Temple/Puja Committee flow (handleTempleRegSubmit) above.
+  const handleDevoteeSubmit = async () => {
     if (!validateDevotee()) return;
+    setSubmittingDevotee(true);
+    try {
+      await submitToForm({
+        [ENTRY.name]:      devotee.name,
+        [ENTRY.phone]:     devotee.phone,
+        [ENTRY.email]:     devotee.email || "Not provided",
+        [ENTRY.temple]:    selectedTemple,
+        [ENTRY.city]:      devotee.city,
+        [ENTRY.puja]:      devotee.puja || "None requested",
+        [ENTRY.donation]:  "Pending — Awaiting Decision",
+        [ENTRY.dharmicId]: "Pending — Awaiting Decision",
+        [ENTRY.type]:      "Devotee Registration",
+        [ENTRY.notes]:     `${devotee.notes || ""} [Ref: ${devoteeFlowRefIdRef.current}]`,
+      });
+      recordFormSubmission({
+        formType: "devotee_registration",
+        name: devotee.name, email: devotee.email, phone: devotee.phone,
+        refId: devoteeFlowRefIdRef.current,
+        payload: {
+          temple: selectedTemple, city: devotee.city, puja: devotee.puja, notes: devotee.notes,
+          donation: "pending", status: "pending",
+        },
+      });
+    } finally {
+      setSubmittingDevotee(false);
+    }
     setStep("donation");
   };
 
+  // Sends the ONE Final row for this registration — same devoteeFlowRefIdRef
+  // as the Pending row sent by handleDevoteeSubmit above, but with the real
+  // dharmicId and the true donation outcome ("Skipped" or the paid amount),
+  // so the sheet/table can be sorted by Ref ID to find the authoritative row.
   const finalize = useCallback(async (donated: boolean, amount?: string, method?: "UPI" | "WhatsApp Pay") => {
     const id = generateDharmicId();
     setDharmicId(id);
+    const refId = devoteeFlowRefIdRef.current;
+    const donationLabel = donated && amount ? `₹${amount}${method ? ` via ${method}` : ""}` : "Skipped";
     const payload: Record<string, string> = {
       [ENTRY.name]:      devotee.name,
       [ENTRY.phone]:     devotee.phone,
@@ -1991,18 +2103,38 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       [ENTRY.temple]:    selectedTemple,
       [ENTRY.city]:      devotee.city,
       [ENTRY.puja]:      devotee.puja || "None requested",
-      [ENTRY.donation]:  donated && amount ? `₹${amount}${method ? ` via ${method}` : ""}` : "Skipped",
+      [ENTRY.donation]:  donationLabel,
       [ENTRY.dharmicId]: id,
       [ENTRY.type]:      "Devotee Registration",
-      [ENTRY.notes]:     devotee.notes || "",
+      [ENTRY.notes]:     `${devotee.notes || ""} [Ref: ${refId}]`,
     };
     await submitToForm(payload);
+    recordFormSubmission({
+      formType: "devotee_registration",
+      name: devotee.name, email: devotee.email, phone: devotee.phone,
+      refId,
+      payload: {
+        temple: selectedTemple, city: devotee.city, puja: devotee.puja, notes: devotee.notes,
+        dharmicId: id, donation: donated && amount ? `₹${amount}${method ? ` via ${method}` : ""}` : "skipped",
+        status: "final",
+      },
+    });
+    if (donated && amount) {
+      recordActivity({
+        activityType: "temple_registration",
+        itemName: `Devotee Registration Contribution — ${selectedTemple}`,
+        amount: Number(amount),
+        refId,
+        paymentMethod: method,
+        paymentStatus: "pending_verification",
+      });
+    }
     setStep("dharmic");
   }, [devotee, selectedTemple]);
 
   const handleDonationSubmit = () => {
     if (!donationAmount || isNaN(Number(donationAmount)) || Number(donationAmount) < 1) {
-      alert("Please enter a valid donation amount (minimum ₹1).");
+      alert("Please enter a valid contribution amount (minimum ₹1).");
       return;
     }
     const ref = `SDW-DON-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -2052,6 +2184,16 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
     setSubmittingTempleReg(true);
     await submitToForm(payload);
+    // ✅ FIX: Pending row now also recorded in Supabase, not just Google
+    // Forms — previously only the Final row was, so a committee that
+    // abandoned before the donation step showed up in the Google Sheet but
+    // was invisible in Supabase, and the two counts didn't match.
+    recordFormSubmission({
+      formType: "temple_committee_registration",
+      name: templeReg.contactName, email: templeReg.contactEmail, phone: templeReg.contactPhone,
+      refId: templeRegRefIdRef.current,
+      payload: { templeName: templeReg.templeName, city: templeReg.city, state: templeReg.state, deity: templeReg.deity, address: templeReg.address, notes: templeReg.notes, donation: "pending", status: "pending" },
+    });
     setSubmittingTempleReg(false);
 
     // Move to optional donation step
@@ -2077,6 +2219,12 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         [ENTRY.type]:      "Temple Registration — Donation Follow-up",
         [ENTRY.notes]:     `Donation note: ${templeRegDonationNote || "—"} | Ref: ${templeRegRefIdRef.current}`,
       });
+      recordFormSubmission({
+        formType: "temple_committee_registration",
+        name: templeReg.contactName, email: templeReg.contactEmail, phone: templeReg.contactPhone,
+        refId: templeRegRefIdRef.current,
+        payload: { templeName: templeReg.templeName, city: templeReg.city, state: templeReg.state, deity: templeReg.deity, address: templeReg.address, notes: templeReg.notes, donationNote: templeRegDonationNote, donation: "skipped" },
+      });
       setTempleRegStep("done");
       setTempleRegSuccess(true);
       return;
@@ -2098,6 +2246,20 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       [ENTRY.dharmicId]: "Temple-Mgmt-Donation",
       [ENTRY.type]:      "Temple Registration — Donation Follow-up",
       [ENTRY.notes]:     `Donation note: ${templeRegDonationNote || "—"} | Ref: ${templeRegRefIdRef.current}`,
+    });
+    recordFormSubmission({
+      formType: "temple_committee_registration",
+      name: templeReg.contactName, email: templeReg.contactEmail, phone: templeReg.contactPhone,
+      refId: templeRegRefIdRef.current,
+      payload: { templeName: templeReg.templeName, city: templeReg.city, state: templeReg.state, deity: templeReg.deity, address: templeReg.address, notes: templeReg.notes, donationNote: templeRegDonationNote, donation: `₹${details.amount} via ${details.method}` },
+    });
+    recordActivity({
+      activityType: "temple_registration",
+      itemName: `Temple Committee Registration Contribution — ${templeReg.templeName}`,
+      amount: details.amount,
+      refId: templeRegRefIdRef.current,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
     });
     setSubmittingTempleReg(false);
     setTempleRegStep("done");
@@ -2208,7 +2370,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-5 border border-white/10">
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
-                    <Gift className="w-3.5 h-3.5" /> Optional Donation / Contribution
+                    <Gift className="w-3.5 h-3.5" /> Optional Contribution
                   </h3>
                   <p className="text-[11px] text-white/40 leading-relaxed">
                     Support your temple's renovation, annadanam, or seva activities. This step is entirely optional — tap "Skip" to finish.
@@ -2218,8 +2380,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
                   <Heart className="w-3.5 h-3.5 text-[#FFB347] shrink-0 mt-0.5" />
                   <p className="text-[11px] text-white/55 leading-relaxed">
-                    If you donate, your payment will be forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>.
-                    A <strong className="text-white/80">Donation Certificate</strong> will be shared on WhatsApp &amp; Email within <strong className="text-white/80">24 hours</strong> after payment verification.
+                    If you contribute, your payment will be forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>, helping preserve our heritage, temples, and Sridwar's mission to connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
+                    A specific puja will be performed in your name at <strong className="text-white/80">{templeReg.templeName}</strong>, and <strong className="text-white/80">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/80">3 working days</strong> after payment verification.
                   </p>
                 </div>
 
@@ -2274,7 +2436,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                   ) : templeRegDonationAmount && Number(templeRegDonationAmount) >= 1 ? (
                     <><Heart className="w-4 h-4" /><span>Proceed to Payment ₹{templeRegDonationAmount}</span></>
                   ) : (
-                    <><Heart className="w-4 h-4" /><span>Donate / Contribute</span></>
+                    <><Heart className="w-4 h-4" /><span>Contribute</span></>
                   )}
                 </button>
 
@@ -2284,11 +2446,11 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                   className="w-full text-white/40 hover:text-white/70 text-xs py-2 transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
-                  <span>Skip Donation — Finish Registration</span>
+                  <span>Skip Contribution — Finish Registration</span>
                 </button>
 
                 <p className="text-center text-[10px] text-white/25 font-mono">
-                  Donations are voluntary and non-refundable · Powered by Sridwar Technology
+                  Contributions are voluntary and non-refundable · Powered by Sridwar Technology
                 </p>
               </div>
             </div>
@@ -2429,7 +2591,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           onClose={() => setShowTempleRegUpi(false)}
           onPaymentConfirmed={handleTempleRegDonationConfirmed}
           amount={Number(templeRegDonationAmount)}
-          bookingName={`Temple Registration Donation — ${templeReg.templeName}${templeRegDonationNote ? ` (${templeRegDonationNote})` : ""}`}
+          bookingName={`Temple Registration Contribution — ${templeReg.templeName}${templeRegDonationNote ? ` (${templeRegDonationNote})` : ""}`}
           devoteeName={templeReg.contactName}
           refId={templeRegRefIdRef.current}
         />
@@ -2511,7 +2673,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <BookOpen className="w-3.5 h-3.5" /><span>Book a Puja</span>
             </button>
             <button
-              onClick={() => { setStep("find"); setDevotee({ name:"", phone:"", email:"", city:"", puja:"", notes:"" }); setSelectedTemple(""); setSearchQuery(""); }}
+              onClick={() => { setStep("find"); setDevotee({ name:"", phone:"", email:"", city:"", puja:"", notes:"" }); setSelectedTemple(""); setSearchQuery(""); devoteeFlowRefIdRef.current = makeSubmissionRef("TDEV"); }}
               className="flex items-center justify-center space-x-1.5 bg-[#5EEAD4]/10 hover:bg-[#5EEAD4]/15 border border-[#5EEAD4]/20 text-[#5EEAD4] text-xs font-semibold py-3 rounded-xl transition-all cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" /><span>Back to Home</span>
@@ -2545,17 +2707,17 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             <h2 className="text-2xl font-serif font-bold text-white">
               Support <span className="text-[#FFB347]">{selectedTemple.split("—")[0].trim()}</span>
             </h2>
-            <p className="text-white/50 text-sm">Your donation goes directly toward temple upkeep, annadanam, and seva activities.</p>
+            <p className="text-white/50 text-sm">Your contribution goes directly toward temple upkeep, annadanam, and seva activities, helping preserve our heritage, temples, and Sridwar's mission to connect devotees worldwide to sacred temples, trusted priests, and dharmic services.</p>
           </div>
 
           <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
             <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
               <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
               <div className="space-y-1 text-left">
-                <p className="text-xs font-semibold text-[#FFB347]">Your donation will be forwarded to:</p>
+                <p className="text-xs font-semibold text-[#FFB347]">Your contribution will be forwarded to:</p>
                 <p className="text-sm font-bold text-white leading-snug">{selectedTemple.split("—")[0].trim()}</p>
                 <p className="text-[11px] text-white/50 leading-relaxed">
-                  A <strong className="text-white/75">Donation Certificate</strong> will be shared with you on WhatsApp &amp; Email within <strong className="text-white/75">24 hours</strong> after payment verification and temple / puja committee management response.
+                  A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared with you on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification and temple / puja committee management response.
                 </p>
               </div>
             </div>
@@ -2604,7 +2766,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               {submittingDonation ? (
                 <><span className="animate-spin w-4 h-4 border-2 border-[#021816] border-t-transparent rounded-full" /><span>Processing…</span></>
               ) : (
-                <><Heart className="w-4 h-4" /><span>{donationAmount && Number(donationAmount) > 0 ? `Donate ₹${donationAmount} & Get Dharmic ID` : "Donate & Get Dharmic ID"}</span></>
+                <><Heart className="w-4 h-4" /><span>{donationAmount && Number(donationAmount) > 0 ? `Contribute ₹${donationAmount} & Get Dharmic ID` : "Contribute & Get Dharmic ID"}</span></>
               )}
             </button>
 
@@ -2614,12 +2776,12 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               className="w-full text-white/40 hover:text-white/70 text-xs py-2 transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
             >
               <ChevronRight className="w-3.5 h-3.5" />
-              <span>Skip donation — just get my Dharmic ID</span>
+              <span>Skip contribution — just get my Dharmic ID</span>
             </button>
           </div>
 
           <p className="text-center text-[10px] text-white/25 font-mono">
-            Donations are voluntary and non-refundable · An Initiative by Sridwar Technology
+            Contributions are voluntary and non-refundable · An Initiative by Sridwar Technology
           </p>
         </div>
       </section>
@@ -2630,7 +2792,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           onClose={() => setShowDonationUpi(false)}
           onPaymentConfirmed={handleDonationConfirmed}
           amount={Number(donationAmount)}
-          bookingName={`Temple Donation — ${selectedTemple.split("—")[0].trim()}${donationNote ? ` (${donationNote})` : ""}`}
+          bookingName={`Temple Contribution — ${selectedTemple.split("—")[0].trim()}${donationNote ? ` (${donationNote})` : ""}`}
           devoteeName={devotee.name}
           refId={donationRefId}
         />

@@ -173,7 +173,7 @@ function TermsContent() {
       <UL>
         <LI>Open to individuals aged 18 years and above, residing in India or abroad.</LI>
         <LI>Employees, directors, and immediate family members of Shradhalu Private Limited are not eligible to win prizes, but may still contribute entries.</LI>
-        <LI>Participation is free. No purchase or payment is necessary to participate in or win this Offer. Any donation made through Sri Dwar's platform during registration is entirely voluntary and has no bearing on eligibility or ranking.</LI>
+        <LI>Participation is free. No purchase or payment is necessary to participate in or win this Offer. Any contribution made through Sri Dwar's platform during registration is entirely voluntary and has no bearing on eligibility or ranking.</LI>
       </UL>
 
       <H3>3. Offer Period</H3>

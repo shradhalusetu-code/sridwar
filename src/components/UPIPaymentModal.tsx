@@ -243,7 +243,7 @@ export default function UPIPaymentModal({
 
             <div className="flex items-start space-x-2 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 px-3 py-2.5 rounded-xl text-[10px] text-[#5EEAD4] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 24 hours of payment confirmation. 🙏</span>
+              <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 3 working days of payment confirmation. 🙏</span>
             </div>
 
             {!confirmed ? (

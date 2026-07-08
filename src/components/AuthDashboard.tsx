@@ -14,6 +14,10 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
+import {
+  recordActivity, fetchProfileExtra, saveProfileExtra,
+  fetchFamilyMembers, syncFamilyMembers,
+} from "../lib/activities";
 
 interface FamilyMember {
   name: string;
@@ -77,7 +81,10 @@ export default function AuthDashboard({
   const [saveProfileSuccess, setSaveProfileSuccess] = useState(false);
   const [userPhone, setUserPhone] = useState("");
 
-  // Sync profile details on mount or auth state change
+  // Sync profile details on mount or auth state change.
+  // Supabase is the source of truth (so the Dharmic ID looks the same on
+  // any device); localStorage is read first only as an instant-paint cache
+  // while the DB fetch is in flight, then overwritten once real data lands.
   useEffect(() => {
     if (isLoggedIn) {
       const savedProfileStr = localStorage.getItem("sridwar_sacred_profile");
@@ -92,6 +99,22 @@ export default function AuthDashboard({
           console.error("Failed to parse saved profile", e);
         }
       }
+
+      // Now reconcile against the real Supabase record.
+      Promise.all([fetchProfileExtra(), fetchFamilyMembers()]).then(([extra, family]) => {
+        if (extra) {
+          if (extra.gotra) setUserGotra(extra.gotra);
+          if (extra.rashi) setUserRashi(extra.rashi);
+          if (extra.phone) setUserPhone(extra.phone);
+        }
+        // Only overwrite the family list if the DB actually has rows —
+        // an empty DB result on a first-time fetch (e.g. right after
+        // signup, before "family_members" table has synced) shouldn't
+        // wipe out what's already showing from the localStorage cache.
+        if (family.length > 0) {
+          setFamilyMembers(family.map((f) => ({ name: f.name, relation: f.relation })));
+        }
+      });
     } else {
       // Reset the Dharmic ID generation flow back to the start after logout
       setAuthStep("login");
@@ -114,6 +137,12 @@ export default function AuthDashboard({
       family: familyMembers
     };
     localStorage.setItem("sridwar_sacred_profile", JSON.stringify(profile));
+
+    // Source of truth — so this profile is visible on any device, not just
+    // this browser.
+    saveProfileExtra({ gotra: userGotra, rashi: userRashi, phone: userPhone });
+    syncFamilyMembers(familyMembers);
+
     setSaveProfileSuccess(true);
     setTimeout(() => {
       setSaveProfileSuccess(false);
@@ -140,6 +169,7 @@ export default function AuthDashboard({
       family: updated
     };
     localStorage.setItem("sridwar_sacred_profile", JSON.stringify(profile));
+    syncFamilyMembers(updated);
   };
 
   const handleRemoveFamilyMember = (indexToRemove: number) => {
@@ -156,6 +186,7 @@ export default function AuthDashboard({
       family: updated
     };
     localStorage.setItem("sridwar_sacred_profile", JSON.stringify(profile));
+    syncFamilyMembers(updated);
   };
 
   const t = TRANSLATIONS[currentLanguage];
@@ -213,6 +244,7 @@ export default function AuthDashboard({
         email: userEmailField,
         gotra: userGotra,
         rashi: userRashi,
+        phone: userPhone || null,
       });
       if (profileError) {
         console.error("Could not save profile:", profileError.message);
@@ -251,6 +283,7 @@ export default function AuthDashboard({
             email: userEmailField,
             gotra: userGotra,
             rashi: userRashi,
+            phone: userPhone || null,
           });
           if (profileError) {
             console.error("Could not save profile:", profileError.message);
@@ -336,6 +369,17 @@ export default function AuthDashboard({
       temple:       templeName,
       whatsapp:     sankalpaPhone.trim(),
       city:         customMandapAddress || "Online Devotee",
+    });
+    // Record into the Supabase activity ledger so this contribution shows
+    // up on the Profile page — this was previously the biggest silent gap
+    // (contributions never appeared anywhere once the Google Form fired).
+    recordActivity({
+      activityType: "contribution",
+      itemName: `Temple Redevelopment Contribution — ${templeName}`,
+      amount: details.amount,
+      refId: contributionRefId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
     });
     if (pendingLogin) {
       gaLogin("email_with_contribution");
@@ -545,7 +589,7 @@ export default function AuthDashboard({
                   </div>
                   <h4 className="font-serif text-lg font-bold text-[#5EEAD4]">Your Dharmic ID is Ready!</h4>
                   <p className="text-xs text-white/60">
-                    Would you like to contribute towards temple redevelopment before entering your dashboard?
+                    Would you like to contribute towards temple redevelopment before entering your dashboard? Your contribution helps preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
                   </p>
                 </div>
 
@@ -627,7 +671,7 @@ export default function AuthDashboard({
 
                 <div className="flex items-start space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                  <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 24 hours of your contribution.</span>
+                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared with you on WhatsApp & Email within 3 working days of your contribution.</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
@@ -1059,7 +1103,7 @@ export default function AuthDashboard({
 
               <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[10px] text-emerald-300 font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span>Acknowledgement certificate sent on WhatsApp & Email within 24 hours. 🙏</span>
+                <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be sent on WhatsApp & Email within 3 working days. 🙏</span>
               </div>
 
               <button

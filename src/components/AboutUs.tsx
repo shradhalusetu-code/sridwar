@@ -284,7 +284,7 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
             </div>
             <h4 className="font-serif text-base font-bold text-white">Zero-Leaking Economy</h4>
             <p className="text-xs text-white/70 leading-relaxed">
-              Operated under Shradhalu Private Limited, we use secure transaction ledgers and a Sri Dwar-managed database for full audit disclosures on how every donation is utilized.
+              Operated under Shradhalu Private Limited, we use secure transaction ledgers and a Sri Dwar-managed database for full audit disclosures on how every contribution is utilized.
             </p>
           </div>
 

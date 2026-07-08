@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateTextMinLength } from "../utils/formValidation";
 
@@ -364,6 +365,12 @@ export default function DevoteeExperiences() {
     } catch (err) {
       console.error("Testimony sync error:", err);
     }
+    recordFormSubmission({
+      formType: "testimonial",
+      name: newName,
+      refId: testimonyRefId,
+      payload: { location: newLocation, service: newService, story: newStory, rating: newRating, contribution: "skipped" },
+    });
   };
 
   // Payment confirmed — sends the ONE Final row for this testimony, sharing
@@ -382,6 +389,20 @@ export default function DevoteeExperiences() {
     } catch (err) {
       console.error("Testimony sync error:", err);
     }
+    recordFormSubmission({
+      formType: "testimonial",
+      name: newName,
+      refId: testimonyRefId,
+      payload: { location: newLocation, service: newService, story: newStory, rating: newRating, contribution: `₹${details.amount} via ${details.method}` },
+    });
+    recordActivity({
+      activityType: "contribution",
+      itemName: `Testimonial Thank-You Contribution — ${newService}`,
+      amount: details.amount,
+      refId: testimonyRefId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
+    });
   };
 
   const handleSubmitReview = async (e: FormEvent) => {

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import { recordActivity } from "../lib/activities";
 import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
@@ -338,6 +339,19 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
         fee:          details.amount,
         city:         selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
         whatsapp:     devoteePhone.trim(),
+      });
+    }
+    // Record into the Supabase activity ledger (no-ops for guests who
+    // aren't logged in) — previously this Sankalpa Portal flow never wrote
+    // anywhere the devotee's own Profile page could read from.
+    if (selectedItem) {
+      recordActivity({
+        activityType: selectedItem.isService ? "seva" : "product",
+        itemName: selectedItem.name,
+        amount: details.amount,
+        refId,
+        paymentMethod: details.method,
+        paymentStatus: "pending_verification",
       });
     }
     const msg = selectedItem?.isService

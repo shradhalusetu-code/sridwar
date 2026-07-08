@@ -6,6 +6,7 @@
 import { useState, FormEvent } from "react";
 import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
+import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
@@ -53,6 +54,15 @@ export default function ContactUs() {
       type: queryType,
       details: `${comment} [Contribution: Pending — Awaiting Decision] [Ref: ${newRefId}]`,
     });
+    // ✅ FIX: Pending row now also recorded in Supabase, not just Google
+    // Forms — previously only the Final row was, so a message abandoned
+    // before Skip/Donate showed up in the Google Sheet but was invisible
+    // in Supabase, and the two counts didn't match.
+    recordFormSubmission({
+      formType: "contact_us",
+      name, email, phone, refId: newRefId,
+      payload: { queryType, comment, contribution: "pending", status: "pending" },
+    });
 
     gaContactFormSubmit(!!phone);
 
@@ -78,6 +88,11 @@ export default function ContactUs() {
     } catch (err) {
       console.error(err);
     } finally {
+      recordFormSubmission({
+        formType: "contact_us",
+        name, email, phone, refId,
+        payload: { queryType, comment, contribution: "skipped" },
+      });
       setIsSubmitted(true);
       setShowDonation(false);
     }
@@ -94,6 +109,19 @@ export default function ContactUs() {
     } catch (err) {
       console.error(err);
     } finally {
+      recordFormSubmission({
+        formType: "contact_us",
+        name, email, phone, refId,
+        payload: { queryType, comment, contribution: `₹${details.amount} via ${details.method}` },
+      });
+      recordActivity({
+        activityType: "contribution",
+        itemName: `Contact Us Contribution — ${queryType}`,
+        amount: details.amount,
+        refId,
+        paymentMethod: details.method,
+        paymentStatus: "pending_verification",
+      });
       setShowUPI(false);
       setIsSubmitted(true);
       setShowDonation(false);
@@ -173,7 +201,7 @@ export default function ContactUs() {
                 onClose={() => setShowUPI(false)}
                 onPaymentConfirmed={handleDonationPaid}
                 amount={donationAmount}
-                bookingName="Sri Dwar Temple Donation"
+                bookingName="Sri Dwar Temple Contribution"
                 devoteeName={name}
                 refId={refId}
                 allowCustomAmount={true}
@@ -188,7 +216,7 @@ export default function ContactUs() {
                   <span className="text-2xl">🙏</span>
                 </div>
                 <h4 className="font-serif text-lg font-bold text-white">Message Received!</h4>
-                <p className="text-xs text-white/60">Would you like to make a voluntary contribution to our temple projects?</p>
+                <p className="text-xs text-white/60">Would you like to make a voluntary contribution to help preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services?</p>
 
                 <div className="grid grid-cols-3 gap-2">
                   {[51, 101, 251].map((amt) => (
@@ -215,19 +243,19 @@ export default function ContactUs() {
 
                 <div className="flex items-start space-x-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2 rounded-xl text-[10px] text-emerald-300 font-mono">
                   <ShieldCheck className="w-3 h-3 shrink-0 mt-0.5" />
-                  <span>An acknowledgement certificate will be shared within 24 hours on your WhatsApp & Email. 🙏</span>
+                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared within 3 working days on your WhatsApp & Email. 🙏</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={handleSkipDonation}
                     className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs border border-white/10 transition-all"
-                  >Skip Donation</button>
+                  >Skip Contribution</button>
                   <button
-                    onClick={() => { if (donationAmount && donationAmount >= 5) { gaDonationInitiate(donationAmount); setShowUPI(true); } else alert("Minimum donation is ₹5"); }}
+                    onClick={() => { if (donationAmount && donationAmount >= 5) { gaDonationInitiate(donationAmount); setShowUPI(true); } else alert("Minimum contribution is ₹5"); }}
                     disabled={!donationAmount}
                     className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-3 rounded-xl text-xs uppercase tracking-wide transition-all"
-                  >Donate ₹{donationAmount || 0} 🙏</button>
+                  >Contribute ₹{donationAmount || 0} 🙏</button>
                 </div>
               </div>
             ) : !isSubmitted ? (
