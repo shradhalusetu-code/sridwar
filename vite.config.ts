@@ -27,14 +27,15 @@ export default defineConfig(() => {
       // AppRouter.example.tsx for the pattern. Once that's done, Vite
       // will automatically create a separate chunk per route with NO
       // config changes needed here.
+      //
+      // NOTE: the "router" chunk for react-router-dom was removed below
+      // because this project does not currently install or use that
+      // package. If you add react-router-dom later, add it back here.
       rollupOptions: {
         output: {
           manualChunks: {
             // Core React — loaded first, cached aggressively
             vendor: ['react', 'react-dom'],
-            // Router — small, but keep it isolated from the app code
-            // so it's cached independently once you adopt react-router-dom
-            router: ['react-router-dom'],
             // Lucide icons — large library, loaded separately
             lucide: ['lucide-react'],
             // Motion/animation — only needed once interactive sections mount
