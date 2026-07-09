@@ -165,6 +165,21 @@
       color: var(--muted);
     }
     footer a { color: var(--gold); text-decoration: none; }
+
+    .gallery { display: flex; gap: 10px; padding: 4px 24px 4px; overflow-x: auto; justify-content: center; flex-wrap: wrap; }
+    .gallery img { width: 104px; height: 104px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); flex-shrink: 0; }
+    .stat-row { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; padding: 6px 24px 0; }
+    .stat { text-align: center; }
+    .stat b { display: block; font-family: var(--font-serif); font-size: 1.35rem; color: var(--gold); }
+    .stat span { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .testimonial { background: var(--bg3); border-left: 3px solid var(--gold); border-radius: 8px; padding: 16px 18px; margin-top: 14px; font-style: italic; color: var(--white); font-size: 0.88rem; line-height: 1.65; }
+    .testimonial-by { display: block; margin-top: 8px; font-style: normal; font-size: 0.75rem; color: var(--gold); font-weight: 700; }
+    .price-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .price-table td { padding: 9px 4px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--muted); vertical-align: top; }
+    .price-table td.pname { color: var(--white); font-weight: 600; }
+    .price-table td.ptemple { font-size: 0.75rem; color: var(--muted); }
+    .price-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; white-space: nowrap; }
+    .card-img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -182,7 +197,20 @@
       kits — sourced directly from partner temples and shipped to your
       door, wherever in the world that is.
     </p>
-    <a class="cta-btn" href="https://sridwar.com/?page=products">Continue to the Bazaar →</a>
+    <a class="cta-btn" href="https://sridwar.com/bazaar">Continue to the Bazaar →</a>
+  </div>
+
+  <div class="gallery">
+    <img src="/images/Mahaprasad%20Kit.jpg" alt="Vacuum-packed Mahaprasad kit" loading="lazy" />
+    <img src="/images/Rudraksha%20Mala.jpg" alt="Rudraksha mala" loading="lazy" />
+    <img src="/images/Brass%20Idol.jpg" alt="Brass deity idol" loading="lazy" />
+    <img src="/images/Home%20Puja%20Kit.jpg" alt="Home puja kit" loading="lazy" />
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><b>4</b><span>Product Categories</span></div>
+    <div class="stat"><b>Worldwide</b><span>Shipping</span></div>
+    <div class="stat"><b>Vacuum-Sealed</b><span>Prasad Packing</span></div>
   </div>
 
   <div class="main">
@@ -205,8 +233,19 @@
       </p>
     </div>
 
+    <div class="card">
+      <h2>What's in each category</h2>
+      <ul>
+        <li><strong>Bhog Offerings</strong> — sweets and prasad offered to the deity in your name, then shipped to you</li>
+        <li><strong>Puja Kits</strong> — complete home puja sets so first-time devotees can start with everything they need</li>
+        <li><strong>Mala, Beads & Jap Items</strong> — rudraksha and tulsi mala for daily japa and meditation</li>
+        <li><strong>Diya, Dhoop & Aarti Items</strong> — lamps, incense, and aarti thali essentials</li>
+        <li><strong>Prasad & Blessed Items</strong> — vacuum-packed Mahaprasad direct from partner temples</li>
+      </ul>
+    </div>
+
     <div class="footer-cta">
-      <a class="cta-btn" href="https://sridwar.com/?page=products">Shop the Bazaar →</a>
+      <a class="cta-btn" href="https://sridwar.com/bazaar">Shop the Bazaar →</a>
     </div>
   </div>
 

@@ -165,6 +165,21 @@
       color: var(--muted);
     }
     footer a { color: var(--gold); text-decoration: none; }
+
+    .gallery { display: flex; gap: 10px; padding: 4px 24px 4px; overflow-x: auto; justify-content: center; flex-wrap: wrap; }
+    .gallery img { width: 104px; height: 104px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); flex-shrink: 0; }
+    .stat-row { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; padding: 6px 24px 0; }
+    .stat { text-align: center; }
+    .stat b { display: block; font-family: var(--font-serif); font-size: 1.35rem; color: var(--gold); }
+    .stat span { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .testimonial { background: var(--bg3); border-left: 3px solid var(--gold); border-radius: 8px; padding: 16px 18px; margin-top: 14px; font-style: italic; color: var(--white); font-size: 0.88rem; line-height: 1.65; }
+    .testimonial-by { display: block; margin-top: 8px; font-style: normal; font-size: 0.75rem; color: var(--gold); font-weight: 700; }
+    .price-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .price-table td { padding: 9px 4px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--muted); vertical-align: top; }
+    .price-table td.pname { color: var(--white); font-weight: 600; }
+    .price-table td.ptemple { font-size: 0.75rem; color: var(--muted); }
+    .price-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; white-space: nowrap; }
+    .card-img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -184,7 +199,20 @@
       chosen puja with full Vedic ritual, using your name, Gotra, and personal
       intention (sankalpa). You receive photo and video proof afterward.
     </p>
-    <a class="cta-btn" href="https://sridwar.com/?page=puja">Continue to Book a Puja →</a>
+    <a class="cta-btn" href="https://sridwar.com/puja">Continue to Book a Puja →</a>
+  </div>
+
+  <div class="gallery">
+    <img src="/images/deity_jagannath_1781872890111.jpg" alt="Lord Jagannath, Puri" loading="lazy" />
+    <img src="/images/deity_kashi_vishwanath_1781874522891.jpg" alt="Kashi Vishwanath Temple, Varanasi" loading="lazy" />
+    <img src="/images/deity_kolhapur_mahalakshmi_1781874711476.jpg" alt="Mahalakshmi Temple, Kolhapur" loading="lazy" />
+    <img src="/images/deity_lingaraj_1781872903761.jpg" alt="Lingaraj Temple, Bhubaneswar" loading="lazy" />
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><b>20+</b><span>Temples Covered</span></div>
+    <div class="stat"><b>4</b><span>Languages Supported</span></div>
+    <div class="stat"><b>100%</b><span>Verified Priests</span></div>
   </div>
 
   <div class="main">
@@ -219,8 +247,32 @@
       </p>
     </div>
 
+    <div class="card">
+      <h2>Sample pujas and pricing</h2>
+      <table class="price-table">
+        <tr><td class="pname">Maha Mrityunjaya Healing Puja<span class="ptemple"><br/>Baidyanath Temple, Deoghar · 60 min</span></td><td>₹2,399</td></tr>
+        <tr><td class="pname">Ashtabhuja Durga Raksha Kawach Puja<span class="ptemple"><br/>Maa Sarala Temple, Jagatsinghpur · 75 min</span></td><td>₹3,749</td></tr>
+        <tr><td class="pname">Shree Jagannath Rath Yatra Success Sankalpa<span class="ptemple"><br/>Jagannath Temple, Puri · 45 min</span></td><td>₹2,999</td></tr>
+        <tr><td class="pname">Swayamvara Parvathi Marriage Alignment<span class="ptemple"><br/>Prem Mandir, Vrindavan · 60 min</span></td><td>₹4,949</td></tr>
+        <tr><td class="pname">Maha Lakshmi Kubera Samriddhi Puja<span class="ptemple"><br/>Mahalakshmi Temple, Kolhapur · 90 min</span></td><td>₹5,999</td></tr>
+      </table>
+      <p style="margin-top:10px; font-size: 0.8rem;">Every listed price includes prasad delivery on most pujas and a recorded video of your ritual. Full puja list, categorised by health, wealth, protection, career, and marriage, is available in the app.</p>
+    </div>
+
+    <div class="card">
+      <h2>What devotees are saying</h2>
+      <div class="testimonial">
+        "Booked Rudrabhishek at Kashi Vishwanath for my father's birthday. Everything was beautifully arranged."
+        <span class="testimonial-by">— Aarav, Delhi</span>
+      </div>
+      <div class="testimonial">
+        "Booked Rudrabhishek from the USA. The entire process was smooth and trustworthy."
+        <span class="testimonial-by">— Rohan, Pune</span>
+      </div>
+    </div>
+
     <div class="footer-cta">
-      <a class="cta-btn" href="https://sridwar.com/?page=puja">Browse Puja Options →</a>
+      <a class="cta-btn" href="https://sridwar.com/puja">Browse Puja Options →</a>
     </div>
   </div>
 

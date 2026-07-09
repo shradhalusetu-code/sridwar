@@ -144,10 +144,42 @@ export default function App() {
     }
   };
 
+  // ── Real, shareable URLs for every page ───────────────────────────────
+  // Maps each `currentPage` value to a real address-bar path. Names match
+  // the branding already used by the static SEO pages in /public
+  // (bazaar.html, darshan.html, etc.) for consistency.
+  const PAGE_PATHS: Record<string, string> = {
+    "home": "/",
+    "seva": "/seva",
+    "puja": "/puja",
+    "priests": "/priests",
+    "products": "/bazaar",
+    "about": "/about",
+    "founder-story": "/founder-story",
+    "contact": "/contact",
+    "live-darshan": "/darshan",
+    "temple-register": "/temple-register",
+    "login": "/login",
+  };
+  const PATH_TO_PAGE: Record<string, string> = Object.fromEntries(
+    Object.entries(PAGE_PATHS).map(([page, urlPath]) => [urlPath, page])
+  );
+
   const handleNavigate = (page: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
     setCurrentPage(page);
     gaPageView(`/${page}`, page.charAt(0).toUpperCase() + page.slice(1));
+
+    // Update ONLY the text shown in the address bar for the test-batch
+    // pages above, using replaceState (not pushState). replaceState never
+    // creates a new browser-history entry, so the back-button trap system
+    // (retrap/onPopState above, and the Android backButton listener below)
+    // is completely unaffected — Back still behaves exactly as it did
+    // before this change.
+    const urlPath = PAGE_PATHS[page];
+    if (urlPath && typeof window !== "undefined" && window.history) {
+      window.history.replaceState(window.history.state, "", urlPath);
+    }
   };
 
   // Track page view on initial load.
@@ -238,6 +270,28 @@ export default function App() {
     const requestedPage = urlParams.get("page");
     if (requestedPage && VALID_DEEP_LINK_PAGES.includes(requestedPage)) {
       setCurrentPage(requestedPage);
+    }
+
+    // Real-URL support: if a devotee opened e.g. /puja or /darshan
+    // directly, /public/404.html (GitHub Pages has no server-side
+    // routing) already saved that path into sessionStorage before bouncing
+    // them to "/". Pick it up here, open the right page, then restore the
+    // real path in the address bar.
+    const redirectPath = sessionStorage.getItem("redirectPath");
+    if (redirectPath) {
+      sessionStorage.removeItem("redirectPath");
+      const pageFromRedirect = PATH_TO_PAGE[redirectPath];
+      if (pageFromRedirect && pageFromRedirect !== "home") {
+        setCurrentPage(pageFromRedirect);
+        window.history.replaceState(window.history.state, "", redirectPath);
+      }
+    } else {
+      // Local dev fallback (e.g. `npm run dev` opened directly at
+      // localhost:3000/seva, where there is no 404.html redirect step).
+      const pageFromCurrentPath = PATH_TO_PAGE[window.location.pathname];
+      if (pageFromCurrentPath && pageFromCurrentPath !== "home") {
+        setCurrentPage(pageFromCurrentPath);
+      }
     }
   }, []);
 
