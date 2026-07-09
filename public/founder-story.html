@@ -73,16 +73,23 @@
       align-items: center;
       gap: 12px;
     }
-    .topbar-logo {
-      font-family: var(--font-serif);
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--gold);
-      text-decoration: none;
-      letter-spacing: 0.5px;
-    }
+    .topbar-logo-link { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .topbar-logo-img { height: 30px; width: auto; filter: brightness(0) invert(1); display: block; }
     .topbar-sep { color: var(--border); font-size: 1.2rem; }
     .topbar-sub { font-size: 0.75rem; color: var(--muted); }
+    .disclaimer-bottom {
+      background: rgba(255,179,71,0.05);
+      border-top: 1px solid var(--border);
+      padding: 18px 24px;
+    }
+    .disclaimer-bottom p {
+      max-width: 820px;
+      margin: 0 auto;
+      font-size: 0.68rem;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.42);
+      text-align: center;
+    }
     .hero {
       background: linear-gradient(135deg, #0d2e2a 0%, #021816 60%);
       border-bottom: 1px solid var(--border);
@@ -183,10 +190,13 @@
 </head>
 <body>
   <div class="topbar">
-    <a href="/" class="topbar-logo">Sri Dwar</a>
+    <a href="https://sridwar.com/" class="topbar-logo-link">
+      <img src="/images/sridwar-logo.png" alt="Sri Dwar" class="topbar-logo-img" />
+    </a>
     <span class="topbar-sep">·</span>
     <span class="topbar-sub">The Founder's Story</span>
   </div>
+
 
   <div class="hero">
     <div class="hero-eyebrow">Our Story · Faith · Family</div>
@@ -235,8 +245,8 @@
       <p>
         That gap between devotion and distance is exactly what Sri Dwar was
         built to close — connecting devotees anywhere in the world with
-        verified priests, authentic rituals, and a direct, trustworthy way to
-        stay connected to their faith, no matter how far from home they are.
+        experienced priests, authentic rituals, and a direct, trustworthy way
+        to stay connected to their faith, no matter how far from home they are.
       </p>
     </div>
 
@@ -245,8 +255,12 @@
     </div>
   </div>
 
+  <div class="disclaimer-bottom">
+    <p>Sri Dwar is an independent devotional-services platform operated by Shradhalu Private Limited. We are not an official website of, or endorsed by, any temple trust or government religious body. Priests and rituals featured are reviewed by our team for experience and authenticity; this review does not constitute official certification by any temple authority. Temple names, deity imagery, and related trademarks remain the property of their respective temple trusts.</p>
+  </div>
+
   <footer>
-    &copy; Shradhalu Private Limited · <a href="/">sridwar.com</a>
+    &copy; Shradhalu Private Limited · <a href="https://sridwar.com/">sridwar.com</a>
   </footer>
 </body>
 </html>

@@ -77,16 +77,23 @@
       align-items: center;
       gap: 12px;
     }
-    .topbar-logo {
-      font-family: var(--font-serif);
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--gold);
-      text-decoration: none;
-      letter-spacing: 0.5px;
-    }
+    .topbar-logo-link { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .topbar-logo-img { height: 30px; width: auto; filter: brightness(0) invert(1); display: block; }
     .topbar-sep { color: var(--border); font-size: 1.2rem; }
     .topbar-sub { font-size: 0.75rem; color: var(--muted); }
+    .disclaimer-bottom {
+      background: rgba(255,179,71,0.05);
+      border-top: 1px solid var(--border);
+      padding: 18px 24px;
+    }
+    .disclaimer-bottom p {
+      max-width: 820px;
+      margin: 0 auto;
+      font-size: 0.68rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.42);
+      text-align: center;
+    }
 
     /* ── Hero strip ── */
     .hero {
@@ -427,7 +434,9 @@
 
 <!-- ── Top bar ── -->
 <nav class="topbar">
-  <a class="topbar-logo" href="https://sridwar.com">🕉 Sri Dwar</a>
+  <a class="topbar-logo-link" href="https://sridwar.com/">
+    <img src="/images/sridwar-logo.png" alt="Sri Dwar" class="topbar-logo-img" />
+  </a>
   <span class="topbar-sep">›</span>
   <span class="topbar-sub">Devotee Registration</span>
 </nav>
@@ -440,9 +449,9 @@
     Join thousands of devotees worldwide. Get personalised puja reminders, live darshan alerts, prasad updates, and sacred guidance — directly from India's temples.
   </p>
   <div class="hero-badges">
-    <span class="badge">🛕 30+ Sacred Temples</span>
+    <span class="badge">🛕 32 Sacred Temples</span>
     <span class="badge">🌍 Worldwide Devotees</span>
-    <span class="badge">✅ Verified Priests</span>
+    <span class="badge">✅ Experienced Priests</span>
     <span class="badge">🔒 100% Secure</span>
   </div>
 </div>
@@ -582,23 +591,27 @@
       <p>Check your email inbox for a confirmation message from Sri Dwar.</p>
       <div class="ref-badge" id="ref-id-display">REF: SDR-000000</div>
       <br/>
-      <a class="btn-home" href="https://sridwar.com">← Back to Sri Dwar</a>
+      <a class="btn-home" href="https://sridwar.com/">← Back to Sri Dwar</a>
     </div>
 
     <!-- Trust strip -->
     <div class="trust-strip">
       <div class="trust-item"><span class="trust-icon">🔒</span> Data is private</div>
       <div class="trust-item"><span class="trust-icon">✅</span> No spam, ever</div>
-      <div class="trust-item"><span class="trust-icon">🕉</span> Verified priests</div>
+      <div class="trust-item"><span class="trust-icon">🕉</span> Experienced priests</div>
       <div class="trust-item"><span class="trust-icon">🌍</span> Worldwide service</div>
     </div>
 
   </div>
 </main>
 
+<div class="disclaimer-bottom">
+  <p>Sri Dwar is an independent devotional-services platform operated by Shradhalu Private Limited. We are not an official website of, or endorsed by, any temple trust or government religious body. Priests and rituals featured are reviewed by our team for experience and authenticity; this review does not constitute official certification by any temple authority. Temple names, deity imagery, and related trademarks remain the property of their respective temple trusts.</p>
+</div>
+
 <footer>
-  © 2026 Shradhalu Private Limited · <a href="https://sridwar.com">sridwar.com</a>
-  · <a href="https://sridwar.com">Privacy Policy</a>
+  © 2026 Shradhalu Private Limited · <a href="https://sridwar.com/">sridwar.com</a>
+  · <a href="https://sridwar.com/">Legal &amp; Policies</a>
 </footer>
 
 <script>
