@@ -56,9 +56,21 @@ export default function OptimizedImage({
 }: OptimizedImageProps) {
   const derivedWebp = webpSrc ?? src.replace(/\.(jpe?g|png)(\?.*)?$/i, ".webp$2");
 
+  // ── srcset space fix ──────────────────────────────────────────────────
+  // `srcset`/`<source srcSet>` is a comma-separated list of "url descriptor"
+  // pairs. Several source filenames contain spaces (e.g. "Gau Seva.jpg"),
+  // and an un-encoded space in that position is read by the browser as the
+  // boundary between the URL and a width descriptor — so it silently drops
+  // the whole candidate (visible in DevTools as "Dropped srcset candidate").
+  // encodeURI() turns the space into %20 so the browser treats the whole
+  // path as one URL. It's a no-op for paths that have no spaces, and safe
+  // for Vite-hashed asset URLs (webpSrc / case 2) since those never contain
+  // characters encodeURI would touch.
+  const safeWebpSrcSet = encodeURI(derivedWebp);
+
   return (
     <picture>
-      <source srcSet={derivedWebp} type="image/webp" />
+      <source srcSet={safeWebpSrcSet} type="image/webp" />
       <img
         src={src}
         alt={alt}
