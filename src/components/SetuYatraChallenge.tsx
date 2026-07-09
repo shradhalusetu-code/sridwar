@@ -9,29 +9,29 @@
  * @license SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { Trophy, X, BookOpen, FileText, MapPin, MessageCircle, Mail } from "lucide-react";
 
 type Tab = "guide" | "terms";
 
 // ─── Small reusable pieces ────────────────────────────────────────────────────
-function H3({ children }: { children: React.ReactNode }) {
+function H3({ children }: { children: ReactNode }) {
   return <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono mt-6 mb-2">{children}</h3>;
 }
-function P({ children }: { children: React.ReactNode }) {
+function P({ children }: { children: ReactNode }) {
   return <p className="text-[13px] text-white/65 leading-relaxed mb-2">{children}</p>;
 }
-function UL({ children }: { children: React.ReactNode }) {
+function UL({ children }: { children: ReactNode }) {
   return <ul className="space-y-1.5 mb-2">{children}</ul>;
 }
-function LI({ children }: { children: React.ReactNode }) {
+function LI({ children }: { children: ReactNode }) {
   return (
     <li className="text-[13px] text-white/65 leading-relaxed flex gap-2">
       <span className="text-[#5EEAD4] mt-0.5">•</span><span>{children}</span>
     </li>
   );
 }
-function OL({ children }: { children: React.ReactNode }) {
+function OL({ children }: { children: ReactNode }) {
   return <ol className="space-y-1.5 mb-2 list-decimal list-inside marker:text-[#FFB347] marker:font-bold">{children}</ol>;
 }
 

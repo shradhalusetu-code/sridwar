@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { ChevronDown, Sparkles, Flame, BookOpen, Sun, Moon, Music2 } from "lucide-react";
 
 const MANTRAS = [
@@ -144,7 +144,7 @@ const CITIES = [
 
 interface DropdownGroupProps {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   options: string[];
   placeholderNote: (selected: string) => string;
   imageUrl?: string;

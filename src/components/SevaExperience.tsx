@@ -12,6 +12,7 @@ import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { SEVA_OFFERINGS } from "../data/sevaOfferings";
 import SevaOfferingCard from "./SevaOfferingCard";
+import OptimizedImage from "./OptimizedImage";
 import SevaLiveDashboard from "./SevaLiveDashboard";
 
 // ─── Persisted "completed seva offering" records ───────────────────────────
@@ -211,7 +212,7 @@ function SevaCard({ seva, onSponsor }: SevaCardProps) {
         {/* Temple image */}
         {seva.imageUrl ? (
           <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden mb-4 border border-white/5 relative">
-            <img
+            <OptimizedImage
               src={seva.imageUrl}
               alt={seva.name}
               className="w-full h-full object-cover select-none filter brightness-90"
@@ -481,7 +482,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
 
               {/* Lord Jagannath photo slideshow */}
               <div className="relative mx-4 mb-4 rounded-2xl overflow-hidden shrink-0" style={{ aspectRatio: "16/9" }}>
-                <img
+                <OptimizedImage
                   key={slideIndex}
                   src={slide.img}
                   alt={slide.title}

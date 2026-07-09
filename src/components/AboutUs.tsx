@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { Sparkles, Award, Heart, ShieldCheck, Users, Linkedin, ArrowUpRight, ChevronDown } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import kunuPhoto from "../assets/images/Kunu.jpg";
@@ -15,7 +15,7 @@ interface Founder {
   initials: string;
   title: string;
   bio: string;
-  pills: { icon: React.ReactNode; label: string }[];
+  pills: { icon: ReactNode; label: string }[];
   photo: string;
   linkedin: string;
 }

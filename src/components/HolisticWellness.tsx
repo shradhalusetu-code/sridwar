@@ -4,12 +4,13 @@
  * Sits below the Online Puja section as its own richly-designed segment.
  */
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import {
   ChevronRight, ChevronDown, Clock, Users, Award, Leaf, Heart,
   Flame, Moon, Sun, Wind, Droplets, Zap, Shield, BookOpen, Star
 } from "lucide-react";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
+import OptimizedImage from "./OptimizedImage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,7 +19,7 @@ interface WellnessService {
   category: string;
   categoryColor: string;
   categoryBg: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   subtitle: string;
   description: string;
@@ -426,7 +427,7 @@ function ServiceCard({
       {/* Card Image */}
       {service.imageUrl && (
         <div className="w-full aspect-[3/2] overflow-hidden">
-          <img
+          <OptimizedImage
             src={service.imageUrl}
             alt={service.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

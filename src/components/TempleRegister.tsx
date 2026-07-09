@@ -8,7 +8,7 @@
  * @license SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, ElementType } from "react";
 import {
   Search, ChevronDown, ChevronRight, Plus, Check, X,
   MapPin, Phone, Mail, User, Heart, Sparkles,
@@ -315,7 +315,7 @@ const INDIAN_LANGUAGES = [
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Step = "find" | "portal" | "donation" | "dharmic" | "temple-reg";
 
-interface DevoteeForm {
+interface DevoteeBookingForm {
   name: string; phone: string; email: string;
   city: string; puja: string; notes: string;
 }
@@ -411,7 +411,7 @@ function FieldError({ msg }: { msg: string | null }) {
 function InputField({
   label, icon: Icon, type = "text", value, onChange, placeholder, error, required
 }: {
-  label: string; icon: React.ElementType; type?: string; value: string;
+  label: string; icon: ElementType; type?: string; value: string;
   onChange: (v: string) => void; placeholder?: string; error?: string | null; required?: boolean;
 }) {
   return (
@@ -1947,10 +1947,10 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   }, []);
 
   // ── Devotee form ──
-  const [devotee, setDevotee] = useState<DevoteeForm>({
+  const [devotee, setDevotee] = useState<DevoteeBookingForm>({
     name: "", phone: "", email: "", city: "", puja: "", notes: ""
   });
-  const [devoteeErrors, setDevoteeErrors] = useState<Partial<Record<keyof DevoteeForm, string>>>({});
+  const [devoteeErrors, setDevoteeErrors] = useState<Partial<Record<keyof DevoteeBookingForm, string>>>({});
   const [submittingDevotee, setSubmittingDevotee] = useState(false);
 
   // ── Devotee donation ──
@@ -2035,13 +2035,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   };
 
   const validateDevotee = (): boolean => {
-    const errs: Partial<Record<keyof DevoteeForm, string>> = {};
+    const errs: Partial<Record<keyof DevoteeBookingForm, string>> = {};
     errs.name  = validateName(devotee.name) ?? undefined;
     errs.phone = validatePhone(devotee.phone) ?? undefined;
     if (devotee.email) errs.email = validateEmail(devotee.email) ?? undefined;
     if (!devotee.city.trim()) errs.city = "City / location is required.";
-    const clean: Partial<Record<keyof DevoteeForm, string>> = {};
-    Object.entries(errs).forEach(([k, v]) => { if (v) clean[k as keyof DevoteeForm] = v; });
+    const clean: Partial<Record<keyof DevoteeBookingForm, string>> = {};
+    Object.entries(errs).forEach(([k, v]) => { if (v) clean[k as keyof DevoteeBookingForm] = v; });
     setDevoteeErrors(clean);
     return Object.keys(clean).length === 0;
   };

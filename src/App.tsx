@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "./lib/supabaseClient";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -1281,7 +1281,7 @@ export default function App() {
          ═══════════════════════════════════════════════════════════════════════ */}
       {activeLegalDoc && (() => {
         // ── tiny section helper ──────────────────────────────────────────────
-        const DocSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+        const DocSection = ({ title, children }: { title: string; children: ReactNode }) => (
           <div className="space-y-2 pb-5 border-b border-white/8 last:border-0 last:pb-0">
             <h4 className="text-sm font-bold text-[#FFB347] font-serif">{title}</h4>
             <div className="text-[13px] text-white/72 leading-relaxed">{children}</div>
@@ -1289,7 +1289,7 @@ export default function App() {
         );
 
         // ── document content map ─────────────────────────────────────────────
-        const DOCS: Record<string, { icon: string; title: string; content: React.ReactNode }> = {
+        const DOCS: Record<string, { icon: string; title: string; content: ReactNode }> = {
           privacy: {
             icon: "🔒",
             title: "Privacy Policy",

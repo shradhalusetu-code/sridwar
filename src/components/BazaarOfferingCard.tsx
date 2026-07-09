@@ -15,6 +15,7 @@ import {
   ShoppingBag, Flame, Check, ChevronDown, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
 } from "lucide-react";
 import { BazaarProduct, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
+import OptimizedImage from "./OptimizedImage";
 import { validatePincode } from "../utils/formValidation";
 
 interface BazaarOfferingCardProps {
@@ -117,7 +118,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
       {/* Image or icon banner — fixed height so every card in the grid lines up */}
       {product.imageUrl ? (
         <div className="w-full h-44 relative overflow-hidden">
-          <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+          <OptimizedImage src={product.imageUrl} alt={product.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
             <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
               {product.category}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, ElementType } from "react";
 import { ON_LINE_PUJAS } from "../data/spiritualData";
 import { getPriestByDetails } from "../data/priests";
 import {
@@ -473,7 +473,7 @@ interface OnlinePujaProps {
 }
 
 // ── Category metadata ──────────────────────────────────────────────────────────
-const CATEGORY_META: Record<string, { label: string; icon: React.ElementType; dataIds: string[] }> = {
+const CATEGORY_META: Record<string, { label: string; icon: ElementType; dataIds: string[] }> = {
   all:        { label: "All Holy Pujas",       icon: Sparkles,    dataIds: [] },
   health:     { label: "Health & Longevity",   icon: Heart,       dataIds: [] },
   wealth:     { label: "Wealth & Prosperity",  icon: TrendingUp,  dataIds: [] },

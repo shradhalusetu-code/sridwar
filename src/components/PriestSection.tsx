@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, ElementType } from "react";
 import {
   MapPin, Award, Star, Users, Languages,
   ArrowLeft, Search, X, BookOpenCheck, MessageCircle,
@@ -19,7 +19,7 @@ interface PriestSectionProps {
 }
 
 // ── "What to look for" guidance content ──────────────────────────────────────
-const GUIDANCE_POINTS: { icon: React.ElementType; title: string; desc: string }[] = [
+const GUIDANCE_POINTS: { icon: ElementType; title: string; desc: string }[] = [
   {
     icon: Award,
     title: "Years of Experience",
@@ -339,7 +339,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
   );
 }
 
-function Stat({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) {
+function Stat({ label, value, icon: Icon }: { label: string; value: string; icon: ElementType }) {
   return (
     <div className="bg-[#021816]/60 border border-white/10 rounded-xl p-3 text-center">
       <Icon className="w-4 h-4 text-[#FFB347] mx-auto mb-1.5" />

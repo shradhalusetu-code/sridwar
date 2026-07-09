@@ -4,7 +4,6 @@
  */
 
 import { Temple } from "../types";
-import deityJagannath from "../assets/images/deity_jagannath_1781872890111.jpg";
 
 // NOTE ON TIMINGS: Where a temple trust publishes a fixed, verifiable daily aarti
 // schedule, that schedule is given directly. Where published schedules are known to
@@ -38,7 +37,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Rosha Homa",
       "Rath Yatra Sevas"
     ],
-    imageUrl: deityJagannath,
+    imageUrl: import.meta.env.BASE_URL + "images/deity_jagannath_1781872890111.jpg",
     symbol: "ॐ",
     coordinates: { lat: 19.8047, lng: 85.8181 },
     history: "The Jagannath Temple of Puri is one of the four Char Dham pilgrimage sites of Hinduism, alongside Badrinath, Dwarka, and Rameswaram. Built in its present form in the 12th century CE by King Anantavarman Chodaganga Deva of the Eastern Ganga dynasty, it is the paramount seat of Vaishnavism in eastern India. Its 214-foot Kalinga-style shikhara is crowned by the Nila Chakra, an eight-spoked wheel of Vishnu, visible across the coastal skyline. Uniquely, the deities of Jagannath, Balabhadra, and Subhadra are carved afresh from sacred neem wood (daru) during the rare Nabakalebara ceremony, symbolising cyclical renewal of the divine body. The temple is world-famous for the annual Rath Yatra, when the deities are pulled through Puri's Grand Road on colossal wooden chariots before millions of devotees — a festival widely believed to have given rise to the English word 'juggernaut'. Its Ananda Bazaar and Rosaghara kitchen, among the largest temple kitchens on earth, prepare Mahaprasad for tens of thousands of pilgrims daily, embodying Puri's tradition that no devotee ever leaves hungry.",

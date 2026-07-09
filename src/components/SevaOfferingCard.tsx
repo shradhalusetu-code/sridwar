@@ -9,6 +9,7 @@ import {
   Check, ChevronDown, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
+import OptimizedImage from "./OptimizedImage";
 import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 
@@ -167,7 +168,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           card's header the same size and the cards aligned. */}
       {offering.imageUrl ? (
         <div className="w-full h-44 relative overflow-hidden">
-          <img src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+          <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
             <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
               {offering.category}

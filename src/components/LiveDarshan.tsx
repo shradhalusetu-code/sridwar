@@ -7,6 +7,7 @@ import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { LIVE_DARSHAN_INFO } from "../data/liveDarshan";
 import { Heart, MapPin, ChevronRight, ChevronDown, Users } from "lucide-react";
+import OptimizedImage from "./OptimizedImage";
 
 interface LiveDarshanProps {
   onNavigate?: (page: string) => void;
@@ -129,7 +130,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
 
             <div className="aspect-video w-full rounded-2xl bg-[#021816]/95 overflow-hidden relative border border-white/10 shadow-2xl flex items-center justify-center group">
               {/* Deity Photo */}
-              <img
+              <OptimizedImage
                 src={darshanTemple.imageUrl}
                 alt={`${darshanTemple.name} — ${darshanTemple.deity} Live Darshan`}
                 className="absolute inset-0 w-full h-full object-cover select-none brightness-[0.7] contrast-[1.05] transition-transform duration-1000 ease-out group-hover:scale-[1.02]"

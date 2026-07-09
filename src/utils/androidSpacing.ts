@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 
 /** Returns true when running inside Capacitor Android WebView */
 export function useAndroidPlatform(): boolean {
@@ -29,7 +30,7 @@ export function useAndroidPlatform(): boolean {
  * Navbar unscrolled = py-5 logo ~64px.
  * Status bar safe-area is handled via CSS env(); we add an extra 16px buffer.
  */
-export function sectionTopPadding(isAndroid: boolean): React.CSSProperties {
+export function sectionTopPadding(isAndroid: boolean): CSSProperties {
   if (!isAndroid) return {};
   return {
     paddingTop: "calc(env(safe-area-inset-top, 24px) + 80px)",
