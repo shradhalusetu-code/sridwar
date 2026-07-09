@@ -3,8 +3,7 @@
 
 User-agent: *
 Allow: /
-
-# Block any internal/dev paths if they ever exist
+Disallow: /account
 Disallow: /src/
 Disallow: /node_modules/
 

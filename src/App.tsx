@@ -223,9 +223,21 @@ export default function App() {
       setBookedItems(JSON.parse(cachedBooked));
     }
 
+    // Deep-link support: lets an external link like
+    // https://sridwar.com/?page=puja open straight into that section
+    // instead of always landing on Home. Used by the static SEO landing
+    // pages in /public (puja.html, seva.html, etc.) so a devotee who
+    // finds one of those pages via Google/WhatsApp can tap "Continue"
+    // and land exactly where they expect, instead of the homepage.
+    const VALID_DEEP_LINK_PAGES = [
+      "seva", "puja", "priests", "products", "about",
+      "founder-story", "contact", "live-darshan",
+      "temple-register", "login",
+    ];
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("page") === "temple-register") {
-      setCurrentPage("temple-register");
+    const requestedPage = urlParams.get("page");
+    if (requestedPage && VALID_DEEP_LINK_PAGES.includes(requestedPage)) {
+      setCurrentPage(requestedPage);
     }
   }, []);
 
