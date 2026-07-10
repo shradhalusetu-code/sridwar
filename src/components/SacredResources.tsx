@@ -5,6 +5,7 @@
 
 import { useState, ReactNode } from "react";
 import { ChevronDown, Sparkles, Flame, BookOpen, Sun, Moon, Music2 } from "lucide-react";
+import OptimizedImage from "./OptimizedImage";
 
 const MANTRAS = [
   "JAGANNATH MANTRA",
@@ -158,11 +159,10 @@ function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: Drop
     <div className="bg-[#092320]/80 rounded-2xl border border-white/10 h-full flex flex-col relative">
       {imageUrl && (
         <div className="w-full aspect-[3/2] overflow-hidden rounded-t-2xl">
-          <img
+          <OptimizedImage
             src={imageUrl}
             alt={label}
             loading="lazy"
-            decoding="async"
             width={480}
             height={320}
             className="w-full h-full object-cover"

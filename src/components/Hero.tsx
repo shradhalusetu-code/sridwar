@@ -16,8 +16,11 @@ import { validateName, validateEmail, validatePhone, validateAge } from "../util
 import { TEMPLES_LIST } from "../data/temples";
 import { gaContactFormStart, gaContactFormSubmit, gaNavClick } from "../utils/analytics";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
+import OptimizedImage from "./OptimizedImage";
 // @ts-ignore
 import aerialJagannathPuri from "../assets/images/aerial_jagannath_puri_hero_1781871848760.jpg";
+// @ts-ignore
+import aerialJagannathPuriWebp from "../assets/images/aerial_jagannath_puri_hero_1781871848760.webp";
 
 interface HeroProps {
   currentLanguage: Language;
@@ -220,13 +223,25 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     >
       
       {/* Cinematic Sacred Banner: aerial Puri Jagannath Temple feel with teal overlays and golden lighting */}
-      <div 
-        id="hero-cinematic-bg" 
-        className="absolute inset-0 bg-cover bg-center pointer-events-none transition-transform duration-1000 filter brightness-45 contrast-[1.03]"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(2, 24, 22, 0.35), rgba(2, 24, 22, 0.8), rgba(2, 24, 22, 1)), url(${aerialJagannathPuri})`
-        }}
-      />
+      <div
+        id="hero-cinematic-bg"
+        className="absolute inset-0 pointer-events-none transition-transform duration-1000 overflow-hidden"
+      >
+        <OptimizedImage
+          src={aerialJagannathPuri}
+          webpSrc={aerialJagannathPuriWebp}
+          alt=""
+          loading="eager"
+          fetchPriority="high"
+          className="absolute inset-0 w-full h-full object-cover object-center filter brightness-45 contrast-[1.03]"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(to bottom, rgba(2, 24, 22, 0.35), rgba(2, 24, 22, 0.8), rgba(2, 24, 22, 1))`
+          }}
+        />
+      </div>
 
       {/* Floating Sparkles & Diya lights */}
       <div className="absolute top-1/4 left-10 w-24 h-24 bg-saffron/10 rounded-full filter blur-2xl animate-pulse" />

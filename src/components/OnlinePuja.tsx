@@ -12,6 +12,7 @@ import {
   Flame, ShieldCheck, BadgeCheck, Check, AlertCircle
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import OptimizedImage from "./OptimizedImage";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
@@ -265,7 +266,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
       }`}
     >
       <div className="w-full h-44 relative overflow-hidden">
-        <img src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+        <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
           <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
             {offering.category}
@@ -918,11 +919,10 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                           {/* Thumbnail image */}
                           <div className="shrink-0 w-full sm:w-16 h-24 sm:h-16 rounded-xl overflow-hidden bg-[#021816]/70 border border-white/8">
                             {puja.imageUrl ? (
-                              <img
+                              <OptimizedImage
                                 src={puja.imageUrl}
                                 alt={puja.name}
                                 loading="lazy"
-                                decoding="async"
                                 width={128}
                                 height={128}
                                 className="w-full h-full object-cover filter brightness-90"
@@ -1091,11 +1091,10 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
                         {/* Thumbnail image */}
                         <div className="shrink-0 w-full sm:w-16 h-24 sm:h-16 rounded-xl overflow-hidden bg-[#021816]/70 border border-white/8">
                           {puja.imageUrl ? (
-                            <img
+                            <OptimizedImage
                               src={puja.imageUrl}
                               alt={puja.name}
                               loading="lazy"
-                              decoding="async"
                               width={128}
                               height={128}
                               className="w-full h-full object-cover filter brightness-90"

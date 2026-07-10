@@ -9,6 +9,9 @@
 // NOTE: place India_Temple.png in your project's assets folder (e.g. src/assets/)
 // and adjust the import path below if needed.
 import indiaTempleImg from "../assets/images/India_Temple.png";
+// @ts-ignore
+import indiaTempleImgWebp from "../assets/images/India_Temple.webp";
+import OptimizedImage from "./OptimizedImage";
 
 export default function IndiaTempleMap() {
   return (
@@ -22,11 +25,11 @@ export default function IndiaTempleMap() {
 
       {/* Static Map Image */}
       <div className="relative w-full mx-auto" style={{ maxWidth: 520 }}>
-        <img
+        <OptimizedImage
           src={indiaTempleImg}
+          webpSrc={indiaTempleImgWebp}
           alt="Map of India with iconic temples"
           loading="lazy"
-          decoding="async"
           width={520}
           height={602}
           className="w-full h-auto rounded-2xl drop-shadow-2xl"

@@ -27,7 +27,10 @@ import HolisticWellness from "./components/HolisticWellness";
 import TempleRegister from "./components/TempleRegister";
 import UPIPaymentModal from "./components/UPIPaymentModal";
 import OfferPopup from "./components/OfferPopup";
+import OptimizedImage from "./components/OptimizedImage";
 import sridwarQR from "./assets/images/SridwarQR.jpg";
+// @ts-ignore
+import sridwarQRWebp from "./assets/images/SridwarQR.webp";
 import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
 import { recordActivity, fetchActivities, ActivityRecord } from "./lib/activities";
 
@@ -796,11 +799,11 @@ export default function App() {
 
               {/* Sri Dwar QR code — scan to connect on the go */}
               <div className="mt-5">
-                <img
+                <OptimizedImage
                   src={sridwarQR}
+                  webpSrc={sridwarQRWebp}
                   alt="Sri Dwar QR code — scan to connect"
                   loading="lazy"
-                  decoding="async"
                   width={112}
                   height={112}
                   className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-white/10 bg-white p-1 object-contain"
@@ -1033,10 +1036,10 @@ export default function App() {
             
             {/* Header Image — shrink-0 so it never scrolls away */}
             <div className="relative aspect-video bg-gray-900 border-b border-white/10 shrink-0">
-              <img
+              <OptimizedImage
                 src={activeExploreTemple.imageUrl}
                 alt={activeExploreTemple.name}
-                decoding="async"
+                loading="eager"
                 className="absolute inset-0 w-full h-full object-cover filter brightness-75"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#092320] via-[#092320]/30 to-transparent" />
@@ -1155,11 +1158,10 @@ export default function App() {
                       className="flex items-start justify-between p-3.5 bg-white/5 border border-white/10 rounded-2xl relative"
                      >
                       <div className="flex items-start space-x-3 truncate">
-                        <img
+                        <OptimizedImage
                           src={item.product.imageUrl}
                           alt={item.product.name}
                           loading="lazy"
-                          decoding="async"
                           className="w-12 h-12 rounded-xl object-cover shrink-0"
                           referrerPolicy="no-referrer"
                         />

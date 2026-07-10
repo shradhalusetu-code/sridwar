@@ -9,8 +9,13 @@ import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import { supabase } from "../lib/supabaseClient";
 import SriDwarLogo from "./SriDwarLogo";
+import OptimizedImage from "./OptimizedImage";
 import dharmicIdBg from "../assets/images/Dharmic_ID.jpg";
+// @ts-ignore
+import dharmicIdBgWebp from "../assets/images/Dharmic_ID.webp";
 import sridwarQR from "../assets/images/SridwarQR.jpg";
+// @ts-ignore
+import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
@@ -812,12 +817,21 @@ export default function AuthDashboard({
               <div 
                 id="digital-dharmic-id-card"
                 className="relative w-full max-w-md text-white p-5 sm:p-6 rounded-3xl shadow-2xl overflow-hidden border-2 border-[#FFB347]/50 transform hover:-translate-y-2 hover:rotate-1 transition-all duration-300"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, rgba(9,35,32,0.55), rgba(2,24,22,0.6) 55%, rgba(4,47,42,0.5)), url(${dharmicIdBg})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
               >
+                {/* Photo backdrop with a real webp/jpg fallback pair, sitting behind the gradient + content */}
+                <OptimizedImage
+                  src={dharmicIdBg}
+                  webpSrc={dharmicIdBgWebp}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `linear-gradient(135deg, rgba(9,35,32,0.55), rgba(2,24,22,0.6) 55%, rgba(4,47,42,0.5))`,
+                  }}
+                />
                 {/* Mandala Background Watermarks — unchanged, kept visible over the new backdrop */}
                 <div className="absolute top-2 right-2 text-9xl text-white/10 font-serif pointer-events-none select-none">
                   ॐ
@@ -872,11 +886,11 @@ export default function AuthDashboard({
                       <span>Secured by Sridwar Technology</span>
                     </div>
                   </div>
-                  <img
+                  <OptimizedImage
                     src={sridwarQR}
+                    webpSrc={sridwarQRWebp}
                     alt="Sri Dwar verification QR code"
                     loading="lazy"
-                    decoding="async"
                     width={48}
                     height={48}
                     className="shrink-0 w-12 h-12 rounded-md object-cover border border-white/10"

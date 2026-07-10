@@ -6,6 +6,9 @@
 import React from "react";
 // @ts-ignore
 import logoImgSrc from "../assets/images/sridwar-logo.png";
+// @ts-ignore
+import logoImgSrcWebp from "../assets/images/sridwar-logo.webp";
+import OptimizedImage from "./OptimizedImage";
 
 interface SriDwarLogoProps {
   className?: string; // Additional classes for outer wrapper
@@ -53,10 +56,12 @@ export default function SriDwarLogo({
       <div 
         className={`inline-flex items-center ${justifyClass} transition-all duration-300 ${className}`}
       >
-        <img
+        <OptimizedImage
           src={logoImgSrc}
+          webpSrc={logoImgSrcWebp}
           alt="Sri Dwar Logo"
           referrerPolicy="no-referrer"
+          loading="eager"
           className={`${selectedHeight} w-auto object-contain select-none transition-all duration-300 drop-shadow-[0_2px_10px_rgba(242,116,32,0.25)] brightness-0 invert`}
         />
       </div>

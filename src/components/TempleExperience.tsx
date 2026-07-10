@@ -7,6 +7,7 @@ import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
 import { Search, Sparkles, MapPin, ChevronDown, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
+import OptimizedImage from "./OptimizedImage";
 
 interface TempleExperienceProps {
   onBookPuja: (templeName: string, deityName: string) => void;
@@ -217,12 +218,11 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                             {/* Left Column: Image (cols 6) */}
               <div className="md:col-span-6 relative min-h-[300px] md:h-full bg-[#021816] border-r border-white/10 overflow-hidden group">
                 {/* Deity Photo */}
-                <img
+                <OptimizedImage
                   src={selectedTemple.imageUrl}
                   alt={`${selectedTemple.name} Deity`}
                   referrerPolicy="no-referrer"
                   loading="lazy"
-                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover select-none brightness-95 contrast-[1.05] transition-transform duration-700 ease-out group-hover:scale-105"
                 />
 

@@ -26,7 +26,7 @@
  * if you see `import xyz from "../assets/images/..."` at the top, you're
  * in case 2 for that image.
  */
-import type { CSSProperties, HTMLAttributeReferrerPolicy } from "react";
+import type { CSSProperties, HTMLAttributeReferrerPolicy, SyntheticEvent } from "react";
 
 interface OptimizedImageProps {
   src: string;
@@ -40,6 +40,8 @@ interface OptimizedImageProps {
   height?: number;
   style?: CSSProperties;
   referrerPolicy?: HTMLAttributeReferrerPolicy;
+  /** Passed straight through to the underlying <img> (e.g. broken-image fallback UI). */
+  onError?: (e: SyntheticEvent<HTMLImageElement, Event>) => void;
 }
 
 export default function OptimizedImage({
@@ -53,6 +55,7 @@ export default function OptimizedImage({
   height,
   style,
   referrerPolicy,
+  onError,
 }: OptimizedImageProps) {
   const derivedWebp = webpSrc ?? src.replace(/\.(jpe?g|png)(\?.*)?$/i, ".webp$2");
 
@@ -82,6 +85,7 @@ export default function OptimizedImage({
         height={height}
         style={style}
         referrerPolicy={referrerPolicy}
+        onError={onError}
       />
     </picture>
   );

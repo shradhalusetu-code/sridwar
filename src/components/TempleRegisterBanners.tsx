@@ -13,7 +13,12 @@
 
 import React from "react";
 import registerPriestImg from "../assets/images/Register_Priest.jpg";
+// @ts-ignore
+import registerPriestImgWebp from "../assets/images/Register_Priest.webp";
 import registerDevotteeImg from "../assets/images/Register_devottee.jpg";
+// @ts-ignore
+import registerDevotteeImgWebp from "../assets/images/Register_devottee.webp";
+import OptimizedImage from "./OptimizedImage";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION 1 BANNER — Register Your Native Temple or Puja Committee
@@ -31,8 +36,9 @@ export function TempleBanner() {
 
         {/* ── LEFT (top on mobile): Register_Priest.jpg (family at temple) ── */}
         <div className="relative w-full sm:w-[42%] shrink-0" style={{ aspectRatio: "3 / 2" }}>
-          <img
+          <OptimizedImage
             src={registerPriestImg}
+            webpSrc={registerPriestImgWebp}
             alt="Family at a Hindu temple — Register Your Temple or Puja Committee on Sri Dwar"
             className="absolute inset-0 h-full w-full"
             style={{
@@ -41,7 +47,6 @@ export function TempleBanner() {
               objectPosition: "center",
             }}
             loading="lazy"
-            decoding="async"
           />
           {/* Right-edge fade so image blends into the text panel on desktop */}
           <div
@@ -127,8 +132,9 @@ export function DharmicExpertBanner() {
 
         {/* ── LEFT (top on mobile): Register_devottee.jpg (priest/guru with devotee) ── */}
         <div className="relative w-full sm:w-[42%] shrink-0" style={{ aspectRatio: "3 / 2" }}>
-          <img
+          <OptimizedImage
             src={registerDevotteeImg}
+            webpSrc={registerDevotteeImgWebp}
             alt="Pandit with devotee performing puja — Register a Dharmic Expert on Sri Dwar"
             className="absolute inset-0 h-full w-full"
             style={{
@@ -137,7 +143,6 @@ export function DharmicExpertBanner() {
               objectPosition: "center",
             }}
             loading="lazy"
-            decoding="async"
           />
           {/* Right-edge fade so image blends into the text panel on desktop */}
           <div

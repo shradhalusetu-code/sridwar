@@ -17,7 +17,12 @@ import {
 } from "lucide-react";
 import { TEMPLES_LIST } from "../data/temples";
 import registerPriestImg from "../assets/images/Register_Priest.jpg";
+// @ts-ignore
+import registerPriestImgWebp from "../assets/images/Register_Priest.webp";
 import registerDevotteeImg from "../assets/images/Register_devottee.jpg";
+// @ts-ignore
+import registerDevotteeImgWebp from "../assets/images/Register_devottee.webp";
+import OptimizedImage from "./OptimizedImage";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
@@ -2901,13 +2906,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             {/* Image — left column on desktop, top on mobile. No wasted margin around it. */}
             <div className="w-full lg:w-[38%] lg:shrink-0 p-5 pb-0 lg:p-6 lg:pr-3">
               <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden bg-black/20 shadow-lg">
-                <img
+                <OptimizedImage
                   src={registerPriestImg}
+                  webpSrc={registerPriestImgWebp}
                   alt="Find & register your native temple or puja committee — Sri Dwar"
                   className="h-full w-full object-contain object-center"
                   style={{ display: "block", opacity: 0.97 }}
                   loading="lazy"
-                  decoding="async"
                 />
               </div>
 
@@ -3109,13 +3114,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             {/* Image — left column on desktop, top on mobile. No wasted margin around it. */}
             <div className="w-full lg:w-[38%] lg:shrink-0 p-5 pb-0 lg:p-6 lg:pr-3">
               <div className="w-full aspect-[3/2] rounded-2xl overflow-hidden bg-black/20 shadow-lg">
-                <img
+                <OptimizedImage
                   src={registerDevotteeImg}
+                  webpSrc={registerDevotteeImgWebp}
                   alt="Find & register your local pujari, pandit, guru, sant, sadhu & dharmic experts — Sri Dwar"
                   className="h-full w-full object-contain object-center"
                   style={{ display: "block", opacity: 0.97 }}
                   loading="lazy"
-                  decoding="async"
                 />
               </div>
 

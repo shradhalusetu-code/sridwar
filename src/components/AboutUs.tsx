@@ -6,8 +6,13 @@
 import { useState, ReactNode } from "react";
 import { Sparkles, Award, Heart, ShieldCheck, Users, Linkedin, ArrowUpRight, ChevronDown } from "lucide-react";
 import SacredIcon from "./SacredIcon";
+import OptimizedImage from "./OptimizedImage";
 import kunuPhoto from "../assets/images/Kunu.jpg";
+// @ts-ignore
+import kunuPhotoWebp from "../assets/images/Kunu.webp";
 import harmohanPhoto from "../assets/images/Harmohan.jpg";
+// @ts-ignore
+import harmohanPhotoWebp from "../assets/images/Harmohan.webp";
 
 interface Founder {
   id: string;
@@ -17,6 +22,7 @@ interface Founder {
   bio: string;
   pills: { icon: ReactNode; label: string }[];
   photo: string;
+  photoWebp: string;
   linkedin: string;
 }
 
@@ -33,6 +39,7 @@ const FOUNDERS: Founder[] = [
       { icon: <Award className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Serving Devotees Worldwide" },
     ],
     photo: kunuPhoto,
+    photoWebp: kunuPhotoWebp,
     linkedin: "https://www.linkedin.com/in/kunurana/",
   },
   {
@@ -47,6 +54,7 @@ const FOUNDERS: Founder[] = [
       { icon: <Award className="w-3.5 h-3.5 text-[#5EEAD4]" />, label: "Building for the Long Term" },
     ],
     photo: harmohanPhoto,
+    photoWebp: harmohanPhotoWebp,
     linkedin: "https://www.linkedin.com/in/harmohan-rana/",
   },
 ];
@@ -86,13 +94,13 @@ function FounderCard({ founder }: { founder: Founder }) {
 
           <div className="absolute inset-0 rounded-full glow-gold bg-[#092320] overflow-hidden">
             {!imgFailed ? (
-              <img
+              <OptimizedImage
                 src={founder.photo}
+                webpSrc={founder.photoWebp}
                 alt={`${founder.name}, ${founder.title.split(" — ")[0]} of Sri Dwar`}
                 referrerPolicy="no-referrer"
                 onError={() => setImgFailed(true)}
                 loading="lazy"
-                decoding="async"
                 width={320}
                 height={320}
                 className="w-full h-full object-contain rounded-full border-4 border-[#FFB347]"
@@ -236,11 +244,10 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
           {/* Graphic/Illustration Image (cols 5) */}
           <div className="lg:col-span-5 relative w-full flex justify-center">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#092320] w-full max-w-sm aspect-square">
-              <img
+              <OptimizedImage
                 src={import.meta.env.BASE_URL + "images/connect.jpg"}
                 alt="Sri Dwar Divine Mission - Sacred Temple Devotion & Priestly Connection"
                 loading="lazy"
-                decoding="async"
                 width={480}
                 height={480}
                 className="w-full h-full object-cover rounded-2xl hover:scale-105 transition-transform duration-700"

@@ -19,6 +19,7 @@ import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
 import BazaarOfferingCard from "./BazaarOfferingCard";
+import OptimizedImage from "./OptimizedImage";
 import {
   BAZAAR_PRODUCTS, BAZAAR_CATEGORIES, BAZAAR_DELIVERY_NOTE, BAZAAR_TRUST_COPY,
   BAZAAR_DISCLAIMER, BazaarProduct,
@@ -590,11 +591,10 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
               {/* Image */}
               <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#0D2F2B]">
                 {item.imageUrl ? (
-                  <img
+                  <OptimizedImage
                     src={item.imageUrl}
                     alt={item.name}
                     loading="lazy"
-                    decoding="async"
                     width={480}
                     height={320}
                     className="w-full h-full object-cover filter brightness-90"
