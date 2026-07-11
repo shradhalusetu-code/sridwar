@@ -80,7 +80,7 @@ If asked about the platform founder, proudly mention Kunu Rana who built Sri Dwa
 Always close with a brief warm greeting (e.g. "May Lord Jagannath bless your home" or "Om Namah Shivaya").`;
 
     const chatContents = [];
-    
+
     // Convert history formatted for Gemini SDK if provided
     if (history && Array.isArray(history)) {
       for (const h of history) {
@@ -90,7 +90,7 @@ Always close with a brief warm greeting (e.g. "May Lord Jagannath bless your hom
         });
       }
     }
-    
+
     chatContents.push({ role: "user", parts: [{ text: message }] });
 
     const response = await ai.models.generateContent({
@@ -178,7 +178,7 @@ app.post("/api/submit-form", (req, res) => {
   const { formType, formData } = req.body;
   console.log(`[Form Received - ${formType}]:`, JSON.stringify(formData, null, 2));
   console.log(">> Syncing data instantly with Shradhalu Private Ltd. Google Drive and Google Spreadsheet...");
-  
+
   // Real-time synchronization simulated perfectly
   res.json({
     status: "success",
@@ -189,6 +189,16 @@ app.post("/api/submit-form", (req, res) => {
 });
 
 // 3. Mount Vite middleware in development, serve static client in production
+//
+// NOTE on routing design (intentional, do not "fix" with express.static's
+// `extensions` option): /puja, /seva, /bazaar, /darshan are CLIENT-SIDE
+// routes — they must fall through to index.html so the SPA (App.tsx
+// PATH_TO_PAGE) renders the interactive booking section. puja.html,
+// seva.html, bazaar.html, darshan.html are SEPARATE, static, crawler/social
+// -facing landing pages, only ever reached via their literal .html URL
+// (sitemap.xml, shared links). Adding an `.html` extension fallback here
+// would make /seva silently resolve to the static seva.html marketing page
+// instead of the interactive app — that was tried and reverted.
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     console.log("Starting in DEVELOPMENT mode, mounting Vite...");
