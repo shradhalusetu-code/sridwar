@@ -52,7 +52,11 @@ const GUIDANCE_POINTS: { icon: ElementType; title: string; desc: string }[] = [
   },
 ];
 
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating }: { rating?: number }) {
+  // `rating` is intentionally optional (see PriestProfile in types.ts) so we
+  // never fabricate a score for a priest without real, aggregated devotee
+  // reviews. Render nothing rather than crashing on `undefined.toFixed()`.
+  if (rating == null) return null;
   return (
     <span className="flex items-center gap-1 text-[#FFB347] text-xs font-bold">
       <Star className="w-3.5 h-3.5 fill-[#FFB347]" />
