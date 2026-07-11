@@ -42,6 +42,71 @@
   }
   </script>
 
+  <!-- BreadcrumbList — shows Home > Sponsor Seva in Google search results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sridwar.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Sponsor Seva", "item": "https://sridwar.com/seva.html" }
+    ]
+  }
+  </script>
+
+  <!-- FAQPage — used by Google to understand page content and by AI answer
+       engines (ChatGPT, Perplexity, Gemini) that source and summarize content.
+       Keep in sync with the visible FAQ section below and with FAQ_DATA in
+       src/components/FAQs.tsx if you edit either. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is the food prepared for Annadanam completely pure vegetarian?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. The food is cooked exclusively inside the official temple kitchens following rigorous cleanliness codes, with no onions or garlic, using pure cow ghee, organic seasonal grains, and traditional Vedic recipes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How often should I sponsor a Gau Seva for optimal planetary peace?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "According to Vedic astrology, serving holy cows on Wednesdays (Mercury), Thursdays (Jupiter), and Saturdays (Rahu/Ketu remedies) is considered auspicious. Sponsoring a monthly or annual Gau Seva is believed to support continuous karmic mitigation and home peace."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Will I receive an official donation receipt for Annadanam sponsorships?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Charitable sevas like Annadanam, when arranged through the pujaris we work with, generate an official donation receipt sent to your registered email within 7 working days, which may be eligible for tax exemption under applicable regional provisions. We recommend confirming eligibility with your tax advisor."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I dedicate a seva to someone else, like family living abroad?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. During checkout you can dedicate the seva to a family member or friend and enter their name and intention. They can receive a personalized notification confirming the seva performed in their honor, along with photo proof, even if you're the one arranging it."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer bulk or corporate CSR seva packages?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. We support bulk seva sponsorships for corporate CSR initiatives, community welfare drives, and group family functions, including consolidated billing and dedicated account management. Reach out to our Devotee Support team to set up a tailored organizational plan."
+        }
+      }
+    ]
+  }
+  </script>
+
   <style>
     :root {
       --bg:        #021816;
@@ -187,6 +252,19 @@
     .price-table td.ptemple { font-size: 0.75rem; color: var(--muted); }
     .price-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; white-space: nowrap; }
     .card-img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
+
+    .breadcrumb { max-width: 760px; margin: 14px auto 0; padding: 0 20px; font-size: 0.78rem; color: var(--muted); }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--gold); }
+    .breadcrumb .sep { margin: 0 6px; color: var(--border); }
+    .breadcrumb .current { color: var(--gold); }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-item summary { cursor: pointer; font-weight: 600; color: var(--white); font-size: 0.95rem; list-style: none; }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::before { content: '+'; color: var(--gold); margin-right: 10px; font-weight: 700; }
+    .faq-item[open] summary::before { content: '−'; }
+    .faq-item p { margin-top: 10px; color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
   </style>
 </head>
 <body>
@@ -200,6 +278,10 @@
     <span class="topbar-sep">·</span>
     <span class="topbar-sub">Seva Sponsorship</span>
   </div>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="sep">›</span><span class="current">Sponsor Seva</span>
+  </nav>
 
 
   <div class="hero">
@@ -293,6 +375,30 @@
         "Sponsored Annadaan in memory of my grandparents. A truly meaningful experience."
         <span class="testimonial-by">— Rahul, Nagpur</span>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>Frequently asked questions</h2>
+      <details class="faq-item" open>
+        <summary>Is the food prepared for Annadanam completely pure vegetarian?</summary>
+        <p>Yes. The food is cooked exclusively inside the official temple kitchens following rigorous cleanliness codes, with no onions or garlic, using pure cow ghee, organic seasonal grains, and traditional Vedic recipes.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How often should I sponsor a Gau Seva for optimal planetary peace?</summary>
+        <p>According to Vedic astrology, serving holy cows on Wednesdays (Mercury), Thursdays (Jupiter), and Saturdays (Rahu/Ketu remedies) is considered auspicious. Sponsoring a monthly or annual Gau Seva is believed to support continuous karmic mitigation and home peace.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Will I receive an official donation receipt for Annadanam sponsorships?</summary>
+        <p>Yes. Charitable sevas like Annadanam, when arranged through the pujaris we work with, generate an official donation receipt sent to your registered email within 7 working days, which may be eligible for tax exemption under applicable regional provisions. We recommend confirming eligibility with your tax advisor.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I dedicate a seva to someone else, like family living abroad?</summary>
+        <p>Yes. During checkout you can dedicate the seva to a family member or friend and enter their name and intention. They can receive a personalized notification confirming the seva performed in their honor, along with photo proof, even if you're the one arranging it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do you offer bulk or corporate CSR seva packages?</summary>
+        <p>Yes. We support bulk seva sponsorships for corporate CSR initiatives, community welfare drives, and group family functions, including consolidated billing and dedicated account management. Reach out to our Devotee Support team to set up a tailored organizational plan.</p>
+      </details>
     </div>
 
     <div class="footer-cta">

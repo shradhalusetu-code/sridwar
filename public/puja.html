@@ -42,6 +42,80 @@
   }
   </script>
 
+  <!-- BreadcrumbList — shows Home > Book Online Puja in Google search results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sridwar.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Book Online Puja", "item": "https://sridwar.com/puja.html" }
+    ]
+  }
+  </script>
+
+  <!-- FAQPage — used by Google to understand page content (visual FAQ snippet was
+       deprecated May 2026, but the markup itself is still processed) and by AI
+       answer engines (ChatGPT, Perplexity, Gemini) that source and summarize
+       content. Keep this in sync with the visible FAQ section further down the
+       page and with FAQ_DATA in src/components/FAQs.tsx if you edit either. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do you perform pujas individually in my name and Gotra?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every puja booked on Sri Dwar is a personalized ceremony. We collect your name, Gotra, and Vedic Rashi during booking, and the temple priest voices your sankalpa aloud inside the temple sanctorum, invoking blessings specifically on your behalf."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What if I don't know my specific Gotra lineage?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "If you're unsure of your family's Gotra, you can specify 'Shiva Gotra' or 'Kashyap Gotra'. In Vedic tradition, Rishi Kashyap and Lord Shiva are regarded as universal ancestors of all living souls, making this a spiritually accepted default."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How far in advance should I book a puja, especially around festivals?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We recommend booking at least 5-7 days ahead for standard rituals. During high-demand festival windows such as Navratri, Diwali, or Maha Shivratri, priest slots fill quickly, so booking 2-3 weeks in advance is strongly advised."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I choose a specific priest to perform my puja?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We assign an experienced priest by default to ensure standard adherence. For Maha Puja tiers, you can request a specific priest through the special instructions field during booking."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens if my assigned priest is unavailable on the scheduled date?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "In rare cases of priest unavailability, our temple coordination team immediately assigns an equally experienced priest of the same lineage and tradition to perform your ritual at the original scheduled time, so your puja is never delayed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is your cancellation and refund policy for puja bookings?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Cancellations made more than 48 hours before the scheduled puja are eligible for a full refund or Sri Dwar wallet credit, processed within 5-7 business days. Cancellations within 48 hours may carry a partial priest-engagement fee, since the temple slot is reserved in your name."
+        }
+      }
+    ]
+  }
+  </script>
+
   <style>
     :root {
       --bg:        #021816;
@@ -187,6 +261,19 @@
     .price-table td.ptemple { font-size: 0.75rem; color: var(--muted); }
     .price-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; white-space: nowrap; }
     .card-img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
+
+    .breadcrumb { max-width: 760px; margin: 14px auto 0; padding: 0 20px; font-size: 0.78rem; color: var(--muted); }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--gold); }
+    .breadcrumb .sep { margin: 0 6px; color: var(--border); }
+    .breadcrumb .current { color: var(--gold); }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-item summary { cursor: pointer; font-weight: 600; color: var(--white); font-size: 0.95rem; list-style: none; }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::before { content: '+'; color: var(--gold); margin-right: 10px; font-weight: 700; }
+    .faq-item[open] summary::before { content: '−'; }
+    .faq-item p { margin-top: 10px; color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
   </style>
 </head>
 <body>
@@ -200,6 +287,10 @@
     <span class="topbar-sep">·</span>
     <span class="topbar-sub">Online Puja Booking</span>
   </div>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="sep">›</span><span class="current">Book Online Puja</span>
+  </nav>
 
 
   <div class="hero">
@@ -308,6 +399,34 @@
         "Booked Rudrabhishek from the USA. The entire process was smooth and trustworthy."
         <span class="testimonial-by">— Rohan, Pune</span>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>Frequently asked questions</h2>
+      <details class="faq-item" open>
+        <summary>How do you perform pujas individually in my name and Gotra?</summary>
+        <p>Every puja booked on Sri Dwar is a personalized ceremony. We collect your name, Gotra, and Vedic Rashi during booking, and the temple priest voices your sankalpa aloud inside the temple sanctorum, invoking blessings specifically on your behalf.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What if I don't know my specific Gotra lineage?</summary>
+        <p>If you're unsure of your family's Gotra, you can specify "Shiva Gotra" or "Kashyap Gotra". In Vedic tradition, Rishi Kashyap and Lord Shiva are regarded as universal ancestors of all living souls, making this a spiritually accepted default.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How far in advance should I book a puja, especially around festivals?</summary>
+        <p>We recommend booking at least 5-7 days ahead for standard rituals. During high-demand festival windows such as Navratri, Diwali, or Maha Shivratri, priest slots fill quickly, so booking 2-3 weeks in advance is strongly advised.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I choose a specific priest to perform my puja?</summary>
+        <p>We assign an experienced priest by default to ensure standard adherence. For Maha Puja tiers, you can request a specific priest through the special instructions field during booking.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What happens if my assigned priest is unavailable on the scheduled date?</summary>
+        <p>In rare cases of priest unavailability, our temple coordination team immediately assigns an equally experienced priest of the same lineage and tradition to perform your ritual at the original scheduled time, so your puja is never delayed.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is your cancellation and refund policy for puja bookings?</summary>
+        <p>Cancellations made more than 48 hours before the scheduled puja are eligible for a full refund or Sri Dwar wallet credit, processed within 5-7 business days. Cancellations within 48 hours may carry a partial priest-engagement fee, since the temple slot is reserved in your name.</p>
+      </details>
     </div>
 
     <div class="footer-cta">

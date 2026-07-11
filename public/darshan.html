@@ -42,6 +42,71 @@
   }
   </script>
 
+  <!-- BreadcrumbList — shows Home > Live Darshan in Google search results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sridwar.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Live Darshan", "item": "https://sridwar.com/darshan.html" }
+    ]
+  }
+  </script>
+
+  <!-- FAQPage — used by Google to understand page content and by AI answer
+       engines (ChatGPT, Perplexity, Gemini) that source and summarize content.
+       Keep in sync with the visible FAQ section below and with FAQ_DATA in
+       src/components/FAQs.tsx if you edit either. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I view the live darshan stream?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Once darshan is scheduled, you'll receive real-time updates with the stream link, viewable directly in your Devotee Workspace. A recorded archive is also kept accessible for family review."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How can I be confident the live darshan stream is authentic?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every streaming link comes from our on-site representative or the priest performing the ritual at that temple, so the darshan you see is tied directly to the actual aarti happening at that moment."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How are darshan timings adjusted for devotees in different time zones?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "All scheduled darshan times are set in Indian Standard Time (IST) to match temple sanctum hours. Your Devotee Workspace automatically converts and displays these timings in your local time zone, and reminder notifications account for the conversion."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "In which languages is darshan support available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our Devotee Support desk assists in English, Hindi, Odia, Telugu, and Tamil over chat, email, and WhatsApp."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to install an app to watch live darshan?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Sri Dwar is fully accessible through your mobile browser with no installation required. A dedicated native app for iOS and Android is currently in development for added offline access and push notifications."
+        }
+      }
+    ]
+  }
+  </script>
+
   <style>
     :root {
       --bg:        #021816;
@@ -187,6 +252,19 @@
     .price-table td.ptemple { font-size: 0.75rem; color: var(--muted); }
     .price-table td:last-child { text-align: right; color: var(--gold); font-weight: 700; white-space: nowrap; }
     .card-img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 14px; border: 1px solid var(--border); }
+
+    .breadcrumb { max-width: 760px; margin: 14px auto 0; padding: 0 20px; font-size: 0.78rem; color: var(--muted); }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--gold); }
+    .breadcrumb .sep { margin: 0 6px; color: var(--border); }
+    .breadcrumb .current { color: var(--gold); }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-item summary { cursor: pointer; font-weight: 600; color: var(--white); font-size: 0.95rem; list-style: none; }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::before { content: '+'; color: var(--gold); margin-right: 10px; font-weight: 700; }
+    .faq-item[open] summary::before { content: '−'; }
+    .faq-item p { margin-top: 10px; color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
   </style>
 </head>
 <body>
@@ -200,6 +278,10 @@
     <span class="topbar-sep">·</span>
     <span class="topbar-sub">Live Darshan</span>
   </div>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="sep">›</span><span class="current">Live Darshan</span>
+  </nav>
 
 
   <div class="hero">
@@ -267,6 +349,30 @@
         "The live darshan from Badrinath felt as if we were standing inside the temple."
         <span class="testimonial-by">— Shiv, Kolkata</span>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>Frequently asked questions</h2>
+      <details class="faq-item" open>
+        <summary>How do I view the live darshan stream?</summary>
+        <p>Once darshan is scheduled, you'll receive real-time updates with the stream link, viewable directly in your Devotee Workspace. A recorded archive is also kept accessible for family review.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How can I be confident the live darshan stream is authentic?</summary>
+        <p>Every streaming link comes from our on-site representative or the priest performing the ritual at that temple, so the darshan you see is tied directly to the actual aarti happening at that moment.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How are darshan timings adjusted for devotees in different time zones?</summary>
+        <p>All scheduled darshan times are set in Indian Standard Time (IST) to match temple sanctum hours. Your Devotee Workspace automatically converts and displays these timings in your local time zone, and reminder notifications account for the conversion.</p>
+      </details>
+      <details class="faq-item">
+        <summary>In which languages is darshan support available?</summary>
+        <p>Our Devotee Support desk assists in English, Hindi, Odia, Telugu, and Tamil over chat, email, and WhatsApp.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do I need to install an app to watch live darshan?</summary>
+        <p>No. Sri Dwar is fully accessible through your mobile browser with no installation required. A dedicated native app for iOS and Android is currently in development for added offline access and push notifications.</p>
+      </details>
     </div>
 
     <div class="footer-cta">
