@@ -180,6 +180,27 @@ export default function App() {
     Object.entries(PAGE_PATHS).map(([page, urlPath]) => [urlPath, page])
   );
 
+  // ── Trailing-slash normalizer ──────────────────────────────────────────
+  // PATH_TO_PAGE only has entries WITHOUT a trailing slash (e.g. "/seva",
+  // not "/seva/") because that's the canonical form PAGE_PATHS defines and
+  // the form every in-app navigation (handleNavigate, the hash deep-link
+  // block above) actually writes to the address bar.
+  //
+  // But devotees don't always type/land on the canonical form. /seva,
+  // /puja, /bazaar, /darshan, /temple-register and /login have NO matching
+  // physical file or directory on GitHub Pages (unlike /about/, /contact/,
+  // /founder-story/, /priests/, /devotee-register/, which are real
+  // directories with their own index.html). So a request to
+  // "https://sridwar.com/seva/" (trailing slash) 404s, 404.html saves the
+  // *exact* requested path — "/seva/", slash and all — into
+  // sessionStorage, and bounces to "/". Without normalizing here, looking
+  // up PATH_TO_PAGE["/seva/"] misses (only "/seva" is a key), so the
+  // devotee silently lands on Home instead of the Seva section, even
+  // though "/seva" (no slash) works perfectly fine. That's the bug this
+  // normalizer fixes: strip a single trailing slash (but never touch the
+  // root "/" itself) before every PATH_TO_PAGE lookup below.
+  const normalizePath = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+
   const handleNavigate = (page: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
     setCurrentPage(page);
@@ -331,18 +352,28 @@ export default function App() {
     // path into sessionStorage before bouncing them to "/". Pick it up
     // here, open the right page, then restore the real path in the address
     // bar.
+    //
+    // normalizePath() handles the trailing-slash case (e.g. a devotee
+    // visiting "/seva/" instead of "/seva" — see the comment on
+    // normalizePath above for why that matters). We still restore the
+    // address bar to the CANONICAL path from PAGE_PATHS (no trailing
+    // slash) rather than replaying whatever the devotee actually typed, so
+    // "/seva" and "/seva/" both end up showing the same clean
+    // "https://sridwar.com/seva" — matching every other way of reaching
+    // this page (nav clicks, the hash deep links from /public pages, etc).
     const redirectPath = sessionStorage.getItem("redirectPath");
     if (redirectPath) {
       sessionStorage.removeItem("redirectPath");
-      const pageFromRedirect = PATH_TO_PAGE[redirectPath];
+      const pageFromRedirect = PATH_TO_PAGE[normalizePath(redirectPath)];
       if (pageFromRedirect && pageFromRedirect !== "home") {
         setCurrentPage(pageFromRedirect);
-        window.history.replaceState(window.history.state, "", redirectPath);
+        const cleanPathFromRedirect = PAGE_PATHS[pageFromRedirect] || redirectPath;
+        window.history.replaceState(window.history.state, "", cleanPathFromRedirect);
       }
     } else if (!hashPage) {
       // Local dev fallback (e.g. `npm run dev` opened directly at
       // localhost:3000/seva, where there is no 404.html redirect step).
-      const pageFromCurrentPath = PATH_TO_PAGE[window.location.pathname];
+      const pageFromCurrentPath = PATH_TO_PAGE[normalizePath(window.location.pathname)];
       if (pageFromCurrentPath && pageFromCurrentPath !== "home") {
         setCurrentPage(pageFromCurrentPath);
       }
