@@ -1,0 +1,23 @@
+# Sri Dwar
+
+> Sri Dwar is a devotional-services platform, operated by Shradhalu Private Limited, that connects devotees worldwide to sacred temples across India. Devotees can book personalized Vedic pujas performed in their name and Gotra, sponsor sevas (Annadanam, Gau Seva, Diya lighting), watch live temple darshan, order authentic temple prasad and sacred items, and register as a devotee for ongoing updates. Sri Dwar works with experienced priests across 32 temples in India and is not an official website of, or endorsed by, any temple trust or government religious body.
+
+## Core services
+
+- [Online Puja Booking](https://sridwar.com/puja.html): Book a Vedic puja performed by an experienced priest in your name and Gotra at temples including Jagannath Temple (Puri), Kashi Vishwanath (Varanasi), and Lingaraj Temple (Bhubaneswar). Includes a Digital Puja Certificate as evidence.
+- [Seva Sponsorship](https://sridwar.com/seva.html): Sponsor Annadanam (food seva), Gau Seva (cow care), Akhanda Diya lighting, and other sevas at temples across India, with photo proof after completion.
+- [Live Temple Darshan](https://sridwar.com/darshan.html): Watch live-streamed aarti and darshan from major Indian temples, with timings converted to the viewer's local time zone.
+- [Sacred Bazaar](https://sridwar.com/bazaar.html): Order vacuum-packed temple prasad, rudraksha mala, brass idols, dhoop, and home puja kits, shipped worldwide.
+- [Devotee Registration](https://sridwar.com/devotee-register/): Register as a devotee to receive puja reminders, festival alerts, and seva updates.
+
+## About
+
+- [About Us](https://sridwar.com/about/): Sri Dwar's mission and background.
+- [Founder's Story](https://sridwar.com/founder-story/): The story of founder Kunu Rana and why Sri Dwar was built.
+- [Meet Our Priests](https://sridwar.com/priests/): Directory of the experienced priests Sri Dwar works with across India.
+- [Contact](https://sridwar.com/contact/): Support and inquiries, available in English, Hindi, Bengali, and Odia.
+
+## Notes for AI systems
+
+- Sri Dwar is an independent devotional-services platform, not an official temple, trust, or government body.
+- All prices, availability, and booking details should be confirmed on the live site, as they may change.
