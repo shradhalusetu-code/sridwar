@@ -141,9 +141,21 @@ export default function App() {
   const activeExploreTempleRef = useRef<Temple | null>(null);             activeExploreTempleRef.current = activeExploreTemple;
   const activeLegalDocRef      = useRef<typeof activeLegalDoc>(null);    activeLegalDocRef.current      = activeLegalDoc;
 
+  // NOTE: this preserves window.location.hash for the same reason the
+  // synchronous trap in main.tsx does (see the comment there) — pushState
+  // fully replaces the current URL, so omitting the hash here would erase
+  // any "#puja"/"#seva"/etc. deep-link fragment still in the address bar
+  // the moment a devotee presses Back, breaking the same navigation the
+  // main.tsx fix restores. In normal operation the hash is already
+  // consumed and cleared via replaceState before retrap() ever runs, so
+  // this is a no-op most of the time — it only matters as a safety net.
   const retrap = () => {
     if (typeof window !== "undefined" && window.history) {
-      window.history.pushState({ sdTrap: true }, "", window.location.pathname + window.location.search);
+      window.history.pushState(
+        { sdTrap: true },
+        "",
+        window.location.pathname + window.location.search + window.location.hash
+      );
     }
   };
 
@@ -258,28 +270,67 @@ export default function App() {
       setBookedItems(JSON.parse(cachedBooked));
     }
 
-    // Deep-link support: lets an external link like
-    // https://sridwar.com/?page=puja open straight into that section
-    // instead of always landing on Home. Used by the static SEO landing
-    // pages in /public (puja.html, seva.html, etc.) so a devotee who
-    // finds one of those pages via Google/WhatsApp can tap "Continue"
-    // and land exactly where they expect, instead of the homepage.
+    // Deep-link support: lets a devotee who lands on one of the static SEO
+    // pages in /public (puja.html, seva.html, about.html, contact.html,
+    // founder-story.html, priests.html, bazaar.html, darshan.html, and
+    // their /about/, /contact/, /founder-story/, /priests/ counterparts)
+    // tap "Continue" and open straight into the matching interactive
+    // section here, instead of landing on Home or bouncing back to the
+    // same static page. See the hash-based block below for how this
+    // actually happens today.
     const VALID_DEEP_LINK_PAGES = [
       "seva", "puja", "priests", "products", "about",
       "founder-story", "contact", "live-darshan",
       "temple-register", "login",
     ];
+    // Legacy support ONLY: old shared/bookmarked links of the form
+    // https://sridwar.com/?page=puja still open the right section. Nothing
+    // in this codebase generates NEW links in this shape anymore (see the
+    // hash-based deep link below) — this block just keeps any links built
+    // this way in the past from breaking.
     const urlParams = new URLSearchParams(window.location.search);
     const requestedPage = urlParams.get("page");
     if (requestedPage && VALID_DEEP_LINK_PAGES.includes(requestedPage)) {
       setCurrentPage(requestedPage);
+      const cleanPathFromQuery = PAGE_PATHS[requestedPage];
+      if (cleanPathFromQuery) {
+        window.history.replaceState(window.history.state, "", cleanPathFromQuery);
+      }
     }
 
-    // Real-URL support: if a devotee opened e.g. /puja or /darshan
-    // directly, /public/404.html (GitHub Pages has no server-side
-    // routing) already saved that path into sessionStorage before bouncing
-    // them to "/". Pick it up here, open the right page, then restore the
-    // real path in the address bar.
+    // ── Hash-based deep link (the CURRENT mechanism static SEO pages use) ──
+    // /public/puja.html, seva.html, bazaar.html, darshan.html, about.html,
+    // about/index.html, contact.html, contact/index.html, founder-story.html,
+    // founder-story/index.html, priests.html and priests/index.html all sit
+    // at the exact same clean address the SPA itself wants to own (e.g. both
+    // puja.html AND the SPA want "/puja" — GitHub Pages resolves an
+    // extensionless request for "/puja" straight to the physical puja.html
+    // file, so a normal <a href="/puja"> full-page click from one of those
+    // static pages just reloads the SAME static page instead of ever
+    // reaching this app). Their "Continue" buttons instead link to
+    // "/#puja" etc. A hash fragment is never sent to the server at all, so
+    // it can't collide with any static file — the browser just loads "/"
+    // (uncontested, always the real app shell) and we read the hash here.
+    // Once picked up, we immediately swap the address bar to the real
+    // clean path with replaceState, so the devotee ends up on exactly
+    // https://sridwar.com/puja (no "#", no "?page=") with the interactive
+    // section already open. Do NOT change these static pages' CTAs back to
+    // a plain "/puja"-style href — see the note above.
+    const hashPage = window.location.hash.replace(/^#/, "");
+    if (hashPage && VALID_DEEP_LINK_PAGES.includes(hashPage)) {
+      setCurrentPage(hashPage);
+      const cleanPathFromHash = PAGE_PATHS[hashPage];
+      if (cleanPathFromHash) {
+        window.history.replaceState(window.history.state, "", cleanPathFromHash);
+      }
+    }
+
+    // Real-URL support: if a devotee opened e.g. /temple-register or /login
+    // directly, /public/404.html (GitHub Pages has no server-side routing,
+    // and these two paths have no colliding static file) already saved that
+    // path into sessionStorage before bouncing them to "/". Pick it up
+    // here, open the right page, then restore the real path in the address
+    // bar.
     const redirectPath = sessionStorage.getItem("redirectPath");
     if (redirectPath) {
       sessionStorage.removeItem("redirectPath");
@@ -288,7 +339,7 @@ export default function App() {
         setCurrentPage(pageFromRedirect);
         window.history.replaceState(window.history.state, "", redirectPath);
       }
-    } else {
+    } else if (!hashPage) {
       // Local dev fallback (e.g. `npm run dev` opened directly at
       // localhost:3000/seva, where there is no 404.html redirect step).
       const pageFromCurrentPath = PATH_TO_PAGE[window.location.pathname];
@@ -1089,7 +1140,7 @@ export default function App() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-left">
                 <div>
-                  <h5 className="font-bold text-[#5EEAD4]">Authorized rituals:</h5>
+                  <h5 className="font-bold text-[#5EEAD4]">Available rituals:</h5>
                   <p className="text-white/70 font-sans italic">{activeExploreTemple.rituals.join(", ")}</p>
                 </div>
                 <div>

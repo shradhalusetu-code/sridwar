@@ -43,7 +43,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-5",
     category: "Platform",
     question: "How does Sri Dwar coordinate rituals at the listed temples?",
-    answer: "Sri Dwar is an AI-powered faith-tech platform that works with revered pujaris who bring deep experience in their respective devotional and ritual domains. Every puja, seva, and dakshina is recorded, verified, and managed by Sri Dwar's administration together with the performing priest, under the corporate governance of Shradhalu Private Ltd."
+    answer: "Sri Dwar is an AI-powered faith-tech platform that works with revered pujaris from 32 temples across India, who bring deep experience in their respective devotional and ritual domains. As an external service provider, we coordinate puja and seva on behalf of devotees who cannot travel — every puja, seva, and dakshina is recorded and verified by Sri Dwar together with the performing priest."
   },
   {
     id: "faq-6",
@@ -175,7 +175,7 @@ const FAQ_DATA: FAQItem[] = [
     id: "faq-27",
     category: "Rituals",
     question: "Will I receive an official donation receipt for Annadanam or Gurukul Dan sponsorships for tax purposes?",
-    answer: "Yes. Charitable sevas like Annadanam and Gurukul Dan, when routed through our registered partner trusts, generate an official donation receipt sent to your registered email within 7 working days, which may be eligible for tax exemption under applicable regional charitable-donation provisions. We recommend confirming eligibility with your tax advisor."
+    answer: "Yes. Charitable sevas like Annadanam and Gurukul Dan, when arranged through the pujaris we work with, generate an official donation receipt sent to your registered email within 7 working days, which may be eligible for tax exemption under applicable regional charitable-donation provisions. We recommend confirming eligibility with your tax advisor."
   },
   {
     id: "faq-28",
@@ -392,7 +392,7 @@ export default function FAQs() {
         <div className="mt-8 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[11px] text-white/55 font-sans leading-relaxed">
           <span className="text-base shrink-0">📜</span>
           <p className="text-left">
-            <strong>Gotra & Sankalpa Verification SLA:</strong> All holy names registered on Sri Dwar are entered into physical Sanskrit registries at partnering shrines. If you require specialized astrology birth star analysis (Kundli) for exact nakshatras, consult your customized <strong>Dharmic Margadarshak</strong> sidebar guide immediately.
+            <strong>Gotra & Sankalpa Verification SLA:</strong> All holy names registered on Sri Dwar are entered into physical Sanskrit registries maintained by the pujaris we work with at each of the 32 temples. If you require specialized astrology birth star analysis (Kundli) for exact nakshatras, consult your customized <strong>Dharmic Margadarshak</strong> sidebar guide immediately.
           </p>
         </div>
 

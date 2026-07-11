@@ -9,9 +9,35 @@ import './index.css';
  * so the trap is in place from the very first millisecond the page is alive.
  * The App.tsx popstate handler then decides whether to go Home or let through.
  * Doing this here (module-level) avoids the React useEffect timing gap.
+ *
+ * ── ROUTING FIX ──────────────────────────────────────────────────────────
+ * This MUST include window.location.hash. Devotees land here from every
+ * "Continue" button on the static SEO pages in /public (puja.html,
+ * seva.html, bazaar.html, darshan.html, about/index.html, contact/index.html,
+ * founder-story/index.html, priests/index.html) via links like "/#puja",
+ * "/#seva", "/#products", "/#live-darshan", etc. Those pages intentionally
+ * link to a hash instead of a clean path (see the comment above the
+ * "Hash-based deep link" block in App.tsx for why).
+ *
+ * pushState() fully replaces the current URL with whatever string you pass
+ * it. The previous version of this trap pushed only
+ * `window.location.pathname + window.location.search`, which OMITS the
+ * hash — so the very first thing that happened on every page load was the
+ * "#puja"/"#seva"/"#products"/"#live-darshan"/"#about"/etc. fragment being
+ * silently erased from the address bar, synchronously, before React even
+ * mounted. By the time App.tsx's deep-link useEffect ran and checked
+ * window.location.hash to decide which section to open, the hash was
+ * already gone and it always fell through to Home. This is why every
+ * redirect button on the static /public pages appeared to do nothing (or
+ * bounced back to Home) instead of opening Seva, Puja, Bazaar, Darshan,
+ * etc. Keeping the hash here fixes it for every page at once.
  */
 if (typeof window !== 'undefined' && window.history && window.history.pushState) {
-  window.history.pushState({ sdTrap: true }, '', window.location.pathname + window.location.search);
+  window.history.pushState(
+    { sdTrap: true },
+    '',
+    window.location.pathname + window.location.search + window.location.hash
+  );
 }
 
 /*

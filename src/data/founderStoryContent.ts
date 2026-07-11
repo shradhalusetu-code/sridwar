@@ -149,7 +149,7 @@ export const FOUNDER_STORIES: Record<StoryLang, FounderStorySection[]> = {
         "By the time **Sri Dwar** had begun taking shape in my heart, life had already entrusted me with another sacred responsibility—I had become a mother.",
         "My two little children were both under the age of five.",
         "They didn't understand startups.",
-        "They didn't understand deadlines, product roadmaps, temple partnerships, or the countless decisions that accompany building something from nothing.",
+        "They didn't understand deadlines, product roadmaps, pujari onboarding, or the countless decisions that accompany building something from nothing.",
         "They only understood one thing.",
         "That their mother was home.",
         "And when she was home, they wanted all of her.",

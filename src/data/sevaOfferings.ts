@@ -71,7 +71,7 @@ export const SEVA_OFFERINGS: SevaOffering[] = [
     id: "seva-gau-feeding",
     title: "Gau Seva / Cow Feeding",
     category: "Gau Seva",
-    description: "Offer fresh fodder, jaggery, and roti to sacred cows at our partner Gaushalas — a seva believed to bring prosperity and remove obstacles.",
+    description: "Offer fresh fodder, jaggery, and roti to sacred cows at Gaushalas we work with — a seva believed to bring prosperity and remove obstacles.",
     includes: ["Fresh fodder, jaggery & roti for the cows sponsored", "Seva performed at a registered Gaushala", "Photo evidence of the feeding"],
     devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
     dropdownLabel: "Number of cows",

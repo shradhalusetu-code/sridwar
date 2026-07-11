@@ -301,9 +301,9 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                     </div>
                   </div>
 
-                  {/* Authorized Rituals */}
+                  {/* Available Rituals */}
                   <div className="space-y-1.5">
-                    <span className="block text-xs font-bold text-white/80">Authorized rituals:</span>
+                    <span className="block text-xs font-bold text-white/80">Available rituals:</span>
                     <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto pr-1">
                       {selectedTemple.rituals.map((ritual, idx) => (
                         <span
