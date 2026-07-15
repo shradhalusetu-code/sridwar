@@ -80,7 +80,7 @@
     <!-- ═══════════════════════════════════════════════════════════════
          PRIMARY SEO TAGS
     ═══════════════════════════════════════════════════════════════ -->
-    <title>Sri Dwar – Book Online Puja, Seva, Live Darshan & Sacred Prasad from India's Temples</title>
+    <title>Sri Dwar – Book Online Puja, Seva & Live Temple Darshan from India</title>
     <meta name="description" content="Sri Dwar connects global devotees to India's sacred temples — book online puja & seva with verified priests, watch live darshan, and order authentic prasad." />
     <meta name="keywords" content="online puja booking, temple darshan, seva booking, prasad online, vedic astrology, Hindu temple, puja at home, remote puja India, NRI puja booking, Sri Dwar, Shradhalu, Jagannath puja, temple donation" />
     <meta name="author" content="Shradhalu Private Limited" />
@@ -209,6 +209,23 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5CSKPDHS"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         SEO FIX — static <h1> for crawlers
+         This app renders client-side only (see <div id="root"> below), so
+         the real on-screen heading in Hero.tsx doesn't exist yet in the
+         raw HTML a crawler fetches — that's why automated audits (Bing
+         Webmaster Tools SEO check, 2026-07-15) flagged "the <h1> tag is
+         missing" on this page. This tag lives OUTSIDE #root, so React
+         never touches or removes it; it stays in the page for any crawler
+         that doesn't execute JS, while being visually hidden (not deleted
+         — screen readers still announce it) for everyone else, so nothing
+         about the visual design changes. Keep this in sync with Hero.tsx's
+         real <h1> if that headline ever changes.
+    ═══════════════════════════════════════════════════════════════ -->
+    <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+      Sri Dwar – Book Online Puja, Seva & Live Temple Darshan from India's Sacred Temples
+    </h1>
 
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
