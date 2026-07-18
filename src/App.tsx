@@ -27,10 +27,7 @@ import HolisticWellness from "./components/HolisticWellness";
 import TempleRegister from "./components/TempleRegister";
 import UPIPaymentModal from "./components/UPIPaymentModal";
 import OfferPopup from "./components/OfferPopup";
-import OptimizedImage from "./components/OptimizedImage";
 import sridwarQR from "./assets/images/SridwarQR.jpg";
-// @ts-ignore
-import sridwarQRWebp from "./assets/images/SridwarQR.webp";
 import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
 import { recordActivity, fetchActivities, ActivityRecord } from "./lib/activities";
 
@@ -141,21 +138,9 @@ export default function App() {
   const activeExploreTempleRef = useRef<Temple | null>(null);             activeExploreTempleRef.current = activeExploreTemple;
   const activeLegalDocRef      = useRef<typeof activeLegalDoc>(null);    activeLegalDocRef.current      = activeLegalDoc;
 
-  // NOTE: this preserves window.location.hash for the same reason the
-  // synchronous trap in main.tsx does (see the comment there) — pushState
-  // fully replaces the current URL, so omitting the hash here would erase
-  // any "#puja"/"#seva"/etc. deep-link fragment still in the address bar
-  // the moment a devotee presses Back, breaking the same navigation the
-  // main.tsx fix restores. In normal operation the hash is already
-  // consumed and cleared via replaceState before retrap() ever runs, so
-  // this is a no-op most of the time — it only matters as a safety net.
   const retrap = () => {
     if (typeof window !== "undefined" && window.history) {
-      window.history.pushState(
-        { sdTrap: true },
-        "",
-        window.location.pathname + window.location.search + window.location.hash
-      );
+      window.history.pushState({ sdTrap: true }, "", window.location.pathname + window.location.search);
     }
   };
 
@@ -180,26 +165,29 @@ export default function App() {
     Object.entries(PAGE_PATHS).map(([page, urlPath]) => [urlPath, page])
   );
 
-  // ── Trailing-slash normalizer ──────────────────────────────────────────
-  // PATH_TO_PAGE only has entries WITHOUT a trailing slash (e.g. "/seva",
-  // not "/seva/") because that's the canonical form PAGE_PATHS defines and
-  // the form every in-app navigation (handleNavigate, the hash deep-link
-  // block above) actually writes to the address bar.
-  //
-  // But devotees don't always type/land on the canonical form. /seva,
-  // /puja, /bazaar, /darshan, /temple-register and /login have NO matching
-  // physical file or directory on GitHub Pages (unlike /about/, /contact/,
-  // /founder-story/, /priests/, /devotee-register/, which are real
-  // directories with their own index.html). So a request to
-  // "https://sridwar.com/seva/" (trailing slash) 404s, 404.html saves the
-  // *exact* requested path — "/seva/", slash and all — into
-  // sessionStorage, and bounces to "/". Without normalizing here, looking
-  // up PATH_TO_PAGE["/seva/"] misses (only "/seva" is a key), so the
-  // devotee silently lands on Home instead of the Seva section, even
-  // though "/seva" (no slash) works perfectly fine. That's the bug this
-  // normalizer fixes: strip a single trailing slash (but never touch the
-  // root "/" itself) before every PATH_TO_PAGE lookup below.
-  const normalizePath = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+  // Matches the <title> already used on each page's static SEO landing
+  // page in /public (bazaar.html, darshan.html, etc.) word-for-word, so
+  // the SPA view and its matching static page never disagree. Without
+  // this, document.title never changes as currentPage changes, so every
+  // ?page=... URL and every real path (/puja, /seva, ...) all show the
+  // same static index.html title — which is exactly what Bing flagged
+  // as "too many pages with identical titles."
+  const PAGE_TITLES: Record<string, string> = {
+    "home": "Sri Dwar – Book Online Puja, Seva, Live Darshan & Sacred Prasad from India's Temples",
+    "seva": "Sponsor Seva – Annadanam, Gau Seva & Diya Lighting | Sri Dwar",
+    "puja": "Book Online Puja with Experienced Priests | Sri Dwar",
+    "priests": "Meet Our Priests – Sri Dwar",
+    "products": "Sacred Prasad, Rudraksha & Temple Products Online | Sri Dwar Bazaar",
+    "about": "About Sri Dwar – Sri Dwar",
+    "founder-story": "The Founder's Story – Sri Dwar",
+    "contact": "Contact Sri Dwar – Sri Dwar",
+    "live-darshan": "Live Temple Darshan Online – Watch Aarti from India | Sri Dwar",
+    "temple-register": "Register Your Temple or Priest Profile – Sri Dwar",
+    "login": "Sign In to Sri Dwar – My Account",
+  };
+  useEffect(() => {
+    document.title = PAGE_TITLES[currentPage] || PAGE_TITLES.home;
+  }, [currentPage]);
 
   const handleNavigate = (page: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -291,89 +279,40 @@ export default function App() {
       setBookedItems(JSON.parse(cachedBooked));
     }
 
-    // Deep-link support: lets a devotee who lands on one of the static SEO
-    // pages in /public (puja.html, seva.html, about.html, contact.html,
-    // founder-story.html, priests.html, bazaar.html, darshan.html, and
-    // their /about/, /contact/, /founder-story/, /priests/ counterparts)
-    // tap "Continue" and open straight into the matching interactive
-    // section here, instead of landing on Home or bouncing back to the
-    // same static page. See the hash-based block below for how this
-    // actually happens today.
+    // Deep-link support: lets an external link like
+    // https://sridwar.com/?page=puja open straight into that section
+    // instead of always landing on Home. Used by the static SEO landing
+    // pages in /public (puja.html, seva.html, etc.) so a devotee who
+    // finds one of those pages via Google/WhatsApp can tap "Continue"
+    // and land exactly where they expect, instead of the homepage.
     const VALID_DEEP_LINK_PAGES = [
       "seva", "puja", "priests", "products", "about",
       "founder-story", "contact", "live-darshan",
       "temple-register", "login",
     ];
-    // Legacy support ONLY: old shared/bookmarked links of the form
-    // https://sridwar.com/?page=puja still open the right section. Nothing
-    // in this codebase generates NEW links in this shape anymore (see the
-    // hash-based deep link below) — this block just keeps any links built
-    // this way in the past from breaking.
     const urlParams = new URLSearchParams(window.location.search);
     const requestedPage = urlParams.get("page");
     if (requestedPage && VALID_DEEP_LINK_PAGES.includes(requestedPage)) {
       setCurrentPage(requestedPage);
-      const cleanPathFromQuery = PAGE_PATHS[requestedPage];
-      if (cleanPathFromQuery) {
-        window.history.replaceState(window.history.state, "", cleanPathFromQuery);
-      }
     }
 
-    // ── Hash-based deep link (the CURRENT mechanism static SEO pages use) ──
-    // /public/puja.html, seva.html, bazaar.html, darshan.html, about.html,
-    // about/index.html, contact.html, contact/index.html, founder-story.html,
-    // founder-story/index.html, priests.html and priests/index.html all sit
-    // at the exact same clean address the SPA itself wants to own (e.g. both
-    // puja.html AND the SPA want "/puja" — GitHub Pages resolves an
-    // extensionless request for "/puja" straight to the physical puja.html
-    // file, so a normal <a href="/puja"> full-page click from one of those
-    // static pages just reloads the SAME static page instead of ever
-    // reaching this app). Their "Continue" buttons instead link to
-    // "/#puja" etc. A hash fragment is never sent to the server at all, so
-    // it can't collide with any static file — the browser just loads "/"
-    // (uncontested, always the real app shell) and we read the hash here.
-    // Once picked up, we immediately swap the address bar to the real
-    // clean path with replaceState, so the devotee ends up on exactly
-    // https://sridwar.com/puja (no "#", no "?page=") with the interactive
-    // section already open. Do NOT change these static pages' CTAs back to
-    // a plain "/puja"-style href — see the note above.
-    const hashPage = window.location.hash.replace(/^#/, "");
-    if (hashPage && VALID_DEEP_LINK_PAGES.includes(hashPage)) {
-      setCurrentPage(hashPage);
-      const cleanPathFromHash = PAGE_PATHS[hashPage];
-      if (cleanPathFromHash) {
-        window.history.replaceState(window.history.state, "", cleanPathFromHash);
-      }
-    }
-
-    // Real-URL support: if a devotee opened e.g. /temple-register or /login
-    // directly, /public/404.html (GitHub Pages has no server-side routing,
-    // and these two paths have no colliding static file) already saved that
-    // path into sessionStorage before bouncing them to "/". Pick it up
-    // here, open the right page, then restore the real path in the address
-    // bar.
-    //
-    // normalizePath() handles the trailing-slash case (e.g. a devotee
-    // visiting "/seva/" instead of "/seva" — see the comment on
-    // normalizePath above for why that matters). We still restore the
-    // address bar to the CANONICAL path from PAGE_PATHS (no trailing
-    // slash) rather than replaying whatever the devotee actually typed, so
-    // "/seva" and "/seva/" both end up showing the same clean
-    // "https://sridwar.com/seva" — matching every other way of reaching
-    // this page (nav clicks, the hash deep links from /public pages, etc).
+    // Real-URL support: if a devotee opened e.g. /puja or /darshan
+    // directly, /public/404.html (GitHub Pages has no server-side
+    // routing) already saved that path into sessionStorage before bouncing
+    // them to "/". Pick it up here, open the right page, then restore the
+    // real path in the address bar.
     const redirectPath = sessionStorage.getItem("redirectPath");
     if (redirectPath) {
       sessionStorage.removeItem("redirectPath");
-      const pageFromRedirect = PATH_TO_PAGE[normalizePath(redirectPath)];
+      const pageFromRedirect = PATH_TO_PAGE[redirectPath];
       if (pageFromRedirect && pageFromRedirect !== "home") {
         setCurrentPage(pageFromRedirect);
-        const cleanPathFromRedirect = PAGE_PATHS[pageFromRedirect] || redirectPath;
-        window.history.replaceState(window.history.state, "", cleanPathFromRedirect);
+        window.history.replaceState(window.history.state, "", redirectPath);
       }
-    } else if (!hashPage) {
+    } else {
       // Local dev fallback (e.g. `npm run dev` opened directly at
       // localhost:3000/seva, where there is no 404.html redirect step).
-      const pageFromCurrentPath = PATH_TO_PAGE[normalizePath(window.location.pathname)];
+      const pageFromCurrentPath = PATH_TO_PAGE[window.location.pathname];
       if (pageFromCurrentPath && pageFromCurrentPath !== "home") {
         setCurrentPage(pageFromCurrentPath);
       }
@@ -881,11 +820,11 @@ export default function App() {
 
               {/* Sri Dwar QR code — scan to connect on the go */}
               <div className="mt-5">
-                <OptimizedImage
+                <img
                   src={sridwarQR}
-                  webpSrc={sridwarQRWebp}
                   alt="Sri Dwar QR code — scan to connect"
                   loading="lazy"
+                  decoding="async"
                   width={112}
                   height={112}
                   className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-white/10 bg-white p-1 object-contain"
@@ -1118,10 +1057,10 @@ export default function App() {
             
             {/* Header Image — shrink-0 so it never scrolls away */}
             <div className="relative aspect-video bg-gray-900 border-b border-white/10 shrink-0">
-              <OptimizedImage
+              <img
                 src={activeExploreTemple.imageUrl}
                 alt={activeExploreTemple.name}
-                loading="eager"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover filter brightness-75"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#092320] via-[#092320]/30 to-transparent" />
@@ -1171,7 +1110,7 @@ export default function App() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-left">
                 <div>
-                  <h5 className="font-bold text-[#5EEAD4]">Available rituals:</h5>
+                  <h5 className="font-bold text-[#5EEAD4]">Authorized rituals:</h5>
                   <p className="text-white/70 font-sans italic">{activeExploreTemple.rituals.join(", ")}</p>
                 </div>
                 <div>
@@ -1240,10 +1179,11 @@ export default function App() {
                       className="flex items-start justify-between p-3.5 bg-white/5 border border-white/10 rounded-2xl relative"
                      >
                       <div className="flex items-start space-x-3 truncate">
-                        <OptimizedImage
+                        <img
                           src={item.product.imageUrl}
                           alt={item.product.name}
                           loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-xl object-cover shrink-0"
                           referrerPolicy="no-referrer"
                         />
