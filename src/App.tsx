@@ -173,14 +173,14 @@ export default function App() {
   // same static index.html title — which is exactly what Bing flagged
   // as "too many pages with identical titles."
   const PAGE_TITLES: Record<string, string> = {
-    "home": "Sri Dwar – Book Online Puja, Seva, Live Darshan & Sacred Prasad from India's Temples",
+    "home": "Sri Dwar | Online Puja Seva & Temple Services",
     "seva": "Sponsor Seva – Annadanam, Gau Seva & Diya Lighting | Sri Dwar",
     "puja": "Book Online Puja with Experienced Priests | Sri Dwar",
-    "priests": "Meet Our Priests – Sri Dwar",
+    "priests": "Meet Our Temple Priests Across India | Sri Dwar",
     "products": "Sacred Prasad, Rudraksha & Temple Products Online | Sri Dwar Bazaar",
-    "about": "About Sri Dwar – Sri Dwar",
-    "founder-story": "The Founder's Story – Sri Dwar",
-    "contact": "Contact Sri Dwar – Sri Dwar",
+    "about": "About Sri Dwar – Our Mission & Founder Story",
+    "founder-story": "The Founder's Story Behind Sri Dwar",
+    "contact": "Contact Sri Dwar – Support & Inquiries",
     "live-darshan": "Live Temple Darshan Online – Watch Aarti from India | Sri Dwar",
     "temple-register": "Register Your Temple or Priest Profile – Sri Dwar",
     "login": "Sign In to Sri Dwar – My Account",
