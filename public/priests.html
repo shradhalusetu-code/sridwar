@@ -4,21 +4,39 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Meet Our Priests – Sri Dwar</title>
-  <meta http-equiv="refresh" content="0; url=/priests/" />
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SEO FIX (Bing Webmaster Tools, 2026-07-17):
+       Same pattern already applied to devotee-register.html —
+       - "MetaRefresh tag exists" — removed <meta http-equiv="refresh">
+         and the window.location.replace() auto-redirect. GitHub Pages
+         has no server-side 301, so this page now shows real content
+         with a normal link instead of auto-navigating away.
+       - "The h1 tag is missing" — added a real, visible h1 below.
+       - "The description is missing in the head section" — added the
+         meta description tag below.
+       robots + canonical are UNCHANGED on purpose: this page still
+       points to https://sridwar.com/priests/ as the canonical URL, so
+       search engines index the real Priests page and not this notice.
+  ═══════════════════════════════════════════════════════════════ -->
+  <meta name="description" content="Meet the verified priests on Sri Dwar who perform online puja, seva, and rituals for devotees across India's most sacred temples." />
   <link rel="canonical" href="https://sridwar.com/priests/" />
   <meta name="robots" content="noindex, follow" />
+
   <style>
-    html, body { background:#021816; color:#fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    .wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; }
-    a { color:#FFB347; }
+    html, body { background:#021816; color:#fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin:0; }
+    .wrap { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; gap:16px; }
+    h1 { font-size:1.4rem; margin:0; }
+    p { margin:0; opacity:0.85; }
+    a.cta-btn { display:inline-block; margin-top:8px; padding:12px 28px; border-radius:999px; background:#FFB347; color:#021816; font-weight:600; text-decoration:none; }
+    a.cta-btn:hover { opacity:0.9; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <p>This page has moved to <a href="https://sridwar.com/priests/">https://sridwar.com/priests/</a></p>
+    <h1>Meet Our Priests</h1>
+    <p>See our verified priests on the current Priests page.</p>
+    <a class="cta-btn" href="https://sridwar.com/priests/">Continue to Meet Our Priests →</a>
   </div>
-  <script>
-    window.location.replace("/priests/");
-  </script>
 </body>
 </html>
