@@ -3,31 +3,40 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef, ReactNode } from "react";
+import { useState, useEffect, useRef, lazy, Suspense, ReactNode } from "react";
 import { supabase } from "./lib/supabaseClient";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TempleExperience from "./components/TempleExperience";
-import LiveDarshan from "./components/LiveDarshan";
-import SevaExperience from "./components/SevaExperience";
 import DevoteeExperiences from "./components/DevoteeExperiences";
-import OnlinePuja from "./components/OnlinePuja";
-import PriestSection from "./components/PriestSection";
-import TemplateBazaar from "./components/TemplateBazaar";
-import AboutUs from "./components/AboutUs";
-import FounderStory from "./components/FounderStory";
-import ContactUs from "./components/ContactUs";
-import AuthDashboard from "./components/AuthDashboard";
-import AIAssistant from "./components/AIAssistant";
-import BookNowWizard from "./components/BookNowWizard";
 import SriDwarLogo from "./components/SriDwarLogo";
-import FAQs from "./components/FAQs";
-import SacredResources from "./components/SacredResources";
-import HolisticWellness from "./components/HolisticWellness";
+import OptimizedImage from "./components/OptimizedImage";
 import TempleRegister from "./components/TempleRegister";
-import UPIPaymentModal from "./components/UPIPaymentModal";
-import OfferPopup from "./components/OfferPopup";
+
+// Loaded on demand only when the visitor actually navigates to that page or
+// opens that modal — keeps the initial bundle small without changing any
+// behaviour. See <Suspense> wrappers around each usage below.
+const LiveDarshan = lazy(() => import("./components/LiveDarshan"));
+const SevaExperience = lazy(() => import("./components/SevaExperience"));
+const OnlinePuja = lazy(() => import("./components/OnlinePuja"));
+const PriestSection = lazy(() => import("./components/PriestSection"));
+const TemplateBazaar = lazy(() => import("./components/TemplateBazaar"));
+const AboutUs = lazy(() => import("./components/AboutUs"));
+const FounderStory = lazy(() => import("./components/FounderStory"));
+const ContactUs = lazy(() => import("./components/ContactUs"));
+const AuthDashboard = lazy(() => import("./components/AuthDashboard"));
+const AIAssistant = lazy(() => import("./components/AIAssistant"));
+const BookNowWizard = lazy(() => import("./components/BookNowWizard"));
+const FAQs = lazy(() => import("./components/FAQs"));
+const SacredResources = lazy(() => import("./components/SacredResources"));
+const HolisticWellness = lazy(() => import("./components/HolisticWellness"));
+const UPIPaymentModal = lazy(() => import("./components/UPIPaymentModal"));
+const OfferPopup = lazy(() => import("./components/OfferPopup"));
 import sridwarQR from "./assets/images/SridwarQR.jpg";
+import dpiitCertificate from "./assets/images/DPIIT_Certificate.jpg";
+import dpiitCertificateWebp from "./assets/images/DPIIT_Certificate.webp";
+import fssaiCertificate from "./assets/images/FSSAI_Certificate.jpg";
+import fssaiCertificateWebp from "./assets/images/FSSAI_Certificate.webp";
 import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
 import { recordActivity, fetchActivities, ActivityRecord } from "./lib/activities";
 
@@ -506,6 +515,14 @@ export default function App() {
     });
   };
 
+  // Shown briefly while a lazy-loaded page chunk is being fetched — matches
+  // the site's dark background so there's no white flash, just a quiet spinner.
+  const pageLoadingFallback = (
+    <div className="flex items-center justify-center py-24">
+      <div className="w-8 h-8 rounded-full border-2 border-white/15 border-t-[#FFB347] animate-spin" />
+    </div>
+  );
+
   return (
     <div className="flex flex-col min-h-full bg-[#021816] text-white font-sans" style={{overflowX: 'hidden', touchAction: 'pan-y'}}>
       
@@ -567,81 +584,97 @@ export default function App() {
 
         {currentPage === "seva" && (
           <div className="animate-fadeIn">
-            <SevaExperience
-              onSponsorSeva={(sevaName, price) => {
-                setWizardDefaults({ pujaName: `Sponsorship contribution: ${sevaName}`, price });
-                setIsBookNowOpen(true);
-              }}
-            />
+            <Suspense fallback={pageLoadingFallback}>
+              <SevaExperience
+                onSponsorSeva={(sevaName, price) => {
+                  setWizardDefaults({ pujaName: `Sponsorship contribution: ${sevaName}`, price });
+                  setIsBookNowOpen(true);
+                }}
+              />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "puja" && (
           <div className="animate-fadeIn">
-            <OnlinePuja
-              onBookNowClick={(pujaName, price) => {
-                setWizardDefaults({ pujaName, price });
-                setIsBookNowOpen(true);
-              }}
-              onViewPriestProfile={(priestId) => {
-                setPriestDeepLinkId(priestId);
-                handleNavigate("priests");
-              }}
-            />
-            <HolisticWellness
-              onBookService={(serviceName, price) => {
-                setWizardDefaults({ pujaName: serviceName, price });
-                setIsBookNowOpen(true);
-              }}
-            />
+            <Suspense fallback={pageLoadingFallback}>
+              <OnlinePuja
+                onBookNowClick={(pujaName, price) => {
+                  setWizardDefaults({ pujaName, price });
+                  setIsBookNowOpen(true);
+                }}
+                onViewPriestProfile={(priestId) => {
+                  setPriestDeepLinkId(priestId);
+                  handleNavigate("priests");
+                }}
+              />
+              <HolisticWellness
+                onBookService={(serviceName, price) => {
+                  setWizardDefaults({ pujaName: serviceName, price });
+                  setIsBookNowOpen(true);
+                }}
+              />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "priests" && (
           <div className="animate-fadeIn">
-            <PriestSection
-              initialPriestId={priestDeepLinkId}
-              onBack={() => {
-                setPriestDeepLinkId(null);
-                handleNavigate("puja");
-              }}
-            />
+            <Suspense fallback={pageLoadingFallback}>
+              <PriestSection
+                initialPriestId={priestDeepLinkId}
+                onBack={() => {
+                  setPriestDeepLinkId(null);
+                  handleNavigate("puja");
+                }}
+              />
+            </Suspense>
           </div>
         )}
 
 
         {currentPage === "products" && (
           <div className="animate-fadeIn">
-            <TemplateBazaar onNavigate={handleNavigate} />
+            <Suspense fallback={pageLoadingFallback}>
+              <TemplateBazaar onNavigate={handleNavigate} />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "about" && (
           <div className="animate-fadeIn">
-            <AboutUs onNavigate={handleNavigate} />
-            <SacredResources />
+            <Suspense fallback={pageLoadingFallback}>
+              <AboutUs onNavigate={handleNavigate} />
+              <SacredResources />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "founder-story" && (
           <div className="animate-fadeIn">
-            <FounderStory
-              onBack={() => handleNavigate("about")}
-              defaultLanguage={currentLanguage === "hi" || currentLanguage === "or" ? currentLanguage : "en"}
-            />
+            <Suspense fallback={pageLoadingFallback}>
+              <FounderStory
+                onBack={() => handleNavigate("about")}
+                defaultLanguage={currentLanguage === "hi" || currentLanguage === "or" ? currentLanguage : "en"}
+              />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "contact" && (
           <div className="animate-fadeIn">
-            <ContactUs />
-            <FAQs />
+            <Suspense fallback={pageLoadingFallback}>
+              <ContactUs />
+              <FAQs />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "live-darshan" && (
           <div className="animate-fadeIn">
-            <LiveDarshan onNavigate={handleNavigate} />
+            <Suspense fallback={pageLoadingFallback}>
+              <LiveDarshan onNavigate={handleNavigate} />
+            </Suspense>
           </div>
         )}
 
@@ -653,14 +686,16 @@ export default function App() {
 
         {currentPage === "login" && (
           <div className="animate-fadeIn">
-            <AuthDashboard
-              currentLanguage={currentLanguage}
-              isLoggedIn={isLoggedIn}
-              onLoginSuccess={handleLoginSuccess}
-              onLogout={handleLogout}
-              userProfile={userProfile}
-              bookedItems={bookedItems}
-            />
+            <Suspense fallback={pageLoadingFallback}>
+              <AuthDashboard
+                currentLanguage={currentLanguage}
+                isLoggedIn={isLoggedIn}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogout}
+                userProfile={userProfile}
+                bookedItems={bookedItems}
+              />
+            </Suspense>
           </div>
         )}
       </main>
@@ -668,58 +703,85 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* ── Row 1: Brand + Links ───────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
 
             {/* Logo / brand block */}
-            <div className="space-y-4">
+            <div className="space-y-4 md:col-span-1">
               <h4 className="invisible font-serif text-sm font-bold mb-4 uppercase tracking-wider" aria-hidden="true">Sri Dwar</h4>
               <SriDwarLogo variant="colored" iconSize="xl" showTagline={true} className="" />
               <p className="text-xs text-white/60 font-sans leading-relaxed">
                 An AI-powered faith-tech platform built on Sri Dwar's proprietary technology, bridging holy distances with time-honoured rituals, live aartis, and trusted certifications.
               </p>
+              <p className="text-[10px] text-white/40 leading-relaxed italic border-t border-white/5 pt-3">
+                Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts &amp; the company.
+              </p>
             </div>
-            <div>
+            <div className="md:col-span-2 flex flex-col">
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
-              <ul className="space-y-2 text-xs text-white/60 font-medium">
-                <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
-                <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
-                <li><button onClick={() => handleNavigate("live-darshan")} className="hover:text-white transition-colors">Live Darshan</button></li>
-                <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
-                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
-                <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
-                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
-                <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
-                <li>
-                  <button
-                    onClick={() => {
-                      handleNavigate("home");
-                      setTimeout(() => {
-                        document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "instant" });
-                      }, 150);
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Explore Shrines
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      handleNavigate("home");
-                      setTimeout(() => {
-                        window.dispatchEvent(new CustomEvent("sd-open-darshan-register"));
-                      }, 150);
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Darshan Certificate
-                  </button>
-                </li>
-                <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Receive Prasad</button></li>
-                <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
-              </ul>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-white/60 font-medium">
+                <ul className="space-y-2">
+                  <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
+                  <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
+                  <li><button onClick={() => handleNavigate("live-darshan")} className="hover:text-white transition-colors">Live Darshan</button></li>
+                  <li><button onClick={() => handleNavigate("puja")} className="hover:text-white transition-colors">Online Puja</button></li>
+                  <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Temple Bazaar</button></li>
+                  <li><button onClick={() => handleNavigate("about")} className="hover:text-white transition-colors">Our Divine Mission</button></li>
+                </ul>
+                <ul className="space-y-2">
+                  <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Devotee Care</button></li>
+                  <li><button onClick={() => handleNavigate("login")} className="hover:text-white transition-colors">My Dharmic ID</button></li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        handleNavigate("home");
+                        setTimeout(() => {
+                          document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "instant" });
+                        }, 150);
+                      }}
+                      className="hover:text-white transition-colors"
+                    >
+                      Explore Shrines
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        handleNavigate("home");
+                        setTimeout(() => {
+                          window.dispatchEvent(new CustomEvent("sd-open-darshan-register"));
+                        }, 150);
+                      }}
+                      className="hover:text-white transition-colors"
+                    >
+                      Darshan Certificate
+                    </button>
+                  </li>
+                  <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Receive Prasad</button></li>
+                  <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
+                </ul>
+              </div>
+
+              {/* DPIIT certificate — kept in its natural landscape shape so it reads as a document, not a squeezed icon */}
+              <div className="mt-auto pt-5">
+                <a
+                  href={dpiitCertificate}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="DPIIT / Startup India Certificate of Recognition"
+                  className="inline-block"
+                >
+                  <OptimizedImage
+                    src={dpiitCertificate}
+                    webpSrc={dpiitCertificateWebp}
+                    alt="DPIIT Startup India Certificate of Recognition"
+                    width={112}
+                    height={75}
+                    className="w-20 h-[54px] sm:w-28 sm:h-[76px] rounded-lg border border-white/10 bg-[#051F1A] object-contain"
+                  />
+                </a>
+              </div>
             </div>
-            <div>
+            <div className="md:col-span-1 flex flex-col">
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Legal & Compliance</h4>
               <ul className="space-y-2 text-xs text-white/60">
                 <li className="font-bold text-white">Shradhalu Private Ltd</li>
@@ -730,12 +792,29 @@ export default function App() {
                   <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0 mt-0.5" />
                   <span>Ground Floor, Sobra, Maa Biraja Khetra, Jajpur, Odisha, 755019</span>
                 </li>
-                <li className="pt-2 text-[10px] text-white/40 leading-relaxed italic border-t border-white/5 mt-2">
-                  Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
-                </li>
               </ul>
+
+              {/* FSSAI certificate — kept in its natural landscape shape so it reads as a document, not a squeezed icon */}
+              <div className="mt-auto pt-5">
+                <a
+                  href={fssaiCertificate}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="FSSAI Registration ID Card"
+                  className="inline-block"
+                >
+                  <OptimizedImage
+                    src={fssaiCertificate}
+                    webpSrc={fssaiCertificateWebp}
+                    alt="FSSAI Registration ID Card"
+                    width={112}
+                    height={79}
+                    className="w-20 h-[56px] sm:w-28 sm:h-[79px] rounded-lg border border-white/10 bg-[#051F1A] object-contain"
+                  />
+                </a>
+              </div>
             </div>
-            <div>
+            <div className="md:col-span-1 flex flex-col">
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Social Linkages</h4>
 
               <div className="flex flex-wrap gap-2.5">
@@ -818,16 +897,17 @@ export default function App() {
                 </a>
               </div>
 
-              {/* Sri Dwar QR code — scan to connect on the go */}
-              <div className="mt-5">
+              {/* Sri Dwar QR code — scan to connect. Height matched to the certificate badges alongside it so all three sit flush along the same baseline. */}
+              <div className="mt-auto pt-5">
                 <img
                   src={sridwarQR}
                   alt="Sri Dwar QR code — scan to connect"
                   loading="lazy"
                   decoding="async"
-                  width={112}
-                  height={112}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl border border-white/10 bg-white p-1 object-contain"
+                  width={76}
+                  height={76}
+                  title="Scan to connect with Sri Dwar"
+                  className="w-[54px] h-[54px] sm:w-[76px] sm:h-[76px] rounded-lg border border-white/10 bg-white p-1 object-contain"
                 />
               </div>
             </div>
@@ -841,10 +921,10 @@ export default function App() {
                   Government of India Initiatives
                 </p>
                 <p className="text-[11px] text-white/55 leading-relaxed">
-                  Sri Dwar has applied for recognition under <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">GeM</strong>, and <strong className="text-white/75">Digital India</strong>. Applications are currently <strong className="text-[#FFB347]">under process</strong>.
+                  Recognized by <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">Digital India</strong>, and <strong className="text-white/75">FSSAI</strong>.
                 </p>
                 <p className="text-[11px] text-white/55 leading-relaxed">
-                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">FSSAI Registration</strong> (for Prasad &amp; Annadanam sevas), <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A &amp; 80G Recognition</strong> (for charitable sevas), <strong className="text-white/75">ISO 27001 Certification</strong> (data security), and <strong className="text-white/75">NITI Aayog Darpan Registration</strong>. All of the above are currently <strong className="text-[#FFB347]">under process</strong>.
+                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">GeM Registration</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A &amp; 80G Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
                 </p>
               </div>
               <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
@@ -957,16 +1037,20 @@ export default function App() {
         ))}
       </nav>}
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
-      <AIAssistant currentLanguage={currentLanguage} />
+      <Suspense fallback={null}>
+        <AIAssistant currentLanguage={currentLanguage} />
+      </Suspense>
 
       {/* 5. MULTI-STEP SANKALPA BOOKING WIZARD OVERLAY */}
-      <BookNowWizard
-        isOpen={isBookNowOpen}
-        onClose={() => setIsBookNowOpen(false)}
-        defaultPujaName={wizardDefaults.pujaName}
-        defaultPrice={wizardDefaults.price}
-        onSuccess={handleBookNowSuccess}
-      />
+      <Suspense fallback={null}>
+        <BookNowWizard
+          isOpen={isBookNowOpen}
+          onClose={() => setIsBookNowOpen(false)}
+          defaultPujaName={wizardDefaults.pujaName}
+          defaultPrice={wizardDefaults.price}
+          onSuccess={handleBookNowSuccess}
+        />
+      </Suspense>
 
       {/* 6. RE-USABLE SEVA CONTRIBUTION MODAL */}
       {isSevaModalOpen && (
@@ -1277,25 +1361,29 @@ export default function App() {
       )}
 
       {/* UPI Payment Modal for Temple Bazaar cart checkout */}
-      <UPIPaymentModal
-        isOpen={isCartPaymentOpen}
-        onClose={() => setIsCartPaymentOpen(false)}
-        onPaymentConfirmed={finalizeCartCheckout}
-        amount={cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)}
-        bookingName="Temple Bazaar Order"
-        devoteeName={userProfile.name || "Devotee"}
-        refId={`CART-${Date.now()}`}
-        payeeLabel="Order Items"
-        payeeValue={`${cart.length} item(s)`}
-      />
+      <Suspense fallback={null}>
+        <UPIPaymentModal
+          isOpen={isCartPaymentOpen}
+          onClose={() => setIsCartPaymentOpen(false)}
+          onPaymentConfirmed={finalizeCartCheckout}
+          amount={cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)}
+          bookingName="Temple Bazaar Order"
+          devoteeName={userProfile.name || "Devotee"}
+          refId={`CART-${Date.now()}`}
+          payeeLabel="Order Items"
+          payeeValue={`${cart.length} item(s)`}
+        />
+      </Suspense>
 
       {/* "Setu Yatra Challenge" promo popup */}
-      <OfferPopup
-        isOpen={isOfferPopupOpen}
-        onClose={handleCloseOfferPopup}
-        onNavigate={handleNavigate}
-        storageKey={OFFER_POPUP_STORAGE_KEY}
-      />
+      <Suspense fallback={null}>
+        <OfferPopup
+          isOpen={isOfferPopupOpen}
+          onClose={handleCloseOfferPopup}
+          onNavigate={handleNavigate}
+          storageKey={OFFER_POPUP_STORAGE_KEY}
+        />
+      </Suspense>
 
       {/* ═══════════════════════════════════════════════════════════════════════
           INLINE LEGAL DOCUMENT READER
