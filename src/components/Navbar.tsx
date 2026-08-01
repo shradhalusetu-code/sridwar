@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye, Compass, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
+import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye, Compass, Landmark, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
@@ -111,13 +111,13 @@ export default function Navbar({
         id="main-navigation"
         className={`fixed top-0 left-0 w-full z-45 transition-all duration-300 ${
           isScrolled
-            ? "bg-[#021816]/80 backdrop-blur-md py-3 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
-            : "bg-[#021816]/20 backdrop-blur-sm py-5 border-b border-white/5 text-white"
+            ? "bg-[#021816]/80 backdrop-blur-md py-4 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
+            : "bg-[#021816]/20 backdrop-blur-sm py-6 border-b border-white/5 text-white"
         }`}
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-6 lg:gap-10">
+          <div className="flex items-center justify-between gap-6 lg:gap-12">
             {/* Left: Brand Identity */}
             <div
               id="brand-logo-trigger"
@@ -128,7 +128,7 @@ export default function Navbar({
             </div>
 
             {/* Middle: Desktop Navigation Items */}
-            <div className="hidden lg:flex items-center space-x-3 xl:space-x-5 flex-1 justify-end" id="desktop-menu">
+            <div className="hidden lg:flex items-center space-x-4 xl:space-x-7 flex-1 justify-center" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -149,9 +149,9 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3.5 shrink-0">
+            <div className="hidden lg:flex items-center space-x-3 xl:space-x-4 shrink-0">
               {/* Preference & Account Utilities Capsule */}
-              <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-9">
+              <div className="flex items-center space-x-1.5 bg-white/5 border border-white/10 p-1.5 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
                 <div className="relative">
                   <button
@@ -243,7 +243,7 @@ export default function Navbar({
               </div>
 
               {/* Action CTA Buttons */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 <button
                   id="nav-explore-shrines"
                   onClick={() => {
@@ -253,7 +253,7 @@ export default function Navbar({
                       document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
                     }, 150);
                   }}
-                  className="bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#818CF8]/30 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
+                  className="hidden xl:flex bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#818CF8]/30 transition-all duration-300 items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
                 >
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
                   <span>Shrines</span>
@@ -265,6 +265,17 @@ export default function Navbar({
                 >
                   <Heart className="w-3.5 h-3.5 text-[#FFB347] fill-[#FFB347]" />
                   <span>{t.donate}</span>
+                </button>
+                <button
+                  id="nav-add-temple"
+                  onClick={() => {
+                    gaNavClick("add-temple", "navbar");
+                    onNavigate("add-temple");
+                  }}
+                  className="bg-[#9F1239]/65 hover:bg-[#BE123C]/80 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#FDA4AF]/30 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
+                >
+                  <Landmark className="w-3.5 h-3.5 text-[#FDA4AF]" />
+                  <span>Add Temple</span>
                 </button>
               </div>
             </div>
@@ -392,6 +403,19 @@ export default function Navbar({
                 >
                   <Heart className="w-4 h-4 text-[#FFB347] fill-[#FFB347]" />
                   <span>{t.donate}</span>
+                </button>
+
+                <button
+                  id="mobile-add-temple-btn"
+                  onClick={() => {
+                    gaNavClick("add-temple", "mobile_nav");
+                    onNavigate("add-temple");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full bg-[#9F1239]/80 hover:bg-[#BE123C] text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#FDA4AF]/30 shadow hover:scale-[1.01] transition-transform"
+                >
+                  <Landmark className="w-4 h-4 text-[#FDA4AF]" />
+                  <span>Add Temple</span>
                 </button>
 
                 <button

@@ -168,6 +168,7 @@ export default function App() {
     "contact": "/contact",
     "live-darshan": "/darshan",
     "temple-register": "/temple-register",
+    "add-temple": "/add-temple",
     "login": "/login",
   };
   const PATH_TO_PAGE: Record<string, string> = Object.fromEntries(
@@ -192,6 +193,7 @@ export default function App() {
     "contact": "Contact Sri Dwar – Support & Inquiries",
     "live-darshan": "Live Temple Darshan Online – Watch Aarti from India | Sri Dwar",
     "temple-register": "Register Your Temple or Priest Profile – Sri Dwar",
+    "add-temple": "Register Your Temple & Local Pujaris | Sri Dwar",
     "login": "Sign In to Sri Dwar – My Account",
   };
   useEffect(() => {
@@ -297,12 +299,24 @@ export default function App() {
     const VALID_DEEP_LINK_PAGES = [
       "seva", "puja", "priests", "products", "about",
       "founder-story", "contact", "live-darshan",
-      "temple-register", "login",
+      "temple-register", "add-temple", "login",
     ];
     const urlParams = new URLSearchParams(window.location.search);
     const requestedPage = urlParams.get("page");
-    if (requestedPage && VALID_DEEP_LINK_PAGES.includes(requestedPage)) {
+    const isShortDevoteeLink = urlParams.get("d") === "1";
+
+    // "dharmic-expert-register" and "devotee-register" (plus the short "?d=1"
+    // devotee link) used to work because the Find Temple / Dharmic Expert
+    // sections lived directly on Home. Now that they live on their own
+    // Add Temple page, route those same links there instead — TempleRegister
+    // itself still reads these params to scroll to the right section.
+    const ADD_TEMPLE_DEEP_LINK_ALIASES = ["dharmic-expert-register", "devotee-register"];
+    if (requestedPage && ADD_TEMPLE_DEEP_LINK_ALIASES.includes(requestedPage)) {
+      setCurrentPage("add-temple");
+    } else if (requestedPage && VALID_DEEP_LINK_PAGES.includes(requestedPage)) {
       setCurrentPage(requestedPage);
+    } else if (isShortDevoteeLink) {
+      setCurrentPage("add-temple");
     }
 
     // Real-URL support: if a devotee opened e.g. /puja or /darshan
@@ -547,7 +561,7 @@ export default function App() {
       />
 
       {/* 2. DYNAMIC PAGES VIEW */}
-      <main className={`flex-grow ${isAndroidApp ? "pt-0" : "pt-16"}`}>
+      <main className={`flex-grow ${isAndroidApp ? "pt-0" : "pt-20"}`}>
         {currentPage === "home" && (
           <div className="space-y-0">
             {/* Cinematic Entrance */}
@@ -559,13 +573,6 @@ export default function App() {
             />
             
             {/* Spotlight and lists */}
-            <TempleRegister
-              onNavigate={handleNavigate}
-              onOpenBookNow={() => {
-                setWizardDefaults({ pujaName: "Sarvajanik Veda Shanti Puja", price: 550 });
-                setIsBookNowOpen(true);
-              }}
-            />
             <TempleExperience
               onBookPuja={(templeName, deity) => {
                 setWizardDefaults({ pujaName: `${deity} Sankalpa offering (${templeName})`, price: 751 });
@@ -681,6 +688,18 @@ export default function App() {
         {currentPage === "temple-register" && (
           <div className="animate-fadeIn">
             <TempleRegister standaloneTempleReg onNavigate={handleNavigate} />
+          </div>
+        )}
+
+        {currentPage === "add-temple" && (
+          <div className="animate-fadeIn">
+            <TempleRegister
+              onNavigate={handleNavigate}
+              onOpenBookNow={() => {
+                setWizardDefaults({ pujaName: "Sarvajanik Veda Shanti Puja", price: 550 });
+                setIsBookNowOpen(true);
+              }}
+            />
           </div>
         )}
 
