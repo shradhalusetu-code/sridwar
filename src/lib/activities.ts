@@ -15,7 +15,7 @@
 
 import { supabase } from "./supabaseClient";
 
-export type ActivityType = "puja" | "seva" | "product" | "contribution" | "temple_registration" | "other" | "darshan_certificate";
+export type ActivityType = "puja" | "seva" | "product" | "contribution" | "temple_registration" | "subscription" | "other" | "darshan_certificate";
 export type PaymentStatus = "pending_verification" | "confirmed" | "failed";
 
 export type FormSubmissionType =
@@ -24,7 +24,8 @@ export type FormSubmissionType =
   | "darshan_certificate"
   | "devotee_registration"
   | "expert_registration"
-  | "temple_committee_registration";
+  | "temple_committee_registration"
+  | "subscription_signup";
 
 export interface ActivityRecord {
   id: string;

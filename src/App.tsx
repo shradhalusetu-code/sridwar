@@ -8,6 +8,7 @@ import { supabase } from "./lib/supabaseClient";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TempleExperience from "./components/TempleExperience";
+import ReferAndEarn from "./components/ReferAndEarn";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import SriDwarLogo from "./components/SriDwarLogo";
 import OptimizedImage from "./components/OptimizedImage";
@@ -124,7 +125,7 @@ export default function App() {
   const [priestDeepLinkId, setPriestDeepLinkId] = useState<string | null>(null);
 
   // Inline legal document reader — null = closed
-  const [activeLegalDoc, setActiveLegalDoc] = useState<null | "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "donation" | "partner">(null);
+  const [activeLegalDoc, setActiveLegalDoc] = useState<null | "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "donation" | "partner" | "referral">(null);
 
   const t = TRANSLATIONS[currentLanguage];
 
@@ -572,6 +573,16 @@ export default function App() {
               onOpenSetuYatra={() => setIsOfferPopupOpen(true)}
             />
             
+            {/* Refer, Earn & Grow with Dharma — referral, affiliate, commission
+                and subscription ecosystem, shown above Featured Temple
+                Experience so every visitor sees the earning opportunity
+                right after the cinematic entrance. */}
+            <ReferAndEarn
+              onNavigate={handleNavigate}
+              onOpenLegalDoc={(doc) => setActiveLegalDoc(doc as any)}
+              userProfile={userProfile}
+            />
+
             {/* Spotlight and lists */}
             <TempleExperience
               onBookPuja={(templeName, deity) => {
@@ -713,6 +724,7 @@ export default function App() {
                 onLogout={handleLogout}
                 userProfile={userProfile}
                 bookedItems={bookedItems}
+                onOpenLegalDoc={(doc) => setActiveLegalDoc(doc as any)}
               />
             </Suspense>
           </div>
@@ -732,7 +744,7 @@ export default function App() {
                 An AI-powered faith-tech platform built on Sri Dwar's proprietary technology, bridging holy distances with time-honoured rituals, live aartis, and trusted certifications.
               </p>
               <p className="text-[10px] text-white/40 leading-relaxed italic border-t border-white/5 pt-3">
-                Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts &amp; the company.
+                Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
               </p>
             </div>
             <div className="md:col-span-2 flex flex-col">
@@ -776,7 +788,7 @@ export default function App() {
                     </button>
                   </li>
                   <li><button onClick={() => handleNavigate("products")} className="hover:text-white transition-colors">Receive Prasad</button></li>
-                  <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors &amp; Career</button></li>
+                  <li><button onClick={() => handleNavigate("contact")} className="hover:text-white transition-colors">Investors & Career</button></li>
                 </ul>
               </div>
 
@@ -943,7 +955,7 @@ export default function App() {
                   Recognized by <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">Digital India</strong>, and <strong className="text-white/75">FSSAI</strong>.
                 </p>
                 <p className="text-[11px] text-white/55 leading-relaxed">
-                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">GeM Registration</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A &amp; 80G Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
+                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">GeM Registration</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A & 80G Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
                 </p>
               </div>
               <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
@@ -1000,7 +1012,8 @@ export default function App() {
                   { label: "Content & IP Policy",       key: "content_ip" },
                   { label: "Donation & Charity Policy", key: "donation"   },
                   { label: "Partner Agreement",         key: "partner"    },
-                ] as { label: string; key: "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "donation" | "partner" }[]
+                  { label: "Refer & Earn Program Terms", key: "referral"  },
+                ] as { label: string; key: "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "donation" | "partner" | "referral" }[]
               ).map(({ label, key }, i, arr) => (
                 <span key={key} className="flex items-center">
                   <button
@@ -2813,7 +2826,7 @@ Where permitted by law, we may use cookies to:</p>
                   Shradhalu Private Limited operates in compliance with: (a) the Information Technology Act, 2000 and its amendments; (b) the IT (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021; (c) the Consumer Protection (E-Commerce) Rules, 2020; (d) the Digital Personal Data Protection Act, 2023; (e) the Foreign Exchange Management Act (FEMA), 1999, for cross-border transactions; and (f) applicable GST and taxation laws of India.
                 </DocSection>
                 <DocSection title="3. Startup India / DPIIT Recognition">
-                  Shradhalu Private Limited has applied for recognition under the Startup India Initiative (DPIIT), GeM, and Digital India, and has also initiated applications for ISO 9001:2015 Certification, MSME/Udyam Registration, FSSAI Registration, Trademark Registration, 12A &amp; 80G Recognition, ISO 27001 Certification, and NITI Aayog Darpan Registration; all of these applications are currently under process with the respective Government of India authorities.
+                  Shradhalu Private Limited has applied for recognition under the Startup India Initiative (DPIIT), GeM, and Digital India, and has also initiated applications for ISO 9001:2015 Certification, MSME/Udyam Registration, FSSAI Registration, Trademark Registration, 12A & 80G Recognition, ISO 27001 Certification, and NITI Aayog Darpan Registration; all of these applications are currently under process with the respective Government of India authorities.
                 </DocSection>
                 <DocSection title="4. Payment Compliance">
                   All digital payments are facilitated through UPI, regulated by the Reserve Bank of India (RBI) and the National Payments Corporation of India (NPCI). We operate as a collection facilitator and do not hold escrow accounts. Payment verification is generally completed manually within 24–48 hours.
@@ -3565,6 +3578,77 @@ Where permitted by law, we may use cookies to:</p>
               </>
             ),
           },
+          referral: {
+            icon: "🤲",
+            title: "Refer, Earn & Grow with Dharma — Program Terms",
+            content: (
+              <>
+                <p className="mb-2 last:mb-0 text-[13px] text-white/60 italic leading-relaxed">These Refer, Earn & Grow with Dharma Program Terms ("Referral Terms") govern participation by devotees, priests, pujaris, temples, Dharmic experts, and spiritual organizations ("Participants") in Sri Dwar's referral, affiliate, commission, and subscription program (the "Program"), operated by Shradhalu Private Limited. By generating a Dharmic ID referral link, sharing it, or accepting any commission, you agree to be bound by these Referral Terms together with the Privacy Policy, Terms of Use, and Legal Disclaimer.</p>
+                <DocSection title="1. Nature of the Program">
+                  <p className="mb-2 last:mb-0">The Program is a promotional incentive offered at Sri Dwar's sole discretion. It is not an investment scheme, deposit scheme, chit fund, multi-level-marketing (MLM) or pyramid structure, and no Participant earns solely for enrolling other Participants — commissions arise only from genuine, paid, completed bookings by a referred devotee.</p>
+                  <p className="mb-2 last:mb-0">Participation does not create any employment, agency, partnership, or franchise relationship with Sri Dwar.</p>
+                </DocSection>
+                <DocSection title="2. Dharmic ID & Referral Link">
+                  <p className="mb-2 last:mb-0">Every registered Participant receives a unique Dharmic ID and an associated referral link/code. Referral links may only be shared with people the Participant genuinely knows or has a legitimate relationship with (family, friends, devotees, followers, or professional contacts).</p>
+                  <p className="mb-2 last:mb-0">Self-referral, creation of duplicate or fake accounts, or referring oneself under a different identity to claim commissions is strictly prohibited and will result in forfeiture of commissions and account suspension.</p>
+                </DocSection>
+                <DocSection title="3. Permanent Attribution">
+                  <p className="mb-2 last:mb-0">Where a new devotee signs up using a Participant's referral link or Dharmic ID, that devotee is permanently attributed to the referring Dharmic ID for so long as both accounts remain active and in good standing, unless the referred devotee explicitly registers independently before ever using the link, or fraud is established.</p>
+                  <p className="mb-2 last:mb-0">Sri Dwar may, at its discretion, modify attribution rules prospectively to prevent abuse, without affecting commissions already earned and paid in good faith.</p>
+                </DocSection>
+                <DocSection title="4. Eligible & Valid Bookings">
+                  <p className="mb-2 last:mb-0">A booking is "eligible" for commission only where it is a genuine, successfully completed, and paid puja, seva, donation, product order, consultation, subscription, or other service booked by the referred devotee through Sri Dwar's website, app, or offline channel, and where payment has been confirmed and not refunded, reversed, or charged back.</p>
+                  <p className="mb-2 last:mb-0">Bookings cancelled, refunded, disputed, or found fraudulent are excluded from commission calculation; any commission already paid on such a booking may be reversed or deducted from future payouts.</p>
+                </DocSection>
+                <DocSection title="5. Commission Structure">
+                  <p className="mb-2 last:mb-0">For every referred devotee's eligible bookings, the referring Dharmic ID earns:</p>
+                  <ul className="list-disc list-inside space-y-1 mb-2 ml-1">
+                    <li>1st eligible booking by that devotee — 10% commission</li>
+                    <li>2nd eligible booking by that devotee — 5% commission</li>
+                    <li>3rd eligible booking onward by that devotee — 3% commission, ongoing for as long as attribution continues</li>
+                  </ul>
+                  <p className="mb-2 last:mb-0">The booking count resets per referred devotee, not per referrer, and applies across puja, seva, donation, product, consultation, and other qualifying services unless a specific campaign states otherwise. Higher-tier subscribers may unlock elevated commission percentages, priority payouts, or bonus multipliers as described in the Subscription Plans section of the Refer & Earn page.</p>
+                </DocSection>
+                <DocSection title="6. Milestones, Campaigns, Loyalty Bonuses & Grand Prizes">
+                  <p className="mb-2 last:mb-0">Sri Dwar may, at its discretion, run milestone rewards, seasonal/festival campaigns, loyalty bonuses, and grand prize drives with additional incentives. These are promotional in nature, may be time-bound, modified, extended, or discontinued at any time, and do not form a guaranteed or contractual entitlement unless a specific reward has already been credited to the Participant's account.</p>
+                </DocSection>
+                <DocSection title="7. Subscription Plans">
+                  <p className="mb-2 last:mb-0">Subscription plans (for Pujaris, Temples & Dharmic Experts, and separately for Devotees) unlock enhanced referral capacity, higher commission eligibility, priority listing, marketing tools, and other benefits described on the Refer & Earn page. Subscription fees are service fees for platform benefits and access, not an investment, and do not by themselves guarantee any specific number of leads, bookings, or earnings — figures shown (e.g. "approx. 10 genuine customers" or "approx. ₹2,000 of puja opportunities") are good-faith average estimates based on platform activity, not assured outcomes.</p>
+                  <p className="mb-2 last:mb-0">Subscription fees are generally non-refundable once activated, except where required by law or expressly stated in the Refund & Cancellation Policy. Plans auto-apply for the stated period and do not auto-renew without explicit consent unless the Participant has opted into auto-renewal.</p>
+                </DocSection>
+                <DocSection title="8. Payout Rules">
+                  <p className="mb-2 last:mb-0">Commissions accrue to the Participant's in-app earnings ledger and become payable once they cross the minimum payout threshold shown on the Referral Dashboard and once the underlying booking's payment is confirmed (not merely pending verification).</p>
+                  <p className="mb-2 last:mb-0">Payouts are processed to a verified bank account or UPI ID linked to the Participant's Dharmic ID, subject to successful KYC where applicable, and are generally initiated within the timeline stated on the Referral Dashboard for the Participant's subscription tier. Sri Dwar may withhold or delay a payout pending fraud review, KYC completion, or resolution of a disputed booking.</p>
+                </DocSection>
+                <DocSection title="9. KYC & Identity Verification">
+                  <p className="mb-2 last:mb-0">Where cumulative commissions for a Dharmic ID cross the threshold specified on the Referral Dashboard, or where required by applicable law, Sri Dwar may require Know Your Customer (KYC) verification (such as PAN, Aadhaar, or bank account proof) before releasing further payouts. Payouts may be paused until KYC is satisfactorily completed.</p>
+                </DocSection>
+                <DocSection title="10. Fraud Prevention">
+                  <p className="mb-2 last:mb-0">Sri Dwar actively monitors the Program for abuse. Prohibited conduct includes, without limitation: self-referral, fake or duplicate accounts, incentivised or paid click farms, misleading marketing claims, spamming, referring using fake contact details, and colluding to generate artificial bookings.</p>
+                  <p className="mb-2 last:mb-0">Sri Dwar may investigate, withhold, reverse, or claw back commissions, and may suspend or terminate a Dharmic ID's Program participation, where reasonable evidence of fraud or abuse exists, without prejudice to any other legal remedy.</p>
+                </DocSection>
+                <DocSection title="11. Contact Details & Consent">
+                  <p className="mb-2 last:mb-0">A referrer's Referral Dashboard displays only the information the referred devotee has consented to share (such as masked contact details and booking status). Full contact details are shown only where the referred devotee has expressly granted consent. Participants shall use any visible contact information solely for legitimate relationship-building and shall not spam, sell, or misuse it, in line with the Privacy Policy.</p>
+                </DocSection>
+                <DocSection title="12. Taxes">
+                  <p className="mb-2 last:mb-0">Commission and reward income may be subject to tax deducted at source (TDS) and other applicable taxes under Indian law. Participants remain solely responsible for their own income tax, GST (where applicable), and statutory compliance arising from Program earnings.</p>
+                </DocSection>
+                <DocSection title="13. No Guarantee of Income">
+                  <p className="mb-2 last:mb-0">The Program is a supplementary earning opportunity. Sri Dwar does not guarantee any minimum number of referrals, bookings, leads, or earnings. Actual results depend on the Participant's own network, effort, and genuine demand, and will vary from person to person.</p>
+                </DocSection>
+                <DocSection title="14. Suspension & Termination">
+                  <p className="mb-2 last:mb-0">Sri Dwar may suspend or terminate a Participant's access to the Program for breach of these Referral Terms, fraud, misuse of devotee data, non-payment of subscription dues, or at its reasonable discretion with notice where practicable. Commissions genuinely earned on eligible bookings prior to termination, and not subject to fraud review, remain payable subject to standard payout rules.</p>
+                </DocSection>
+                <DocSection title="15. Changes to the Program">
+                  <p className="mb-2 last:mb-0">Sri Dwar may modify commission percentages, subscription plans, payout thresholds, milestones, and other Program mechanics from time to time to reflect business, legal, or operational needs. Material changes will be published on the Refer & Earn page and shall apply prospectively to bookings made after the change.</p>
+                </DocSection>
+                <DocSection title="16. Governing Law & Acceptance">
+                  <p className="mb-2 last:mb-0">These Referral Terms are governed by the laws of India, with disputes subject to the exclusive jurisdiction of the courts in Bhubaneswar, Odisha, and, where agreed, arbitration under the Arbitration and Conciliation Act, 1996.</p>
+                  <p className="mb-2 last:mb-0">By ticking the acceptance checkbox on the Refer & Earn page or Referral Dashboard, or by generating and sharing a referral link, you confirm that you have read, understood, and agree to these Referral Terms, the Terms of Use, Privacy Policy, and Legal Disclaimer.</p>
+                </DocSection>
+              </>
+            ),
+          },
         };
 
         const doc = DOCS[activeLegalDoc];
@@ -3620,7 +3704,8 @@ Where permitted by law, we may use cookies to:</p>
                     { key: "content_ip", icon: "©️",  label: "Content/IP"  },
                     { key: "donation",   icon: "🙏",  label: "Donations"   },
                     { key: "partner",    icon: "📜",  label: "Partners"    },
-                  ] as { key: "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "donation" | "partner"; icon: string; label: string }[]
+                    { key: "referral",   icon: "🤲",  label: "Refer & Earn" },
+                  ] as { key: "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "donation" | "partner" | "referral"; icon: string; label: string }[]
                 ).map(({ key, icon, label }) => (
                   <button
                     key={key}

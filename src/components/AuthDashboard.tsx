@@ -17,6 +17,7 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 // @ts-ignore
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
+import ReferralDashboardPanel from "./ReferralDashboardPanel";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
 import {
@@ -38,6 +39,7 @@ interface AuthDashboardProps {
   onLogout: () => void;
   userProfile: { name: string; email: string };
   bookedItems: Array<{ pujaName: string; price: number; refId: string; date: string }>;
+  onOpenLegalDoc?: (doc: string) => void;
 }
 
 export default function AuthDashboard({
@@ -46,7 +48,8 @@ export default function AuthDashboard({
   onLoginSuccess,
   onLogout,
   userProfile,
-  bookedItems
+  bookedItems,
+  onOpenLegalDoc
 }: AuthDashboardProps) {
   const [userNameField, setUserNameField] = useState("");
   const [userEmailField, setUserEmailField] = useState("");
@@ -1019,6 +1022,16 @@ export default function AuthDashboard({
 
             {/* Right Box: My Sacred Profile management, moved to the right side (cols 7) */}
             <div className="lg:col-span-7 space-y-6">
+
+              {/* REFER, EARN & GROW WITH DHARMA — referral, affiliate,
+                  commission and subscription dashboard for this Dharmic ID.
+                  Placed first in the right column so every logged-in
+                  devotee/priest/temple/expert sees their earning
+                  opportunity immediately upon opening their profile. */}
+              <ReferralDashboardPanel
+                userProfile={userProfile}
+                onOpenLegalDoc={onOpenLegalDoc}
+              />
 
               {/* SUPPORT OUR MISSION PANEL — restored so an already-logged-in
                   devotee can start a new offering from their own Profile

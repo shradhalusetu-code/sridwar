@@ -105,6 +105,27 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
       typeKey: "entry.1243420"
     },
     isEnabled: true
+  },
+  // ✅ Refer & Earn subscription signups (SubscriptionSignup.tsx) — services,
+  // geography, expertise + plan/billing details, captured before the devotee
+  // is routed to the payment gateway. No dedicated Google Form/Sheet exists
+  // for this yet, so it intentionally reuses the same form/entry IDs as
+  // devotee_support for now (its "details" field already carries the full
+  // plan/services/geography/expertise summary, so nothing is lost — it just
+  // lands in the same sheet as general inquiries until a dedicated Google
+  // Form is created).
+  // 👉 IMPORTANT: Once you create a dedicated Google Form for this, replace
+  //    formUrl and the entry.XXXXXXXXX values below with the real ones.
+  subscription_signup: {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
+    mappedFields: {
+      nameKey: "entry.898437491",
+      emailKey: "entry.969380068",
+      phoneKey: "entry.1486488215",
+      detailsKey: "entry.1306645637",
+      typeKey: "entry.943423993"
+    },
+    isEnabled: true
   }
 };
 
