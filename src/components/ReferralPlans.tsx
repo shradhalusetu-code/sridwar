@@ -50,7 +50,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
   // stay hidden until the eligibility requirement is met.
   if (!unlocked) {
     const previewLines = isDevoteeTier(tier)
-      ? [tier.networkCommissionRate, tier.referralCapacity, tier.milestoneBonusMultiplier]
+      ? [tier.referralCapacity, tier.milestoneBonusMultiplier]
       : [tier.servicesIncluded, tier.feeModel, tier.commissionEligibility];
 
     return (
@@ -59,6 +59,9 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
           <Lock className="w-3.5 h-3.5 text-white/30" />
           <span className="font-serif text-base font-bold text-white/60">{tier.name}</span>
         </div>
+        {isDevoteeTier(tier) && (
+          <span className="block text-2xl font-serif font-black text-white/30 mt-1.5 text-left">{tier.cashbackRatePercent}% Cashback</span>
+        )}
         <p className="text-[10px] text-white/35 mt-1 mb-3 leading-snug">{tier.tagline}</p>
 
         <div className="space-y-1.5 text-[10px] text-white/45 flex-1">
@@ -99,13 +102,15 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       {!isFree && billing === "annual" && (
         <span className="text-[9px] text-[#5EEAD4] font-semibold">{tier.annualSavingsLabel}</span>
       )}
+      {isDevoteeTier(tier) && (
+        <span className="text-2xl font-serif font-black text-[#FFB347] mt-1.5">{tier.cashbackRatePercent}% Cashback</span>
+      )}
       <p className="text-[10px] text-white/50 mt-1 mb-3 leading-snug">{tier.tagline}</p>
 
       <div className="space-y-1.5 text-[10px] text-white/70 flex-1">
         {isDevoteeTier(tier) ? (
           <>
-            <div className="flex gap-1.5"><Wallet className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{tier.networkCommissionRate}</span></div>
-            <div className="flex gap-1.5"><Check className="w-3 h-3 text-[#5EEAD4] shrink-0 mt-0.5" /><span>{tier.referralCapacity}</span></div>
+            <div className="flex gap-1.5"><Wallet className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{tier.referralCapacity}</span></div>
             <div className="flex gap-1.5"><Trophy className="w-3 h-3 text-[#5EEAD4] shrink-0 mt-0.5" /><span>{tier.milestoneBonusMultiplier}</span></div>
             <div className="flex gap-1.5"><Check className="w-3 h-3 text-[#5EEAD4] shrink-0 mt-0.5" /><span>{tier.payoutSpeed}</span></div>
             <div className="flex gap-1.5"><Check className="w-3 h-3 text-[#5EEAD4] shrink-0 mt-0.5" /><span>{tier.referralSupport}</span></div>
@@ -282,6 +287,20 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
           </div>
 
           <p className="text-[11px] text-white/50 mb-3 max-w-2xl">{activeCategoryMeta.intro}</p>
+
+          {activeCategory === "devotee" && (
+            <p className="text-[11px] text-white/60 mb-4 max-w-2xl">
+              On top of your standard booking cashback, each Devotee Referral Circle tier earns an{" "}
+              <span className="font-black text-[#FFB347]">additional</span> referral cashback:{" "}
+              {(activeTiers as DevoteeReferralTier[]).map((tier, i, arr) => (
+                <span key={tier.id}>
+                  <span className="font-black text-[#FFB347]">{tier.cashbackRatePercent}%</span>
+                  {i < arr.length - 1 ? (i === arr.length - 2 ? ", and " : ", ") : ""}
+                </span>
+              ))}{" "}
+              across the five tiers.
+            </p>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {activeTiers.map((tier, index) => {

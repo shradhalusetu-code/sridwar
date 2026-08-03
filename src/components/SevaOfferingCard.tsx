@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import OptimizedImage from "./OptimizedImage";
-import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
+import { validatePincode } from "../utils/formValidation";
 
 const renderOfferingIcon = (id: string) => {
   switch (id) {
@@ -42,19 +42,18 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
   const firstNumericOption = offering.priceOptions.find((p) => typeof p.value === "number");
   const [selected, setSelected] = useState<string>(firstNumericOption ? String(firstNumericOption.value) : "custom");
   const [customAmount, setCustomAmount] = useState("");
-  const [devoteeName, setDevoteeName] = useState("");
-  const [gotra, setGotra] = useState("");
-  const [sankalp, setSankalp] = useState("");
+  // Devotee name / email / phone / gotra / sankalp-wish are intentionally
+  // NOT collected here — the Sankalp Portal (BookNowWizard) that opens next
+  // already asks for every one of those fields exactly once, auto-filled
+  // from the devotee's saved Dharmic ID profile when available. This card
+  // only ever captures what the Portal does NOT ask for: occasion,
+  // preferred seva date, and delivery pincode (for local seva logistics).
   const [occasion, setOccasion] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  // Pincode — same inline field used on the Simple Pujas cards, so location
-  // is captured up front and can be used for local seva logistics/routing.
   const [pincode, setPincode] = useState("");
-  // Validation errors for Name/Email/Phone/Pincode — shown inline under each
-  // field and cleared as soon as the devotee edits that specific field again.
-  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string; pincode?: string }>({});
+  // Validation error for Pincode — shown inline and cleared as soon as the
+  // devotee edits the field again.
+  const [errors, setErrors] = useState<{ pincode?: string }>({});
   // Brief "thank you" confirmation shown right after offering — the card
   // itself is never hidden or shrunk, so a devotee can immediately fill the
   // form again to offer the same seva for someone else (e.g. another cow,
@@ -77,15 +76,11 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     if (!isActive) { onActivate(); return; }
     if (isCustomSelected && !customAmountValid) { alert("Custom seva amount starts from ₹100."); return; }
 
-    // Validate Name / Phone / Email before anything is synced anywhere.
-    // A clear inline error is shown under the relevant field and submission
-    // is blocked entirely until every field is corrected.
-    const nameErr = validateName(devoteeName);
-    const emailErr = validateEmail(email);
-    const phoneErr = validatePhone(phone);
-    const pincodeErr = validatePincode(pincode);
-    if (nameErr || emailErr || phoneErr || pincodeErr) {
-      setErrors({ name: nameErr || undefined, email: emailErr || undefined, phone: phoneErr || undefined, pincode: pincodeErr || undefined });
+    // Pincode is the only field left on this card — validate its format
+    // only when the devotee actually entered one (it's optional here).
+    const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
+    if (pincodeErr) {
+      setErrors({ pincode: pincodeErr });
       return;
     }
     setErrors({});
@@ -95,16 +90,11 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
-    detailParts.push(`For: ${devoteeName.trim()}`);
-    detailParts.push(`Email: ${email.trim()}`);
-    detailParts.push(`Phone: ${phone.trim()}`);
-    detailParts.push(`Pincode: ${pincode.trim()}`);
-    if (gotra.trim()) detailParts.push(`Gotra: ${gotra.trim()}`);
     if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
-    if (sankalp.trim()) detailParts.push(`Sankalp: ${sankalp.trim()}`);
+    if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
 
-    const composedName = `${offering.title} — ${detailParts.join(", ")}`;
+    const composedName = detailParts.length ? `${offering.title} — ${detailParts.join(", ")}` : offering.title;
 
     // ✅ DUPLICATE-SUBMISSION FIX: previously this fired its own immediate
     // Google Form sync (formType "seva") right here, then onOffer() below
@@ -116,17 +106,15 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     // Step 1 details are confirmed) already captures the lead even if the
     // devotee abandons before paying, so no capture is lost by removing the
     // extra row here — we just stop tripling it.
-    onOffer(offering.id, composedName, amount, devoteeName.trim());
+    // Devotee name, email, phone, gotra and sankalp wish are collected
+    // next, exactly once, inside the Sankalp Portal (BookNowWizard) — the
+    // devotee's own name there is what gets attributed to this seva.
+    onOffer(offering.id, composedName, amount, "");
 
-    // Reset the form so it's immediately ready for another devotee/cow/etc,
+    // Reset the form so it's immediately ready for another cow/occasion/etc,
     // and show a short confirmation instead of hiding the card.
-    setDevoteeName("");
-    setGotra("");
-    setSankalp("");
     setOccasion("");
     setPreferredDate("");
-    setEmail("");
-    setPhone("");
     setPincode("");
     setCustomAmount("");
     setJustOffered(true);
@@ -248,62 +236,15 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           )}
         </div>
 
-        {/* Common seva form fields — shown once this card is the active selection */}
+        {/* Common seva form fields — shown once this card is the active
+            selection. Only occasion, preferred date and pincode live here —
+            the fields the Sankalp Portal doesn't ask for. Devotee name,
+            email, phone, gotra and the sankalp wish are collected next,
+            exactly once, in the Sankalp Portal — auto-filled from the
+            devotee's Dharmic ID profile whenever one exists. */}
         {isActive && (
           <div className="space-y-2.5 mb-4 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
-            <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Devotee Name</label>
-              <input
-                type="text" value={devoteeName}
-                onChange={(e) => { setDevoteeName(e.target.value); if (errors.name) setErrors((p) => ({ ...p, name: undefined })); }}
-                placeholder="Your full name"
-                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
-                  errors.name ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
-                }`}
-              />
-              {errors.name && (
-                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.name}</p>
-              )}
-            </div>
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Email Address</label>
-                <input
-                  type="email" value={email}
-                  onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); }}
-                  placeholder="name@gmail.com"
-                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
-                    errors.email ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
-                  }`}
-                />
-                {errors.email && (
-                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Phone Number</label>
-                <input
-                  type="tel" value={phone}
-                  onChange={(e) => { setPhone(e.target.value); if (errors.phone) setErrors((p) => ({ ...p, phone: undefined })); }}
-                  placeholder="10-digit mobile number"
-                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
-                    errors.phone ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
-                  }`}
-                />
-                {errors.phone && (
-                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.phone}</p>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Gotra (if applicable)</label>
-                <input
-                  type="text" value={gotra} onChange={(e) => setGotra(e.target.value)}
-                  placeholder="e.g. Kashyap Gotra"
-                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
-                />
-              </div>
               <div>
                 <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Preferred Seva Date</label>
                 <input
@@ -311,23 +252,23 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                   className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
                 />
               </div>
-            </div>
-            <div>
-              <label className="flex items-center gap-1 text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">
-                <MapPin className="w-3 h-3 text-[#FFB347]" /> Pincode
-              </label>
-              <input
-                type="text" inputMode="numeric" value={pincode}
-                onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
-                placeholder="6-digit PIN code"
-                maxLength={6}
-                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
-                  errors.pincode ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
-                }`}
-              />
-              {errors.pincode && (
-                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
-              )}
+              <div>
+                <label className="flex items-center gap-1 text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">
+                  <MapPin className="w-3 h-3 text-[#FFB347]" /> Pincode
+                </label>
+                <input
+                  type="text" inputMode="numeric" value={pincode}
+                  onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
+                  placeholder="6-digit PIN code (optional)"
+                  maxLength={6}
+                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                    errors.pincode ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                  }`}
+                />
+                {errors.pincode && (
+                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
@@ -344,15 +285,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
               </div>
             </div>
-            <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Sankalp / Purpose</label>
-              <textarea
-                rows={2} value={sankalp} onChange={(e) => setSankalp(e.target.value)}
-                placeholder="Your prayer or intention for this seva (optional)"
-                className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 resize-none"
-              />
-            </div>
-            <p className="text-[9px] text-white/40 -mt-1">Your digital certificate will be sent to the email and phone/WhatsApp number above.</p>
+            <p className="text-[9px] text-white/40 -mt-1">Your name, gotra, email, phone and sankalp wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
           </div>
         )}
 

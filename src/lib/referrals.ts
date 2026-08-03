@@ -94,7 +94,29 @@ export async function fetchOrCreateReferralProfile(fallbackSeed: string): Promis
 
     if (fetchError) {
       console.error("fetchOrCreateReferralProfile select failed:", fetchError.message);
-      return null;
+      // ROOT-CAUSE FIX: previously this returned null here, which meant the
+      // My Referral Dashboard's link stayed stuck on "Generating…" forever
+      // any time the select failed (most commonly: supabase_schema_referrals.sql
+      // hasn't been run yet on this project, or a transient RLS/network
+      // hiccup) — the "Accept & Activate" button had nothing to activate.
+      // Mirror the same defensive fallback the INSERT-failure path below
+      // already uses: hand back a usable, deterministic in-memory profile
+      // (same dharmic_ref_code every time, from buildReferralCode) so the
+      // link always generates and is shareable immediately. It will start
+      // persisting to Supabase automatically the moment the table exists
+      // and the select/insert can succeed on a later load.
+      const fallbackCode = buildReferralCode(fallbackSeed || userId);
+      return {
+        userId,
+        dharmicRefCode: fallbackCode,
+        participantType: "devotee",
+        subscriptionTier: "none",
+        billingCycle: "monthly",
+        termsAcceptedAt: null,
+        kycStatus: "not_required",
+        lifetimeCommission: 0,
+        ledgerBalance: 0,
+      };
     }
 
     if (existing) {

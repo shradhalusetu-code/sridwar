@@ -74,7 +74,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
   const currentTierDef = activePlan?.tier;
   const currentCategoryLabel = activePlan ? PLAN_CATEGORIES.find((c) => c.id === activePlan.categoryId)?.tabLabel : undefined;
   const currentTierRateLabel = currentTierDef
-    ? (isDevoteeTier(currentTierDef) ? currentTierDef.networkCommissionRate : currentTierDef.commissionEligibility)
+    ? (isDevoteeTier(currentTierDef) ? `${currentTierDef.cashbackRatePercent}% Cashback` : currentTierDef.commissionEligibility)
     : undefined;
 
   const handleAccept = async () => {
@@ -230,7 +230,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
             {currentTierRateLabel && <span className="text-[10px] text-white/50">· {currentTierRateLabel}</span>}
           </div>
         ) : (
-          <p className="text-[10px] text-white/50">No active subscription — you're on standard 10% / 5% / 3% cashback rates. Upgrade from the homepage "Refer, Earn & Grow with Dharma" section for boosted rates and higher referral capacity.</p>
+          <p className="text-[10px] text-white/50">No active subscription — you're on standard <span className="font-black text-[#FFB347]">3%</span> / <span className="font-black text-[#FFB347]">2%</span> / <span className="font-black text-[#FFB347]">1%</span> cashback rates. Upgrade from the homepage "Refer, Earn & Grow with Dharma" section for boosted rates and higher referral capacity.</p>
         )}
       </div>
 

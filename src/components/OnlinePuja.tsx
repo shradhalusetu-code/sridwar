@@ -15,7 +15,7 @@ import SacredIcon from "./SacredIcon";
 import OptimizedImage from "./OptimizedImage";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
-import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
+import { validatePincode } from "../utils/formValidation";
 
 // ─────────────────────────────────────────────────────────────────────────
 // "Simple Pujas" — affordable, structured puja booking tier system.
@@ -139,14 +139,6 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
   },
 ];
 
-/** Accepts either a valid email or a valid WhatsApp/phone number in one field. */
-function validateContact(value: string): string | null {
-  const v = value.trim();
-  if (!v) return "Enter your email or WhatsApp number for certificate delivery.";
-  if (v.includes("@")) return validateEmail(v);
-  return validatePhone(v);
-}
-
 interface SimplePujaCardProps {
   offering: SimplePujaOffering;
   isActive: boolean;
@@ -161,14 +153,15 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   // another card's selection.
   const [selected, setSelected] = useState<string>(() => String(offering.price));
   const [customAmount, setCustomAmount] = useState("");
-  const [devoteeName, setDevoteeName] = useState("");
-  const [gotra, setGotra] = useState("");
-  const [rashi, setRashi] = useState("");
-  const [mansikIchha, setMansikIchha] = useState("");
+  // Devotee name / gotra / rashi / wish / contact are intentionally NOT
+  // collected on this card anymore — the Puja Sankalp Portal (BookNowWizard)
+  // that opens next already asks for every one of those fields exactly
+  // once, auto-filled from the devotee's saved Dharmic ID profile when
+  // available. This card only ever captures the two things the Portal does
+  // NOT ask for: a puja-date preference and a delivery pincode.
   const [pujaDate, setPujaDate] = useState("");
-  const [contact, setContact] = useState("");
   const [pincode, setPincode] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; contact?: string; pincode?: string }>({});
+  const [errors, setErrors] = useState<{ pincode?: string }>({});
   const [justBooked, setJustBooked] = useState(false);
   const justBookedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -187,11 +180,9 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     if (!isActive) { onActivate(); return; }
     if (isCustomSelected && !customAmountValid) { alert("Custom sankalp amount starts from ₹100."); return; }
 
-    const nameErr = validateName(devoteeName);
-    const contactErr = validateContact(contact);
-    const pincodeErr = validatePincode(pincode);
-    if (nameErr || contactErr || pincodeErr) {
-      setErrors({ name: nameErr || undefined, contact: contactErr || undefined, pincode: pincodeErr || undefined });
+    const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
+    if (pincodeErr) {
+      setErrors({ pincode: pincodeErr });
       return;
     }
     setErrors({});
@@ -200,15 +191,10 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
-    detailParts.push(`For: ${devoteeName.trim()}`);
-    if (gotra.trim()) detailParts.push(`Gotra: ${gotra.trim()}`);
-    if (rashi.trim()) detailParts.push(`Rashi: ${rashi.trim()}`);
-    if (mansikIchha.trim()) detailParts.push(`Mansik Ichha: ${mansikIchha.trim()}`);
     if (pujaDate) detailParts.push(`Puja Date Preference: ${pujaDate}`);
-    detailParts.push(`Certificate Delivery: ${contact.trim()}`);
-    detailParts.push(`Pincode: ${pincode.trim()}`);
+    if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
 
-    const composedName = `${offering.title} — ${detailParts.join(", ")}`;
+    const composedName = detailParts.length ? `${offering.title} — ${detailParts.join(", ")}` : offering.title;
 
     // ✅ DUPLICATE-SUBMISSION FIX: previously this fired its own immediate
     // Google Form sync (formType "puja") right here, then onBook() below
@@ -225,14 +211,12 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     // which sets the Puja Sankalp Portal (BookNowWizard) defaults and opens
     // it immediately.
     gaBookNowOpen(composedName, amount);
+    // Devotee name, gotra, rashi, wish, phone and email are collected next,
+    // exactly once, inside the Puja Sankalp Portal (BookNowWizard) — never
+    // here — so a devotee is never asked to re-type the same detail twice.
     onBook(composedName, amount);
 
-    setDevoteeName("");
-    setGotra("");
-    setRashi("");
-    setMansikIchha("");
     setPujaDate("");
-    setContact("");
     setPincode("");
     setCustomAmount("");
     setJustBooked(true);
@@ -347,49 +331,14 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           )}
         </div>
 
-        {/* Booking form fields — shown once this card is the active selection */}
+        {/* Booking form fields — shown once this card is the active selection.
+            Only the two fields the Sankalp Portal does NOT collect (a date
+            preference and a delivery pincode) live here. Devotee name,
+            gotra, rashi, wish, phone and email are collected next, exactly
+            once, in the Puja Sankalp Portal — auto-filled from the
+            devotee's Dharmic ID profile whenever one exists. */}
         {isActive && (
           <div className="space-y-2.5 mb-4 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
-            <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Devotee Name</label>
-              <input
-                type="text" value={devoteeName}
-                onChange={(e) => { setDevoteeName(e.target.value); if (errors.name) setErrors((p) => ({ ...p, name: undefined })); }}
-                placeholder="Your full name"
-                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
-                  errors.name ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
-                }`}
-              />
-              {errors.name && (
-                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.name}</p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Gotra</label>
-                <input
-                  type="text" value={gotra} onChange={(e) => setGotra(e.target.value)}
-                  placeholder="e.g. Kashyap Gotra"
-                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Rashi</label>
-                <input
-                  type="text" value={rashi} onChange={(e) => setRashi(e.target.value)}
-                  placeholder="e.g. Mesha (Aries)"
-                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Mansik Ichha / Personal Wish</label>
-              <textarea
-                rows={2} value={mansikIchha} onChange={(e) => setMansikIchha(e.target.value)}
-                placeholder="Your prayer or intention for this puja (optional)"
-                className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 resize-none"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Puja Date Preference</label>
@@ -402,8 +351,8 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                 <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Pincode</label>
                 <input
                   type="text" inputMode="numeric" value={pincode}
-                  onChange={(e) => { setPincode(e.target.value); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
-                  placeholder="6-digit PIN code"
+                  onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
+                  placeholder="6-digit PIN code (optional)"
                   maxLength={6}
                   className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
                     errors.pincode ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
@@ -414,21 +363,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                 )}
               </div>
             </div>
-            <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Certificate Email / WhatsApp</label>
-              <input
-                type="text" value={contact}
-                onChange={(e) => { setContact(e.target.value); if (errors.contact) setErrors((p) => ({ ...p, contact: undefined })); }}
-                placeholder="name@gmail.com or WhatsApp number"
-                className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
-                  errors.contact ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
-                }`}
-              />
-              {errors.contact && (
-                <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.contact}</p>
-              )}
-            </div>
-            <p className="text-[9px] text-white/40 -mt-1">Your digital certificate will be sent to the email or WhatsApp number above.</p>
+            <p className="text-[9px] text-white/40 -mt-1">Your name, gotra, rashi, contact details and personal wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
           </div>
         )}
 

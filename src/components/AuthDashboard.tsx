@@ -626,38 +626,14 @@ export default function AuthDashboard({
                 </div>
               </div>
 
-              {authFormMode === "signup" && (
-              <div className="grid grid-cols-2 gap-4 text-left">
-                {/* Gotra */}
-                <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">Gotra Ancestry</label>
-                  <input
-                    id="login-field-gotra"
-                    type="text"
-                    value={userGotra}
-                    onChange={(e) => setUserGotra(e.target.value)}
-                    placeholder="e.g. Kashyap Gotra"
-                    className="w-full text-xs px-3 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-medium placeholder-white/30 text-left"
-                  />
-                </div>
-                {/* Rashi */}
-                <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">Moon Sign (Rashi)</label>
-                  <select
-                    id="login-field-rashi"
-                    value={userRashi}
-                    onChange={(e) => setUserRashi(e.target.value)}
-                    className="w-full text-xs px-2.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#5EEAD4] font-medium"
-                  >
-                    <option value="Mesh (Aries)">Mesh (Aries)</option>
-                    <option value="Vrishabh (Taurus)">Vrishabh (Taurus)</option>
-                    <option value="Mithun (Gemini)">Mithun (Gemini)</option>
-                    <option value="Dhanu (Sagittarius)">Dhanu (Sagittarius)</option>
-                    <option value="Meen (Pisces)">Meen (Pisces)</option>
-                  </select>
-                </div>
-              </div>
-              )}
+              {/* Gotra Ancestry / Moon Sign (Rashi) are intentionally NOT
+                  collected here anymore — asking for them at signup (and
+                  again at signin) duplicated what "My Sacred Profile"
+                  already collects once a devotee is logged in. The Dharmic
+                  ID panel now only ever asks for Name (signup only), Email,
+                  and Password. userGotra/userRashi keep their sensible
+                  defaults until the devotee sets their real values from
+                  My Sacred Profile. */}
 
               {/* Plain registration submit button — no Google branding or
                   colors, since this form does not use real Google Sign-In/

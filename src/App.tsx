@@ -3640,7 +3640,7 @@ Where permitted by law, we may use cookies to:</p>
                   <p className="mb-2 last:mb-0">For every referred devotee's eligible bookings, the referring Dharmic ID earns:</p>
                   <ul className="list-disc list-inside space-y-1 mb-2 ml-1">
                     {COMMISSION_STRUCTURE.map((tier) => (
-                      <li key={tier.bookingLabel}>{tier.bookingLabel} by that devotee — {tier.rate}% cashback</li>
+                      <li key={tier.bookingLabel}>{tier.bookingLabel} by that devotee — <strong className="text-[#FFB347] font-black">{tier.rate}%</strong> cashback</li>
                     ))}
                   </ul>
                   <p className="mb-2 last:mb-0">Cashback eligibility ends after that devotee's {REFERRAL_CASHBACK_BOOKING_CAP}th successful booking; no further cashback accrues on that devotee's bookings beyond the {REFERRAL_CASHBACK_BOOKING_CAP}th, though the referrer remains free to refer new devotees and earn cashback on their bookings at any time. The booking count resets per referred devotee, not per referrer, and applies across puja, seva, contribution, product, consultation, and other qualifying services unless a specific campaign states otherwise. Higher-tier subscribers may unlock elevated cashback percentages, priority payouts, or bonus multipliers as described in the Subscription Plans section of the Refer & Earn / Plans page.</p>
