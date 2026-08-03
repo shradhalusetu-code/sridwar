@@ -108,7 +108,7 @@ export const DAILY_HOROSCOPES: DailyHoroscope[] = [
     prediction: "Steady, structured steps yield progress. Lord Shiva protects your work ethics. Your consistency earns praise today.",
     luckyNumber: 8,
     luckyColor: "Smoky Gray",
-    remedy: "Donate any small amount or serve food to the needy on your commute."
+    remedy: "Contribute any small amount or serve food to the needy on your commute."
   },
   {
     sign: "Aquarius (Kumbha)",
@@ -1733,7 +1733,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     price: 499,
     imageUrl: import.meta.env.BASE_URL + "images/prasad.jpg",
     rating: 5,
-    deliveryTimeline: "3-5 Business Days across India and globe."
+    deliveryTimeline: "3-7 working days across India and globe."
   },
   {
     id: "prod-rudraksha-kashi",
@@ -1746,7 +1746,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     price: 1299,
     imageUrl: import.meta.env.BASE_URL + "images/bead.jpg",
     rating: 4.8,
-    deliveryTimeline: "4-6 Business Days."
+    deliveryTimeline: "3-7 working days."
   },
   {
     id: "prod-incense-vrindavan",
@@ -1759,7 +1759,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     price: 299,
     imageUrl: import.meta.env.BASE_URL + "images/Incense.jpg",
     rating: 4.9,
-    deliveryTimeline: "2-4 Business Days."
+    deliveryTimeline: "3-7 working days."
   },
   {
     id: "prod-kit-festive",
@@ -1772,7 +1772,7 @@ export const SPIRITUAL_PRODUCTS: Product[] = [
     price: 1499,
     imageUrl: import.meta.env.BASE_URL + "images/kit.jpg",
     rating: 5,
-    deliveryTimeline: "2-3 Business Days."
+    deliveryTimeline: "3-7 working days."
   }
 ];
 

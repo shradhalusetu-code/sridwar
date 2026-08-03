@@ -6,7 +6,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { Award, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Flame } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
-import { PRIEST_PROFILES } from "../data/priests";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
@@ -175,45 +174,29 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     });
   };
 
-  // Trust-bar stats — kept honest on purpose:
-  //  - "Priests Network" and "Temples Network" are computed live from the
-  //    actual data files, so they can never drift into a false claim as the
-  //    business grows or changes (and note: PRIEST_PROFILES currently marks
-  //    every priest isVerified: false, so we no longer claim "Verified
-  //    Priests" here — that word should only return once a real
-  //    verification process is in place and priests.ts reflects it).
-  //  - "Languages Supported" is computed from the app's own translations.
-  //  - The rest are genuine feature/policy claims (things Sri Dwar actually
-  //    does), not fabricated headcounts. Previous versions of this list
-  //    included specific-sounding but unverifiable numbers ("10k+ Devotees
-  //    Served", "1500+ Devotee Memberships", "12 Global Reps", "2 Festivals
-  //    Streamed", separate made-up counts for "Puja Committees" vs "Puja
-  //    Mandal") with no backing data anywhere in the codebase. Displaying
-  //    fabricated scale metrics like that is a real Play Store / Google
-  //    Business "deceptive claims" risk, so they've been removed rather
-  //    than just reworded. If you have real, verifiable figures for any of
-  //    those, add them back in — just make sure they're numbers you can
-  //    substantiate if asked.
-  const trustStats = [
-    { value: `${PRIEST_PROFILES.length}+`, label: "Priests Network" },
-    { value: `${TEMPLES_LIST.length}+`, label: "Temples Network" },
-    { value: `${Object.keys(TRANSLATIONS).length}`, label: "Languages Supported" },
-    { value: "100%", label: "Secure Offerings" },
-    { value: "24/7", label: "Live Ritual Streams" },
-    { value: "Free", label: "Temple Registration" },
-    { value: "Global", label: "Devotees Welcome" },
-    { value: "AI-Powered", label: "Faith-Tech Platform" },
-  ];
-
   return (
     <div
       id="hero-wrapper"
-      className={`relative flex flex-col justify-between bg-[#021816] text-white ${isAndroidApp ? "pt-28 pb-12" : "pt-2 pb-6"}`}
+      className={`relative flex flex-col justify-between bg-[#021816] text-white min-h-[420px] sm:min-h-[480px] lg:min-h-[560px] ${isAndroidApp ? "pt-4 pb-6" : "pt-2 pb-4"}`}
       style={{
-        // "100vh" not "100svh" — svh is silently dropped on older Android
-        // WebView (no collapsing browser chrome inside the app anyway, so
-        // vh is accurate here and works on every device).
-        minHeight: isAndroidApp ? "100vh" : undefined,
+        // NOTE: Hero is no longer the first element on the homepage —
+        // HomeCarousel renders above it and already reserves clearance for
+        // the fixed navbar/status bar. Hero therefore no longer forces a
+        // full-viewport minHeight; that used to leave a large empty gap
+        // above and below this section on every screen where the headline
+        // + CTAs don't naturally fill 100% of the viewport height.
+        //
+        // It still needs SOME floor height though (min-h-[...] above): with
+        // no floor at all, on screens where the text content is short the
+        // whole section — including the absolutely-positioned cinematic
+        // background image behind it — collapses down to just the content's
+        // height. Since that background uses object-cover, a too-short box
+        // crops the aerial temple photo down to a thin sliver instead of
+        // showing the intended wide cinematic shot, which is what made the
+        // background look "compressed"/misaligned. The min-height values
+        // above give the image room to render properly while still sizing
+        // to content (and growing taller than the floor) whenever the
+        // headline/CTAs need more room, e.g. wrapped text on narrow phones.
         // "hidden" not "clip" — overflow: clip is unsupported on older
         // Android WebView and gets ignored, letting horizontal overflow
         // through.
@@ -248,7 +231,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       <div className="absolute top-1/3 right-10 w-32 h-32 bg-teal-mid/10 rounded-full filter blur-2xl animate-pulse delay-700" />
 
       {/* Hero Central Content */}
-      <div id="hero-main-container" className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex items-center z-10 ${isAndroidApp ? "pt-8" : "pt-0"}`}>
+      <div id="hero-main-container" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex items-center z-10 pt-0">
         <div className="w-full flex justify-center text-center">
           
           {/* Headline and Copy (Centered layout) */}
@@ -322,28 +305,6 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             `}</style>
           </div>
 
-        </div>
-      </div>
-
-      {/* Floating animated statistics card - Trust Bar Section */}
-      <div id="trust-bar-section" className={`relative bg-[#092320]/80 z-10 w-full border-t border-b border-white/10 shadow-lg backdrop-blur-md ${isAndroidApp ? "mt-12 py-6" : "mt-4 py-3"}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`grid ${isAndroidApp ? "grid-cols-2" : "grid-cols-3"} sm:grid-cols-4 lg:grid-cols-8 gap-4 text-center items-stretch`}>
-            {trustStats.map((stat, i) => (
-              <div 
-                key={i} 
-                id={`stat-card-${i}`}
-                className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm transition-transform hover:scale-105"
-              >
-                <span className="text-lg font-bold text-[#FFB347] font-serif filter drop-shadow">
-                  {stat.value}
-                </span>
-                <span className="text-[10px] text-white/80 font-mono tracking-tight leading-tight break-words mt-1">
-                  {stat.label}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -629,7 +590,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                     Your request for the Darshan Certificate has been lovingly received by our team of devoted priests and seva coordinators.
                   </p>
                   <p className="mb-4">
-                    Like a diya lit with pure intention, your certificate is being handcrafted with sacred blessings and will be delivered to you within 24 hours — straight to your:
+                    Like a diya lit with pure intention, your certificate is being handcrafted with sacred blessings and will be delivered to you within 3-7 working days — straight to your:
                   </p>
                   <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono bg-black/40 p-3 rounded-xl border border-white/10">
                     <div>

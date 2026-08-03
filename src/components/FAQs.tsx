@@ -24,8 +24,8 @@ const FAQ_DATA: FAQItem[] = [
   {
     id: "faq-2",
     category: "Prasad",
-    question: "How and when will I receive the sacred Prasad and consecrated items?",
-    answer: "Following the successful performance of your ritual, the temple priests sanctify the offerings. The high-grade Dry Fruits, sacred Kumkum, energized threads, and temple Prasad are packaged in specialized hermetic food-grade pouches to prevent degradation. It is dispatched via express courier with live tracking, reaching your doorstep within 3-5 business days."
+    question: "When will I receive my Prasad, certificate, or ordered items, and how can I track them?",
+    answer: "Every certificate, product, and Prasad delivery on Sri Dwar follows the same standard timeline: 3-7 working days from the completion of your ritual or order. Following the successful performance of your ritual, temple priests sanctify the offerings; high-grade Dry Fruits, sacred Kumkum, energized threads, and temple Prasad are packaged in specialized hermetic food-grade pouches and dispatched via express courier with live tracking. Your Devotee Workspace shows a dedicated Order Timeline for every booking — Sankalpa Confirmed, Priest Assigned, Ritual Performed, Dispatched, and Out for Delivery — with automated WhatsApp and email updates at each stage, plus the courier's live tracking link once your item ships."
   },
   {
     id: "faq-3",
@@ -148,12 +148,6 @@ const FAQ_DATA: FAQItem[] = [
     answer: "We understand devotional plans can shift. Cancellations made more than 48 hours before the scheduled Sankalpa are eligible for a full refund to your original payment method or as Sri Dwar wallet credit, processed within 5-7 business days. Cancellations within 48 hours of the ritual may carry a partial priest-engagement fee, since temple slots and Acharya time are reserved exclusively in your name."
   },
   {
-    id: "faq-23",
-    category: "Platform",
-    question: "How can I track the real-time status of my Puja, from booking confirmation to Prasad delivery?",
-    answer: "Your Devotee Workspace includes a dedicated Order Timeline for every booking, showing live milestones: Sankalpa Confirmed, Priest Assigned, Ritual Performed, Prasad Dispatched, and Out for Delivery. You will also receive automated WhatsApp and email updates at each stage, along with the courier's live tracking link once Prasad ships."
-  },
-  {
     id: "faq-24",
     category: "Rituals",
     question: "How far in advance should I book a Puja, especially around major festivals like Diwali or Navratri?",
@@ -170,12 +164,6 @@ const FAQ_DATA: FAQItem[] = [
     category: "Platform",
     question: "In which languages can I communicate with customer support and receive Sankalpa confirmations?",
     answer: "Our Devotee Support desk currently assists in English, Hindi, Odia, Telugu, and Tamil over chat, email, and WhatsApp. Sankalpa confirmations and ritual notifications can also be requested in Sanskrit transliteration alongside your chosen regional language."
-  },
-  {
-    id: "faq-27",
-    category: "Rituals",
-    question: "Will I receive an official donation receipt for Annadanam or Gurukul Dan sponsorships for tax purposes?",
-    answer: "Yes. Charitable sevas like Annadanam and Gurukul Dan, when arranged through the pujaris we work with, generate an official donation receipt sent to your registered email within 7 working days, which may be eligible for tax exemption under applicable regional charitable-donation provisions. We recommend confirming eligibility with your tax advisor."
   },
   {
     id: "faq-28",

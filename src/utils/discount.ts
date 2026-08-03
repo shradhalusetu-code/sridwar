@@ -3,18 +3,28 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Sitewide "Summer Special" promotional discount.
- * Change the rate or deadline here and every puja/seva/wellness price
- * across the site updates automatically — the discount also switches
- * itself off once the deadline passes, with no manual cleanup needed.
+ *
+ * IMPORTANT: This is now a MANUAL on/off switch (DISCOUNT_ACTIVE), not a
+ * deadline. The previous version auto-expired on a fixed date (Aug 1) and
+ * silently reverted every puja/seva/wellness price to full price with no
+ * live campaign to replace it — devotees who remembered the offer saw a
+ * price increase with no explanation. That was a trust problem, not a
+ * pricing problem, so the fix is structural: there is no deadline to lapse
+ * anymore. The discount stays ON until a human flips DISCOUNT_ACTIVE to
+ * false below. Change the rate here and every price across the site
+ * updates automatically.
  */
 
 export const DISCOUNT_RATE = 0.20; // 20% off
-export const DISCOUNT_DEADLINE = new Date("2026-08-01T00:00:00+05:30"); // midnight IST, Aug 1
 export const DISCOUNT_TAG = "20% OFF";
 
-/** Whether the promotional window is still open. */
-export function isDiscountActive(now: Date = new Date()): boolean {
-  return now.getTime() < DISCOUNT_DEADLINE.getTime();
+// Flip this to false to end the campaign. There is no auto-expiry — the
+// discount will keep applying indefinitely until this is changed by hand.
+export const DISCOUNT_ACTIVE = true;
+
+/** Whether the promotional window is currently open. */
+export function isDiscountActive(_now: Date = new Date()): boolean {
+  return DISCOUNT_ACTIVE;
 }
 
 /** Returns the promo price (rounded) if active, otherwise the original price. */

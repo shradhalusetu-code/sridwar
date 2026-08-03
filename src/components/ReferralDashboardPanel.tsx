@@ -138,7 +138,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
           <div className="flex items-start gap-2">
             <Lock className="w-3.5 h-3.5 text-[#FFB347] mt-0.5 shrink-0" />
             <p className="text-[11px] text-white/70 leading-relaxed">
-              Accept the Program Terms to activate your referral link and start earning commissions.
+              Accept the Program Terms to activate your referral link and start earning cashback.
             </p>
           </div>
           <label className="flex items-start gap-2 text-[10px] text-white/60 cursor-pointer">
@@ -196,7 +196,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
           <Wallet className="w-3.5 h-3.5 text-[#FFB347] mx-auto mb-1" />
           <span className="block text-base font-serif font-black text-[#FFB347]">₹{(profile?.lifetimeCommission ?? 0).toLocaleString("en-IN")}</span>
-          <span className="block text-[9px] text-white/45">Lifetime Earnings</span>
+          <span className="block text-[9px] text-white/45">Total Cashback Earned</span>
         </div>
         <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
           <Gift className="w-3.5 h-3.5 text-[#FFB347] mx-auto mb-1" />
@@ -230,7 +230,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
             {currentTierRateLabel && <span className="text-[10px] text-white/50">· {currentTierRateLabel}</span>}
           </div>
         ) : (
-          <p className="text-[10px] text-white/50">No active subscription — you're on standard 10% / 5% / 3% commissions. Upgrade from the homepage "Refer, Earn & Grow with Dharma" section for boosted rates and higher referral capacity.</p>
+          <p className="text-[10px] text-white/50">No active subscription — you're on standard 10% / 5% / 3% cashback rates. Upgrade from the homepage "Refer, Earn & Grow with Dharma" section for boosted rates and higher referral capacity.</p>
         )}
       </div>
 
@@ -250,7 +250,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
           </span>
         </div>
         <p className="text-[10px] text-white/45">
-          KYC becomes mandatory once lifetime commission crosses ₹{REFERRAL_KYC_THRESHOLD.toLocaleString("en-IN")}. Minimum payout balance is ₹{REFERRAL_PAYOUT_THRESHOLD.toLocaleString("en-IN")}.
+          KYC becomes mandatory once your accumulated cashback crosses ₹{REFERRAL_KYC_THRESHOLD.toLocaleString("en-IN")}. Minimum payout balance is ₹{REFERRAL_PAYOUT_THRESHOLD.toLocaleString("en-IN")}.
         </p>
         <button
           onClick={handleRequestPayout}
@@ -284,7 +284,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
           </div>
         ) : (
           <p className="text-[10px] text-white/40 italic">
-            No referrals yet — share your link above. Once someone books using it, they'll appear here with their booking history and your commission, permanently linked to your Dharmic ID.
+            No referrals yet — share your link above. Once someone books using it, they'll appear here with their booking history and your cashback, linked to your Dharmic ID.
           </p>
         )}
       </div>

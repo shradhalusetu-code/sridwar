@@ -21,7 +21,7 @@ interface BookNowWizardProps {
 }
 
 export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, onSuccess }: BookNowWizardProps) {
-  const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Certificate
+  const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Request Acknowledgement (NOT a completion certificate — see wizard-success-stage below)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
 
@@ -348,13 +348,23 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                 </div>
               )}
 
-              {/* ── STEP 3: Blessing Certificate ── */}
+              {/* ── STEP 3: Sankalpa Request Acknowledgement ──
+                   IMPORTANT: at this point only the devotee's details and
+                   payment have been received — the priest has not yet been
+                   assigned and the puja has not yet been performed. This
+                   screen must never claim the ritual is "done"; it only
+                   confirms the request/Sankalpa was recorded and explains
+                   what happens next (assignment → performance → evidence →
+                   certificate). Keep this consistent with the identical
+                   "will be performed… certificate shared within 3 working
+                   days" language used in TempleRegister.tsx, ContactUs.tsx
+                   and OnlinePuja.tsx. */}
               {step === 3 && (
                 <div className="space-y-6 text-center" id="wizard-success-stage">
                   <div className="w-12 h-12 bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
                     <Check className="w-6 h-6 text-emerald-400 stroke-[3]" />
                   </div>
-                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">Puja Sankalpa Authorized!</h4>
+                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">Sankalpa Request Received!</h4>
                   <div id="divine-generated-certificate" className="relative bg-[#021816]/95 border-[10px] border-[#FFB347] p-5 rounded-2xl shadow-xl text-center overflow-hidden border-double">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-gradient-to-b from-[#14B8A6]/20 to-transparent rounded-full" />
                     <div className="absolute right-3 top-3 text-[#FFB347] opacity-10 text-6xl font-serif select-none pointer-events-none">ॐ</div>
@@ -362,38 +372,41 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <div className="border-b border-[#FFB347]/30 pb-1.5 inline-flex justify-center">
                         <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="justify-center" />
                       </div>
-                      <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">Sacred Sankalpa Patrika</h5>
-                      <p className="text-[10px] text-white/50 font-mono">This is to certify that sacred Rites and offering chants of:</p>
+                      <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">Sankalpa Request Acknowledgement</h5>
+                      <p className="text-[10px] text-white/50 font-mono">This confirms that the sacred Sankalpa (intention) submitted by:</p>
                       <h6 className="font-serif text-base font-black text-[#FFB347] border-b border-white/15 inline-block px-4 pb-0.5">{devoteeName}</h6>
                       <p className="text-xs text-white/80 font-sans px-2">
-                        have been successfully performed for the sacred service: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>, Moon Sign: {rashi}.
+                        has been successfully received for the sacred service: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>, Moon Sign: {rashi}. Your puja is now <strong className="text-[#FFB347]">pending priest assignment and performance</strong> at the temple.
                       </p>
+                      <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono font-bold text-[#FFB347] bg-[#FFB347]/10 py-1.5 px-3 rounded-full border border-[#FFB347]/30 mx-auto w-fit">
+                        <span>● Status: Request Received — Awaiting Performance</span>
+                      </div>
                       <p className="text-[11px] text-white/75 font-sans italic leading-relaxed">
-                        "May the divine vibrations protect your home, health, prosperity, and loved ones across all dimensions."
+                        "May this sacred intention be carried forward with devotion, for the protection of your home, health, prosperity, and loved ones across all dimensions."
                       </p>
                       <div className="grid grid-cols-2 gap-4 items-center pt-3 border-t border-white/5 text-[9px] font-mono text-white/60">
                         <div className="text-left">
                           <span className="block font-bold">Pundit K. K. Dwivedi</span>
                           <span className="block uppercase text-white/40">Chief Shastri Seal</span>
-                          <span className="block text-emerald-400 font-black">✓ Hand-signed Digitally</span>
+                          <span className="block text-emerald-400 font-black">✓ Request Digitally Logged</span>
                         </div>
                         <div className="text-right">
                           <span className="block font-bold">Shradhalu Private Ltd</span>
                           <span className="block uppercase text-white/40">Reg No: #849302-IN</span>
-                          <span className="block text-[#5EEAD4] font-bold">Dharmic Registry Authorized</span>
+                          <span className="block text-[#5EEAD4] font-bold">Dharmic Registry Recorded</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/20 py-2 rounded-xl border border-emerald-500/20">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Powered by Sri Dwar Technology Reference: {refId}</span>
+                  <div className="flex items-start space-x-1.5 text-[10px] font-mono text-emerald-300 bg-emerald-950/20 py-2 px-2.5 rounded-xl border border-emerald-500/20 text-left">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-px" />
+                    <span>Reference: {refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available), photo/video evidence, and your final Sankalpa Certificate on WhatsApp &amp; Email within 3 working days of completion.</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <button id="pdf-download-btn" onClick={() => { gaCertificateAction("download", refId); alert("Your premium high-resolution blessed Sankalpa Patrika PDF is compiled and will be dispatched to your WhatsApp within 24 hours!"); }}
+                    <button id="pdf-download-btn" onClick={() => { gaCertificateAction("download", refId); alert("Your puja has not been performed yet, so the certificate isn't ready. Once the temple priest completes your puja, your Sankalpa Certificate PDF will be generated and dispatched to your WhatsApp & Email within 3 working days."); }}
                       className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
                       <Download className="w-3.5 h-3.5 text-[#FFB347]" />
-                      <span>Download patra PDF</span>
+                      <span>Download Certificate PDF</span>
                     </button>
                     <button id="close-success-wizard" onClick={handleClose}
                       className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">

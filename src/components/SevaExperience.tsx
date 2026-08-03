@@ -15,6 +15,16 @@ import SevaOfferingCard from "./SevaOfferingCard";
 import OptimizedImage from "./OptimizedImage";
 import SevaLiveDashboard from "./SevaLiveDashboard";
 
+// ─── Temporary feature flag ─────────────────────────────────────────────────
+// The Live Devotional Dashboard (its "Upcoming Seva Slots" and "Recent Seva
+// Completed" panels) is temporarily disabled on the Seva page per product
+// request. Everything it depends on — the SevaLiveDashboard component file,
+// the sessionRecentSevas tracking below, loadCompletedSevas/persistence, and
+// the handleOfferSeva wiring — is left fully intact so this can be turned
+// back on later by simply flipping this flag back to true. No files were
+// removed and no functionality was deleted.
+const SHOW_SEVA_LIVE_DASHBOARD = false;
+
 // ─── Persisted "completed seva offering" records ───────────────────────────
 // These power ONLY the Live Devotional Dashboard's "Recent Seva Completed"
 // list — the Structured Seva Offering cards (Gau Seva, Annadan, etc.) are
@@ -197,16 +207,23 @@ interface SevaCardProps {
     imageUrl?: string | null;
   };
   onSponsor: (name: string, price: number) => void;
+  /** Optional — true when this card is the deep-link target arriving from
+   *  elsewhere in the app (e.g. the homepage carousel). Reuses the same
+   *  border/shadow treatment SimplePujaCard and BazaarOfferingCard already
+   *  use for their own "selected" state, so it matches the rest of the site. */
+  highlighted?: boolean;
 }
 
-function SevaCard({ seva, onSponsor }: SevaCardProps) {
+function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
   const tier = seva.donationTiers[0];
   const { display, original } = getSevaDiscountedPrice(tier.amount);
 
   return (
     <div
       id={`seva-card-${seva.id}`}
-      className="bg-[#092320] p-5 rounded-3xl border border-white/10 text-left hover:shadow-lg hover:border-[#5EEAD4]/20 transition-all flex flex-col justify-between text-white"
+      className={`bg-[#092320] p-5 rounded-3xl border text-left hover:shadow-lg transition-all flex flex-col justify-between text-white ${
+        highlighted ? "border-[#FFB347]/60 shadow-lg shadow-[#FFB347]/10" : "border-white/10 hover:border-[#5EEAD4]/20"
+      }`}
     >
       <div>
         {/* Temple image */}
@@ -274,6 +291,13 @@ function SevaCard({ seva, onSponsor }: SevaCardProps) {
 
 interface SevaExperienceProps {
   onSponsorSeva: (sevaName: string, price: number) => void;
+  /** Optional — when set (e.g. arriving from the homepage carousel), the
+   *  matching seva card is highlighted and scrolled into view on mount, and
+   *  the "Additional Offerings" accordion is auto-expanded if the target
+   *  lives inside it. The special id "seva-dashboard-section" just scrolls
+   *  to the Seva Hub & Live Devotional Dashboard section itself. Any other
+   *  unmatched id is silently ignored. */
+  initialHighlightId?: string | null;
 }
 
 // The Prayer Wall starts empty — no example devotees or sample messages are
@@ -287,7 +311,7 @@ const INITIAL_CHAT_MESSAGES: { name: string; msg: string; location: string }[] =
 // like "Example: a devotee sponsored Gau Seva") has been removed — it looked
 // like fake/misleading live activity to devotees.
 
-export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
+export default function SevaExperience({ onSponsorSeva, initialHighlightId = null }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   // Note: UPI/Details state removed — Sponsor Seva now routes through
@@ -295,6 +319,11 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
   const [accordionOpen, setAccordionOpen] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const [activeOfferingId, setActiveOfferingId] = useState<string | null>(null);
+  // Drives the highlighted border on whichever SevaCard matches
+  // initialHighlightId below — separate from activeOfferingId (which is
+  // SEVA_OFFERINGS' own "selected for sponsorship" state) so a deep-link
+  // never accidentally opens a booking form on arrival.
+  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
   // Offered sevas (this device, most recent first), shown at the top of the
   // Live Devotional Dashboard's "Recent Seva Completed" list so a devotee's
   // own seva stays visibly reflected there even after returning to the page.
@@ -315,6 +344,40 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
     const t = setInterval(() => setSlideIndex((p) => (p + 1) % JAGANNATH_SLIDES.length), 5000);
     return () => clearInterval(t);
   }, []);
+
+  // Deep-link from the homepage carousel (or anywhere else that passes
+  // initialHighlightId). Runs once per mount; SevaExperience is unmounted/
+  // remounted whenever currentPage changes in App.tsx, so a fresh id always
+  // re-triggers this correctly.
+  useEffect(() => {
+    if (!initialHighlightId) return;
+
+    // Special case: the carousel's "Seva Hub & Live Devotional Dashboard"
+    // card targets the section itself, not a single seva card.
+    if (initialHighlightId === "seva-dashboard-section") {
+      const timer = setTimeout(() => {
+        document.getElementById("seva-dashboard-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+
+    const allSevas = [...FEATURED_SEVAS, ...EXTRA_SEVAS];
+    const match = allSevas.find((s) => s.id === initialHighlightId);
+    if (!match) return;
+
+    setHighlightedCardId(match.id);
+    // Always-visible cards are FEATURED_SEVAS.slice(0, 4) — everything else
+    // (FEATURED_SEVAS.slice(4) and all of EXTRA_SEVAS) only exists in the
+    // DOM once the "Additional Offerings" accordion is open.
+    const isAlwaysVisible = FEATURED_SEVAS.slice(0, 4).some((s) => s.id === match.id);
+    if (!isAlwaysVisible) setAccordionOpen(true);
+
+    const timer = setTimeout(() => {
+      document.getElementById(`seva-card-${match.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, isAlwaysVisible ? 150 : 250); // extra delay when the accordion has to expand first
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialHighlightId]);
 
   const handleSponsor = (name: string, amount: number) => {
     // Route to the full Puja Sankalpa Portal (BookNowWizard) which collects
@@ -393,7 +456,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
         <div className="text-center max-w-2xl mx-auto mb-8">
           <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono uppercase">Sacred community giving</span>
           <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
-            Seva Hub & Live Devotional Dashboard
+            {SHOW_SEVA_LIVE_DASHBOARD ? "Seva Hub & Live Devotional Dashboard" : "Seva Hub"}
           </h2>
           <p className="text-xs text-white/70 mt-2 leading-relaxed">
             Participate in active charity rituals — feed holy cows, distribute Annadanam meals, or light sacred Akhanda Diyas at renowned temples across India.
@@ -427,8 +490,11 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
           </div>
         </div>
 
-        {/* Live Devotional Dashboard */}
-        <SevaLiveDashboard extraRecentSevas={sessionRecentSevas} />
+        {/* Live Devotional Dashboard — temporarily disabled, see
+            SHOW_SEVA_LIVE_DASHBOARD above. Flip that flag to true to bring
+            back "Upcoming Seva Slots" and "Recent Seva Completed" with no
+            other changes needed. */}
+        {SHOW_SEVA_LIVE_DASHBOARD && <SevaLiveDashboard extraRecentSevas={sessionRecentSevas} />}
 
         {/*
           ── Main 2-column row ──
@@ -460,7 +526,7 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
             {/* Always-visible: first 4 FEATURED_SEVAS in 2×2 grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {FEATURED_SEVAS.slice(0, 4).map((seva) => (
-                <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} />
+                <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
               ))}
             </div>
           </div>
@@ -609,10 +675,10 @@ export default function SevaExperience({ onSponsorSeva }: SevaExperienceProps) {
                 <div className="bg-[#021816] p-4 border-t border-white/10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {FEATURED_SEVAS.slice(4).map((seva) => (
-                      <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} />
+                      <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                     ))}
                     {EXTRA_SEVAS.map((seva) => (
-                      <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} />
+                      <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                     ))}
                   </div>
                 </div>

@@ -16,7 +16,6 @@ import OptimizedImage from "./OptimizedImage";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
-import { syncToGoogleForm } from "../utils/googleFormSync";
 
 // ─────────────────────────────────────────────────────────────────────────
 // "Simple Pujas" — affordable, structured puja booking tier system.
@@ -77,9 +76,9 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     ],
     devoteeReceives: [
       "Digital Puja Certificate as evidence.",
-      "Certificate issued within 3 working days.",
+      "Certificate issued within 3-7 working days.",
     ],
-    certificateTimeline: "Certificate issued within 3 working days.",
+    certificateTimeline: "Certificate issued within 3-7 working days.",
     dropdownOptions: [...SIMPLE_PUJA_TIERS],
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
@@ -102,9 +101,9 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     ],
     devoteeReceives: [
       "Digital Puja Certificate as evidence.",
-      "Certificate issued within 3 working days.",
+      "Certificate issued within 3-7 working days.",
     ],
-    certificateTimeline: "Certificate issued within 3 working days.",
+    certificateTimeline: "Certificate issued within 3-7 working days.",
     dropdownOptions: [...SIMPLE_PUJA_TIERS],
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
@@ -130,10 +129,9 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     ],
     devoteeReceives: [
       "Digital Puja Certificate as evidence.",
-      "For major pujas, certificate/evidence is issued within a 24-hour window.",
-      "For small pujas, certificate is issued within 3 working days.",
+      "Certificate/evidence is typically issued within 3-7 working days, depending on puja complexity and temple confirmation.",
     ],
-    certificateTimeline: "Major pujas: within 24 hours. Small pujas: within 3 working days.",
+    certificateTimeline: "Certificate issued within 3-7 working days (longer for multi-day or festival rituals).",
     dropdownOptions: [...SIMPLE_PUJA_TIERS],
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
@@ -199,7 +197,6 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     setErrors({});
 
     const amount = isCustomSelected ? customAmountNumber : (selectedOption?.value as number);
-    const isEmailContact = contact.trim().includes("@");
 
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
@@ -213,34 +210,20 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
     const composedName = `${offering.title} — ${detailParts.join(", ")}`;
 
-    // Immediate sync — fired the moment "Book Puja" is clicked, so the
-    // devotee's validated Sankalp details (including Pincode) reach the
-    // Google Sheet right away, independent of whether the devotee goes on
-    // to complete the Puja Sankalp Portal (payment step) that follows.
-    syncToGoogleForm("puja", {
-      name: devoteeName.trim(),
-      email: isEmailContact ? contact.trim() : "",
-      phone: isEmailContact ? "" : contact.trim(),
-      whatsapp: isEmailContact ? "" : contact.trim(),
-      details: `Simple Puja: ${offering.title} | Amount: ₹${amount}` +
-        (gotra.trim() ? ` | Gotra: ${gotra.trim()}` : "") +
-        (rashi.trim() ? ` | Rashi: ${rashi.trim()}` : "") +
-        (mansikIchha.trim() ? ` | Mansik Ichha: ${mansikIchha.trim()}` : "") +
-        (pujaDate ? ` | Puja Date Preference: ${pujaDate}` : "") +
-        ` | Certificate Delivery: ${contact.trim()}` +
-        ` | Pincode: ${pincode.trim()}` +
-        ` | Captured immediately on 'Book Puja' click — Puja Sankalp Portal payment step not yet completed.`,
-      type: `Puja Booking - ${offering.title}`,
-      gotra: gotra.trim() || undefined,
-      rashi: rashi.trim() || undefined,
-      intent: mansikIchha.trim() || undefined,
-      dob: pujaDate || undefined,
-    }).catch((err) => console.error(`${offering.title} immediate sync error:`, err));
-
+    // ✅ DUPLICATE-SUBMISSION FIX: previously this fired its own immediate
+    // Google Form sync (formType "puja") right here, then onBook() below
+    // opens the Puja Sankalp Portal (BookNowWizard), which fires ITS OWN
+    // Pending row + Final row — under a completely different, unrelated
+    // Ref ID. That meant every single "Book Puja" click produced 3
+    // disconnected Google Sheet rows for one devotee action. The Sankalp
+    // Portal's Pending row (fired the instant its Step 1 details are
+    // confirmed) already captures the lead even if the devotee abandons
+    // before paying, so no capture is lost by removing the extra row here
+    // — we just stop tripling it.
+    //
     // onBook() hands the composed name + amount straight to onBookNowClick,
     // which sets the Puja Sankalp Portal (BookNowWizard) defaults and opens
-    // it immediately — so devotee details are synced above, then the
-    // devotee is taken straight into that portal to complete payment.
+    // it immediately.
     gaBookNowOpen(composedName, amount);
     onBook(composedName, amount);
 
@@ -471,6 +454,12 @@ interface OnlinePujaProps {
   onBookNowClick: (pujaName: string, price: number) => void;
   /** Optional — lets the parent app navigate to the dedicated Priest profile page. */
   onViewPriestProfile?: (priestId: string) => void;
+  /** Optional — when set (e.g. arriving from the homepage carousel), the
+   *  matching Simple Puja card is opened and scrolled into view on mount.
+   *  Matches a SIMPLE_PUJAS id below (e.g. "simple-puja-basic-sankalp").
+   *  Any id that doesn't match a Simple Puja is silently ignored, so this
+   *  is safe to pass even when the destination is a different section. */
+  initialHighlightId?: string | null;
 }
 
 // ── Category metadata ──────────────────────────────────────────────────────────
@@ -498,7 +487,7 @@ function displayDuration(d?: string) {
   return d && d.trim() ? d : "Not specified";
 }
 
-export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: OnlinePujaProps) {
+export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initialHighlightId = null }: OnlinePujaProps) {
   // ── Filter state ─────────────────────────────────────────────────────────────
   const [selectedCategory, setSelectedCategory] = useState<"all" | AccordionCat>("all");
   const [selectedTemple,   setSelectedTemple]   = useState<string>("all");
@@ -517,6 +506,25 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile }: Onli
     gaCategoryFilter("simple", "online_puja");
     simplePujaSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  // Deep-link from the homepage carousel (or anywhere else that passes
+  // initialHighlightId): open the matching Simple Puja card exactly the
+  // same way a tap on it would (reuses isActive/onActivate below — no new
+  // highlight styling needed), then scroll it into view. Runs once per
+  // mount; OnlinePuja is unmounted/remounted whenever currentPage changes
+  // in App.tsx, so a fresh id always re-triggers this correctly.
+  useEffect(() => {
+    if (!initialHighlightId) return;
+    const match = SIMPLE_PUJAS.find((p) => p.id === initialHighlightId);
+    if (!match) return;
+    setSimpleTabActive(true);
+    setActiveSimplePujaId(match.id);
+    const timer = setTimeout(() => {
+      document.getElementById(`simple-puja-${match.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialHighlightId]);
 
   const handleBookSimplePuja = (pujaName: string, amount: number) => {
     onBookNowClick(pujaName, amount);

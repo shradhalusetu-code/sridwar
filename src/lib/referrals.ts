@@ -50,6 +50,14 @@ export interface ReferralListItem {
   bookingCount: number;
   status: "active" | "inactive" | "flagged_fraud";
   attributedAt: string;
+  // Which of the six Sri Dwar participant types the referred person signed
+  // up as. Defaults to "devotee" for every historical row (and any row from
+  // before this column existed), which is exactly right — a plain devotee
+  // referral is the common case. When it's one of the five provider types
+  // instead, this referral also counts toward that provider category's
+  // "verified referred professionals" tier-unlock requirement in
+  // data/referralProgram.ts, on top of counting as a devotee referral would.
+  referredParticipantType: ParticipantType;
 }
 
 export interface PayoutRecord {
@@ -237,6 +245,7 @@ export async function fetchReferralList(): Promise<ReferralListItem[]> {
       bookingCount: r.booking_count,
       status: r.status,
       attributedAt: r.attributed_at,
+      referredParticipantType: (r.referred_participant_type as ParticipantType) || "devotee",
     }));
   } catch (e) {
     console.error("fetchReferralList failed", e);

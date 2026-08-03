@@ -168,6 +168,13 @@ function TermsContent() {
         to contribute accurate listings of temples, puja mandals, puja committees, priests, and dharmic experts to the Sri Dwar directory, and to
         register themselves as devotees.
       </P>
+      <P>
+        This Offer forms part of the Seasonal Campaigns & Grand Prizes and Milestone Rewards described on Sri Dwar's Refer, Earn & Grow with
+        Dharma Plans page, and is additionally governed by these dedicated Terms & Conditions. Like every campaign under that Program, it is
+        promotional in nature, may be modified, extended, or discontinued at Sri Dwar's discretion for future entries, and does not form a
+        guaranteed or contractual entitlement beyond what has already been confirmed as a valid entry. It does not involve any cashback,
+        referral commission, or subscription fee of any kind — participation and every prize awarded under this Offer are entirely free.
+      </P>
 
       <H3>2. Eligibility</H3>
       <UL>
@@ -264,7 +271,7 @@ function TermsContent() {
       <H3>15. General</H3>
       <UL>
         <LI>By participating, you confirm that the information submitted is accurate to the best of your knowledge and that you have obtained any necessary consent from individuals you list.</LI>
-        <LI>These Terms are in addition to, and not in place of, Sri Dwar's general Terms of Use and Privacy Policy, both available on sridwar.com.</LI>
+        <LI>These Terms are in addition to, and not in place of, Sri Dwar's general Terms of Use, Privacy Policy, and Refer & Earn Program Terms, all available on sridwar.com.</LI>
         <LI>Sri Dwar's decision on all matters relating to this Offer is final and binding.</LI>
       </UL>
 

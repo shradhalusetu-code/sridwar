@@ -117,14 +117,31 @@ create table if not exists public.referrals (
   booking_count int not null default 0,                 -- drives the 1st/2nd/3rd+ commission tier
   status text not null default 'active'
     check (status in ('active', 'inactive', 'flagged_fraud')),
+  -- Which of the six participant types the referred person signed up as.
+  -- Defaults to 'devotee' (the common case). When a referred person is one
+  -- of the five provider types instead, this referral also counts toward
+  -- that provider category's "verified referred professionals" 5-tier
+  -- unlock requirement in src/data/referralProgram.ts (PROVIDER_TIER_UNLOCK_THRESHOLDS),
+  -- on top of counting as a devotee referral would.
+  referred_participant_type text not null default 'devotee'
+    check (referred_participant_type in ('devotee', 'pujari', 'mandal', 'yogaguru', 'expert', 'seva')),
   attributed_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
+
+-- Re-running this migration on a table created before referred_participant_type
+-- existed adds the column safely without touching any existing rows (they
+-- all default to 'devotee', which is correct for historical data).
+alter table public.referrals add column if not exists referred_participant_type text not null default 'devotee';
+alter table public.referrals drop constraint if exists referrals_referred_participant_type_check;
+alter table public.referrals add constraint referrals_referred_participant_type_check
+  check (referred_participant_type in ('devotee', 'pujari', 'mandal', 'yogaguru', 'expert', 'seva'));
 
 create unique index if not exists referrals_referred_user_unique on public.referrals(referred_user_id)
   where referred_user_id is not null; -- one permanent referrer per referred devotee
 
 create index if not exists referrals_referrer_idx on public.referrals(referrer_user_id);
+create index if not exists referrals_referred_participant_type_idx on public.referrals(referred_participant_type);
 
 alter table public.referrals enable row level security;
 

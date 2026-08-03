@@ -101,6 +101,7 @@ export default function Navbar({
     { id: "puja", label: t.navOnlinePuja },
     { id: "live-darshan", label: "Darshan" },
     { id: "products", label: t.navProducts },
+    { id: "plans", label: "Plans" },
     { id: "about", label: t.navAbout },
     { id: "contact", label: t.navContact }
   ];
@@ -111,10 +112,23 @@ export default function Navbar({
         id="main-navigation"
         className={`fixed top-0 left-0 w-full z-45 transition-all duration-300 ${
           isScrolled
-            ? "bg-[#021816]/80 backdrop-blur-md py-4 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
-            : "bg-[#021816]/20 backdrop-blur-sm py-6 border-b border-white/5 text-white"
+            ? "bg-[#021816]/80 backdrop-blur-md py-5 border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)]"
+            : "bg-[#021816]/20 backdrop-blur-sm py-7 border-b border-white/5 text-white"
         }`}
-        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+        style={{
+          // Stack the notch/status-bar safe-area on TOP of the same padding
+          // used for the bottom edge (py-5/py-7 above), instead of replacing
+          // it outright. An inline style always wins over a class for the
+          // same CSS property, so setting only `paddingTop` here used to
+          // wipe out the class's top padding entirely — leaving 0px above
+          // the content but the full py-5/py-7 amount below it, which is
+          // why the logo/nav/buttons sat pinned high instead of centered.
+          // calc() keeps top === bottom on every normal device (safe-area
+          // is 0px there) and only adds real notch clearance where needed.
+          paddingTop: isScrolled
+            ? "calc(env(safe-area-inset-top, 0px) + 1.25rem)"
+            : "calc(env(safe-area-inset-top, 0px) + 1.75rem)",
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-6 lg:gap-12">

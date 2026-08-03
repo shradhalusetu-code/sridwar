@@ -114,14 +114,18 @@ body.capacitor-android #main-navigation {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* ─── Hero: account for taller navbar + status bar ─────────────────────── */
+/* ─── Hero: no longer the first section on the homepage ─────────────────
+   HomeCarousel now renders above Hero and already reserves clearance for
+   the fixed navbar + status bar (see sectionTopPadding() in
+   androidSpacing.ts). Hero previously ALSO forced min-height:100svh plus
+   ~7rem of top padding here (on top of its own inline styles and Tailwind
+   classes) as if it were still the very first, full-screen landing
+   section — leaving a large dead-space gap above and below the "Faith
+   Beyond Distance" content once the carousel was added on top of it. Hero
+   now just sizes to its content, with a small breathing-room padding. */
 body.capacitor-android #hero-wrapper {
-  min-height: 100svh;
-  padding-top: calc(env(safe-area-inset-top, 24px) + 7rem);
-  padding-bottom: 3rem;
-}
-body.capacitor-android #hero-main-container {
-  padding-top: 2rem;
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
 }
 body.capacitor-android #trust-bar-section {
   margin-top: 3rem;
@@ -250,7 +254,9 @@ body.capacitor-android .z-\[70\] {
 
 /* ─── Website-only compact spacing (Android APK unaffected) ─────────────── */
 body:not(.capacitor-android) #hero-wrapper {
-  min-height: 78vh;
+  /* No forced min-height: HomeCarousel is now the first section on the
+     homepage, so Hero no longer needs to fill the viewport like a
+     traditional landing hero — it just sizes to its own content. */
   padding-top: 0.5rem;
   padding-bottom: 1rem;
 }

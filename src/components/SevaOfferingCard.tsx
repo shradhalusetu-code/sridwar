@@ -11,7 +11,6 @@ import {
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import OptimizedImage from "./OptimizedImage";
 import { validateName, validateEmail, validatePhone, validatePincode } from "../utils/formValidation";
-import { syncToGoogleForm } from "../utils/googleFormSync";
 
 const renderOfferingIcon = (id: string) => {
   switch (id) {
@@ -107,30 +106,16 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
     const composedName = `${offering.title} — ${detailParts.join(", ")}`;
 
-    // Immediate sync — fired the moment this button is clicked, so the
-    // devotee's validated details reach the team's Google Sheet right away.
-    // This does NOT depend on the devotee ever opening, filling, or
-    // completing the Puja Sankalpa Portal (payment step) that follows —
-    // if they close that portal without paying, this record has already
-    // been captured. If they do go on to complete the Puja Sankalpa
-    // Portal, that portal syncs its own record as usual (unchanged), so
-    // both the initial offering and the payment confirmation are recorded.
-    syncToGoogleForm("seva", {
-      name: devoteeName.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      details: `Seva: ${offering.title} | Amount: ₹${amount} | Pincode: ${pincode.trim()}` +
-        (gotra.trim() ? ` | Gotra: ${gotra.trim()}` : "") +
-        (occasionLabel ? ` | Occasion: ${occasionLabel}` : "") +
-        (preferredDate ? ` | Preferred Date: ${preferredDate}` : "") +
-        (sankalp.trim() ? ` | Sankalp: ${sankalp.trim()}` : "") +
-        ` | Captured immediately on '${offering.ctaLabel}' click — Puja Sankalpa Portal payment step not yet completed.`,
-      type: `Seva Offering - ${offering.title}`,
-      gotra: gotra.trim() || undefined,
-      intent: sankalp.trim() || undefined,
-      dob: preferredDate || undefined,
-    }).catch((err) => console.error(`${offering.title} immediate sync error:`, err));
-
+    // ✅ DUPLICATE-SUBMISSION FIX: previously this fired its own immediate
+    // Google Form sync (formType "seva") right here, then onOffer() below
+    // opens the Puja Sankalpa Portal (BookNowWizard), which fires ITS OWN
+    // Pending row + Final row to the same seva_booking sheet — under a
+    // completely different, unrelated Ref ID. That meant every single seva
+    // offering produced 3 disconnected Google Sheet rows for one devotee
+    // action. The Sankalpa Portal's Pending row (fired the instant its
+    // Step 1 details are confirmed) already captures the lead even if the
+    // devotee abandons before paying, so no capture is lost by removing the
+    // extra row here — we just stop tripling it.
     onOffer(offering.id, composedName, amount, devoteeName.trim());
 
     // Reset the form so it's immediately ready for another devotee/cow/etc,

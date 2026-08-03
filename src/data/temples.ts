@@ -108,7 +108,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Bel fruit & seasonal fruit tray",
       "Camphor aarti lamp",
       "Silk vastra for the lingam",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are conducted by the temple's hereditary Badu and Pujapanda priest families, who have carried these devotional roles for generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -401,7 +401,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Sweets (kheer) prasad",
       "Prayer bead (japa mala) offering",
       "Turmeric & vermilion archana",
-      "Deep Daan (lamp donation) seva",
+      "Deep Daan (lamp contribution) seva",
       "Sandalwood paste offering"
     ],
     priestInfo: "Rituals here are conducted by local hereditary priests in close ceremonial coordination with the Daitapati sevayats of the Jagannath Temple during Nabakalebara years. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
@@ -500,7 +500,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Fruit & sweets prasad",
       "Dhatura flower offering",
       "Rudraksha mala offering",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Worship is conducted by the temple's resident priests, specialising in healing-focused Shaiva rites such as Maha Mrityunjaya puja. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -549,7 +549,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Vishnu Sahasranama recitation seva",
       "Betel leaf & areca nut arpan",
       "Flower garland (mala) offering",
-      "Deep Daan (lamp donation) seva"
+      "Deep Daan (lamp contribution) seva"
     ],
     priestInfo: "Pujas are performed by hereditary priests, custodians of a Vaishnava tradition considered foundational to the wider Jagannath cult. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -598,7 +598,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Nama Sankirtan (devotional singing) seva",
       "Betel leaf & areca nut arpan",
       "Flower garland offering",
-      "Deep Daan (lamp donation) seva"
+      "Deep Daan (lamp contribution) seva"
     ],
     priestInfo: "Rituals are conducted by resident priests, who also preserve and recite Achyutananda Das's Malika prophetic literature. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -647,7 +647,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf & areca nut arpan",
       "Flower garland offering",
       "Balarama Sahasranama recitation seva",
-      "Deep Daan (lamp donation) seva"
+      "Deep Daan (lamp contribution) seva"
     ],
     priestInfo: "Sevas are performed by hereditary priests, custodians of Kendrapara's distinct Balaram worship tradition. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -696,7 +696,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Fruit & sweets prasad",
       "Dhatura flower offering",
       "Giri Pradakshina lamp seva",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by the hill temple's resident priests, who also assist pilgrims undertaking the traditional Kavad Yatra climb. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -745,7 +745,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Dhatura & datura flower offering",
       "Betel leaf naivedya",
       "Silk vastra for the lingam",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by the temple's Vedic priest lineages, including the Saptarishi Aarti team of seven priests. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -794,7 +794,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Woolen shawl/blanket offering (winter seva)",
       "Dry fruits & sweets prasad",
       "Panchamrit abhishek",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Karnataka) together with local pandas. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -843,7 +843,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Woolen shawl/blanket offering (winter seva)",
       "Silk vastra for the deity",
       "Betel leaf & areca nut arpan",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by the Rawal (chief priest, traditionally from Kerala) with local Garhwali pandas. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -989,7 +989,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Silk vastra for the deities",
       "Panchamrit abhishek",
       "Betel leaf naivedya",
-      "Deep Daan (lamp donation) seva",
+      "Deep Daan (lamp contribution) seva",
       "Janmashtami special puja sponsorship"
     ],
     priestInfo: "Pujas are conducted by resident priests trained in the devotional tradition established by Jagadguru Kripalu Maharaj, who envisioned and built Prem Mandir. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
@@ -1137,7 +1137,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Rudraksha mala offering",
       "Dhatura flower offering",
       "Silk vastra for the lingam",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by resident priests serving at the temple, which was reconstructed in the post-independence era. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -1186,7 +1186,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Flower garland offering",
       "Betel leaf naivedya",
       "Janmashtami special puja sponsorship",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Sevas are performed by hereditary Brahmin priest families of the Abhoti and Pujari communities. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -1333,7 +1333,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Coconut & fruit basket offering",
       "Betel leaf naivedya",
       "Kirnotsav (sunray ceremony) darshan sponsorship",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by hereditary priest families (Bhat/Upadhye lineages), custodians of Kolhapur's distinctive Panchaarti tradition. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -1382,7 +1382,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Sundarkand path sponsorship",
       "Coconut & fruit basket offering",
       "Silk vastra for the deity",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by trained priests of the Swaminarayan Sampradaya tradition, specialising in Hanuman-centred protective and relief-focused pujas. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -1480,7 +1480,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf naivedya",
       "Sweets (sandesh/rasgulla) prasad",
       "Kali Puja special darshan sponsorship",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by hereditary priests of the Haldar-Adhikari community, custodians of Kalighat's ancient Shakta worship traditions for many generations. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -1529,7 +1529,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Betel leaf naivedya",
       "Sweets (sandesh) prasad",
       "Chandi Path recitation sponsorship",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by resident priests, continuing the worship traditions established under Rani Rashmoni and Sri Ramakrishna Paramahansa. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   },
@@ -1578,7 +1578,7 @@ export const TEMPLES_LIST: Temple[] = [
       "Rudraksha mala offering",
       "Dhatura flower offering",
       "Silk vastra for the lingam",
-      "Annadaan (food donation) seva"
+      "Annadaan (food contribution) seva"
     ],
     priestInfo: "Rituals are performed by hereditary Pandas (priests), who manage both daily worship and the immense pilgrim volume of the annual Sravani Mela. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   }

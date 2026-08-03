@@ -7,7 +7,7 @@
  * Flow: Browse → Puja Sankalpa Portal → Complete Your Sacred Offering (UPI)
  */
 
-import { useState, useEffect, useRef, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import {
   ShoppingBag, X, Star, Package, Truck, ShieldCheck,
   ChevronDown, ChevronUp, Flame, BookOpen, Heart
@@ -90,7 +90,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     description: "Sponsor a complete Vedic student kit — textbooks, Sanskrit grammar guides, and sacred thread — shipped to registered Gurukuls.",
     price: 1319,
     mrp: 1649,
-    category: "Donation Kits",
+    category: "Contribution Kits",
     imageUrl: import.meta.env.BASE_URL + "images/Student Kit.jpg",
     badge: "Impact Gift",
     includes: ["Sanskrit Primer", "Devanagari Workbook", "Yajnopavita (Sacred Thread)", "Photo Report from Gurukul"],
@@ -156,9 +156,14 @@ const RASHI_OPTIONS = [
 
 interface TemplateBazaarProps {
   onNavigate?: (page: string) => void;
+  /** Optional — when set (e.g. arriving from the homepage carousel), the
+   *  matching Devotional Shopping Offering card is opened and scrolled into
+   *  view on mount. Matches a BAZAAR_PRODUCTS id (e.g. "bazaar-new-bhog").
+   *  Any id that doesn't match is silently ignored. */
+  initialHighlightId?: string | null;
 }
 
-export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
+export default function TemplateBazaar({ onNavigate, initialHighlightId = null }: TemplateBazaarProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
@@ -195,6 +200,25 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
   const filteredItems = selectedCategory === "All"
     ? BAZAAR_ITEMS
     : BAZAAR_ITEMS.filter(i => i.category === selectedCategory);
+
+  // Deep-link from the homepage carousel (or anywhere else that passes
+  // initialHighlightId). Switches the category filter to "All" so the
+  // matching product is guaranteed to be in the grid regardless of
+  // whatever category was last selected, then opens and scrolls to it.
+  // Runs once per mount; TemplateBazaar is unmounted/remounted whenever
+  // currentPage changes in App.tsx, so a fresh id always re-triggers this.
+  useEffect(() => {
+    if (!initialHighlightId) return;
+    const match = BAZAAR_PRODUCTS.find((p) => p.id === initialHighlightId);
+    if (!match) return;
+    setNewSelectedCategory("All");
+    setActiveNewOfferingId(match.id);
+    const timer = setTimeout(() => {
+      document.getElementById(`bazaar-offering-${match.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialHighlightId]);
 
   // ── Open Sankalpa Portal ────────────────────────────────────────────────
   // `prefillPincode` lets callers that already captured a PIN code inline on
@@ -364,104 +388,19 @@ export default function TemplateBazaar({ onNavigate }: TemplateBazaarProps) {
     setDevoteeGotra(""); setDevoteeRashi("Mesh (Aries)");
     setSankalpaIntent(""); setDevoteeAddress(""); setDevoteePincode("");
     setSelectedItem(null);
-    lastSyncedDraftRef.current = "";
   };
 
-  // ── Autosave the Puja Sankalpa Portal, field-by-field ───────────────────
-  // Devotees often fill in their name, WhatsApp number, and delivery address
-  // to arrange prasad shipment, then get pulled away before paying, or close
-  // the tab mid-way. Without this, that lead (and delivery address) would be
-  // lost entirely. So as soon as there's enough to act on (name + phone), we
-  // sync a "Draft — Not Submitted Yet" row a moment after the devotee stops
-  // typing — well before they hit "Proceed to Sacred Offering" or pay.
-  // Every keystroke fires this effect, but the debounce + de-dupe guard below
-  // ensure we only actually POST when the content has meaningfully changed.
-  const lastSyncedDraftRef = useRef<string>("");
-  useEffect(() => {
-    if (!showSankalpa || !selectedItem) return;
-    const hasMinimalInfo = devoteeName.trim().length >= 2 && devoteePhone.trim().length >= 7;
-    if (!hasMinimalInfo) return;
-
-    const snapshot = JSON.stringify({
-      devoteeName, devoteePhone, devoteeEmail, devoteeGotra, devoteeRashi,
-      sankalpaIntent, devoteeAddress, devoteePincode,
-    });
-
-    const timer = setTimeout(() => {
-      if (snapshot === lastSyncedDraftRef.current) return;
-      lastSyncedDraftRef.current = snapshot;
-      syncToGoogleForm("seva_booking", {
-        name:  devoteeName.trim(),
-        email: devoteeEmail.trim(),
-        phone: devoteePhone.trim(),
-        gotra: devoteeGotra || undefined,
-        rashi: devoteeRashi || undefined,
-        intent: sankalpaIntent.trim() || undefined,
-        type:  selectedItem.isService
-                 ? `Puja Service — ${selectedItem.name}`
-                 : `Temple Bazaar Order — ${selectedItem.name}`,
-        details: `Item: ${selectedItem.name} | ` +
-                 `Amount: ₹${selectedItem.price} | ` +
-                 `Payment Status: Draft — Devotee Still Filling Form | ` +
-                 `Gotra: ${devoteeGotra || "Not provided"} | ` +
-                 `Rashi: ${devoteeRashi} | ` +
-                 (selectedItem.isService
-                   ? `Intent: ${sankalpaIntent || "General blessings"}`
-                   : `Address: ${devoteeAddress.trim() || "Not provided yet"} | PIN: ${devoteePincode.trim() || "Not provided yet"}`) +
-                 ` | Ref: ${refId}`,
-        fee:   selectedItem.price,
-        city:  selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
-        whatsapp: devoteePhone.trim(),
-      }).catch((err) => console.error("Sankalpa Portal draft autosave failed:", err));
-    }, 1200);
-
-    return () => clearTimeout(timer);
-  }, [
-    showSankalpa, selectedItem, refId,
-    devoteeName, devoteePhone, devoteeEmail, devoteeGotra, devoteeRashi,
-    sankalpaIntent, devoteeAddress, devoteePincode,
-  ]);
-
-  // Extra safety net: if the devotee closes/hides the tab mid-fill (faster
-  // than the debounce above could fire), flush one last sync attempt
-  // immediately so partially entered details — including the delivery
-  // address — are not lost.
-  useEffect(() => {
-    const flushDraft = () => {
-      if (!showSankalpa || !selectedItem) return;
-      if (!devoteeName.trim() && !devoteePhone.trim() && !devoteeAddress.trim()) return;
-      syncToGoogleForm("seva_booking", {
-        name:  devoteeName.trim(),
-        email: devoteeEmail.trim(),
-        phone: devoteePhone.trim(),
-        gotra: devoteeGotra || undefined,
-        rashi: devoteeRashi || undefined,
-        intent: sankalpaIntent.trim() || undefined,
-        type:  selectedItem.isService
-                 ? `Puja Service — ${selectedItem.name}`
-                 : `Temple Bazaar Order — ${selectedItem.name}`,
-        details: `Item: ${selectedItem.name} | Amount: ₹${selectedItem.price} | ` +
-                 `Payment Status: Draft — Page Closed Before Submitting | ` +
-                 (selectedItem.isService
-                   ? `Intent: ${sankalpaIntent || "General blessings"}`
-                   : `Address: ${devoteeAddress.trim() || "Not provided yet"} | PIN: ${devoteePincode.trim() || "Not provided yet"}`) +
-                 ` | Ref: ${refId}`,
-        fee:   selectedItem.price,
-        city:  selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
-        whatsapp: devoteePhone.trim(),
-      }).catch(() => {});
-    };
-    document.addEventListener("visibilitychange", flushDraft);
-    window.addEventListener("pagehide", flushDraft);
-    return () => {
-      document.removeEventListener("visibilitychange", flushDraft);
-      window.removeEventListener("pagehide", flushDraft);
-    };
-  }, [
-    showSankalpa, selectedItem, refId,
-    devoteeName, devoteePhone, devoteeEmail, devoteeGotra, devoteeRashi,
-    sankalpaIntent, devoteeAddress, devoteePincode,
-  ]);
+  // ✅ DUPLICATE-SUBMISSION FIX: this used to run a debounced "Draft — Still
+  // Filling Form" autosave on every meaningful keystroke, PLUS a second
+  // visibilitychange/pagehide listener that flushed a "Draft — Page Closed"
+  // row too. Both fired in addition to the Pending row (sent on submit,
+  // below) and the Final row (sent on payment), so one Sankalpa Portal
+  // session could write many extra, unfinished rows into the Google Sheet
+  // — exactly the duplicate-entries problem this component should not
+  // create. The Pending row already reliably captures an abandoned cart the
+  // moment the devotee submits the Sankalpa Portal, so removing the
+  // autosave here does not lose any real lead — it just stops writing a new
+  // row for every pause in typing or tab switch.
 
   return (
     <section

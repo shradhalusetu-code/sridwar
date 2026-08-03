@@ -10,6 +10,11 @@ import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
+import OptimizedImage from "./OptimizedImage";
+// @ts-ignore
+import sridwarQR from "../assets/images/SridwarQR.jpg";
+// @ts-ignore
+import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 
 export default function ContactUs() {
   const [name, setName] = useState("");
@@ -184,6 +189,25 @@ export default function ContactUs() {
                   <span className="block text-[11px] text-white/50">04:00 AM – 11:00 PM IST (Daily)</span>
                 </div>
               </div>
+
+              {/* Sri Dwar QR code — scan to connect. Same card shape/height as the
+                  Helplines/Operating Hours cards above it so the whole column
+                  reads as one consistent, aligned set. */}
+              <div className="flex items-center space-x-3.5 p-4 rounded-2xl bg-[#092320] border border-white/10 text-left">
+                <OptimizedImage
+                  src={sridwarQR}
+                  webpSrc={sridwarQRWebp}
+                  alt="Sri Dwar QR code — scan to connect"
+                  loading="lazy"
+                  width={44}
+                  height={44}
+                  className="w-11 h-11 rounded-lg border border-white/10 bg-white p-1 object-contain shrink-0"
+                />
+                <div>
+                  <span className="block text-xs font-bold text-white">Scan to connect</span>
+                  <span className="block text-[11px] text-white/50">Sri Dwar QR code — open on your phone camera</span>
+                </div>
+              </div>
             </div>
 
             {/* License branding */}
@@ -243,7 +267,7 @@ export default function ContactUs() {
 
                 <div className="flex items-start space-x-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2 rounded-xl text-[10px] text-emerald-300 font-mono">
                   <ShieldCheck className="w-3 h-3 shrink-0 mt-0.5" />
-                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared within 3 working days on your WhatsApp & Email. 🙏</span>
+                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared within 3-7 working days on your WhatsApp & Email. 🙏</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
