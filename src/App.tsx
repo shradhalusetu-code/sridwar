@@ -777,7 +777,24 @@ export default function App() {
           </div>
         )}
       </main>
-      <footer id="corporate-footer" className="bg-[#021816] text-white pt-10 pb-6 border-t border-white/10 text-left relative z-10">
+      <footer
+        id="corporate-footer"
+        className="bg-[#021816] text-white pt-10 pb-6 border-t border-white/10 text-left relative z-10"
+        style={isAndroidApp ? {
+          // The fixed bottom tab bar (below) overlays whatever sits at the
+          // end of the page — without this, the footer's own bottom row
+          // (links, "Full Legal Documents", copyright) rendered underneath
+          // it and was unreachable/invisible on Android. paddingBottom
+          // reserves the tab bar's real rendered height (icon + label +
+          // its own top/bottom padding) plus the system nav bar inset.
+          //
+          // FIX: var(--safe-area-inset-bottom) first, env() as fallback —
+          // plain env() returns 0px on many Android WebView versions, which
+          // is why this padding wasn't actually clearing the gesture bar.
+          // See the matching note on the tab bar's own padding below.
+          paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 96px)",
+        } : undefined}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* ── Row 1: Brand + Links ───────────────────────────────────────────── */}
@@ -1047,7 +1064,23 @@ export default function App() {
         background: '#021816',
         borderTop: '1px solid rgba(255,255,255,0.1)',
         display: 'flex', justifyContent: 'space-around',
-        padding: '8px 0 20px',
+        // Bottom padding used to be a flat 20px, which doesn't account for
+        // Android's gesture-nav pill or 3-button nav bar sitting in the
+        // same safe area — on devices with a taller system nav bar this
+        // pushed the tab labels partly underneath it. The inset adds the
+        // real system-bar height on top of a comfortable 20px floor so the
+        // icons/labels always clear it, on every device.
+        //
+        // FIX: var(--safe-area-inset-bottom) first, env() as fallback.
+        // Plain env(safe-area-inset-bottom) returns 0px on many Android
+        // WebView versions (a known Chromium WebView bug on versions
+        // below 140) — that 0px is exactly why the gesture-nav pill was
+        // rendering on top of "Home / Puja / Seva / Shop / Profile"
+        // instead of sitting below them. Capacitor 8.3+ injects the real,
+        // correct value into --safe-area-inset-bottom specifically to work
+        // around that bug. On the website this falls straight through to
+        // env() as before, so nothing changes there.
+        padding: '8px 0 calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 20px)',
         zIndex: 100
       }}>
         {[

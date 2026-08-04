@@ -132,9 +132,20 @@ export default function Navbar({
           // why the logo/nav/buttons sat pinned high instead of centered.
           // calc() keeps top === bottom on every normal device (safe-area
           // is 0px there) and only adds real notch clearance where needed.
+          //
+          // FIX: read var(--safe-area-inset-top) first, with env() as the
+          // fallback. Plain env(safe-area-inset-top) silently returns 0px
+          // on Android WebView builds older than Chrome 140 — that's why
+          // the logo/hamburger/cart were still hugging the status bar even
+          // though this calc() was already in place. Capacitor 8.3+
+          // injects the *correct* value into --safe-area-inset-top
+          // specifically to work around that WebView bug; env() alone
+          // never sees it. This has no effect on the website (no
+          // --safe-area-inset-top variable exists there, so it falls
+          // straight through to env(), same as before).
           paddingTop: isScrolled
-            ? "calc(env(safe-area-inset-top, 0px) + 1.25rem)"
-            : "calc(env(safe-area-inset-top, 0px) + 1.75rem)",
+            ? "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.25rem)"
+            : "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.75rem)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
