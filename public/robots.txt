@@ -3,7 +3,8 @@
 
 User-agent: *
 Allow: /
-Disallow: /account
+Allow: /account-deletion
+Disallow: /account/
 Disallow: /src/
 Disallow: /node_modules/
 
