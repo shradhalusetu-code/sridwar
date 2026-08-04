@@ -1022,6 +1022,15 @@ export default function App() {
                   {i < arr.length - 1 && <span className="mx-2 text-white/20 text-[10px] select-none">·</span>}
                 </span>
               ))}
+              <span className="flex items-center">
+                <span className="mx-2 text-white/20 text-[10px] select-none">·</span>
+                <a
+                  href="/privacy-policy.html"
+                  className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4]"
+                >
+                  Full Legal Documents
+                </a>
+              </span>
             </div>
           </div>
           <div className="pt-4 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[10px] text-white/40 font-mono gap-2">
