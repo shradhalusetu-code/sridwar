@@ -16,6 +16,7 @@ import {
   type PlanCategoryId, type DevoteeReferralTier, type ProviderCategoryTier, type ProviderCategoryId,
 } from "../data/referralProgram";
 import { fetchReferralList } from "../lib/referrals";
+import { fetchActivities } from "../lib/activities";
 import SubscriptionSignup from "./SubscriptionSignup";
 
 const CATEGORY_ICONS = { Users, Flame, Landmark, Sparkles, BookOpen, HeartHandshake } as const;
@@ -175,39 +176,36 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
   const [showAllCampaigns, setShowAllCampaigns] = useState(false);
 
   // Drives the 5-tier unlock ladder below. Guests and brand-new users get 0
-  // here (fetchReferralList safely returns [] with no session), so they see
-  // only their entry tier — exactly the "single devotee tier to start"
-  // behaviour requested. This never throws and never blocks page render.
+  // here, so they see only their entry tier. This never throws and never
+  // blocks page render.
   //
-  // qualifiedDevoteeCount powers the Devotee ladder directly, and also feeds
-  // the "verified referred devotees" half of every provider ladder's
-  // requirement. qualifiedProfessionalCountByCategory powers the "verified
-  // referred professionals" half of each provider ladder — a referred
-  // person only counts there if they signed up as that same provider type
-  // (referredParticipantType) and their referral is active/non-fraud.
-  const [qualifiedDevoteeCount, setQualifiedDevoteeCount] = useState(0);
-  const [qualifiedProfessionalCountByCategory, setQualifiedProfessionalCountByCategory] = useState<Record<ProviderCategoryId, number>>({
-    pujari: 0, mandal: 0, yogaguru: 0, expert: 0, seva: 0,
-  });
+  // For the "devotee" category, the unlock count is the devotee's OWN
+  // engagement score — their own confirmed pujas/sevas/contributions —
+  // fetched via lib/activities.fetchActivities. It is never a referral or
+  // recruitment count. For the five provider categories, the unlock count
+  // is verified referred devotees (genuine customers the provider brought
+  // to the platform, each with 2+ bookings), fetched via
+  // lib/referrals.fetchReferralList — providers are no longer gated on
+  // recruiting other paying professionals.
+  const [devoteeEngagementScore, setDevoteeEngagementScore] = useState(0);
+  const [qualifiedReferredDevoteeCount, setQualifiedReferredDevoteeCount] = useState(0);
   useEffect(() => {
     let cancelled = false;
+
+    fetchActivities().then((records) => {
+      if (cancelled) return;
+      const confirmedCount = records.filter((r) => r.paymentStatus === "confirmed").length;
+      setDevoteeEngagementScore(confirmedCount);
+    });
+
     fetchReferralList().then((list) => {
       if (cancelled) return;
-      const activeQualified = list.filter((r) => r.status === "active" && r.bookingCount >= QUALIFIED_REFERRAL_MIN_BOOKINGS);
-      const devoteeCount = activeQualified.filter((r) => r.referredParticipantType === "devotee").length;
-      setQualifiedDevoteeCount(devoteeCount);
-
-      const professionalCounts: Record<ProviderCategoryId, number> = { pujari: 0, mandal: 0, yogaguru: 0, expert: 0, seva: 0 };
-      // Verified referred professionals don't need the 2+ booking bar (they
-      // aren't the ones booking pujas) — an active, non-fraud-flagged
-      // referral of that provider type is what counts here.
-      list.filter((r) => r.status === "active").forEach((r) => {
-        if (r.referredParticipantType !== "devotee") {
-          professionalCounts[r.referredParticipantType as ProviderCategoryId] += 1;
-        }
-      });
-      setQualifiedProfessionalCountByCategory(professionalCounts);
+      const devoteeCount = list.filter(
+        (r) => r.status === "active" && r.referredParticipantType === "devotee" && r.bookingCount >= QUALIFIED_REFERRAL_MIN_BOOKINGS
+      ).length;
+      setQualifiedReferredDevoteeCount(devoteeCount);
     });
+
     return () => { cancelled = true; };
   }, []);
 
@@ -304,14 +302,14 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {activeTiers.map((tier, index) => {
-              const qualifiedProfessionalCount = activeCategory === "devotee" ? 0 : qualifiedProfessionalCountByCategory[activeCategory as ProviderCategoryId];
+              const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
               return (
                 <PlanTierCard
                   key={tier.id}
                   tier={tier}
                   billing={billing}
                   onSelect={() => setActiveSignup({ tier, billing })}
-                  unlocked={isTierUnlocked(activeCategory, index, qualifiedDevoteeCount, qualifiedProfessionalCount)}
+                  unlocked={isTierUnlocked(activeCategory, index, qualifiedCount)}
                   unlockRequirement={tierUnlockRequirementLabel(activeCategory, index)}
                 />
               );
@@ -320,12 +318,13 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
 
           <p className="text-[10px] text-white/40 mt-3 italic">
             {activeCategory === "devotee"
-              ? "Referral cashback and bonus figures are good-faith average estimates based on platform activity, not guaranteed income. Subscription fees are service fees for platform benefits, not an investment."
+              ? "The Devotee Circles are always free — there is no subscription fee at any tier. Referral cashback and bonus figures are good-faith average estimates based on platform activity, not guaranteed income."
               : "Lead, fee, and opportunity figures are good-faith average estimates based on platform activity, not guaranteed income. Subscription fees are service fees for platform benefits, not an investment."}
           </p>
           <p className="text-[10px] text-white/40 mt-1 italic">
-            New devotees and providers start on the first tier of each ladder. Higher tiers unlock automatically as your
-            verified referrals and platform activity grow — no separate application needed.
+            {activeCategory === "devotee"
+              ? "New devotees start on the first Circle. Higher Circles unlock automatically as your own genuine bookings and verified community contributions grow — never by recruiting other people or paying for a higher tier."
+              : "New providers start on the first tier of each ladder. Higher tiers unlock automatically as verified referred devotees (genuine customers) grow — no separate application needed."}
           </p>
         </div>
 

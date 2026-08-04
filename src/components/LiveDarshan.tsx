@@ -13,6 +13,17 @@ interface LiveDarshanProps {
   onNavigate?: (page: string) => void;
 }
 
+// FEATURE FLAG — no real live video feed is wired up yet (this section
+// currently shows a static temple photo with ambient styling, not an
+// actual live stream). Google Play and app-store review both treat a "LIVE"
+// badge/pulsing indicator next to non-live content as deceptive behavior,
+// so every visual claim of an active live broadcast (the pulsing "live" dot,
+// "Live Sanctified Stream" wording, and the per-temple "Sanctified Quality"
+// feed-quality claim from liveDarshan.ts) is gated behind this flag and
+// defaults to OFF. Flip this to `true` only once a real video/RTMP/HLS feed
+// is actually integrated below the temple selector.
+const LIVE_STREAM_FEED_ENABLED = false;
+
 export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
   const [darshanTempleId, setDarshanTempleId] = useState(TEMPLES_LIST[0].id);
   const [darshanDropdownOpen, setDarshanDropdownOpen] = useState(false);
@@ -55,13 +66,26 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           {/* Header row spanning full width: title + temple selector */}
           <div className="lg:col-span-12 space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
-              <span className="text-xs font-mono text-[#5EEAD4] tracking-wider uppercase font-bold">
-                Virtual Live Darshan Room
-              </span>
-              <span className="bg-amber-500/15 text-amber-300 border border-amber-400/30 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
-                Feed Updating Soon
-              </span>
+              {LIVE_STREAM_FEED_ENABLED ? (
+                <>
+                  <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse" />
+                  <span className="text-xs font-mono text-[#5EEAD4] tracking-wider uppercase font-bold">
+                    Virtual Live Darshan Room
+                  </span>
+                  <span className="bg-amber-500/15 text-amber-300 border border-amber-400/30 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                    Feed Updating Soon
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-mono text-[#5EEAD4] tracking-wider uppercase font-bold">
+                    Darshan Preview
+                  </span>
+                  <span className="bg-white/10 text-white/70 border border-white/15 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                    Live Video Coming Soon
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Temple selector dropdown — same pattern as the Featured Temple Experience dropdown */}
@@ -125,7 +149,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           {/* Left side: Live Video screen player (cols 7) */}
           <div className="lg:col-span-7 flex flex-col">
             <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.75rem] flex items-end mb-2">
-              {darshanTemple.name} — Live Sanctified Stream
+              {darshanTemple.name} — {LIVE_STREAM_FEED_ENABLED ? "Live Sanctified Stream" : "Darshan Preview"}
             </h4>
 
             <div className="aspect-video w-full rounded-2xl bg-[#021816]/95 overflow-hidden relative border border-white/10 shadow-2xl flex items-center justify-center group">
@@ -152,7 +176,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           <div className="lg:col-span-5 flex flex-col justify-between text-left space-y-6 h-full">
             <div className="space-y-4">
               <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.75rem] flex items-end mb-2">
-                Live Sanctified Darshan
+                {LIVE_STREAM_FEED_ENABLED ? "Live Sanctified Darshan" : "Darshan Preview"}
               </h4>
 
               <div className="text-xs text-white bg-white/5 px-3.5 py-2 rounded-xl border border-white/10">
@@ -165,7 +189,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   <span className="text-white/90 font-semibold text-right">{darshanInfo.gps}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-white/85 gap-3">
-                  <span className="font-bold shrink-0 flex items-center space-x-1"><Users className="w-3.5 h-3.5 text-[#5EEAD4]" /><span>Est. Devotees:</span></span>
+                  <span className="font-bold shrink-0 flex items-center space-x-1"><Users className="w-3.5 h-3.5 text-[#5EEAD4]" /><span>Typical Daily Footfall (est.):</span></span>
                   <span className="text-[#FFB347] font-semibold text-right">~{darshanInfo.avgDevotees.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-white/85 gap-3">
@@ -176,12 +200,14 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   <span className="font-bold shrink-0">Priests Chanting:</span>
                   <span className="text-[#5EEAD4] font-semibold text-right">{darshanInfo.priestsChanting}</span>
                 </div>
+                {LIVE_STREAM_FEED_ENABLED && (
+                  <div className="flex items-center justify-between text-xs text-white/85 gap-3">
+                    <span className="font-bold shrink-0">Sanctified Quality:</span>
+                    <span className="text-emerald-400 font-semibold text-right">{darshanInfo.sanctifiedQuality}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-xs text-white/85 gap-3">
-                  <span className="font-bold shrink-0">Sanctified Quality:</span>
-                  <span className="text-emerald-400 font-semibold text-right">{darshanInfo.sanctifiedQuality}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-white/85 gap-3">
-                  <span className="font-bold shrink-0">Feed Availability:</span>
+                  <span className="font-bold shrink-0">{LIVE_STREAM_FEED_ENABLED ? "Feed Availability:" : "Update Schedule:"}</span>
                   <span className="text-white/75 font-semibold text-right">{darshanInfo.availability}</span>
                 </div>
               </div>

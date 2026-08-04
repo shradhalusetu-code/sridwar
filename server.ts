@@ -7,6 +7,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -16,6 +17,27 @@ const PORT = 3000;
 
 // Middleware to parse JSON payloads
 app.use(express.json());
+
+// Lazy-initialize a Supabase "admin" client using the SERVICE ROLE key.
+// This key must NEVER be exposed to the browser/app — it only ever lives
+// here on the server, read from an environment variable. It is used
+// exclusively for the self-service account deletion endpoint below, to
+// (a) verify the caller's own Supabase access token and (b) permanently
+// remove their auth user + rows they own once verified.
+let supabaseAdminClient: ReturnType<typeof createClient> | null = null;
+function getSupabaseAdminClient(): ReturnType<typeof createClient> | null {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+  if (!supabaseAdminClient) {
+    supabaseAdminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return supabaseAdminClient;
+}
 
 // Lazy-initialize Gemini Client to prevent crash if key is missing during startup
 let aiClient: GoogleGenAI | null = null;
@@ -177,15 +199,91 @@ app.get("/api/config", (req, res) => {
 app.post("/api/submit-form", (req, res) => {
   const { formType, formData } = req.body;
   console.log(`[Form Received - ${formType}]:`, JSON.stringify(formData, null, 2));
-  console.log(">> Syncing data instantly with Shradhalu Private Ltd. Google Drive and Google Spreadsheet...");
 
-  // Real-time synchronization simulated perfectly
+  // NOTE: this endpoint only logs the submission server-side for debugging.
+  // The actual Google Form sync happens client-side via
+  // src/utils/googleFormSync.ts, which posts directly to the relevant
+  // Google Form. This endpoint does not itself write to Google Drive or
+  // Sheets, so its response must not claim that it does.
   res.json({
-    status: "success",
-    message: "Form successfully processed and synchronized with Google Drive and Spreadsheet in real-time.",
+    status: "received",
+    message: "Form submission received.",
     syncedAt: new Date().toISOString(),
     refId: `SD-${Math.floor(100000 + Math.random() * 900000)}`
   });
+});
+
+// 2b. Self-service account deletion.
+//
+// Required by Google Play (apps that support account creation must offer a
+// working in-app/web account deletion path). The devotee's own Supabase
+// access token is verified server-side using the Supabase service role key
+// (never exposed to the client) before anything is deleted, so this can
+// only ever delete the account that the token belongs to — never someone
+// else's.
+app.post("/api/account/delete", async (req, res) => {
+  const authHeader = req.headers.authorization || "";
+  const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!accessToken) {
+    res.status(401).json({ error: "Missing or invalid authorization token." });
+    return;
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    console.error("Account deletion requested but SUPABASE_SERVICE_ROLE_KEY / SUPABASE_URL is not configured.");
+    res.status(500).json({
+      error: "Account deletion is temporarily unavailable. Please email puja@sridwar.com and we'll complete it for you within 30 days.",
+    });
+    return;
+  }
+
+  try {
+    // Verify the token and resolve it to a real, currently-valid user.
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(accessToken);
+    if (userError || !userData?.user) {
+      res.status(401).json({ error: "Your session is invalid or has expired. Please log in again and retry." });
+      return;
+    }
+
+    const userId = userData.user.id;
+
+    // Remove owned rows first (best-effort — a failure here does not block
+    // deleting the auth account itself, since the account is the primary
+    // identity a devotee wants gone). Table names match src/lib/activities.ts.
+    const tablesToClean: Array<{ table: string; column: string }> = [
+      { table: "family_members", column: "user_id" },
+      { table: "activities", column: "user_id" },
+      { table: "form_submissions", column: "user_id" },
+      { table: "profiles", column: "id" },
+    ];
+
+    for (const { table, column } of tablesToClean) {
+      const { error: deleteError } = await supabaseAdmin.from(table).delete().eq(column, userId);
+      if (deleteError) {
+        console.error(`Account deletion: failed to clear "${table}" for user ${userId}:`, deleteError.message);
+      }
+    }
+
+    // Finally, delete the Supabase Auth user itself.
+    const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (deleteUserError) {
+      console.error(`Account deletion: failed to delete auth user ${userId}:`, deleteUserError.message);
+      res.status(500).json({
+        error: "We removed your saved data but couldn't finish deleting your login. Please email puja@sridwar.com to complete this.",
+      });
+      return;
+    }
+
+    console.log(`Account deletion: user ${userId} and associated data deleted successfully.`);
+    res.json({ status: "deleted" });
+  } catch (error: any) {
+    console.error("Account deletion error:", error);
+    res.status(500).json({
+      error: "Something went wrong deleting your account. Please email puja@sridwar.com and we'll complete it for you within 30 days.",
+    });
+  }
 });
 
 // 3. Clean URLs for Privacy Policy / Legal Center and related static

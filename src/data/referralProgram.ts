@@ -6,16 +6,26 @@
 // ============================================================================
 // "Refer, Earn & Grow with Dharma" — data model
 // SIX fully separate plan systems, one per participant type on Sri Dwar.
-// Each has its own 5-tier ladder with unique names, pricing (monthly +
-// annual), taglines, services/fee model, commission structure, and CTA
-// copy. They intentionally do NOT share tier names or price points — the
-// only thing shared is a TypeScript shape (for maintainability) between
-// the five "provider" categories, since a Panditji, a Mandal, a Yoga Guru,
-// a Dharmic Expert, and a Seva Provider all fundamentally sell a service
-// and earn a commission on top, just worded and priced for who they are.
-// Devotees are structurally different: referral-only, no services at all.
+// The five PROVIDER categories (Pujari, Mandal, Yoga Guru, Dharmic Expert,
+// Seva Provider) each have their own 5-tier ladder with unique names,
+// pricing (monthly + annual), taglines, services/fee model, commission
+// structure, and CTA copy — a paid subscription for listing/marketplace
+// features, since a Panditji, a Mandal, a Yoga Guru, a Dharmic Expert, and
+// a Seva Provider all fundamentally sell a service and earn a commission
+// on top, just worded and priced for who they are.
 //
-//   1. DEVOTEE_REFERRAL_TIERS      — "Diya"..."Chakra" Circles
+// The DEVOTEE category is structurally different and intentionally has NO
+// subscription fee at any tier: it is a free loyalty/community-engagement
+// program. Tier progression is driven entirely by the devotee's own genuine
+// activity — completed pujas/sevas/contributions, temple/priest reviews,
+// and Setu Yatra directory contributions — never by recruiting other
+// people, paying for a higher tier, or unlocking tiers through referral
+// volume. Referral cashback still exists (a modest, tier-linked bonus
+// earned only when someone a devotee refers completes a genuine, paid
+// booking), but it is a side benefit of a devotion-first program, not the
+// program's core mechanic. See DEVOTEE_ENGAGEMENT_TIER_THRESHOLDS below.
+//
+//   1. DEVOTEE_REFERRAL_TIERS      — "Diya"..."Chakra" Circles (free, engagement-based)
 //   2. PUJARI_TIERS                — "Shishya"..."Rajguru" Paths
 //   3. PUJA_MANDAL_TIERS           — "Aarambh"..."Samrat" Sangh
 //   4. YOGA_GURU_TIERS             — "Sadhak"..."Maharishi" Marg
@@ -52,20 +62,15 @@ export interface PlanCategoryMeta {
   planLabel: string;  // full title shown above the 5-tier grid
   icon: "Users" | "Flame" | "Landmark" | "Sparkles" | "BookOpen" | "HeartHandshake";
   intro: string;
-  /** Short plural noun for this category's own professionals, used in tier-unlock
-   *  requirement text for the 5 provider categories (e.g. "2 verified referred Pujaris").
-   *  Left blank for "devotee" since devotees never gate on referred-professional counts. */
-  professionalLabel: string;
 }
 
 export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
   {
     id: "devotee",
     tabLabel: "Devotees",
-    planLabel: "5-Tier Devotee Referral Circles",
+    planLabel: "5-Tier Devotee Circles",
     icon: "Users",
-    intro: "Built purely around referring & earning — no services to list, no puja fees to manage. Just your Dharmic ID, your circle, and the bonuses and cashback you earn as it grows.",
-    professionalLabel: "",
+    intro: "Always free, for every devotee — no subscription, no recruiting. Your Circle grows as your own pujas, sevas, contributions, and community knowledge-sharing grow, with genuine referral cashback as a bonus on top.",
   },
   {
     id: "pujari",
@@ -73,7 +78,6 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     planLabel: "5-Tier Pujari (Pundit) Service Paths",
     icon: "Flame",
     intro: "Built for individual priests running a puja practice — list your rituals, set your own dakshina, reach genuine devotees, and earn referral cashback and rewards on top.",
-    professionalLabel: "Pujaris",
   },
   {
     id: "mandal",
@@ -81,7 +85,6 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     planLabel: "5-Tier Puja Mandal Sangh Plans",
     icon: "Landmark",
     intro: "Built for community puja committees organizing festivals — list your events, collect sponsorships & seva contributions, and earn referral cashback and rewards on top.",
-    professionalLabel: "Puja Mandals",
   },
   {
     id: "yogaguru",
@@ -89,7 +92,6 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     planLabel: "5-Tier Yoga Guru Marg Plans",
     icon: "Sparkles",
     intro: "Built for yoga & wellness instructors — list your classes and retreats, set your own session fees, reach genuine students, and earn referral cashback and rewards on top.",
-    professionalLabel: "Yoga Gurus",
   },
   {
     id: "expert",
@@ -97,7 +99,6 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     planLabel: "5-Tier Dharmic Expert Peeth Plans",
     icon: "BookOpen",
     intro: "Built for astrologers, vastu consultants & spiritual counselors — list your consultations, set your own fees, reach genuine clients, and earn referral cashback and rewards on top.",
-    professionalLabel: "Dharmic Experts",
   },
   {
     id: "seva",
@@ -105,7 +106,6 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     planLabel: "5-Tier Seva Provider Seva Plans",
     icon: "HeartHandshake",
     intro: "Built for volunteers & NGOs running annadanam, prasad and contribution drives — list your seva activities transparently, and earn referral cashback and rewards on top.",
-    professionalLabel: "Seva Providers",
   },
 ];
 
@@ -144,93 +144,93 @@ export const DEVOTEE_REFERRAL_TIERS: DevoteeReferralTier[] = [
   {
     id: "diya",
     name: "Diya Circle",
-    monthlyPrice: 29,
-    monthlyPriceLabel: "₹29/month",
-    annualPrice: 319,
-    annualPriceLabel: "₹319/year",
-    annualSavingsLabel: "30 days free",
-    tagline: "Light the first diya of your own dharmic journey — every flame you kindle for another devotee begins earning you cashback today.",
-    referralCapacity: "Up to 15 active referral links",
-    networkCommissionRate: "Guide devotees to their first blessings and earn an additional 2% referral cashback on top of the standard booking cashback on every eligible booking they complete",
-    cashbackRatePercent: 2,
+    monthlyPrice: 0,
+    monthlyPriceLabel: "Free",
+    annualPrice: 0,
+    annualPriceLabel: "Free",
+    annualSavingsLabel: "Always free",
+    tagline: "Light the first diya of your own dharmic journey — begin sharing genuine pujas, sevas, and temple experiences with your circle.",
+    referralCapacity: "Share your referral link freely — no cap on who you can invite",
+    networkCommissionRate: "Guide devotees to their first blessings and earn an additional 1% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
+    cashbackRatePercent: 1,
     milestoneBonusMultiplier: "Standard milestone bonus credits",
     payoutSpeed: "Monthly payout cycle",
     referralSupport: "Email support, 48-hour response",
-    bonusPerks: ["Personal referral dashboard", "Digital Dharmic ID referral card", "Eligible for all milestone rewards", "Full referral cashback & commission benefits from day one"],
-    ctaLabel: "Start Diya Circle — ₹29/mo",
+    bonusPerks: ["Personal referral dashboard", "Digital Dharmic ID referral card", "Eligible for all milestone rewards", "Full referral cashback & community benefits from day one"],
+    ctaLabel: "Join Diya Circle — Free",
   },
   {
     id: "kalash",
     name: "Kalash Circle",
-    monthlyPrice: 49,
-    monthlyPriceLabel: "₹49/month",
-    annualPrice: 539,
-    annualPriceLabel: "₹539/year",
-    annualSavingsLabel: "30 days free",
-    tagline: "Fill your sacred kalash, drop by drop — for the price of a cup of chai, carry a few more devotees toward blessings and grow your cashback with them.",
-    referralCapacity: "Up to 50 active referral links",
-    networkCommissionRate: "Walk beside more devotees on their journey and earn an additional 5% referral cashback on top of the standard booking cashback on every eligible booking they complete",
-    cashbackRatePercent: 5,
+    monthlyPrice: 0,
+    monthlyPriceLabel: "Free",
+    annualPrice: 0,
+    annualPriceLabel: "Free",
+    annualSavingsLabel: "Always free",
+    tagline: "Fill your sacred kalash, drop by drop — earned by completing your own pujas, sevas, and contributions, and sharing what you've learned with fellow devotees.",
+    referralCapacity: "Unlocked once you've completed a handful of genuine bookings or contributions of your own",
+    networkCommissionRate: "Walk beside more devotees on their journey and earn an additional 2% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
+    cashbackRatePercent: 2,
     milestoneBonusMultiplier: "1.25x milestone bonus credits",
     payoutSpeed: "Twice-monthly payout cycle",
     referralSupport: "Priority email + WhatsApp support",
-    bonusPerks: ["Verified referrer badge on your profile", "Early access to seasonal referral campaigns", "A guiding hand from our referral support team as your circle fills"],
-    ctaLabel: "Grow with Kalash — ₹49/mo",
+    bonusPerks: ["Verified devotee badge on your profile", "Early access to seasonal community campaigns", "A guiding hand from our support team as your circle grows"],
+    ctaLabel: "Grow with Kalash — Free",
   },
   {
     id: "shankh",
     name: "Shankh Circle",
-    monthlyPrice: 149,
-    monthlyPriceLabel: "₹149/month",
-    annualPrice: 1565,
-    annualPriceLabel: "₹1,565/year",
-    annualSavingsLabel: "45 days free",
-    tagline: "Sound the shankh and let your circle hear the call — turn your everyday devotion into steady, growing cashback with every soul you guide.",
-    referralCapacity: "Up to 150 active referral links",
-    networkCommissionRate: "Answer the call of your growing circle and earn an additional 8% referral cashback on top of the standard booking cashback on every eligible booking your devotees complete",
-    cashbackRatePercent: 8,
+    monthlyPrice: 0,
+    monthlyPriceLabel: "Free",
+    annualPrice: 0,
+    annualPriceLabel: "Free",
+    annualSavingsLabel: "Always free",
+    tagline: "Sound the shankh and let your circle hear the call — recognition for devotees whose own bookings, reviews, and directory contributions show sustained, genuine engagement.",
+    referralCapacity: "Unlocked through consistent participation — attending pujas/sevas, writing verified temple experiences, or contributing to the Sri Dwar directory",
+    networkCommissionRate: "Answer the call of your growing circle and earn an additional 3% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
+    cashbackRatePercent: 3,
     milestoneBonusMultiplier: "1.5x milestone bonus credits",
     payoutSpeed: "Weekly payout cycle",
     referralSupport: "Dedicated referral support coordinator",
-    bonusPerks: ["Featured community shout-out for top referrers", "Access to co-branded share creatives", "Recognition within the Sri Dwar community for consistent, genuine guidance"],
+    bonusPerks: ["Featured community shout-out for active contributors", "Access to co-branded share creatives", "Recognition within the Sri Dwar community for consistent, genuine participation"],
     highlight: true,
     ctaLabel: "Sound the Shankh Circle",
   },
   {
     id: "trishul",
     name: "Trishul Circle",
-    monthlyPrice: 190,
-    monthlyPriceLabel: "₹190/month",
-    annualPrice: 1900,
-    annualPriceLabel: "₹1,900/year",
-    annualSavingsLabel: "60 days free",
-    tagline: "Wield the trishul of a true community anchor — sharper cashback percentages, faster payouts, and richer bonuses for devotees with real reach.",
-    referralCapacity: "Up to 500 active referral links",
-    networkCommissionRate: "Lead a thriving circle of devotees and earn an additional 11% referral cashback on top of the standard booking cashback on every eligible booking they complete",
-    cashbackRatePercent: 11,
+    monthlyPrice: 0,
+    monthlyPriceLabel: "Free",
+    annualPrice: 0,
+    annualPriceLabel: "Free",
+    annualSavingsLabel: "Always free",
+    tagline: "Wield the trishul of a true community anchor — for devotees with a real, sustained history of bookings, reviews, and knowledge-sharing on the platform.",
+    referralCapacity: "Unlocked through a strong track record of your own genuine bookings and verified community contributions",
+    networkCommissionRate: "Lead a thriving circle of devotees and earn an additional 4% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
+    cashbackRatePercent: 4,
     milestoneBonusMultiplier: "2x milestone bonus credits",
     payoutSpeed: "Faster, on-demand payout requests",
-    referralSupport: "Dedicated referral account manager",
-    bonusPerks: ["Eligible for seasonal campaign rewards", "Custom community referral campaigns", "A dedicated account manager who understands your growing circle"],
-    ctaLabel: "Lead with Trishul — ₹190/mo",
+    referralSupport: "Dedicated community support contact",
+    bonusPerks: ["Eligible for seasonal campaign rewards", "Invitations to community/satsang events where available", "Recognition as a trusted, long-standing voice in the Sri Dwar community"],
+    ctaLabel: "Lead with Trishul — Free",
   },
   {
     id: "chakra",
     name: "Chakra Circle",
-    monthlyPrice: 290,
-    monthlyPriceLabel: "₹290/month",
-    annualPrice: 2900,
-    annualPriceLabel: "₹2,900/year",
-    annualSavingsLabel: "60 days free",
-    tagline: "Set the chakra of dharma turning across your whole community — the top tier of cashback, recognition, and reward for those who guide the many.",
-    referralCapacity: "Unlimited referral links",
-    networkCommissionRate: "Set the wheel of dharma in motion for your whole community and earn an additional 14% referral cashback on top of the standard booking cashback on every eligible booking your devotees complete",
-    cashbackRatePercent: 14,
+    monthlyPrice: 0,
+    monthlyPriceLabel: "Free",
+    annualPrice: 0,
+    annualPriceLabel: "Free",
+    annualSavingsLabel: "Always free",
+    tagline: "Set the chakra of dharma turning across your whole community — the top tier of recognition, reserved for devotees with the deepest, most genuine engagement.",
+    referralCapacity: "Unlocked at the highest level of sustained genuine engagement — bookings, reviews, and directory contributions over time",
+    networkCommissionRate: "Set the wheel of dharma in motion for your whole community and earn an additional 5% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
+    cashbackRatePercent: 5,
     milestoneBonusMultiplier: "3x milestone bonus credits + Chakra-tier recognition status",
     payoutSpeed: "Fastest available payout cycle",
-    referralSupport: "White-glove onboarding + 24x7 dedicated support line",
-    bonusPerks: ["Premium homepage feature for your referral story", "Custom commercial terms available for community leaders", "Standing as a recognised pillar of the Sri Dwar devotee community"],
-    ctaLabel: "Go Chakra — ₹290/mo",
+    referralSupport: "White-glove onboarding + priority support line",
+    bonusPerks: ["Premium homepage feature for your devotion story", "Invitations to community leadership conversations", "Standing as a recognised pillar of the Sri Dwar devotee community"],
+    ctaLabel: "Go Chakra — Free",
   },
 ];
 
@@ -699,117 +699,122 @@ export function isDevoteeTier(tier: DevoteeReferralTier | ProviderCategoryTier):
 }
 
 // ============================================================================
-// Tier-unlock eligibility (5-Tier Referral Circles gating)
+// Tier-unlock eligibility
 // Every ladder (devotee + all five provider categories) has exactly 5 tiers,
 // in ascending order. New users start on tier 0 only; each higher tier is
-// revealed as the user's own verified, fraud-checked referral activity
-// crosses that tier's requirement — never by self-reported claims.
+// revealed automatically as genuine, verified activity crosses that tier's
+// requirement — never by self-reported claims, and never by payment.
 //
 // Two different gating shapes, by design:
-//   • DEVOTEE ladder (Diya → Chakra): referral-only, so it gates purely on
-//     verified referred devotees who have each completed 2+ bookings. This
-//     is also the exact bar MILESTONE_REWARDS below uses, so the unlock
-//     ladder and the milestone list never disagree with each other.
+//   • DEVOTEE ladder (Diya → Chakra): gates purely on the devotee's OWN
+//     genuine engagement — their own completed, paid pujas/sevas/
+//     contributions, plus verified community contributions (temple/priest
+//     reviews, Setu Yatra directory entries). It intentionally does NOT
+//     gate on how many other people a devotee has referred or recruited —
+//     referral cashback is still earned on genuine bookings made by people
+//     you refer (see COMMISSION_STRUCTURE / DEVOTEE_REFERRAL_TIERS above),
+//     but recruiting more people is never required, rewarded, or counted
+//     toward reaching a higher tier. This keeps the Devotee ladder a
+//     genuine loyalty/engagement program, not a recruitment structure.
 //   • The five PROVIDER ladders (Pujari, Mandal, Yoga Guru, Dharmic Expert,
-//     Seva Provider) each gate on a combination of two counts: verified
-//     referred devotees (bringing genuine customers to the platform) AND
-//     verified referred professionals of that same category (growing the
-//     category's own network) — both thresholds rise every tier, so later
-//     tiers reward providers who are doing both: bringing customers in and
-//     helping their professional peer network grow.
+//     Seva Provider) gate on verified referred devotees — i.e. genuine
+//     paying customers the provider has brought to the platform. Unlike an
+//     earlier version of this ladder, tiers no longer require recruiting a
+//     minimum number of OTHER paying professionals into the platform —
+//     that mechanic was removed because rewarding providers for recruiting
+//     other fee-paying providers is a recruitment-based (MLM-style)
+//     pattern, regardless of intent. Providers can still refer peers if
+//     they want to, and any resulting bookings by that peer still count
+//     like any other genuine referral, but recruiting peers is never a
+//     requirement for advancement.
 //
-// Backing data is available today via lib/referrals.fetchReferralList,
-// filtered by referredParticipantType and an "active" (non-fraud-flagged)
-// status.
+// Backing data: devotee engagement comes from lib/activities.fetchActivities
+// (the devotee's own confirmed bookings) combined with verified community
+// contributions where tracked; provider "verified referred devotees" comes
+// from lib/referrals.fetchReferralList, filtered to referredParticipantType
+// === "devotee" and an "active" (non-fraud-flagged) status.
 // ============================================================================
-export const QUALIFIED_REFERRAL_MIN_BOOKINGS = 2; // bookings a referred devotee needs before counting toward any unlock ladder
+export const QUALIFIED_REFERRAL_MIN_BOOKINGS = 2; // bookings a referred devotee needs before counting toward a provider's unlock ladder
 
-// Devotee ladder — verified referred devotee counts only.
-export const DEVOTEE_TIER_UNLOCK_THRESHOLDS = [0, 5, 20, 50, 100] as const;
+// Devotee ladder — the devotee's own confirmed bookings + verified
+// community contributions (a single combined "engagement score"), never
+// referral/recruitment counts.
+export const DEVOTEE_ENGAGEMENT_TIER_THRESHOLDS = [0, 3, 10, 25, 50] as const;
 
 export interface ProviderTierUnlockRequirement {
   minVerifiedDevotees: number;
-  minVerifiedProfessionals: number;
 }
 
-// Provider ladders — verified referred devotees AND verified referred
-// professionals (of the same category), both rising every tier. Devotee
-// counts stay identical across the five categories (a customer is a
-// customer, regardless of what the referrer sells); professional counts are
-// tuned per category to roughly match how large that category's own peer
-// network realistically is (e.g. mandals & seva NGOs coordinate bigger
-// federations at the top tier than a single acharya's disciple lineage).
+// Provider ladders — verified referred devotees (genuine customers) only.
 export const PROVIDER_TIER_UNLOCK_THRESHOLDS: Record<ProviderCategoryId, ProviderTierUnlockRequirement[]> = {
   pujari: [
-    { minVerifiedDevotees: 0, minVerifiedProfessionals: 0 },
-    { minVerifiedDevotees: 8, minVerifiedProfessionals: 2 },
-    { minVerifiedDevotees: 25, minVerifiedProfessionals: 5 },
-    { minVerifiedDevotees: 75, minVerifiedProfessionals: 15 },
-    { minVerifiedDevotees: 200, minVerifiedProfessionals: 40 },
+    { minVerifiedDevotees: 0 },
+    { minVerifiedDevotees: 8 },
+    { minVerifiedDevotees: 25 },
+    { minVerifiedDevotees: 75 },
+    { minVerifiedDevotees: 200 },
   ],
   mandal: [
-    { minVerifiedDevotees: 0, minVerifiedProfessionals: 0 },
-    { minVerifiedDevotees: 10, minVerifiedProfessionals: 3 },
-    { minVerifiedDevotees: 30, minVerifiedProfessionals: 8 },
-    { minVerifiedDevotees: 100, minVerifiedProfessionals: 20 },
-    { minVerifiedDevotees: 300, minVerifiedProfessionals: 50 },
+    { minVerifiedDevotees: 0 },
+    { minVerifiedDevotees: 10 },
+    { minVerifiedDevotees: 30 },
+    { minVerifiedDevotees: 100 },
+    { minVerifiedDevotees: 300 },
   ],
   yogaguru: [
-    { minVerifiedDevotees: 0, minVerifiedProfessionals: 0 },
-    { minVerifiedDevotees: 8, minVerifiedProfessionals: 2 },
-    { minVerifiedDevotees: 25, minVerifiedProfessionals: 5 },
-    { minVerifiedDevotees: 75, minVerifiedProfessionals: 15 },
-    { minVerifiedDevotees: 200, minVerifiedProfessionals: 40 },
+    { minVerifiedDevotees: 0 },
+    { minVerifiedDevotees: 8 },
+    { minVerifiedDevotees: 25 },
+    { minVerifiedDevotees: 75 },
+    { minVerifiedDevotees: 200 },
   ],
   expert: [
-    { minVerifiedDevotees: 0, minVerifiedProfessionals: 0 },
-    { minVerifiedDevotees: 8, minVerifiedProfessionals: 2 },
-    { minVerifiedDevotees: 25, minVerifiedProfessionals: 5 },
-    { minVerifiedDevotees: 75, minVerifiedProfessionals: 15 },
-    { minVerifiedDevotees: 200, minVerifiedProfessionals: 40 },
+    { minVerifiedDevotees: 0 },
+    { minVerifiedDevotees: 8 },
+    { minVerifiedDevotees: 25 },
+    { minVerifiedDevotees: 75 },
+    { minVerifiedDevotees: 200 },
   ],
   seva: [
-    { minVerifiedDevotees: 0, minVerifiedProfessionals: 0 },
-    { minVerifiedDevotees: 8, minVerifiedProfessionals: 2 },
-    { minVerifiedDevotees: 25, minVerifiedProfessionals: 5 },
-    { minVerifiedDevotees: 75, minVerifiedProfessionals: 15 },
-    { minVerifiedDevotees: 200, minVerifiedProfessionals: 40 },
+    { minVerifiedDevotees: 0 },
+    { minVerifiedDevotees: 8 },
+    { minVerifiedDevotees: 25 },
+    { minVerifiedDevotees: 75 },
+    { minVerifiedDevotees: 200 },
   ],
 };
 
 /**
  * Whether a given tier (by index, 0-based) is unlocked for the given category.
- * For "devotee", only qualifiedDevoteeCount matters. For the five provider
- * categories, BOTH qualifiedDevoteeCount and qualifiedProfessionalCount must
- * clear that tier's requirement.
+ * For "devotee", `qualifiedCount` is the devotee's own engagement score
+ * (confirmed bookings + verified community contributions) — never a
+ * referral/recruitment count. For the five provider categories,
+ * `qualifiedCount` is verified referred devotees (genuine customers).
  */
 export function isTierUnlocked(
   categoryId: PlanCategoryId,
   tierIndex: number,
-  qualifiedDevoteeCount: number,
-  qualifiedProfessionalCount: number = 0
+  qualifiedCount: number
 ): boolean {
   if (categoryId === "devotee") {
-    const threshold = DEVOTEE_TIER_UNLOCK_THRESHOLDS[tierIndex] ?? Infinity;
-    return qualifiedDevoteeCount >= threshold;
+    const threshold = DEVOTEE_ENGAGEMENT_TIER_THRESHOLDS[tierIndex] ?? Infinity;
+    return qualifiedCount >= threshold;
   }
   const requirement = PROVIDER_TIER_UNLOCK_THRESHOLDS[categoryId as ProviderCategoryId][tierIndex];
   if (!requirement) return false;
-  return qualifiedDevoteeCount >= requirement.minVerifiedDevotees && qualifiedProfessionalCount >= requirement.minVerifiedProfessionals;
+  return qualifiedCount >= requirement.minVerifiedDevotees;
 }
 
 /** Human-readable eligibility text shown on a locked tier card. */
 export function tierUnlockRequirementLabel(categoryId: PlanCategoryId, tierIndex: number): string {
   if (categoryId === "devotee") {
-    const threshold = DEVOTEE_TIER_UNLOCK_THRESHOLDS[tierIndex] ?? 0;
+    const threshold = DEVOTEE_ENGAGEMENT_TIER_THRESHOLDS[tierIndex] ?? 0;
     if (threshold === 0) return "Available from the start";
-    return `Unlocks at ${threshold} verified referred devotees (${QUALIFIED_REFERRAL_MIN_BOOKINGS}+ bookings each)`;
+    return `Unlocks after ${threshold} of your own completed pujas/sevas/contributions, temple reviews, or verified directory contributions`;
   }
   const requirement = PROVIDER_TIER_UNLOCK_THRESHOLDS[categoryId as ProviderCategoryId][tierIndex];
   if (!requirement || requirement.minVerifiedDevotees === 0) return "Available from the start";
-  const categoryMeta = PLAN_CATEGORIES.find((c) => c.id === categoryId);
-  const professionalNoun = categoryMeta?.professionalLabel || "verified professionals";
-  return `Unlocks at ${requirement.minVerifiedDevotees} verified referred devotees (${QUALIFIED_REFERRAL_MIN_BOOKINGS}+ bookings each) + ${requirement.minVerifiedProfessionals} verified referred ${professionalNoun}`;
+  return `Unlocks at ${requirement.minVerifiedDevotees} verified referred devotees (${QUALIFIED_REFERRAL_MIN_BOOKINGS}+ bookings each)`;
 }
 
 /** Finds a tier (and which category it belongs to) by its id, across all six ladders. */
@@ -830,11 +835,11 @@ export interface Milestone {
 }
 
 export const MILESTONE_REWARDS: Milestone[] = [
-  { icon: "🌱", title: "First Blessing", requirement: "Your first successful referral booking", reward: "₹51 bonus credit + Milestone Badge" },
-  { icon: "🪔", title: "5 Devotees Strong", requirement: "5 referred devotees who have each completed at least 2 bookings", reward: "₹501 bonus credit + Bronze Referrer Badge" },
-  { icon: "🔔", title: "Community Builder", requirement: "20 referred devotees who have each completed at least 2 bookings", reward: "₹2,500 bonus credit + Silver Referrer Badge + Priority Listing" },
-  { icon: "🏵️", title: "Dharma Ambassador", requirement: "50 referred devotees who have each completed at least 2 bookings", reward: "₹15,000 bonus credit + Gold Referrer Badge + Featured Profile" },
-  { icon: "👑", title: "Grand Sevak", requirement: "100 referred devotees who have each completed at least 2 bookings", reward: "₹1,00,000 milestone reward credit + Diamond-tier recognition status" },
+  { icon: "🌱", title: "First Blessing", requirement: "Your first completed puja, seva, or contribution booked on Sri Dwar", reward: "₹51 bonus credit + Milestone Badge" },
+  { icon: "🪔", title: "Growing in Devotion", requirement: "5 of your own completed bookings, or verified contributions (temple/priest reviews, Setu Yatra directory entries)", reward: "₹151 bonus credit + Bronze Devotee Badge" },
+  { icon: "🔔", title: "Community Builder", requirement: "20 of your own completed bookings/contributions, sustained over at least 3 months", reward: "₹501 bonus credit + Silver Devotee Badge" },
+  { icon: "🏵️", title: "Dharma Ambassador", requirement: "50 of your own completed bookings/contributions, sustained over at least 6 months", reward: "₹1,001 bonus credit + Gold Devotee Badge + Featured Profile" },
+  { icon: "👑", title: "Grand Sevak", requirement: "100 of your own completed bookings/contributions, sustained over at least a year", reward: "₹2,501 bonus credit + Diamond-tier recognition status" },
 ];
 
 export interface SeasonalCampaign {
@@ -851,7 +856,7 @@ export interface SeasonalCampaign {
 export const SEASONAL_CAMPAIGNS: SeasonalCampaign[] = [
   { name: "Setu Yatra Challenge", window: "Ongoing", description: "Add real, verifiable temples, priests, or Dharmic experts to the Sri Dwar directory. Ranking is based solely on the number of valid, confirmed contributions — never on chance." },
   { name: "All India Pilgrimage", window: "Annual, year-end", description: "The devotee with the highest verified referral cashback earned across the full year is recognized with a fully-covered pilgrimage to a temple circuit of their choice, based purely on performance." },
-  { name: "Family Pilgrimage to Four Holy Sites", window: "Annual, milestone-based", description: "Referrers who reach the Grand Sevak milestone (100 referred devotees with 2+ bookings each) become eligible for a fully-covered family pilgrimage to four holy sites, awarded strictly on milestone completion." },
+  { name: "Family Pilgrimage to Four Holy Sites", window: "Annual, milestone-based", description: "Devotees who reach the Grand Sevak milestone (100 of their own completed bookings/contributions, sustained over at least a year) become eligible for a fully-covered family pilgrimage to four holy sites, awarded strictly on milestone completion." },
   { name: "Navratri Referral Surge", window: "Navratri fortnight", description: "Earn 2x cashback on the 1st booking of every devotee you refer during Navratri." },
   { name: "Diwali Top Referrer Recognition", window: "Diwali week", description: "The referrers with the highest verified cashback earned during Diwali week receive a recognition bonus and Featured Referrer badge — ranked purely by performance, not by chance." },
   { name: "Guru Purnima Loyalty Bonus", window: "Guru Purnima", description: "Loyalty bonus credited to every referrer whose network stayed active over the preceding 90 days." },

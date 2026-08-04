@@ -65,6 +65,18 @@ export default function AuthDashboard({
   // shown instead of the form until they switch back to "Log In".
   const [signupNeedsConfirmation, setSignupNeedsConfirmation] = useState(false);
 
+  // Self-service account deletion (danger zone) — works for any logged-in
+  // devotee, on both the website and the Android app, since both run this
+  // same component. Requires the devotee to type DELETE to confirm, then
+  // calls the backend (which uses the Supabase service role to verify the
+  // devotee's own session token and permanently remove their account and
+  // data) before signing them out locally.
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [deleteAccountConfirmText, setDeleteAccountConfirmText] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState("");
+  const [deleteAccountSuccess, setDeleteAccountSuccess] = useState(false);
+
   // Dharmic ID generation step + temple-redevelopment contribution step
   const [authStep, setAuthStep] = useState<"login" | "contribute">("login");
   const [pendingLogin, setPendingLogin] = useState<{ name: string; email: string } | null>(null);
@@ -378,6 +390,67 @@ export default function AuthDashboard({
     setIsLoggingIn(false);
     setAuthStep("contribute");
     gaRegistrationSubmit("devotee_registration");
+  };
+
+  // Self-service account deletion — permanently removes this devotee's
+  // Dharmic ID account and associated personal data (profile, family
+  // members, activity ledger, form submissions) and signs them out.
+  // Requires typing DELETE to confirm, and a valid, current login session
+  // (the backend verifies the devotee's own Supabase access token before
+  // deleting anything, so no one can delete another devotee's account).
+  const handleDeleteAccount = async () => {
+    setDeleteAccountError("");
+
+    if (deleteAccountConfirmText.trim().toUpperCase() !== "DELETE") {
+      setDeleteAccountError('Please type "DELETE" in the box to confirm.');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+
+      if (sessionError || !accessToken) {
+        setDeleteAccountError("Your session has expired. Please log out, log back in, and try again.");
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setDeleteAccountError(
+          result?.error ||
+            "We couldn't delete your account right now. Please try again, or email puja@sridwar.com and we'll complete it for you within 30 days."
+        );
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      // Account and data are gone server-side — clear the local session too.
+      await supabase.auth.signOut();
+      setIsDeletingAccount(false);
+      setDeleteAccountSuccess(true);
+      setShowDeleteAccountConfirm(false);
+      setDeleteAccountConfirmText("");
+
+      // Give the devotee a moment to see the confirmation, then return them
+      // to a logged-out state.
+      setTimeout(() => {
+        setDeleteAccountSuccess(false);
+        onLogout();
+      }, 2500);
+    } catch (e) {
+      setDeleteAccountError(
+        "Something went wrong deleting your account. Please try again, or email puja@sridwar.com and we'll complete it for you within 30 days."
+      );
+      setIsDeletingAccount(false);
+    }
   };
 
   // Step 7 — Skip Contribution: go directly to Dharmic Portal
@@ -994,6 +1067,17 @@ export default function AuthDashboard({
                 <LogOut className="w-3.5 h-3.5 text-[#FFB347]" />
                 <span>Log Out of workspace</span>
               </button>
+
+              {/* Danger zone — self-service account deletion, available to
+                  every logged-in devotee on both the website and the app. */}
+              <button
+                id="dashboard-delete-account-btn"
+                onClick={() => { setShowDeleteAccountConfirm(true); setDeleteAccountError(""); setDeleteAccountConfirmText(""); }}
+                className="mt-3 flex items-center space-x-1.5 px-4 py-2 bg-red-950/20 border border-red-500/20 text-red-300/90 hover:bg-red-950/40 hover:text-red-200 rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete My Account</span>
+              </button>
             </div>
 
             {/* Right Box: My Sacred Profile management, moved to the right side (cols 7) */}
@@ -1463,6 +1547,95 @@ export default function AuthDashboard({
         devoteeName={pendingLogin?.name || "Devotee"}
         refId={contributionRefId}
       />
+
+      {/* ── Delete My Account — self-service confirmation modal ───────────── */}
+      {showDeleteAccountConfirm && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-modal-title"
+        >
+          <div className="w-full max-w-sm bg-[#092320] border border-red-500/30 rounded-3xl p-6 shadow-2xl text-left">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+              <h3 id="delete-account-modal-title" className="font-serif text-lg font-bold text-white">
+                Delete Your Account?
+              </h3>
+            </div>
+            <p className="text-xs text-white/70 leading-relaxed mb-3">
+              This permanently deletes your Dharmic ID login, saved profile (name, email, Gotra, Rashi, phone),
+              family members, and request history. This cannot be undone.
+            </p>
+            <p className="text-xs text-white/70 leading-relaxed mb-4">
+              Records we're legally required to keep — such as confirmed payment/transaction references — may be
+              retained for a limited period as described in our{" "}
+              <button
+                type="button"
+                onClick={() => onOpenLegalDoc?.("privacy")}
+                className="text-[#5EEAD4] underline underline-offset-2 cursor-pointer"
+              >
+                Privacy Policy
+              </button>.
+            </p>
+
+            {deleteAccountError && (
+              <div className="flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-xs rounded-xl px-3 py-2.5 mb-3">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{deleteAccountError}</span>
+              </div>
+            )}
+
+            <label className="block text-xs font-bold text-white/80 mb-1">
+              Type <span className="text-red-300">DELETE</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={deleteAccountConfirmText}
+              onChange={(e) => setDeleteAccountConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-red-500/20 focus:outline-none focus:border-red-400 text-white placeholder-white/25 mb-4"
+            />
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteAccountConfirm(false); setDeleteAccountConfirmText(""); setDeleteAccountError(""); }}
+                disabled={isDeletingAccount}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Yes, Delete Permanently</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Account deleted — brief confirmation before signing out ───────── */}
+      {deleteAccountSuccess && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="w-full max-w-sm bg-[#092320] border border-emerald-500/30 rounded-3xl p-6 shadow-2xl text-center">
+            <ShieldCheck className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
+            <h3 className="font-serif text-lg font-bold text-white mb-1">Account Deleted</h3>
+            <p className="text-xs text-white/70">Your Dharmic ID and personal data have been removed. Signing you out...</p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
