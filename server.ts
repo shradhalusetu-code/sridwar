@@ -188,26 +188,45 @@ app.post("/api/submit-form", (req, res) => {
   });
 });
 
-// 3. Clean URL for the Privacy Policy / Legal Center static page.
+// 3. Clean URLs for Privacy Policy / Legal Center and related static
+// legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
+// Community Guidelines, Cookie Policy, About, Contact, Account Deletion).
 //
-// Unlike /puja, /seva, /bazaar, /darshan (see note below), "privacy-policy"
-// has NO client-side SPA route of its own, so there is no naming collision
-// risk here. We deliberately add ONLY this one explicit route rather than a
-// blanket express.static `extensions` option, which would reintroduce the
-// /seva-style collisions described below.
-app.get("/privacy-policy", (req, res) => {
-  const filePath =
-    process.env.NODE_ENV === "production"
-      ? path.join(process.cwd(), "dist", "privacy-policy.html")
-      : path.join(process.cwd(), "public", "privacy-policy.html");
-  res.sendFile(filePath);
-});
+// Unlike /puja, /seva, /bazaar, /darshan (see note below), none of these
+// slugs collide with a client-side SPA route, so there is no naming
+// collision risk here. We deliberately add ONLY these explicit routes
+// rather than a blanket express.static `extensions` option, which would
+// reintroduce the /seva-style collisions described below.
+const STATIC_LEGAL_PAGES = [
+  "privacy-policy",
+  "terms-and-conditions",
+  "refund-policy",
+  "shipping-policy",
+  "disclaimer",
+  "community-guidelines",
+  "cookies",
+  "about",
+  "contact",
+  "account-deletion",
+];
 
-// Permanently redirect the old .html URL to the new clean URL so existing
-// links/bookmarks/search-engine index entries consolidate onto one URL.
-app.get("/privacy-policy.html", (req, res) => {
-  res.redirect(301, "/privacy-policy");
-});
+for (const slug of STATIC_LEGAL_PAGES) {
+  // Clean URL — serves the static HTML file with no .html in the address bar.
+  app.get(`/${slug}`, (req, res) => {
+    const filePath =
+      process.env.NODE_ENV === "production"
+        ? path.join(process.cwd(), "dist", `${slug}.html`)
+        : path.join(process.cwd(), "public", `${slug}.html`);
+    res.sendFile(filePath);
+  });
+
+  // Permanently redirect the old .html URL to the new clean URL so any
+  // existing links/bookmarks/search-engine index entries consolidate onto
+  // one URL.
+  app.get(`/${slug}.html`, (req, res) => {
+    res.redirect(301, `/${slug}`);
+  });
+}
 
 // 4. Mount Vite middleware in development, serve static client in production
 //
