@@ -188,7 +188,28 @@ app.post("/api/submit-form", (req, res) => {
   });
 });
 
-// 3. Mount Vite middleware in development, serve static client in production
+// 3. Clean URL for the Privacy Policy / Legal Center static page.
+//
+// Unlike /puja, /seva, /bazaar, /darshan (see note below), "privacy-policy"
+// has NO client-side SPA route of its own, so there is no naming collision
+// risk here. We deliberately add ONLY this one explicit route rather than a
+// blanket express.static `extensions` option, which would reintroduce the
+// /seva-style collisions described below.
+app.get("/privacy-policy", (req, res) => {
+  const filePath =
+    process.env.NODE_ENV === "production"
+      ? path.join(process.cwd(), "dist", "privacy-policy.html")
+      : path.join(process.cwd(), "public", "privacy-policy.html");
+  res.sendFile(filePath);
+});
+
+// Permanently redirect the old .html URL to the new clean URL so existing
+// links/bookmarks/search-engine index entries consolidate onto one URL.
+app.get("/privacy-policy.html", (req, res) => {
+  res.redirect(301, "/privacy-policy");
+});
+
+// 4. Mount Vite middleware in development, serve static client in production
 //
 // NOTE on routing design (intentional, do not "fix" with express.static's
 // `extensions` option): /puja, /seva, /bazaar, /darshan are CLIENT-SIDE

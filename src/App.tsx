@@ -1025,7 +1025,7 @@ export default function App() {
               <span className="flex items-center">
                 <span className="mx-2 text-white/20 text-[10px] select-none">·</span>
                 <a
-                  href="/privacy-policy.html"
+                  href="/privacy-policy"
                   className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4]"
                 >
                   Full Legal Documents
