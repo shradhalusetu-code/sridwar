@@ -17,8 +17,8 @@
 // The DEVOTEE category is structurally different and intentionally has NO
 // subscription fee at any tier: it is a free loyalty/community-engagement
 // program. Tier progression is driven entirely by the devotee's own genuine
-// activity — completed pujas/sevas/contributions, temple/priest reviews,
-// and Setu Yatra directory contributions — never by recruiting other
+// activity — completed pujas/sevas/divine contributions, temple/priest reviews,
+// and Setu Yatra directory divine contributions — never by recruiting other
 // people, paying for a higher tier, or unlocking tiers through referral
 // volume. Referral cashback still exists (a modest, tier-linked bonus
 // earned only when someone a devotee refers completes a genuine, paid
@@ -46,7 +46,7 @@ export interface CommissionTier {
 // booking; no further cashback accrues on that devotee's bookings beyond
 // the 8th, though the referrer remains free to refer new devotees at any time.
 export const COMMISSION_STRUCTURE: CommissionTier[] = [
-  { bookingLabel: "1st Booking", rate: 3, description: "First eligible puja, seva, contribution, product, or consultation booked by your referred devotee." },
+  { bookingLabel: "1st Booking", rate: 3, description: "First eligible puja, seva, divine contribution, product, or consultation booked by your referred devotee." },
   { bookingLabel: "2nd Booking", rate: 2, description: "Second eligible booking by the same referred devotee." },
   { bookingLabel: "3rd–8th Booking", rate: 1, description: "Every eligible booking from the 3rd through the 8th booking by the same referred devotee. Cashback eligibility ends after that devotee's 8th successful booking." },
 ];
@@ -70,7 +70,7 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     tabLabel: "Devotees",
     planLabel: "5-Tier Devotee Circles",
     icon: "Users",
-    intro: "Always free, for every devotee — no subscription, no recruiting. Your Circle grows as your own pujas, sevas, contributions, and community knowledge-sharing grow, with genuine referral cashback as a bonus on top.",
+    intro: "Always free, for every devotee — no subscription, no recruiting. Your Circle grows as your own pujas, sevas, divine contributions, and community knowledge-sharing grow, with genuine referral cashback as a bonus on top.",
   },
   {
     id: "pujari",
@@ -84,7 +84,7 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     tabLabel: "Puja Mandals",
     planLabel: "5-Tier Puja Mandal Sangh Plans",
     icon: "Landmark",
-    intro: "Built for community puja committees organizing festivals — list your events, collect sponsorships & seva contributions, and earn referral cashback and rewards on top.",
+    intro: "Built for community puja committees organizing festivals — list your events, collect sponsorships & seva divine contributions, and earn referral cashback and rewards on top.",
   },
   {
     id: "yogaguru",
@@ -105,7 +105,7 @@ export const PLAN_CATEGORIES: PlanCategoryMeta[] = [
     tabLabel: "Seva Providers",
     planLabel: "5-Tier Seva Provider Seva Plans",
     icon: "HeartHandshake",
-    intro: "Built for volunteers & NGOs running annadanam, prasad and contribution drives — list your seva activities transparently, and earn referral cashback and rewards on top.",
+    intro: "Built for volunteers & NGOs running annadanam, prasad and divine contribution drives — list your seva activities transparently, and earn referral cashback and rewards on top.",
   },
 ];
 
@@ -167,8 +167,8 @@ export const DEVOTEE_REFERRAL_TIERS: DevoteeReferralTier[] = [
     annualPrice: 0,
     annualPriceLabel: "Free",
     annualSavingsLabel: "Always free",
-    tagline: "Fill your sacred kalash, drop by drop — earned by completing your own pujas, sevas, and contributions, and sharing what you've learned with fellow devotees.",
-    referralCapacity: "Unlocked once you've completed a handful of genuine bookings or contributions of your own",
+    tagline: "Fill your sacred kalash, drop by drop — earned by completing your own pujas, sevas, and divine contributions, and sharing what you've learned with fellow devotees.",
+    referralCapacity: "Unlocked once you've completed a handful of genuine bookings or divine contributions of your own",
     networkCommissionRate: "Walk beside more devotees on their journey and earn an additional 2% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
     cashbackRatePercent: 2,
     milestoneBonusMultiplier: "1.25x milestone bonus credits",
@@ -185,7 +185,7 @@ export const DEVOTEE_REFERRAL_TIERS: DevoteeReferralTier[] = [
     annualPrice: 0,
     annualPriceLabel: "Free",
     annualSavingsLabel: "Always free",
-    tagline: "Sound the shankh and let your circle hear the call — recognition for devotees whose own bookings, reviews, and directory contributions show sustained, genuine engagement.",
+    tagline: "Sound the shankh and let your circle hear the call — recognition for devotees whose own bookings, reviews, and directory divine contributions show sustained, genuine engagement.",
     referralCapacity: "Unlocked through consistent participation — attending pujas/sevas, writing verified temple experiences, or contributing to the Sri Dwar directory",
     networkCommissionRate: "Answer the call of your growing circle and earn an additional 3% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
     cashbackRatePercent: 3,
@@ -205,7 +205,7 @@ export const DEVOTEE_REFERRAL_TIERS: DevoteeReferralTier[] = [
     annualPriceLabel: "Free",
     annualSavingsLabel: "Always free",
     tagline: "Wield the trishul of a true community anchor — for devotees with a real, sustained history of bookings, reviews, and knowledge-sharing on the platform.",
-    referralCapacity: "Unlocked through a strong track record of your own genuine bookings and verified community contributions",
+    referralCapacity: "Unlocked through a strong track record of your own genuine bookings and verified community divine contributions",
     networkCommissionRate: "Lead a thriving circle of devotees and earn an additional 4% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
     cashbackRatePercent: 4,
     milestoneBonusMultiplier: "2x milestone bonus credits",
@@ -223,7 +223,7 @@ export const DEVOTEE_REFERRAL_TIERS: DevoteeReferralTier[] = [
     annualPriceLabel: "Free",
     annualSavingsLabel: "Always free",
     tagline: "Set the chakra of dharma turning across your whole community — the top tier of recognition, reserved for devotees with the deepest, most genuine engagement.",
-    referralCapacity: "Unlocked at the highest level of sustained genuine engagement — bookings, reviews, and directory contributions over time",
+    referralCapacity: "Unlocked at the highest level of sustained genuine engagement — bookings, reviews, and directory divine contributions over time",
     networkCommissionRate: "Set the wheel of dharma in motion for your whole community and earn an additional 5% referral cashback on top of the standard booking cashback, only when they complete a genuine, paid booking",
     cashbackRatePercent: 5,
     milestoneBonusMultiplier: "3x milestone bonus credits + Chakra-tier recognition status",
@@ -360,7 +360,7 @@ export const PUJA_MANDAL_TIERS: ProviderCategoryTier[] = [
     annualPrice: 3289, annualPriceLabel: "₹3,289/year", annualSavingsLabel: "30 days free",
     tagline: "Begin your mandal's dharmic journey — bring your first festival, puja, and Aarti schedule online for your community to discover.",
     servicesIncluded: "List community pujas, festival events & Aarti schedules on your Mandal's Dharmic ID",
-    feeModel: "Collect seva/sponsorship contributions with no markup beyond your subscription",
+    feeModel: "Collect seva/sponsorship divine contributions with no markup beyond your subscription",
     customerReach: "~15 genuine devotee footfalls/event, or approx. ₹5,000 worth of sponsorship interest",
     commissionEligibility: "Standard referral cashback structure (3% / 2% / 1%)",
     referralRewards: "Up to 15 active referral links",
@@ -375,7 +375,7 @@ export const PUJA_MANDAL_TIERS: ProviderCategoryTier[] = [
     annualPrice: 10490, annualPriceLabel: "₹10,490/year", annualSavingsLabel: "45 days free",
     tagline: "Celebrate every utsav with steady visibility — regular festivals, seasonal events, and sponsorships flow to your mandal consistently.",
     servicesIncluded: "Priority routing for festival announcements, ticketed events & volunteer sign-ups",
-    feeModel: "Collect contributions + eligible for milestone bonuses on large festivals",
+    feeModel: "Collect divine contributions + eligible for milestone bonuses on large festivals",
     customerReach: "Targets approx. ₹15,000 worth of sponsorship interest or 30 event RSVPs/month",
     commissionEligibility: "Standard structure + eligible for milestone bonuses",
     referralRewards: "Up to 50 active referral links",
@@ -390,7 +390,7 @@ export const PUJA_MANDAL_TIERS: ProviderCategoryTier[] = [
     annualPrice: 29990, annualPriceLabel: "₹29,990/year", annualSavingsLabel: "60 days free",
     tagline: "Host a mahotsav worthy of your mandal's legacy — featured listings for Durga Puja, Ganesh Utsav, and multi-day celebrations.",
     servicesIncluded: "Featured listings for multi-day festivals, pandals & processions",
-    feeModel: "Collect contributions + 1% cashback boost across all tiers (4% / 3% / 2%)",
+    feeModel: "Collect divine contributions + 1% cashback boost across all tiers (4% / 3% / 2%)",
     customerReach: "Targets approx. ₹50,000 worth of sponsorship interest or 100+ event RSVPs/month",
     commissionEligibility: "+1% cashback boost on all tiers (4% / 3% / 2%)",
     referralRewards: "Up to 150 active referral links",
@@ -406,7 +406,7 @@ export const PUJA_MANDAL_TIERS: ProviderCategoryTier[] = [
     annualPrice: 99990, annualPriceLabel: "₹99,990/year", annualSavingsLabel: "60 days free",
     tagline: "Lead a rajotsav spanning many pandals — coordinate processions and festival teams across your entire district with ease.",
     servicesIncluded: "Multi-pandal & multi-volunteer-team event management dashboard",
-    feeModel: "Collect contributions + 2% cashback boost across all tiers (5% / 4% / 3%)",
+    feeModel: "Collect divine contributions + 2% cashback boost across all tiers (5% / 4% / 3%)",
     customerReach: "Benefits exceeding ₹1,50,000 worth of sponsorship interest and 500+ RSVPs/month",
     commissionEligibility: "+2% cashback boost on all tiers (5% / 4% / 3%)",
     referralRewards: "Unlimited referral links across your committee",
@@ -421,7 +421,7 @@ export const PUJA_MANDAL_TIERS: ProviderCategoryTier[] = [
     annualPrice: 249990, annualPriceLabel: "₹2,49,990/year", annualSavingsLabel: "60 days free",
     tagline: "Command a samrat-scale federation of mandals — unlimited reach and premium visibility for citywide apex festival bodies.",
     servicesIncluded: "Unlimited event listings across your entire federation of affiliated mandals",
-    feeModel: "Collect contributions + 3% cashback boost across all tiers (6% / 5% / 4%)",
+    feeModel: "Collect divine contributions + 3% cashback boost across all tiers (6% / 5% / 4%)",
     customerReach: "Unlimited genuine footfall & sponsorship access — no monthly cap",
     commissionEligibility: "+3% cashback boost on all tiers (6% / 5% / 4%)",
     referralRewards: "Unlimited referral links, plus individual team-member profiles for every affiliated mandal",
@@ -600,7 +600,7 @@ export const DHARMIC_EXPERT_TIERS: ProviderCategoryTier[] = [
 
 // ============================================================================
 // 6. SEVA PROVIDERS — "Seva" Plans
-// Volunteers & NGOs running annadanam, prasad distribution & contribution drives.
+// Volunteers & NGOs running annadanam, prasad distribution & divine contribution drives.
 // Entry tier priced low (₹49/month) to stay accessible, in keeping with a
 // charitable ethos, while still qualifying for referral cashback & commission.
 // ============================================================================
@@ -609,10 +609,10 @@ export const SEVA_PROVIDER_TIERS: ProviderCategoryTier[] = [
     id: "sevak", categoryId: "seva", name: "Sevak Seva",
     monthlyPrice: 49, monthlyPriceLabel: "₹49/month",
     annualPrice: 539, annualPriceLabel: "₹539/year", annualSavingsLabel: "30 days free",
-    tagline: "Begin your seva selflessly — list your first annadanam, prasad, or contribution drive with full transparency, for just ₹49/month.",
-    servicesIncluded: "List annadanam drives, prasad distribution & contribution collection campaigns",
-    feeModel: "No platform markup on contributions collected — 100% transparent seva accounting",
-    customerReach: "~10 genuine volunteer/donor leads/month, or approx. ₹3,000 worth of contribution interest",
+    tagline: "Begin your seva selflessly — list your first annadanam, prasad, or divine contribution drive with full transparency, for just ₹49/month.",
+    servicesIncluded: "List annadanam drives, prasad distribution & divine contribution collection campaigns",
+    feeModel: "No platform markup on divine contributions collected — 100% transparent seva accounting",
+    customerReach: "~10 genuine volunteer/donor leads/month, or approx. ₹3,000 worth of divine contribution interest",
     commissionEligibility: "Standard referral cashback structure (3% / 2% / 1%)",
     referralRewards: "Up to 15 active referral links",
     priorityListing: false, premiumVisibility: false, verifiedBadge: false, marketingTools: false,
@@ -624,10 +624,10 @@ export const SEVA_PROVIDER_TIERS: ProviderCategoryTier[] = [
     id: "karyakarta", categoryId: "seva", name: "Karyakarta Seva",
     monthlyPrice: 199, monthlyPriceLabel: "₹199/month",
     annualPrice: 2189, annualPriceLabel: "₹2,189/year", annualSavingsLabel: "30 days free",
-    tagline: "Serve as a steady karyakarta — a consistent flow of volunteers and donors for your regular seva and contribution drives.",
-    servicesIncluded: "Priority routing for volunteer sign-ups & recurring contribution drives",
+    tagline: "Serve as a steady karyakarta — a consistent flow of volunteers and donors for your regular seva and divine contribution drives.",
+    servicesIncluded: "Priority routing for volunteer sign-ups & recurring divine contribution drives",
     feeModel: "No platform markup + eligible for milestone bonuses on large drives",
-    customerReach: "Targets approx. ₹8,000 worth of contribution interest or 40 volunteer sign-ups/month",
+    customerReach: "Targets approx. ₹8,000 worth of divine contribution interest or 40 volunteer sign-ups/month",
     commissionEligibility: "Standard structure + eligible for milestone bonuses",
     referralRewards: "Up to 50 active referral links",
     priorityListing: true, premiumVisibility: false, verifiedBadge: true, marketingTools: false,
@@ -642,7 +642,7 @@ export const SEVA_PROVIDER_TIERS: ProviderCategoryTier[] = [
     tagline: "Coordinate as a sanchalak of large-scale seva — annadanam and relief drives featured with boosted cashback for every referral.",
     servicesIncluded: "Featured listings for large-scale annadanam, relief drives & bulk prasad distribution",
     feeModel: "No platform markup + 1% referral cashback boost (4% / 3% / 2%)",
-    customerReach: "Targets approx. ₹20,000 worth of contribution interest or 150 volunteer sign-ups/month",
+    customerReach: "Targets approx. ₹20,000 worth of divine contribution interest or 150 volunteer sign-ups/month",
     commissionEligibility: "+1% cashback boost on all tiers (4% / 3% / 2%)",
     referralRewards: "Up to 150 active referral links",
     priorityListing: true, premiumVisibility: true, verifiedBadge: true, marketingTools: true,
@@ -655,10 +655,10 @@ export const SEVA_PROVIDER_TIERS: ProviderCategoryTier[] = [
     id: "pramukh", categoryId: "seva", name: "Pramukh Seva",
     monthlyPrice: 1499, monthlyPriceLabel: "₹1,499/month",
     annualPrice: 14990, annualPriceLabel: "₹14,990/year", annualSavingsLabel: "60 days free",
-    tagline: "Lead as a pramukh across many seva teams — a district-wide dashboard for coordinating volunteers, drives, and contributions.",
-    servicesIncluded: "Multi-team volunteer & contribution-drive management dashboard",
+    tagline: "Lead as a pramukh across many seva teams — a district-wide dashboard for coordinating volunteers, drives, and divine contributions.",
+    servicesIncluded: "Multi-team volunteer & divine contribution-drive management dashboard",
     feeModel: "No platform markup + 2% referral cashback boost (5% / 4% / 3%)",
-    customerReach: "Benefits exceeding ₹50,000 worth of contribution interest and 500+ volunteer sign-ups/month",
+    customerReach: "Benefits exceeding ₹50,000 worth of divine contribution interest and 500+ volunteer sign-ups/month",
     commissionEligibility: "+2% cashback boost on all tiers (5% / 4% / 3%)",
     referralRewards: "Unlimited referral links across your teams",
     priorityListing: true, premiumVisibility: true, verifiedBadge: true, marketingTools: true,
@@ -671,7 +671,7 @@ export const SEVA_PROVIDER_TIERS: ProviderCategoryTier[] = [
     monthlyPrice: 3999, monthlyPriceLabel: "₹3,999/month",
     annualPrice: 39990, annualPriceLabel: "₹39,990/year", annualSavingsLabel: "60 days free",
     tagline: "Stand as a mahasevak serving entire regions — unlimited scale, white-glove support, for NGO federations doing dharma's greatest work.",
-    servicesIncluded: "Unlimited contribution-drive & volunteer listings across your entire federation",
+    servicesIncluded: "Unlimited divine contribution-drive & volunteer listings across your entire federation",
     feeModel: "No platform markup + 3% referral cashback boost (6% / 5% / 4%)",
     customerReach: "Unlimited genuine volunteer & donor access — no monthly cap",
     commissionEligibility: "+3% cashback boost on all tiers (6% / 5% / 4%)",
@@ -708,7 +708,7 @@ export function isDevoteeTier(tier: DevoteeReferralTier | ProviderCategoryTier):
 // Two different gating shapes, by design:
 //   • DEVOTEE ladder (Diya → Chakra): gates purely on the devotee's OWN
 //     genuine engagement — their own completed, paid pujas/sevas/
-//     contributions, plus verified community contributions (temple/priest
+//     divine contributions, plus verified community divine contributions (temple/priest
 //     reviews, Setu Yatra directory entries). It intentionally does NOT
 //     gate on how many other people a devotee has referred or recruited —
 //     referral cashback is still earned on genuine bookings made by people
@@ -730,14 +730,14 @@ export function isDevoteeTier(tier: DevoteeReferralTier | ProviderCategoryTier):
 //
 // Backing data: devotee engagement comes from lib/activities.fetchActivities
 // (the devotee's own confirmed bookings) combined with verified community
-// contributions where tracked; provider "verified referred devotees" comes
+// divine contributions where tracked; provider "verified referred devotees" comes
 // from lib/referrals.fetchReferralList, filtered to referredParticipantType
 // === "devotee" and an "active" (non-fraud-flagged) status.
 // ============================================================================
 export const QUALIFIED_REFERRAL_MIN_BOOKINGS = 2; // bookings a referred devotee needs before counting toward a provider's unlock ladder
 
 // Devotee ladder — the devotee's own confirmed bookings + verified
-// community contributions (a single combined "engagement score"), never
+// community divine contributions (a single combined "engagement score"), never
 // referral/recruitment counts.
 export const DEVOTEE_ENGAGEMENT_TIER_THRESHOLDS = [0, 3, 10, 25, 50] as const;
 
@@ -787,7 +787,7 @@ export const PROVIDER_TIER_UNLOCK_THRESHOLDS: Record<ProviderCategoryId, Provide
 /**
  * Whether a given tier (by index, 0-based) is unlocked for the given category.
  * For "devotee", `qualifiedCount` is the devotee's own engagement score
- * (confirmed bookings + verified community contributions) — never a
+ * (confirmed bookings + verified community divine contributions) — never a
  * referral/recruitment count. For the five provider categories,
  * `qualifiedCount` is verified referred devotees (genuine customers).
  */
@@ -810,7 +810,7 @@ export function tierUnlockRequirementLabel(categoryId: PlanCategoryId, tierIndex
   if (categoryId === "devotee") {
     const threshold = DEVOTEE_ENGAGEMENT_TIER_THRESHOLDS[tierIndex] ?? 0;
     if (threshold === 0) return "Available from the start";
-    return `Unlocks after ${threshold} of your own completed pujas/sevas/contributions, temple reviews, or verified directory contributions`;
+    return `Unlocks after ${threshold} of your own completed pujas/sevas/divine contributions, temple reviews, or verified directory divine contributions`;
   }
   const requirement = PROVIDER_TIER_UNLOCK_THRESHOLDS[categoryId as ProviderCategoryId][tierIndex];
   if (!requirement || requirement.minVerifiedDevotees === 0) return "Available from the start";
@@ -835,11 +835,11 @@ export interface Milestone {
 }
 
 export const MILESTONE_REWARDS: Milestone[] = [
-  { icon: "🌱", title: "First Blessing", requirement: "Your first completed puja, seva, or contribution booked on Sri Dwar", reward: "₹51 bonus credit + Milestone Badge" },
-  { icon: "🪔", title: "Growing in Devotion", requirement: "5 of your own completed bookings, or verified contributions (temple/priest reviews, Setu Yatra directory entries)", reward: "₹151 bonus credit + Bronze Devotee Badge" },
-  { icon: "🔔", title: "Community Builder", requirement: "20 of your own completed bookings/contributions, sustained over at least 3 months", reward: "₹501 bonus credit + Silver Devotee Badge" },
-  { icon: "🏵️", title: "Dharma Ambassador", requirement: "50 of your own completed bookings/contributions, sustained over at least 6 months", reward: "₹1,001 bonus credit + Gold Devotee Badge + Featured Profile" },
-  { icon: "👑", title: "Grand Sevak", requirement: "100 of your own completed bookings/contributions, sustained over at least a year", reward: "₹2,501 bonus credit + Diamond-tier recognition status" },
+  { icon: "🌱", title: "First Blessing", requirement: "Your first completed puja, seva, or divine contribution booked on Sri Dwar", reward: "₹51 bonus credit + Milestone Badge" },
+  { icon: "🪔", title: "Growing in Devotion", requirement: "5 of your own completed bookings, or verified divine contributions (temple/priest reviews, Setu Yatra directory entries)", reward: "₹151 bonus credit + Bronze Devotee Badge" },
+  { icon: "🔔", title: "Community Builder", requirement: "20 of your own completed bookings/divine contributions, sustained over at least 3 months", reward: "₹501 bonus credit + Silver Devotee Badge" },
+  { icon: "🏵️", title: "Dharma Ambassador", requirement: "50 of your own completed bookings/divine contributions, sustained over at least 6 months", reward: "₹1,001 bonus credit + Gold Devotee Badge + Featured Profile" },
+  { icon: "👑", title: "Grand Sevak", requirement: "100 of your own completed bookings/divine contributions, sustained over at least a year", reward: "₹2,501 bonus credit + Diamond-tier recognition status" },
 ];
 
 export interface SeasonalCampaign {
@@ -850,13 +850,13 @@ export interface SeasonalCampaign {
 
 // All campaigns below are merit- or milestone-based: rewards are earned by
 // verified referral cashback performance, verified bookings, or verified
-// directory contributions — never by chance, lucky draw, or random
+// directory divine contributions — never by chance, lucky draw, or random
 // selection — so the program does not function as a lottery or prize
 // scheme under Indian law.
 export const SEASONAL_CAMPAIGNS: SeasonalCampaign[] = [
-  { name: "Setu Yatra Challenge", window: "Ongoing", description: "Add real, verifiable temples, priests, or Dharmic experts to the Sri Dwar directory. Ranking is based solely on the number of valid, confirmed contributions — never on chance." },
+  { name: "Setu Yatra Challenge", window: "Ongoing", description: "Add real, verifiable temples, priests, or Dharmic experts to the Sri Dwar directory. Ranking is based solely on the number of valid, confirmed divine contributions — never on chance." },
   { name: "All India Pilgrimage", window: "Annual, year-end", description: "The devotee with the highest verified referral cashback earned across the full year is recognized with a fully-covered pilgrimage to a temple circuit of their choice, based purely on performance." },
-  { name: "Family Pilgrimage to Four Holy Sites", window: "Annual, milestone-based", description: "Devotees who reach the Grand Sevak milestone (100 of their own completed bookings/contributions, sustained over at least a year) become eligible for a fully-covered family pilgrimage to four holy sites, awarded strictly on milestone completion." },
+  { name: "Family Pilgrimage to Four Holy Sites", window: "Annual, milestone-based", description: "Devotees who reach the Grand Sevak milestone (100 of their own completed bookings/divine contributions, sustained over at least a year) become eligible for a fully-covered family pilgrimage to four holy sites, awarded strictly on milestone completion." },
   { name: "Navratri Referral Surge", window: "Navratri fortnight", description: "Earn 2x cashback on the 1st booking of every devotee you refer during Navratri." },
   { name: "Diwali Top Referrer Recognition", window: "Diwali week", description: "The referrers with the highest verified cashback earned during Diwali week receive a recognition bonus and Featured Referrer badge — ranked purely by performance, not by chance." },
   { name: "Guru Purnima Loyalty Bonus", window: "Guru Purnima", description: "Loyalty bonus credited to every referrer whose network stayed active over the preceding 90 days." },

@@ -52,6 +52,16 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
   const trackRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guards against overlapping scrollTo animations. Without this, clicking
+  // an arrow (or auto-rotate firing) while a previous smooth-scroll is
+  // still in flight lets a second scrollTo start mid-animation — on
+  // Android WebView in particular this reliably left the track scrolled to
+  // a position that didn't match any card, so the "stuck" arrow appeared to
+  // do nothing on the next click. The lock is released a beat after each
+  // scroll should have finished, not on a raw scroll event, since
+  // scroll-snap fires many intermediate scroll events during one glide.
+  const isAnimatingRef = useRef(false);
+  const animationUnlockRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const goTo = useCallback((index: number) => {
     const next = ((index % cards.length) + cards.length) % cards.length;
@@ -93,7 +103,24 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
     const cardRect = card.getBoundingClientRect();
     const trackRect = track.getBoundingClientRect();
     const targetLeft = track.scrollLeft + (cardRect.left - trackRect.left);
-    track.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+
+    // Clamp to the track's actual scrollable range — on the last card the
+    // naive left-edge math above can ask for a value past maxScrollLeft,
+    // which some Android WebView builds simply refuse to honor, leaving
+    // the track visually frozen just short of the final card (the "stuck"
+    // arrow devotees were hitting).
+    const maxScrollLeft = track.scrollWidth - track.clientWidth;
+    const clampedLeft = Math.min(Math.max(0, targetLeft), Math.max(0, maxScrollLeft));
+
+    if (animationUnlockRef.current) clearTimeout(animationUnlockRef.current);
+    isAnimatingRef.current = true;
+    track.scrollTo({ left: clampedLeft, behavior: "smooth" });
+    // Release the lock a little after a smooth scroll of this distance
+    // would realistically finish, rather than trusting a single scroll
+    // event (scroll-snap containers fire many scroll events mid-glide).
+    animationUnlockRef.current = setTimeout(() => {
+      isAnimatingRef.current = false;
+    }, 500);
   }, [activeIndex]);
 
   // Auto-rotate every ~4.5s, paused on hover/touch (so devotees reading a
@@ -122,6 +149,7 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
   useEffect(() => {
     return () => {
       if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      if (animationUnlockRef.current) clearTimeout(animationUnlockRef.current);
     };
   }, []);
 
@@ -133,10 +161,23 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
   };
 
   const handleArrowClick = (direction: "prev" | "next") => {
+    // Ignore taps that land mid-animation instead of queuing them — queuing
+    // is what produced the "stuck" feeling, since a fast double-tap could
+    // start a second scrollTo before the first had settled, leaving the
+    // track between two cards with no further click able to move it.
+    if (isAnimatingRef.current) return;
     setIsPaused(true);
     if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
     resumeTimeoutRef.current = setTimeout(() => setIsPaused(false), 2500);
     goTo(activeIndex + (direction === "next" ? 1 : -1));
+  };
+
+  const handleDotClick = (index: number) => {
+    if (isAnimatingRef.current) return;
+    setIsPaused(true);
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = setTimeout(() => setIsPaused(false), 2500);
+    goTo(index);
   };
 
   return (
@@ -156,7 +197,16 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
       <div className="relative">
         <div
           ref={trackRef}
-          className="overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth"
+          // NOTE: no CSS `scroll-smooth` here on purpose — this track is
+          // also scrolled programmatically via track.scrollTo({behavior:
+          // "smooth"}) above. Having both the CSS smooth-scroll behavior
+          // AND a JS-driven smooth scrollTo active on the same
+          // snap-mandatory container is what caused the "stuck" arrows:
+          // the two smooth-scroll implementations fought each other on
+          // Android WebView and the browser sometimes gave up mid-glide.
+          // The JS scrollTo already requests behavior:"smooth" per call,
+          // so the CSS property is redundant, not just harmless.
+          className="overflow-x-auto no-scrollbar snap-x snap-mandatory"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={handleTouchStart}
@@ -265,6 +315,31 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
         >
           <ChevronRight className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Dot navigation — sits below the row itself, distinct from the
+          prev/next arrows overlaid on the row above. One dot per offering
+          so devotees can jump straight to any card, or track position
+          while auto-rotating, without relying on the side arrows. */}
+      <div
+        role="tablist"
+        aria-label="Offering navigation"
+        className="flex items-center justify-center gap-2 mt-5 sm:mt-6"
+      >
+        {cards.map((card, i) => (
+          <button
+            key={card.id}
+            role="tab"
+            aria-selected={i === activeIndex}
+            aria-label={`Go to ${card.title}`}
+            onClick={() => handleDotClick(i)}
+            className={`h-2 rounded-full transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5EEAD4] ${
+              i === activeIndex
+                ? "w-6 bg-[#5EEAD4]"
+                : "w-2 bg-white/25 hover:bg-white/40"
+            }`}
+          />
+        ))}
       </div>
       </div>
     </section>

@@ -77,7 +77,7 @@ export default function AuthDashboard({
   const [deleteAccountError, setDeleteAccountError] = useState("");
   const [deleteAccountSuccess, setDeleteAccountSuccess] = useState(false);
 
-  // Dharmic ID generation step + temple-redevelopment contribution step
+  // Dharmic ID generation step + temple-redevelopment divine contribution step
   const [authStep, setAuthStep] = useState<"login" | "contribute">("login");
   const [pendingLogin, setPendingLogin] = useState<{ name: string; email: string } | null>(null);
   const [selectedTempleId, setSelectedTempleId] = useState("");
@@ -103,7 +103,7 @@ export default function AuthDashboard({
   const [saveProfileSuccess, setSaveProfileSuccess] = useState(false);
   const [userPhone, setUserPhone] = useState("");
 
-  // Full synced activity ledger (all pujas/sevas/products/contributions/
+  // Full synced activity ledger (all pujas/sevas/products/divine contributions/
   // registrations, with real payment status) + non-monetary form
   // submissions (Contact Us, testimonials, Darshan Certificate requests,
   // registrations) for the logged-in devotee — read directly from Supabase
@@ -113,7 +113,7 @@ export default function AuthDashboard({
   const [formSubmissions, setFormSubmissions] = useState<FormSubmissionRecord[]>([]);
 
   // Post-login "Contribute / Donate" panel — lets an already-logged-in
-  // devotee start a new temple contribution from their Profile page,
+  // devotee start a new temple divine contribution from their Profile page,
   // reusing the same temple/amount selection + Sankalpa + UPI payment flow
   // used during first-time Dharmic ID generation.
   const [showPostLoginContribute, setShowPostLoginContribute] = useState(false);
@@ -262,7 +262,7 @@ export default function AuthDashboard({
     puja: "Puja Booking",
     seva: "Seva / Sponsorship",
     product: "Bazaar Order",
-    contribution: "Temple Contribution",
+    contribution: "Temple Divine Contribution",
     temple_registration: "Temple Registration",
     darshan_certificate: "Darshan Certificate",
     other: "Other Offering",
@@ -492,7 +492,7 @@ export default function AuthDashboard({
       phone:        sankalpaPhone.trim(),
       gotra:        sankalpaGotra || userGotra || undefined,
       intent:       sankalpaIntent || undefined,
-      type:         `Temple Redevelopment Contribution — ${templeName}`,
+      type:         `Temple Redevelopment Divine Contribution — ${templeName}`,
       details:      `Contribution: ₹${contributionAmount} | Payment Status: Pending — Awaiting Confirmation | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
       fee:          contributionAmount,
       temple:       templeName,
@@ -519,19 +519,19 @@ export default function AuthDashboard({
       phone:        sankalpaPhone.trim(),
       gotra:        sankalpaGotra || userGotra || undefined,
       intent:       sankalpaIntent || undefined,
-      type:         `Temple Redevelopment Contribution — ${templeName}`,
+      type:         `Temple Redevelopment Divine Contribution — ${templeName}`,
       details:      `Contribution: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
       fee:          details.amount,
       temple:       templeName,
       whatsapp:     sankalpaPhone.trim(),
       city:         customMandapAddress || "Online Devotee",
     });
-    // Record into the Supabase activity ledger so this contribution shows
+    // Record into the Supabase activity ledger so this divine contribution shows
     // up on the Profile page — this was previously the biggest silent gap
-    // (contributions never appeared anywhere once the Google Form fired).
+    // (divine contributions never appeared anywhere once the Google Form fired).
     recordActivity({
       activityType: "contribution",
-      itemName: `Temple Redevelopment Contribution — ${templeName}`,
+      itemName: `Temple Redevelopment Divine Contribution — ${templeName}`,
       amount: details.amount,
       refId: contributionRefId,
       paymentMethod: details.method,
@@ -749,7 +749,7 @@ export default function AuthDashboard({
                   </div>
                   <h4 className="font-serif text-lg font-bold text-[#5EEAD4]">Your Dharmic ID is Ready!</h4>
                   <p className="text-xs text-white/60">
-                    Would you like to contribute towards temple redevelopment before entering your dashboard? Your contribution helps preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
+                    Would you like to contribute towards temple redevelopment before entering your dashboard? Your divine contribution helps preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
                   </p>
                 </div>
 
@@ -800,7 +800,7 @@ export default function AuthDashboard({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">Contribution Amount (₹)</label>
+                  <label className="block text-xs font-bold text-white/80 mb-1">Divine Contribution Amount (₹)</label>
                   <div className="grid grid-cols-3 gap-2 mb-2">
                     {[51, 101, 251].map((amt) => (
                       <button
@@ -831,7 +831,7 @@ export default function AuthDashboard({
 
                 <div className="flex items-start space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared with you on WhatsApp & Email within 3 working days of your contribution.</span>
+                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared with you on WhatsApp & Email within 3 working days of your divine contribution.</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
@@ -988,7 +988,7 @@ export default function AuthDashboard({
               </div>
 
               {/* SYNCED ACCOUNT ACTIVITY — every puja, seva, bazaar order,
-                  contribution and registration on this Dharmic ID, pulled
+                  divine contribution and registration on this Dharmic ID, pulled
                   straight from Supabase, so it's the same on every device
                   and shows the real payment status (not just "this
                   browser's session"). Purely additive to the ledger above. */}
@@ -1025,7 +1025,7 @@ export default function AuthDashboard({
                   </div>
                 ) : (
                   <p className="text-xs text-white/40 py-4 italic text-left">
-                    No synced activity yet — bookings, sevas, orders and contributions made on this Dharmic ID will appear here.
+                    No synced activity yet — bookings, sevas, orders and divine contributions made on this Dharmic ID will appear here.
                   </p>
                 )}
               </div>
@@ -1118,7 +1118,7 @@ export default function AuthDashboard({
                 {!showPostLoginContribute ? (
                   <>
                     <p className="text-[10px] text-white/70 leading-relaxed font-sans">
-                      One Contribution. Countless Blessings. Be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas Through Sri Dwar. Together, let's build trust, serve devotees, and strengthen our sacred heritage. Your valuable contribution empowers our culture, community service, and our mission to make every act of devotion meaningful and transparent.
+                      One Divine Contribution. Countless Blessings. Be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas Through Sri Dwar. Together, let's build trust, serve devotees, and strengthen our sacred heritage. Your valuable divine contribution empowers our culture, community service, and our mission to make every act of devotion meaningful and transparent.
                     </p>
                     <button
                       id="profile-contribute-open-btn"
@@ -1227,7 +1227,7 @@ export default function AuthDashboard({
                   </p>
                   <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
                     <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                    <span>Every booking, seva, order, and contribution you make directly supports your chosen temple or local puja mandal.</span>
+                    <span>Every booking, seva, order, and divine contribution you make directly supports your chosen temple or local puja mandal.</span>
                   </div>
                   <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
                     <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
@@ -1434,7 +1434,7 @@ export default function AuthDashboard({
                 <div>
                   <h3 className="font-serif text-sm font-bold text-white">Puja Sankalpa Portal</h3>
                   <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5">
-                    Temple Redevelopment Contribution
+                    Temple Redevelopment Divine Contribution
                   </p>
                 </div>
                 <button
@@ -1448,12 +1448,12 @@ export default function AuthDashboard({
 
             <form onSubmit={handleSankalpaSubmit} className="p-5 space-y-4">
 
-              {/* Contribution summary */}
+              {/* Divine Contribution summary */}
               <div className="bg-[#021816] rounded-2xl p-3 border border-white/10 flex items-center justify-between">
                 <div className="text-xs text-white/60 font-mono truncate max-w-[180px]">
                   {selectedTempleId
                     ? TEMPLES_LIST.find(t => t.id === selectedTempleId)?.name
-                    : customMandapName || "Temple Contribution"}
+                    : customMandapName || "Temple Divine Contribution"}
                 </div>
                 <span className="text-sm font-extrabold text-[#FFB347] font-serif shrink-0 ml-2">
                   ₹{contributionAmount}
@@ -1461,7 +1461,7 @@ export default function AuthDashboard({
               </div>
 
               <p className="text-[11px] text-white/60 leading-relaxed">
-                🙏 Please confirm your details so our pandits can register this contribution Sankalpa in your name and Gotra.
+                🙏 Please confirm your details so our pandits can register this divine contribution Sankalpa in your name and Gotra.
               </p>
 
               {/* Devotee name — pre-filled from login, read-only */}
@@ -1539,7 +1539,7 @@ export default function AuthDashboard({
         onClose={() => setIsContributionPaymentOpen(false)}
         onPaymentConfirmed={finalizeContribution}
         amount={contributionAmount}
-        bookingName={`Temple Contribution — ${
+        bookingName={`Temple Divine Contribution — ${
           selectedTempleId
             ? TEMPLES_LIST.find(t => t.id === selectedTempleId)?.name || "Temple"
             : customMandapName || "Temple Redevelopment"

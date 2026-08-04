@@ -51,14 +51,21 @@ export default function Navbar({
   const t = TRANSLATIONS[currentLanguage];
 
   useEffect(() => {
+    // Throttled to one check per animation frame instead of running on
+    // every raw scroll event — on Android WebView, unthrottled scroll
+    // listeners on a fixed, backdrop-blurred header are a common source of
+    // visible scroll jank since the handler (and the resulting re-render
+    // when isScrolled flips) can fire dozens of times per second.
+    let ticking = false;
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 20);
+        ticking = false;
+      });
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

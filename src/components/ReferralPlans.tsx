@@ -180,7 +180,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
   // blocks page render.
   //
   // For the "devotee" category, the unlock count is the devotee's OWN
-  // engagement score — their own confirmed pujas/sevas/contributions —
+  // engagement score — their own confirmed pujas/sevas/divine contributions —
   // fetched via lib/activities.fetchActivities. It is never a referral or
   // recruitment count. For the five provider categories, the unlock count
   // is verified referred devotees (genuine customers the provider brought
@@ -323,7 +323,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
           </p>
           <p className="text-[10px] text-white/40 mt-1 italic">
             {activeCategory === "devotee"
-              ? "New devotees start on the first Circle. Higher Circles unlock automatically as your own genuine bookings and verified community contributions grow — never by recruiting other people or paying for a higher tier."
+              ? "New devotees start on the first Circle. Higher Circles unlock automatically as your own genuine bookings and verified community divine contributions grow — never by recruiting other people or paying for a higher tier."
               : "New providers start on the first tier of each ladder. Higher tiers unlock automatically as verified referred devotees (genuine customers) grow — no separate application needed."}
           </p>
         </div>

@@ -63,7 +63,7 @@ export const SEVA_TIERS = [
   { amount: 200, label: "Enhanced Offering", note: "Extra Sankalp, Dhoop, Diya, or more beneficiaries." },
   { amount: 500, label: "Special Offering", note: "Bhog, Diya, Dhoop, camphor, feeding, or expanded seva." },
   { amount: 1100, label: "Premium Devotional Seva", note: "For birthdays, anniversaries, Pitru Memory, gratitude, family Sankalp, or special prayers." },
-  { amount: 2100, label: "Maha Seva / Major Offering", note: "For larger seva, festival offerings, feeding more people/cows, or special temple contribution." },
+  { amount: 2100, label: "Maha Seva / Major Offering", note: "For larger seva, festival offerings, feeding more people/cows, or special temple divine contribution." },
 ];
 
 export const SEVA_OFFERINGS: SevaOffering[] = [
@@ -174,15 +174,15 @@ export const SEVA_OFFERINGS: SevaOffering[] = [
     title: "Temple Maintenance Seva",
     category: "Temple Maintenance",
     description: "Support the daily upkeep of temple premises — cleanliness, lamp oil, and general maintenance so seva can continue uninterrupted.",
-    includes: ["Cleaning materials / lamp oil / upkeep support as per option chosen", "Contribution routed to the supported temple's maintenance needs", "Acknowledgement shared after the contribution is recorded"],
-    devoteeReceives: ["Digital contribution certificate in your name", "Acknowledgement shared after processing", "Sankalp recorded with your Gotra"],
+    includes: ["Cleaning materials / lamp oil / upkeep support as per option chosen", "Divine Contribution routed to the supported temple's maintenance needs", "Acknowledgement shared after the divine contribution is recorded"],
+    devoteeReceives: ["Digital divine contribution certificate in your name", "Acknowledgement shared after processing", "Sankalp recorded with your Gotra"],
     dropdownLabel: "Support type",
     priceOptions: [
       { value: 100, label: "Cleaning support" },
       { value: 200, label: "Daily temple support" },
       { value: 500, label: "Lamp / oil / cleanliness support" },
       { value: 1100, label: "One-day temple support" },
-      { value: 2100, label: "Special seva contribution" },
+      { value: 2100, label: "Special seva divine contribution" },
       { value: "custom", label: "Custom Amount" },
     ],
     customAmountEnabled: true,

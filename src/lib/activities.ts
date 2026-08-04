@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Unified per-devotee activity ledger (pujas, sevas, bazaar orders, temple
- * contributions) + extended profile (phone, family members), backed by
+ * divine contributions) + extended profile (phone, family members), backed by
  * Supabase. This is additive: it does NOT touch Google Form sync anywhere —
  * every syncToGoogleForm(...) call in the codebase stays exactly as-is.
  *

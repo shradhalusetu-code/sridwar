@@ -52,7 +52,7 @@ export const DEVOTEE_REVIEWS: DevoteeReview[] = [
   { name: "Ananya", city: "Paris", message: "Jai Mata Di! Everything was performed according to Vedic traditions." },
   { name: "Saanvi", city: "Berlin", message: "The temple priests prayed for our family's happiness and good health." },
   { name: "Lakshmi", city: "Madrid", message: "We appreciated the sincerity and care shown throughout the entire service." },
-  { name: "Radha", city: "Rome", message: "Sponsored Gurukul education and loved seeing the impact of our contribution." },
+  { name: "Radha", city: "Rome", message: "Sponsored Gurukul education and loved seeing the impact of our divine contribution." },
   { name: "Sita", city: "Amsterdam", message: "Har Har Mahadev! Every detail of the Rudrabhishek was beautifully organized." },
   { name: "Parvati", city: "Vienna", message: "My parents were emotional after watching the live puja together." },
   { name: "Meera", city: "Prague", message: "A wonderful way for NRIs to stay connected with India's sacred temples." },

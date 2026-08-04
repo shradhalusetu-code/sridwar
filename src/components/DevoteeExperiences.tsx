@@ -350,7 +350,7 @@ export default function DevoteeExperiences() {
   };
 
   // Modal closed without paying — sends the ONE Final row for this
-  // testimony, sharing the same Ref ID, with the contribution correctly
+  // testimony, sharing the same Ref ID, with the divine contribution correctly
   // recorded as "Skipped".
   const handleSkipContribution = async () => {
     setShowUPI(false);
@@ -374,7 +374,7 @@ export default function DevoteeExperiences() {
   };
 
   // Payment confirmed — sends the ONE Final row for this testimony, sharing
-  // the same Ref ID, with the contribution correctly recorded as the real
+  // the same Ref ID, with the divine contribution correctly recorded as the real
   // amount + method paid.
   const handleContributionConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowUPI(false);
@@ -397,7 +397,7 @@ export default function DevoteeExperiences() {
     });
     recordActivity({
       activityType: "contribution",
-      itemName: `Testimonial Thank-You Contribution — ${newService}`,
+      itemName: `Testimonial Thank-You Divine Contribution — ${newService}`,
       amount: details.amount,
       refId: testimonyRefId,
       paymentMethod: details.method,
@@ -423,9 +423,9 @@ export default function DevoteeExperiences() {
     setTestimonyRefId(newRef);
 
     // ✅ Sync to Google Forms first — ONE row, with the optional thank-you
-    // contribution correctly recorded as "Pending — Awaiting Decision" (not
+    // divine contribution correctly recorded as "Pending — Awaiting Decision" (not
     // silently omitted). If the devotee closes the UPI modal without
-    // contributing, OR confirms a contribution, handleContributionConfirmed
+    // contributing, OR confirms a divine contribution, handleContributionConfirmed
     // / handleSkipContribution below send exactly ONE more row — same Ref
     // ID — with the real outcome.
     try {
@@ -440,7 +440,7 @@ export default function DevoteeExperiences() {
       console.error("Testimony sync error:", err);
     }
 
-    // ✅ Show optional UPI contribution after testimony submission
+    // ✅ Show optional UPI divine contribution after testimony submission
     setShowUPI(true);
 
     const newReview: Testimonial = {
@@ -804,13 +804,13 @@ export default function DevoteeExperiences() {
             </div>
           </div>
       )}
-      {/* Optional UPI contribution after testimony */}
+      {/* Optional UPI divine contribution after testimony */}
       <UPIPaymentModal
         isOpen={showUPI}
         onClose={handleSkipContribution}
         onPaymentConfirmed={handleContributionConfirmed}
         amount={null}
-        bookingName="Optional Contribution — Temple Support"
+        bookingName="Optional Divine Contribution — Temple Support"
         devoteeName={newName}
         refId={testimonyRefId}
         allowCustomAmount={true}

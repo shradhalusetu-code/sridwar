@@ -14,7 +14,7 @@ interface UPIPaymentModalProps {
    * Called once payment is confirmed — either via "I Have Paid" (UPI/QR) or
    * "Pay via WhatsApp". Receives the actual confirmed amount (custom or
    * fixed) and which method was used, so the caller's final Google Sync row
-   * can record an accurate donation/payment status — never "Skipped" once a
+   * can record an accurate divine contribution/payment status — never "Skipped" once a
    * real payment action has happened.
    */
   onPaymentConfirmed: (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => void;
@@ -63,7 +63,7 @@ export default function UPIPaymentModal({
   // showing no confirmation at all.
   const handleWhatsAppPay = () => {
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
-      alert("Minimum contribution is ₹" + minAmount);
+      alert("Minimum divine contribution is ₹" + minAmount);
       return;
     }
     const message = encodeURIComponent(
@@ -104,7 +104,7 @@ export default function UPIPaymentModal({
   const handleConfirmPayment = () => {
     if (confirmed) return; // guard against double-tap before re-render
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
-      alert("Minimum contribution is ₹" + minAmount);
+      alert("Minimum divine contribution is ₹" + minAmount);
       return;
     }
     setConfirmed(true);
@@ -123,7 +123,7 @@ export default function UPIPaymentModal({
       ─────────────────────────────────────────────────────────────────────
       Styling note: uses the same translucent "glass-panel" surfaces and
       teal/gold palette as the rest of Sri Dwar (e.g. the Temple/Committee
-      donation step) instead of solid near-black blocks, so this payment
+      divine contribution step) instead of solid near-black blocks, so this payment
       screen reads as part of the same smooth visual language site-wide.
     */
     <div
@@ -168,7 +168,7 @@ export default function UPIPaymentModal({
               <span className="block text-[10px] font-mono text-white/40 uppercase tracking-widest">{bookingName}</span>
               {allowCustomAmount ? (
                 <div className="space-y-2">
-                  <p className="text-[10px] text-white/50">Enter your contribution amount</p>
+                  <p className="text-[10px] text-white/50">Enter your divine contribution amount</p>
                   <div className="flex items-center justify-center space-x-2">
                     <span className="text-xl font-black text-[#FFB347]">₹</span>
                     <input

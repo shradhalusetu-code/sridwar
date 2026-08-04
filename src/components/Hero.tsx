@@ -80,7 +80,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   }, []);
 
   // ── Submit Certificate Request — fires ONE row immediately. If the devotee
-  // picked a contribution tier, the row is recorded as "Pending — Awaiting
+  // picked a divine contribution tier, the row is recorded as "Pending — Awaiting
   // Decision" (not the tier amount) until payment is actually confirmed —
   // see handleDarshanPaymentConfirmed below. If no tier was picked ("Skip
   // for Now"), that's already a final decision, so it's recorded as
@@ -133,7 +133,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         name, email, phone, refId: newRefId,
         payload: { temple, age, deity, city, feedback, contributionStatus },
       });
-      // ✅ Show UPI if user selected a contribution tier
+      // ✅ Show UPI if user selected a divine contribution tier
       if (membershipTier) {
         setUpiAmount(membershipTier);
         setShowUPI(true);
@@ -142,7 +142,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   };
 
   // Payment confirmed — sends the ONE Final row for this certificate
-  // request, with the contribution correctly recorded as the real amount
+  // request, with the divine contribution correctly recorded as the real amount
   // and method paid, sharing the same Ref ID as the initial submission.
   const handleDarshanPaymentConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowUPI(false);
@@ -166,7 +166,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     }
     recordActivity({
       activityType: "darshan_certificate",
-      itemName: `Darshan Certificate Contribution — ${temple}`,
+      itemName: `Darshan Certificate Divine Contribution — ${temple}`,
       amount: details.amount,
       refId,
       paymentMethod: details.method,
@@ -496,10 +496,10 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   />
                 </div>
 
-                {/* Optional Darshan Membership Contribution Selection */}
+                {/* Optional Darshan Membership Divine Contribution Selection */}
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                   <span className="block text-xs font-bold text-white/95 mb-2 text-left animate-pulse">
-                    🙏 Optional Darshan Membership Contribution
+                    🙏 Optional Darshan Membership Divine Contribution
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button
@@ -631,13 +631,13 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         </div>
       )}
 
-    {/* UPI Payment Modal for Darshan Certificate contribution */}
+    {/* UPI Payment Modal for Darshan Certificate divine contribution */}
     <UPIPaymentModal
       isOpen={showUPI}
       onClose={() => setShowUPI(false)}
       onPaymentConfirmed={handleDarshanPaymentConfirmed}
       amount={upiAmount}
-      bookingName="Darshan Certificate Contribution"
+      bookingName="Darshan Certificate Divine Contribution"
       devoteeName={name}
       refId={refId}
     />

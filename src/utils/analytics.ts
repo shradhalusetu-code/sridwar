@@ -178,7 +178,7 @@ export function gaLegalDocOpen(docKey: string): void {
   gaEvent("legal_doc_open", { doc_key: docKey });
 }
 
-/** Contribution via contact page */
+/** Divine Contribution via contact page */
 export function gaDonationInitiate(amount: number): void {
   gaEvent("donation_initiate", { value: amount, currency: "INR" });
 }

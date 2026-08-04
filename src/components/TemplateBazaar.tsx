@@ -20,6 +20,7 @@ import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
 import BazaarOfferingCard from "./BazaarOfferingCard";
 import OptimizedImage from "./OptimizedImage";
+import { sectionTopPadding } from "../utils/androidSpacing";
 import {
   BAZAAR_PRODUCTS, BAZAAR_CATEGORIES, BAZAAR_DELIVERY_NOTE, BAZAAR_TRUST_COPY,
   BAZAAR_DISCLAIMER, BazaarProduct,
@@ -90,7 +91,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     description: "Sponsor a complete Vedic student kit — textbooks, Sanskrit grammar guides, and sacred thread — shipped to registered Gurukuls.",
     price: 1319,
     mrp: 1649,
-    category: "Contribution Kits",
+    category: "Divine Contribution Kits",
     imageUrl: import.meta.env.BASE_URL + "images/Student Kit.jpg",
     badge: "Impact Gift",
     includes: ["Sanskrit Primer", "Devanagari Workbook", "Yajnopavita (Sacred Thread)", "Photo Report from Gurukul"],
@@ -161,9 +162,15 @@ interface TemplateBazaarProps {
    *  view on mount. Matches a BAZAAR_PRODUCTS id (e.g. "bazaar-new-bhog").
    *  Any id that doesn't match is silently ignored. */
   initialHighlightId?: string | null;
+  /** Since this page can be the first thing rendered under <main> on the
+   *  Android app (which drops its own top padding so each page can size
+   *  its own clearance), this section must supply enough top padding to
+   *  clear the fixed Navbar + status bar itself — otherwise the "Temple
+   *  Bazaar" heading renders partly underneath the fixed header. */
+  isAndroidApp?: boolean;
 }
 
-export default function TemplateBazaar({ onNavigate, initialHighlightId = null }: TemplateBazaarProps) {
+export default function TemplateBazaar({ onNavigate, initialHighlightId = null, isAndroidApp = false }: TemplateBazaarProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
@@ -406,7 +413,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null }
     <section
       id="temple-bazaar-section"
       className="py-16 bg-[#021816] text-white relative"
-      style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
+      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 

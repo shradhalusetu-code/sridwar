@@ -232,7 +232,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         ) : (
           <p className="text-[10px] text-white/50">
             No active plan yet — you're on standard <span className="font-black text-[#FFB347]">3%</span> / <span className="font-black text-[#FFB347]">2%</span> / <span className="font-black text-[#FFB347]">1%</span> cashback rates.
-            Visit the homepage "Refer, Earn & Grow with Dharma" section to join a free Devotee Circle (unlocks automatically as your own bookings and community contributions grow), or set up a paid service-listing plan if you're a Pujari, Mandal, Yoga Guru, Dharmic Expert, or Seva Provider.
+            Visit the homepage "Refer, Earn & Grow with Dharma" section to join a free Devotee Circle (unlocks automatically as your own bookings and community divine contributions grow), or set up a paid service-listing plan if you're a Pujari, Mandal, Yoga Guru, Dharmic Expert, or Seva Provider.
           </p>
         )}
       </div>

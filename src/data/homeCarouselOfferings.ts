@@ -69,7 +69,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     description: "A focused Sankalp where your personal wish is respectfully expressed through mantra and Dhoop offering.",
     image: img("deity_lingaraj_1781872903761.jpg"),
     targetPage: "puja",
-    badge: "Popular Right Now",
+    badge: "Trending",
     imagePosition: "center 20%",
   },
   {
@@ -88,7 +88,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     description: "Sponsor sacred, temple-blessed meals for devotees and the underprivileged near temple premises.",
     image: img("Annadanam Seva.jpg"),
     targetPage: "seva",
-    badge: "Popular Right Now",
+    badge: "Most Preferred",
   },
   {
     id: "seva-deep-daan",
@@ -96,7 +96,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     description: "Sponsor sacred lamps lit in your name at the temple sanctum, dispelling darkness and inviting blessings.",
     image: img("Diya Lighting.jpg"),
     targetPage: "seva",
-    badge: "Devotee Favorite",
+    badge: "Suggested",
   },
   {
     id: "seva-temple-maintenance",
@@ -114,7 +114,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     description: "Sponsor a sacred Bhog offered to the deity on your behalf, shared with devotees as Prasad.",
     image: img("Mahaprasad Seva.jpg"),
     targetPage: "products",
-    badge: "Popular Right Now",
+    badge: "Community Choice",
   },
   {
     id: "bazaar-puja-kits",
@@ -130,6 +130,6 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     description: "Temple-blessed Prasad and sacred keepsakes, sanctified during rituals and shipped with care.",
     image: img("Mahaprasad Kit.jpg"),
     targetPage: "products",
-    badge: "Popular Right Now",
+    badge: "Highly Rated",
   },
 ];

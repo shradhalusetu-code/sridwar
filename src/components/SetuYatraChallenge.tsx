@@ -86,7 +86,7 @@ function GuideContent() {
         <li className="text-[13px] text-white/65 leading-relaxed pl-1">
           In the <strong className="text-white/80">Additional Notes</strong> field, write:{" "}
           <code className="text-[11px] bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-[#FFB347]">Setu Yatra Challenge — Suggested by [Your Full Name], [Your WhatsApp Number]</code>{" "}
-          — this is how your contribution gets credited to you.
+          — this is how your divine contribution gets credited to you.
         </li>
         <li className="text-[13px] text-white/65 leading-relaxed pl-1">Submit. You'll see a confirmation on screen once it goes through.</li>
       </OL>
@@ -130,7 +130,7 @@ function GuideContent() {
       <P>Entries that are incomplete, fake, duplicate, or cannot be confirmed by our team will <strong className="text-white/80">not</strong> count toward the contributor ranking, even if the form submission itself goes through successfully.</P>
 
       <H3>Acknowledgement Message</H3>
-      <P>Our team manually verifies each submission and sends an acknowledgement via WhatsApp or Email, typically within 24–48 hours, recording your contribution toward your contributor ranking with a Reference ID — and reminding you that top contributors win a fully-covered Yatra, with the Grand Prize being an All India Yatra for our top contributor.</P>
+      <P>Our team manually verifies each submission and sends an acknowledgement via WhatsApp or Email, typically within 24–48 hours, recording your divine contribution toward your contributor ranking with a Reference ID — and reminding you that top contributors win a fully-covered Yatra, with the Grand Prize being an All India Yatra for our top contributor.</P>
 
       <H3>How Winners Are Chosen</H3>
       <UL>
@@ -180,7 +180,7 @@ function TermsContent() {
       <UL>
         <LI>Open to individuals aged 18 years and above, residing in India or abroad.</LI>
         <LI>Employees, directors, and immediate family members of Shradhalu Private Limited are not eligible to win prizes, but may still contribute entries.</LI>
-        <LI>Participation is free. No purchase or payment is necessary to participate in or win this Offer. Any contribution made through Sri Dwar's platform during registration is entirely voluntary and has no bearing on eligibility or ranking.</LI>
+        <LI>Participation is free. No purchase or payment is necessary to participate in or win this Offer. Any divine contribution made through Sri Dwar's platform during registration is entirely voluntary and has no bearing on eligibility or ranking.</LI>
       </UL>
 
       <H3>3. Offer Period</H3>
@@ -200,7 +200,7 @@ function TermsContent() {
 
       <H3>6. Selection of Winners</H3>
       <UL>
-        <LI>Winners are determined based on the total number of valid, confirmed entries submitted by each participant during the Offer Period — a skill- and contribution-based ranking, not a lottery, raffle, or game of chance.</LI>
+        <LI>Winners are determined based on the total number of valid, confirmed entries submitted by each participant during the Offer Period — a skill- and divine contribution-based ranking, not a lottery, raffle, or game of chance.</LI>
         <LI>A minimum number of valid entries is required to be considered a "top contributor" — see the published offer terms on sridwar.com for the current minimum.</LI>
         <LI>In the event of a tie, Sri Dwar may consider the quality, completeness, and verification date of entries to determine final ranking, at its sole discretion.</LI>
         <LI>Sri Dwar's decision on the final ranking and selection of winners is final and binding.</LI>
@@ -249,7 +249,7 @@ function TermsContent() {
       </UL>
 
       <H3>10. Not a Lottery; No Cash Alternative</H3>
-      <P>This Offer is a skill- and merit-based contribution challenge. No participant is required to make any payment to participate or to be eligible for a prize. Winners are determined solely on the basis of valid, confirmed contributions, not by chance, draw, or random selection. No cash alternative is available in place of any prize.</P>
+      <P>This Offer is a skill- and merit-based divine contribution challenge. No participant is required to make any payment to participate or to be eligible for a prize. Winners are determined solely on the basis of valid, confirmed divine contributions, not by chance, draw, or random selection. No cash alternative is available in place of any prize.</P>
 
       <H3>11. Organizer's Rights</H3>
       <P>Sri Dwar reserves the right, at its sole discretion and without prior notice, to modify, suspend, extend, or terminate the Offer at any time; change the prize structure, number of winners, or prize inclusions due to circumstances such as travel partner availability, force majeure, or operational reasons; and verify, audit, or request supporting information for any submitted entry.</P>

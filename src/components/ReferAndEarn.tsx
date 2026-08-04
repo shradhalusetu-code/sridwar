@@ -22,7 +22,7 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
   const howItWorks = [
     { icon: Users, title: "Get Your Dharmic ID", desc: "Every devotee, pujari, puja mandal, yoga guru, dharmic expert, or seva provider already has (or can create) a unique Dharmic ID and referral link." },
     { icon: Share2, title: "Share Your Link", desc: "Invite family, friends, devotees, followers, or fellow experts via WhatsApp, social media, or in person." },
-    { icon: Sparkles, title: "They Book a Service", desc: "Any puja, seva, contribution, product, or consultation booked by them — online, offline, web, or app — stays linked to your Dharmic ID." },
+    { icon: Sparkles, title: "They Book a Service", desc: "Any puja, seva, divine contribution, product, or consultation booked by them — online, offline, web, or app — stays linked to your Dharmic ID." },
     { icon: Wallet, title: "Your Cashback", desc: "Earn cashback on their 1st booking, more on the 2nd, and ongoing cashback up to their 8th successful booking — see the full tier rates on the Plans page." },
   ];
 

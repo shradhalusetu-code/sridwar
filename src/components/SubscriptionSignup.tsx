@@ -40,12 +40,12 @@ import { gaEvent } from "../utils/analytics";
 const OWNER_WHATSAPP_NUMBER = "919777645062";
 
 const SERVICE_OPTIONS: Record<PlanCategoryId, string[]> = {
-  devotee: ["Puja Bookings", "Seva & Contributions", "Live Darshan", "Prasad Delivery", "Astrology Consultations", "Community Events"],
+  devotee: ["Puja Bookings", "Seva & Divine Contributions", "Live Darshan", "Prasad Delivery", "Astrology Consultations", "Community Events"],
   pujari: ["Home Visit Pujas", "Temple Rituals", "Weddings & Muhurat", "Yagna & Havan", "Griha Pravesh", "Satyanarayan Katha"],
   mandal: ["Festival Events", "Pandal Organizing", "Processions", "Sponsorship Drives", "Volunteer Coordination", "Prasad Distribution"],
   yogaguru: ["Group Classes", "Personalized Programs", "Retreats", "Teacher Training", "Meditation Sessions", "Corporate Wellness"],
   expert: ["Astrology Readings", "Vastu Consultation", "Numerology", "Spiritual Counseling", "Palmistry", "Kundali Matching"],
-  seva: ["Annadanam Drives", "Prasad Distribution", "Disaster Relief", "Volunteer Coordination", "Contribution Collection", "Community Welfare"],
+  seva: ["Annadanam Drives", "Prasad Distribution", "Disaster Relief", "Volunteer Coordination", "Divine Contribution Collection", "Community Welfare"],
 };
 
 const SERVICES_LABEL: Record<PlanCategoryId, string> = {

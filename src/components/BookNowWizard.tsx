@@ -83,7 +83,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   // "Pending — Awaiting Confirmation". This guarantees the lead is captured
   // even if the devotee closes the tab before paying. The Final row (same
   // Ref ID) is sent exactly once more, from handlePaymentConfirmed below,
-  // with only the payment/donation details corrected — no duplicate rows.
+  // with only the payment/divine contribution details corrected — no duplicate rows.
   const handleNextToPayment = async (e: FormEvent) => {
     e.preventDefault();
     if (isSubmittingRef.current) return;

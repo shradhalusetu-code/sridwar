@@ -31,7 +31,7 @@ export default function ContactUs() {
   const [refId, setRefId] = useState("");
 
   // ── "Submit Message" — fires ONE Pending row to Google Sync immediately,
-  // with the donation outcome correctly recorded as "Pending" (not silently
+  // with the divine contribution outcome correctly recorded as "Pending" (not silently
   // dropped/blank). The Skip / Donate buttons below send exactly ONE more
   // Final row sharing the same Ref ID, with the real outcome — see
   // handleSkipDonation / handleDonationConfirmed. ──
@@ -76,13 +76,13 @@ export default function ContactUs() {
     } finally {
       setTimeout(() => {
         setIsSyncing(false);
-        setShowDonation(true); // ✅ Show donation option after form submission
+        setShowDonation(true); // ✅ Show divine contribution option after form submission
       }, 1000);
     }
   };
 
-  // Skip Donation — sends the ONE Final row for this message, with the
-  // contribution correctly recorded as "Skipped" instead of leaving the
+  // Skip Divine Contribution — sends the ONE Final row for this message, with the
+  // divine contribution correctly recorded as "Skipped" instead of leaving the
   // earlier "Pending" status to stand in for it.
   const handleSkipDonation = async () => {
     try {
@@ -104,7 +104,7 @@ export default function ContactUs() {
   };
 
   // Payment confirmed — sends the ONE Final row for this message, with the
-  // contribution correctly recorded as the real amount and method paid.
+  // divine contribution correctly recorded as the real amount and method paid.
   const handleDonationPaid = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     try {
       await syncToGoogleForm("customer_contact", {
@@ -121,7 +121,7 @@ export default function ContactUs() {
       });
       recordActivity({
         activityType: "contribution",
-        itemName: `Contact Us Contribution — ${queryType}`,
+        itemName: `Contact Us Divine Contribution — ${queryType}`,
         amount: details.amount,
         refId,
         paymentMethod: details.method,
@@ -225,7 +225,7 @@ export default function ContactUs() {
                 onClose={() => setShowUPI(false)}
                 onPaymentConfirmed={handleDonationPaid}
                 amount={donationAmount}
-                bookingName="Sri Dwar Temple Contribution"
+                bookingName="Sri Dwar Temple Divine Contribution"
                 devoteeName={name}
                 refId={refId}
                 allowCustomAmount={true}
@@ -240,7 +240,7 @@ export default function ContactUs() {
                   <span className="text-2xl">🙏</span>
                 </div>
                 <h4 className="font-serif text-lg font-bold text-white">Message Received!</h4>
-                <p className="text-xs text-white/60">Would you like to make a voluntary contribution to help preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services?</p>
+                <p className="text-xs text-white/60">Would you like to make a voluntary divine contribution to help preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services?</p>
 
                 <div className="grid grid-cols-3 gap-2">
                   {[51, 101, 251].map((amt) => (
@@ -274,9 +274,9 @@ export default function ContactUs() {
                   <button
                     onClick={handleSkipDonation}
                     className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs border border-white/10 transition-all"
-                  >Skip Contribution</button>
+                  >Skip Divine Contribution</button>
                   <button
-                    onClick={() => { if (donationAmount && donationAmount >= 5) { gaDonationInitiate(donationAmount); setShowUPI(true); } else alert("Minimum contribution is ₹5"); }}
+                    onClick={() => { if (donationAmount && donationAmount >= 5) { gaDonationInitiate(donationAmount); setShowUPI(true); } else alert("Minimum divine contribution is ₹5"); }}
                     disabled={!donationAmount}
                     className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-3 rounded-xl text-xs uppercase tracking-wide transition-all"
                   >Contribute ₹{donationAmount || 0} 🙏</button>

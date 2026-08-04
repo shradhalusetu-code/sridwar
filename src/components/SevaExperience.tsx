@@ -14,6 +14,7 @@ import { SEVA_OFFERINGS } from "../data/sevaOfferings";
 import SevaOfferingCard from "./SevaOfferingCard";
 import OptimizedImage from "./OptimizedImage";
 import SevaLiveDashboard from "./SevaLiveDashboard";
+import { sectionTopPadding } from "../utils/androidSpacing";
 
 // ─── Temporary feature flag ─────────────────────────────────────────────────
 // The Live Devotional Dashboard (its "Upcoming Seva Slots" and "Recent Seva
@@ -298,6 +299,14 @@ interface SevaExperienceProps {
    *  to the Seva Hub & Live Devotional Dashboard section itself. Any other
    *  unmatched id is silently ignored. */
   initialHighlightId?: string | null;
+  /** Since this page can be the very first thing rendered under <main>
+   *  (which drops its own top padding on the Android app so every page can
+   *  size its own clearance), this section must supply enough top padding
+   *  itself to clear the fixed Navbar + Android status bar — otherwise the
+   *  "Seva Hub" heading renders partly underneath the fixed header. Matches
+   *  the isAndroidApp prop already passed to Hero / TrustBar / HomeCarousel
+   *  from App.tsx. */
+  isAndroidApp?: boolean;
 }
 
 // The Prayer Wall starts empty — no example devotees or sample messages are
@@ -311,7 +320,7 @@ const INITIAL_CHAT_MESSAGES: { name: string; msg: string; location: string }[] =
 // like "Example: a devotee sponsored Gau Seva") has been removed — it looked
 // like fake/misleading live activity to devotees.
 
-export default function SevaExperience({ onSponsorSeva, initialHighlightId = null }: SevaExperienceProps) {
+export default function SevaExperience({ onSponsorSeva, initialHighlightId = null, isAndroidApp = false }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   // Note: UPI/Details state removed — Sponsor Seva now routes through
@@ -449,7 +458,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
   const prayerWallCards = [...reviewCards, ...chatMessages];
 
   return (
-    <section id="seva-dashboard-section" className="py-16 bg-[#021816] relative text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
+    <section id="seva-dashboard-section" className="py-16 bg-[#021816] relative text-white" style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}

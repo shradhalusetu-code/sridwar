@@ -16,6 +16,7 @@ import OptimizedImage from "./OptimizedImage";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { validatePincode } from "../utils/formValidation";
+import { sectionTopPadding } from "../utils/androidSpacing";
 
 // ─────────────────────────────────────────────────────────────────────────
 // "Simple Pujas" — affordable, structured puja booking tier system.
@@ -395,6 +396,12 @@ interface OnlinePujaProps {
    *  Any id that doesn't match a Simple Puja is silently ignored, so this
    *  is safe to pass even when the destination is a different section. */
   initialHighlightId?: string | null;
+  /** Since this page can be the first thing rendered under <main> on the
+   *  Android app (which drops its own top padding so each page can size
+   *  its own clearance), this section must supply enough top padding to
+   *  clear the fixed Navbar + status bar itself — otherwise the Online
+   *  Pujas header renders partly underneath the fixed header. */
+  isAndroidApp?: boolean;
 }
 
 // ── Category metadata ──────────────────────────────────────────────────────────
@@ -422,7 +429,7 @@ function displayDuration(d?: string) {
   return d && d.trim() ? d : "Not specified";
 }
 
-export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initialHighlightId = null }: OnlinePujaProps) {
+export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initialHighlightId = null, isAndroidApp = false }: OnlinePujaProps) {
   // ── Filter state ─────────────────────────────────────────────────────────────
   const [selectedCategory, setSelectedCategory] = useState<"all" | AccordionCat>("all");
   const [selectedTemple,   setSelectedTemple]   = useState<string>("all");
@@ -554,7 +561,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
   };
 
   return (
-    <section id="online-pujas-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
+    <section id="online-pujas-section" className="py-20 bg-[#021816] text-white" style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Keyframes for the Priest Directory button pulse — matches the Setu Yatra Challenge button treatment */}

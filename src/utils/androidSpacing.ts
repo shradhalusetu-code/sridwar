@@ -33,7 +33,15 @@ export function useAndroidPlatform(): boolean {
 export function sectionTopPadding(isAndroid: boolean): CSSProperties {
   if (!isAndroid) return {};
   return {
-    paddingTop: "calc(env(safe-area-inset-top, 24px) + 80px)",
+    // 96px (not 80px) — measured against the fixed Navbar's actual
+    // unscrolled rendered height (safe-area + py-7 top/bottom padding +
+    // logo/content ≈ safe-area + 88-90px). 80px left an 8-12px sliver of
+    // every first-on-page section (Seva Hub, Temple Bazaar, Online Puja
+    // headers) sitting underneath the fixed Navbar on Android, which is
+    // what made those headings look "hidden in the header". The extra
+    // margin here is intentional so real devices with slightly taller
+    // status bars still clear it.
+    paddingTop: "calc(env(safe-area-inset-top, 24px) + 96px)",
   };
 }
 

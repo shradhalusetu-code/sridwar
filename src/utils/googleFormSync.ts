@@ -476,20 +476,20 @@ export async function syncToGoogleForm(
  *
  * Google Forms' /formResponse endpoint is write-only and append-only — there
  * is no API to edit a row that was already submitted. So for any flow where
- * the user fills a form, THEN separately decides to skip or pay a donation,
- * we can't literally "update" the first row once the donation outcome is
+ * the user fills a form, THEN separately decides to skip or pay a divine contribution,
+ * we can't literally "update" the first row once the divine contribution outcome is
  * known.
  *
- * Instead we follow one rule everywhere a donation/payment decision happens
+ * Instead we follow one rule everywhere a divine contribution/payment decision happens
  * after the main form submit:
  *
  *   1. The moment the devotee clicks the main submit button, we POST the
- *      full profile ONCE with a stable Ref ID and a donation status of
+ *      full profile ONCE with a stable Ref ID and a divine contribution status of
  *      "Pending — Awaiting Decision". This guarantees the lead is captured
- *      even if the devotee closes the tab before deciding on a donation.
- *   2. The moment the donation decision is final (Skip clicked, or UPI
+ *      even if the devotee closes the tab before deciding on a divine contribution.
+ *   2. The moment the divine contribution decision is final (Skip clicked, or UPI
  *      payment confirmed), we POST exactly ONE more row — same Ref ID, same
- *      profile, but with the donation field corrected to "Skipped" or the
+ *      profile, but with the divine contribution field corrected to "Skipped" or the
  *      real "₹<amount>" — and a status of "Final".
  *
  * This is technically two POSTs (Google Forms can't avoid that), but it is
@@ -501,7 +501,7 @@ export async function syncToGoogleForm(
  * Usage:
  *   const refId = makeSubmissionRef("DEV");
  *   await postPendingRow(formUrl, refId, buildPayload(refId, "Pending — Awaiting Decision"));
- *   // ...later, once donation outcome is known...
+ *   // ...later, once divine contribution outcome is known...
  *   await postFinalRow(formUrl, refId, buildPayload(refId, "Skipped" | `₹${amount}`));
  */
 
@@ -517,7 +517,7 @@ const _finalSentRefs = new Set<string>();
 /**
  * Posts the FIRST row for a submission — fired the instant the user clicks
  * the main "Submit and Proceed" / "Submit Message" / "Proceed to Offering"
- * button. Donation/payment field should be set to "Pending — Awaiting
+ * button. Divine Contribution/payment field should be set to "Pending — Awaiting
  * Decision" in the payload before calling this.
  */
 export async function postPendingRow(
@@ -543,9 +543,9 @@ export async function postPendingRow(
 }
 
 /**
- * Posts the FINAL row for a submission — fired the instant the donation
- * outcome is known (Skip Donation clicked, or UPI payment confirmed).
- * Donation/payment field in the payload should already reflect the true
+ * Posts the FINAL row for a submission — fired the instant the divine contribution
+ * outcome is known (Skip Divine Contribution clicked, or UPI payment confirmed).
+ * Divine Contribution/payment field in the payload should already reflect the true
  * outcome ("Skipped" or "₹<amount>").
  */
 export async function postFinalRow(
