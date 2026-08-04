@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, lazy, Suspense, ReactNode } from "react";
 import { supabase } from "./lib/supabaseClient";
 import Navbar from "./components/Navbar";
+import CookieConsent from "./components/CookieConsent";
 import Hero from "./components/Hero";
 import HomeCarousel from "./components/HomeCarousel";
 import TempleExperience from "./components/TempleExperience";
@@ -559,7 +560,11 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-full bg-[#021816] text-white font-sans" style={{overflowX: 'hidden', touchAction: 'pan-y'}}>
-      
+
+      {/* Tracking-consent banner — must be able to render on every page,
+          so it lives at the top level rather than inside any one route. */}
+      <CookieConsent />
+
       {/* 1. STICKY HEADER NAVIGATION */}
       <Navbar
         currentLanguage={currentLanguage}

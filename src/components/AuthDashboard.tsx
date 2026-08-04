@@ -61,6 +61,23 @@ export default function AuthDashboard({
   const [authFormMode, setAuthFormMode] = useState<"signup" | "signin">("signup");
   const [passwordField, setPasswordField] = useState("");
   const [authErrorMessage, setAuthErrorMessage] = useState("");
+  // Forgot-password flow — self-service, no page/component change needed by
+  // the devotee beyond tapping a link on the sign-in form. Supabase sends a
+  // password-reset email containing a link back to the site with a
+  // recovery token; Supabase's own JS SDK handles that token automatically
+  // and fires a PASSWORD_RECOVERY auth event, which we listen for below to
+  // show the "set a new password" step.
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [forgotPasswordError, setForgotPasswordError] = useState("");
+  const [isPasswordRecoveryMode, setIsPasswordRecoveryMode] = useState(false);
+  const [newPasswordField, setNewPasswordField] = useState("");
+  const [confirmNewPasswordField, setConfirmNewPasswordField] = useState("");
+  const [isSavingNewPassword, setIsSavingNewPassword] = useState(false);
+  const [newPasswordError, setNewPasswordError] = useState("");
+  const [newPasswordSuccess, setNewPasswordSuccess] = useState(false);
   // True once we've asked a brand-new devotee to confirm their email —
   // shown instead of the form until they switch back to "Log In".
   const [signupNeedsConfirmation, setSignupNeedsConfirmation] = useState(false);
@@ -174,6 +191,82 @@ export default function AuthDashboard({
       setPostLoginContributionSuccess(false);
     }
   }, [isLoggedIn]);
+
+  // Listen for Supabase's PASSWORD_RECOVERY event. When a devotee taps the
+  // reset link in their email, Supabase's client SDK opens the app/site,
+  // reads the recovery token from the URL automatically, exchanges it for
+  // a temporary session, and fires this event — that's our signal to show
+  // the "choose a new password" screen instead of the normal login form.
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsPasswordRecoveryMode(true);
+      }
+    });
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Step 1 of forgot-password: send the reset email. Supabase's
+  // resetPasswordForEmail never reveals whether the email exists (it
+  // always "succeeds" from the caller's point of view) — that's a
+  // deliberate Supabase anti-enumeration behaviour, not a bug here, so we
+  // show the same success message regardless.
+  const handleSendResetEmail = async (e: FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordError("");
+
+    if (!forgotPasswordEmail.trim()) {
+      setForgotPasswordError("Please enter your email address.");
+      return;
+    }
+
+    setIsSendingResetEmail(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
+      redirectTo: window.location.origin,
+    });
+    setIsSendingResetEmail(false);
+
+    if (error) {
+      setForgotPasswordError(error.message);
+      return;
+    }
+    setResetEmailSent(true);
+  };
+
+  // Step 2 of forgot-password: the devotee is now in a temporary recovery
+  // session (from the PASSWORD_RECOVERY event above) and sets a new
+  // password.
+  const handleSaveNewPassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setNewPasswordError("");
+
+    if (newPasswordField.length < 6) {
+      setNewPasswordError("Password must be at least 6 characters.");
+      return;
+    }
+    if (newPasswordField !== confirmNewPasswordField) {
+      setNewPasswordError("Passwords do not match.");
+      return;
+    }
+
+    setIsSavingNewPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPasswordField });
+    setIsSavingNewPassword(false);
+
+    if (error) {
+      setNewPasswordError(error.message);
+      return;
+    }
+    setNewPasswordSuccess(true);
+    setNewPasswordField("");
+    setConfirmNewPasswordField("");
+    setTimeout(() => {
+      setIsPasswordRecoveryMode(false);
+      setNewPasswordSuccess(false);
+    }, 2500);
+  };
 
   const handleSaveProfile = (e: FormEvent) => {
     e.preventDefault();
@@ -586,7 +679,143 @@ export default function AuthDashboard({
               </p>
             </div>
 
-            {authStep === "login" && signupNeedsConfirmation && (
+            {authStep === "login" && isPasswordRecoveryMode && (
+              <form onSubmit={handleSaveNewPassword} className="space-y-4 animate-fadeIn">
+                <div className="flex items-start space-x-2 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 text-[#5EEAD4] text-xs rounded-xl px-3 py-3 text-left">
+                  <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>Choose a new password for your Dharmic ID.</span>
+                </div>
+                {newPasswordError && (
+                  <div className="flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-xs rounded-xl px-3 py-2.5">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{newPasswordError}</span>
+                  </div>
+                )}
+                {newPasswordSuccess ? (
+                  <div className="flex items-start space-x-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl px-3 py-3 text-left">
+                    <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>Password updated! Returning you to Sri Dwar...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-xs font-bold text-white/80 mb-1">New Password *</label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          required
+                          minLength={6}
+                          placeholder="At least 6 characters"
+                          value={newPasswordField}
+                          onChange={(e) => setNewPasswordField(e.target.value)}
+                          className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
+                        />
+                        <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-white/80 mb-1">Confirm New Password *</label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          required
+                          minLength={6}
+                          placeholder="Re-enter new password"
+                          value={confirmNewPasswordField}
+                          onChange={(e) => setConfirmNewPasswordField(e.target.value)}
+                          className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
+                        />
+                        <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSavingNewPassword}
+                      className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-3 rounded-xl text-xs transition-colors shadow flex items-center justify-center space-x-2 cursor-pointer"
+                    >
+                      {isSavingNewPassword ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#021816]" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <span className="tracking-wider">SAVE NEW PASSWORD</span>
+                      )}
+                    </button>
+                  </>
+                )}
+              </form>
+            )}
+
+            {authStep === "login" && !isPasswordRecoveryMode && showForgotPassword && (
+              <form onSubmit={handleSendResetEmail} className="space-y-4 animate-fadeIn">
+                {resetEmailSent ? (
+                  <div className="space-y-4 text-center">
+                    <div className="flex items-start space-x-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl px-3 py-3 text-left">
+                      <Mail className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>
+                        If an account exists for <strong>{forgotPasswordEmail}</strong>, a password reset link has
+                        been sent. Check your inbox (and spam folder), then follow the link to set a new password.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotPassword(false); setResetEmailSent(false); setForgotPasswordEmail(""); }}
+                      className="w-full bg-[#5EEAD4] hover:bg-[#14B8A6] text-[#021816] font-bold py-3 rounded-xl text-xs transition-colors shadow cursor-pointer"
+                    >
+                      BACK TO LOG IN
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-white/70">Enter the email on your Dharmic ID and we'll send you a link to reset your password.</p>
+                    {forgotPasswordError && (
+                      <div className="flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-xs rounded-xl px-3 py-2.5">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{forgotPasswordError}</span>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-bold text-white/80 mb-1">Email Address *</label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          required
+                          placeholder="e.g. kunu@shradhalu.com"
+                          value={forgotPasswordEmail}
+                          onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                          className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
+                        />
+                        <Mail className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSendingResetEmail}
+                      className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-3 rounded-xl text-xs transition-colors shadow flex items-center justify-center space-x-2 cursor-pointer"
+                    >
+                      {isSendingResetEmail ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#021816]" />
+                          <span>Sending...</span>
+                        </>
+                      ) : (
+                        <span className="tracking-wider">SEND RESET LINK</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotPassword(false); setForgotPasswordError(""); }}
+                      className="w-full text-center text-[10px] text-white/50 hover:text-white/80 underline cursor-pointer"
+                    >
+                      Back to log in
+                    </button>
+                  </>
+                )}
+              </form>
+            )}
+
+            {authStep === "login" && !isPasswordRecoveryMode && !showForgotPassword && signupNeedsConfirmation && (
               <div className="space-y-4 text-center animate-fadeIn">
                 <div className="flex items-start space-x-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl px-3 py-3 text-left">
                   <Mail className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -605,7 +834,7 @@ export default function AuthDashboard({
               </div>
             )}
 
-            {authStep === "login" && !signupNeedsConfirmation && (
+            {authStep === "login" && !isPasswordRecoveryMode && !showForgotPassword && !signupNeedsConfirmation && (
             <form onSubmit={handleGoogleLogin} className="space-y-4">
 
               {/* Sign Up / Log In toggle */}
@@ -697,6 +926,15 @@ export default function AuthDashboard({
                   />
                   <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
                 </div>
+                {authFormMode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setAuthErrorMessage(""); setForgotPasswordEmail(userEmailField); }}
+                    className="mt-1.5 text-[10px] text-[#5EEAD4] hover:text-[#14B8A6] underline cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
+                )}
               </div>
 
               {/* Gotra Ancestry / Moon Sign (Rashi) are intentionally NOT

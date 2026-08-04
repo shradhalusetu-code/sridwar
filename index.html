@@ -41,7 +41,7 @@
     </noscript>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         Google Tag Manager
+         Google Tag Manager + Microsoft Clarity — CONSENT-GATED LOADING
          NOTE: gtag.js below loads the SAME Google Analytics library
          that GTM can already fire through a GA4 Configuration tag.
          Loading both means devotees download two overlapping analytics
@@ -50,31 +50,69 @@
          block below entirely — GTM will still send GA4 hits. Only keep
          both if you specifically rely on gtag() calls from your own
          code (search this project for `gtag(`).
-    ═══════════════════════════════════════════════════════════════ -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-5CSKPDHS');</script>
 
-    <!-- Google tag (gtag.js) — see note above before deleting -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LXYRS86RGH"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-LXYRS86RGH');
-    </script>
+         WHY THIS CHANGED: these three trackers (GTM, gtag.js/GA4, and
+         Microsoft Clarity — which records session replays/heatmaps of
+         real taps and scrolls) used to fire unconditionally the instant
+         this page loaded, before any devotee had a chance to agree to
+         it. Nothing in the app ever asked for consent, even though a
+         Cookie Policy page existed describing these trackers. That's a
+         real mismatch between what the policy says and what the code
+         does, and undeclared/unconsented tracking SDKs are one of the
+         more common reasons a Play Data Safety review gets kicked back.
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         Microsoft Clarity — heatmaps & session recordings
+         Now: trackers only load after `loadSriDwarTrackers()` runs, which
+         happens in ONE of two cases —
+           1. The devotee already accepted on a previous visit
+              (localStorage flag set), so it loads immediately here with
+              no visible delay and no re-asking.
+           2. The devotee taps "Accept" on the CookieConsent banner
+              (src/components/CookieConsent.tsx), which calls
+              `window.__sridwarLoadTrackers()`.
+         If they decline, or haven't answered yet, no tracking script
+         ever loads — not "loads but doesn't send events," genuinely
+         does not fetch the script at all.
     ═══════════════════════════════════════════════════════════════ -->
     <script>
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "xmu1fmyg2x");
+      function loadSriDwarTrackers() {
+        if (window.__sridwarTrackersLoaded) return;
+        window.__sridwarTrackersLoaded = true;
+
+        // Google Tag Manager
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-5CSKPDHS');
+
+        // Google tag (gtag.js) — see note above before deleting
+        var gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-LXYRS86RGH';
+        document.head.appendChild(gtagScript);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', 'G-LXYRS86RGH');
+
+        // Microsoft Clarity — heatmaps & session recordings
+        (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "xmu1fmyg2x");
+      }
+
+      // Expose for CookieConsent.tsx to call when the devotee taps "Accept".
+      window.__sridwarLoadTrackers = loadSriDwarTrackers;
+
+      // Returning devotee who already accepted — load immediately, no banner shown again.
+      try {
+        if (localStorage.getItem('sridwar_cookie_consent') === 'accepted') {
+          loadSriDwarTrackers();
+        }
+      } catch (e) { /* localStorage unavailable (rare) — trackers simply won't load; not fatal */ }
     </script>
 
     <!-- ═══════════════════════════════════════════════════════════════

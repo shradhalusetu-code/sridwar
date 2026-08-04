@@ -7,8 +7,8 @@ android {
         applicationId "com.shradhalu.sridwar"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 4
+        versionName "1.0.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,7 +18,21 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            // Changed from false: this app's Java/Kotlin layer is a thin
+            // Capacitor shell (MainActivity + the Capacitor/Cordova
+            // bridge) — nearly all real app logic is the JS bundle inside
+            // `dist`, which minifyEnabled/R8 never touches. Turning this
+            // on only shrinks/obfuscates the small native layer, reducing
+            // APK/AAB size with very low behavioural risk here, PROVIDED
+            // proguard-rules.pro's existing `-keep` rules for
+            // com.getcapacitor.**, org.apache.cordova.**, and
+            // com.shradhalu.sridwar.** (already present in that file) stay
+            // intact — they prevent R8 from stripping/renaming the classes
+            // the JS<->native bridge calls via reflection. Do a full
+            // release-build smoke test (login, a booking, back-button
+            // behaviour) before shipping, since any native-layer change
+            // deserves a real test pass even when the risk is low.
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

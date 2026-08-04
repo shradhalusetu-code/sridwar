@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import { recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
 import { isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
@@ -135,6 +136,22 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       details: `Puja: ${pujaName} | Dakshina: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${refId}`,
       type: `Puja/Seva Booking - ${pujaName}`,
       fee: details.amount, dob, gotra: gotra || "Shiva Gotra", rashi, intent: sankalpWish,
+    });
+    // Record into the Supabase activity ledger (no-ops for guests who
+    // aren't logged in) so this puja shows up on the devotee's own Profile
+    // / Order History page. Status is "pending_verification", not
+    // "confirmed" — nobody has actually checked the money landed yet, only
+    // that the devotee tapped "I Have Paid" / opened WhatsApp. Flip it to
+    // "confirmed" from the admin/reconciliation side once payment is
+    // actually verified, or wire up a real payment gateway that reports
+    // back automatically.
+    recordActivity({
+      activityType: "puja",
+      itemName: pujaName,
+      amount: details.amount,
+      refId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
     });
     onSuccess({ pujaName, sankalpaName: devoteeName, price: details.amount, refId });
   };

@@ -15,6 +15,15 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// NOTE on the rate limiter below: if you deploy behind a reverse proxy/load
+// balancer (most hosting platforms — Render, Railway, Vercel, etc. — do
+// this), Express needs `app.set('trust proxy', ...)` configured correctly
+// for `req.ip` to reflect the real visitor IP instead of the proxy's IP.
+// Without it, every visitor may appear to share one IP and get rate-limited
+// together. Set this to match your specific host's guidance (e.g.
+// `app.set('trust proxy', 1)` for "one hop behind a proxy") rather than
+// `true`, which trusts any X-Forwarded-For header and can be spoofed.
+
 // Middleware to parse JSON payloads
 app.use(express.json());
 
@@ -59,12 +68,63 @@ function getGeminiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
+// Lightweight in-memory rate limiter for /api/assistant — no new npm
+// dependency required. This endpoint is the only one that costs real money
+// per call (Gemini API usage), and it previously had zero limits, meaning
+// anyone who found the endpoint could spam it and run up your AI bill.
+// This is intentionally simple (per-IP sliding window, in-process memory)
+// rather than a full package like express-rate-limit, so it works with no
+// new dependency to install and no infrastructure (e.g. Redis) to run. It
+// resets if the server restarts and won't coordinate across multiple
+// server instances — both are fine for a single-instance deployment; if
+// you ever run multiple server instances behind a load balancer, swap
+// this for express-rate-limit + a shared store instead.
+const ASSISTANT_RATE_LIMIT = 20; // max requests
+const ASSISTANT_RATE_WINDOW_MS = 10 * 60 * 1000; // per 10 minutes, per IP
+const assistantRequestLog = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (assistantRequestLog.get(ip) || []).filter(
+    (t) => now - t < ASSISTANT_RATE_WINDOW_MS
+  );
+  if (timestamps.length >= ASSISTANT_RATE_LIMIT) {
+    assistantRequestLog.set(ip, timestamps);
+    return true;
+  }
+  timestamps.push(now);
+  assistantRequestLog.set(ip, timestamps);
+  return false;
+}
+
+// Periodically clear old entries so this Map doesn't grow forever.
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, timestamps] of assistantRequestLog.entries()) {
+    const fresh = timestamps.filter((t) => now - t < ASSISTANT_RATE_WINDOW_MS);
+    if (fresh.length === 0) assistantRequestLog.delete(ip);
+    else assistantRequestLog.set(ip, fresh);
+  }
+}, ASSISTANT_RATE_WINDOW_MS).unref?.();
+
 // 1. Helper: AI-powered devotee assistant
 app.post("/api/assistant", async (req, res) => {
+  const clientIp = req.ip || req.socket.remoteAddress || "unknown";
+  if (isRateLimited(clientIp)) {
+    res.status(429).json({
+      error: "Too many requests to the Devotee Assistant. Please wait a few minutes and try again.",
+    });
+    return;
+  }
+
   const { message, history } = req.body;
 
   if (!message) {
     res.status(400).json({ error: "Message is required" });
+    return;
+  }
+  if (typeof message !== "string" || message.length > 2000) {
+    res.status(400).json({ error: "Message is too long." });
     return;
   }
 

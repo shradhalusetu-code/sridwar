@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+      allowBackup="false" (changed from "true", the Capacitor scaffolding
+      default): with it "true", Android's Auto Backup can copy this app's
+      private storage — including the WebView's localStorage, which is
+      where the Supabase session token and the devotee's cached profile
+      live — to the devotee's Google Drive, and it's also extractable via
+      `adb backup` on a device with USB debugging enabled. Turning it off
+      means a devotee's account itself is unaffected (it's stored in
+      Supabase and simply logs back in on a new device), it only removes
+      the OS-level "restore this app's local cache automatically on a new
+      phone" convenience, in exchange for not exposing a session token via
+      backup extraction.
+    -->
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
