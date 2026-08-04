@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Your Account & Data — Sri Dwar</title>
+<meta name="description" content="Request deletion of your Sri Dwar Dharmic ID account and personal data. Operated by Shradhalu Private Limited.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sridwar.com/account-deletion">
+
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="manifest" href="/manifest.json" type="application/manifest+json" />
+
+<style>
+  :root {
+    --bg: #021816;
+    --panel: #092320;
+    --accent: #FFB347;
+    --teal: #5EEAD4;
+    --text: rgba(255,255,255,0.87);
+    --text-dim: rgba(255,255,255,0.62);
+    --text-faint: rgba(255,255,255,0.45);
+    --border: rgba(255,255,255,0.10);
+    --font-serif: Georgia, "Times New Roman", serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--teal); }
+  .top-bar {
+    padding: 28px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #04241f 0%, var(--bg) 100%);
+  }
+  .tagline { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+  .topbar-logo-link { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+  .topbar-logo-img { height: 30px; width: auto; filter: brightness(0) invert(1); display: block; }
+  .breadcrumb { max-width: 720px; margin: 14px auto 0; padding: 0 20px; font-size: 0.78rem; color: var(--text-dim); text-align: center; }
+  .breadcrumb a { color: var(--text-dim); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb .sep { margin: 0 6px; color: var(--border); }
+  .breadcrumb .current { color: var(--accent); }
+  .page-title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin: 20px 0 6px;
+  }
+  .page-sub {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--text-dim);
+    font-size: 14px;
+    padding: 0 12px;
+  }
+  .container { max-width: 640px; margin: 0 auto; padding: 28px 18px 80px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 26px 30px;
+    margin: 22px 0;
+  }
+  .card h2 {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    color: #fff;
+    margin: 0 0 14px;
+  }
+  .card p { font-size: 13.5px; color: var(--text); margin: 0 0 10px; }
+  .card ul { margin: 0 0 12px; padding-left: 20px; }
+  .card li { font-size: 13.5px; color: var(--text); margin-bottom: 6px; }
+  .card strong { color: #fff; }
+  label { display:block; font-size: 12px; font-weight: 700; color: var(--text-dim); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: #fff;
+    font-size: 13.5px;
+    font-family: var(--font-sans);
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .submit-btn {
+    display: inline-block;
+    width: 100%;
+    background: var(--accent);
+    color: #021816;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 13px 26px;
+    border-radius: 999px;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    margin-top: 20px;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+  }
+  .alt-methods {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    background: rgba(94,234,212,0.07);
+    border: 1px solid rgba(94,234,212,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 18px;
+  }
+  .alt-methods a { color: var(--teal); font-weight: 600; }
+  .note {
+    font-size: 12.5px; color: var(--teal); background: rgba(94,234,212,0.07);
+    border: 1px solid rgba(94,234,212,0.2); border-radius: 10px; padding: 10px 12px;
+  }
+  footer {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 30px 18px 60px;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 12.5px;
+    text-align: center;
+  }
+  footer .company { color: var(--text-dim); margin-bottom: 6px; }
+  footer a { color: var(--text-dim); }
+  .back-link {
+    display: inline-block; margin-top: 14px;
+    color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 600;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #021816;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 11px 26px;
+    border-radius: 999px;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <a href="/" class="topbar-logo-link">
+      <picture>
+        <source srcset="/images/sridwar-logo.webp" type="image/webp" />
+        <img src="/images/sridwar-logo.png" alt="Sri Dwar" class="topbar-logo-img" />
+      </picture>
+    </a>
+    <div class="tagline">Faith Beyond Distance. Blessings Beyond Borders.</div>
+    <div class="page-title">Delete Your Account &amp; Data</div>
+    <p class="page-sub">Request permanent deletion of your Sri Dwar Dharmic ID account and personal data. This page works whether or not you still have the app installed.</p>
+    <a class="cta-btn" href="https://sridwar.com/">← Go to Sri Dwar Homepage</a>
+  </div>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a><span class="sep">›</span><a href="/privacy-policy">Privacy Policy</a><span class="sep">›</span><span class="current">Delete Account &amp; Data</span>
+  </nav>
+
+  <main class="container">
+
+    <div class="card">
+      <h2>What gets deleted</h2>
+      <p>When you submit a verified deletion request, we permanently delete or anonymize:</p>
+      <ul>
+        <li>Your Dharmic ID login (name, email, encrypted password)</li>
+        <li>Your saved devotee profile (Gotra, Nakshatra, saved addresses)</li>
+        <li>Your booking preferences and saved contact details</li>
+      </ul>
+      <p class="note">We may keep limited records — such as completed payment/transaction references — for a limited period where Indian law requires it (e.g. tax and accounting rules), or to resolve an open dispute, refund, or fraud investigation already in progress. These are deleted once that legal or operational need ends. See our <a href="https://sridwar.com/privacy-policy#data-deletion">Privacy Policy — Account &amp; Data Deletion</a> section for full details.</p>
+    </div>
+
+    <div class="card">
+      <h2>Submit a Deletion Request</h2>
+      <p>Tap the button below to open your email app with a pre-filled deletion request. Just fill in your registered name and email/mobile number before sending.</p>
+
+      <a class="submit-btn" style="display:block; text-decoration:none;"
+         href="mailto:puja@sridwar.com?subject=Account%20Deletion%20Request&body=Full%20Name%20(as%20registered)%3A%0ARegistered%20Email%3A%0ARegistered%20Mobile%20(optional)%3A%0AWhat%20would%20you%20like%20deleted%3F%20(Full%20account%20%2F%20Specific%20data%20-%20please%20describe)%3A%0A%0AAdditional%20details%20(optional)%3A">
+        REQUEST DELETION BY EMAIL
+      </a>
+
+      <div class="alt-methods">
+        Prefer WhatsApp? Message us at <a href="https://wa.me/919777645062">+91 97776 45062</a> from your registered mobile number with the words "Account Deletion Request", your full name, and your registered email. We'll confirm receipt and let you know once it's processed.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Processing Time</h2>
+      <p>We verify each request against the registered account before acting on it. Verified deletions are completed within 30 days, and you'll receive a confirmation email once your data has been deleted or anonymized.</p>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="company">Shradhalu Private Limited, operating under the brand <strong style="color:#fff">Sri Dwar</strong></div>
+    <div>CIN: U62099OD2026PTC054237</div>
+    <div>Registered Office: Sobra, Jajpur Road, Jajpur – 755019, Odisha, India</div>
+    <div>Email: <a href="mailto:puja@sridwar.com">puja@sridwar.com</a> &nbsp;·&nbsp; Phone: <a href="tel:+919777645062">+91 97776 45062</a></div>
+    <a class="back-link" href="https://sridwar.com/privacy-policy">← Back to Privacy Policy</a>
+  </footer>
+
+</body>
+</html>
