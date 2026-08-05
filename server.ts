@@ -5,6 +5,9 @@
 
 import express from "express";
 import path from "path";
+import fs from "fs";
+import helmet from "helmet";
+import { z, ZodError } from "zod";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
@@ -14,6 +17,34 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
+
+// ─── Security headers (helmet) ─────────────────────────────────────────────
+//
+// helmet sets a batch of standard security-related HTTP headers. Two of its
+// defaults are turned off deliberately rather than left on, to avoid
+// breaking things that already work in production:
+//
+//   - contentSecurityPolicy: OFF. The site loads Google Tag Manager,
+//     Microsoft Clarity, Supabase, Google Forms, and various image/font
+//     origins from index.html. Helmet's default CSP would block all of
+//     that until every origin is explicitly allow-listed. Turning this on
+//     safely needs a real audit of every external script/style/img/connect
+//     origin currently in use — recommended as a follow-up, not something
+//     to silently flip on here and risk a blank white screen in prod.
+//   - crossOriginEmbedderPolicy: OFF. This can block cross-origin images
+//     (temple photos, deity images, WebP CDNs) unless every one of those
+//     origins sends the matching CORP/CORS headers, which we don't control
+//     for third-party origins.
+//
+// Everything else helmet sets by default is safe to enable as-is:
+// X-Content-Type-Options (no-sniff), X-Frame-Options (clickjacking
+// protection), Referrer-Policy, HSTS, hidden "X-Powered-By", and more.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // NOTE on the rate limiter below: if you deploy behind a reverse proxy/load
 // balancer (most hosting platforms — Render, Railway, Vercel, etc. — do
@@ -26,6 +57,65 @@ const PORT = 3000;
 
 // Middleware to parse JSON payloads
 app.use(express.json());
+
+// ─── Request validation (Zod) ──────────────────────────────────────────────
+//
+// Wraps a Zod schema into an Express middleware. On success, req.body is
+// replaced with the parsed/typed result (so defaults and coercions apply
+// consistently downstream). On failure, responds 400 with a readable list
+// of what was wrong instead of letting a malformed request reach handler
+// logic that assumes a certain shape.
+function validateBody(schema: z.ZodTypeAny) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      req.body = schema.parse(req.body);
+      next();
+    } catch (err) {
+      if (err instanceof ZodError) {
+        res.status(400).json({
+          error: "Invalid request.",
+          details: err.errors.map((e) => `${e.path.join(".") || "body"}: ${e.message}`),
+        });
+        return;
+      }
+      res.status(400).json({ error: "Invalid request." });
+    }
+  };
+}
+
+// ─── Audit logging ──────────────────────────────────────────────────────────
+//
+// Best-effort, append-only audit trail for sensitive events (account
+// deletion today; the natural place to add payment/refund events once a
+// real payment endpoint exists server-side rather than being handled
+// client-side via Google Forms/UPI deep link). Writes newline-delimited
+// JSON to audit.log next to the server process.
+//
+// This is intentionally "best effort": on hosts with an ephemeral or
+// read-only filesystem (many serverless/container platforms), the write
+// may silently no-op — that's fine, since the primary record is still the
+// console.log line that already existed for each of these events. If you
+// need a durable, queryable audit trail (recommended before launch), the
+// cleanest fix is a small `audit_log` table in Supabase and swapping the
+// fs.appendFile call below for a supabaseAdmin.from("audit_log").insert(...)
+// call — the call site here is the only place that would need to change.
+const AUDIT_LOG_PATH = path.join(process.cwd(), "audit.log");
+
+function appendAuditLog(event: string, details: Record<string, unknown>) {
+  const entry = {
+    event,
+    at: new Date().toISOString(),
+    ...details,
+  };
+  console.log(`[Audit] ${event}:`, JSON.stringify(entry));
+  try {
+    fs.appendFile(AUDIT_LOG_PATH, JSON.stringify(entry) + "\n", (err) => {
+      if (err) console.error("[Audit] Failed to write audit.log:", err.message);
+    });
+  } catch (err: any) {
+    console.error("[Audit] Failed to write audit.log:", err?.message);
+  }
+}
 
 // Lazy-initialize a Supabase "admin" client using the SERVICE ROLE key.
 // This key must NEVER be exposed to the browser/app — it only ever lives
@@ -107,8 +197,29 @@ setInterval(() => {
   }
 }, ASSISTANT_RATE_WINDOW_MS).unref?.();
 
+// Schema for /api/assistant. `.passthrough()` deliberately allows any extra
+// fields the client might send through unchanged, rather than rejecting the
+// whole request — the point of this schema is to guarantee `message` and
+// (if present) `history` are the right shape, not to lock the payload down
+// to an exact key list.
+const assistantRequestSchema = z
+  .object({
+    message: z.string().min(1, "Message is required").max(2000, "Message is too long."),
+    history: z
+      .array(
+        z
+          .object({
+            role: z.string().optional(),
+            text: z.string().optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
+  })
+  .passthrough();
+
 // 1. Helper: AI-powered devotee assistant
-app.post("/api/assistant", async (req, res) => {
+app.post("/api/assistant", validateBody(assistantRequestSchema), async (req, res) => {
   const clientIp = req.ip || req.socket.remoteAddress || "unknown";
   if (isRateLimited(clientIp)) {
     res.status(429).json({
@@ -117,6 +228,9 @@ app.post("/api/assistant", async (req, res) => {
     return;
   }
 
+  // Body shape is already guaranteed by validateBody(assistantRequestSchema)
+  // above; these extra checks are kept as harmless defense-in-depth in case
+  // this handler is ever reused without the middleware.
   const { message, history } = req.body;
 
   if (!message) {
@@ -256,9 +370,26 @@ app.get("/api/config", (req, res) => {
   });
 });
 
-app.post("/api/submit-form", (req, res) => {
+const submitFormRequestSchema = z
+  .object({
+    formType: z.string().min(1, "formType is required"),
+    formData: z.record(z.any()).optional().default({}),
+  })
+  .passthrough();
+
+app.post("/api/submit-form", validateBody(submitFormRequestSchema), (req, res) => {
   const { formType, formData } = req.body;
   console.log(`[Form Received - ${formType}]:`, JSON.stringify(formData, null, 2));
+
+  const refId = `SD-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  // Booking/seva/puja submissions are the closest thing this app has to a
+  // "payment-adjacent" event today (actual payment happens client-side via
+  // UPI deep link / Google Forms — see the note above googleFormSync.ts).
+  // Recording each one here gives you a searchable, timestamped trail
+  // independent of the Google Sheet, in case a sheet row goes missing or a
+  // devotee disputes a booking.
+  appendAuditLog("form_submission", { formType, refId });
 
   // NOTE: this endpoint only logs the submission server-side for debugging.
   // The actual Google Form sync happens client-side via
@@ -269,7 +400,7 @@ app.post("/api/submit-form", (req, res) => {
     status: "received",
     message: "Form submission received.",
     syncedAt: new Date().toISOString(),
-    refId: `SD-${Math.floor(100000 + Math.random() * 900000)}`
+    refId,
   });
 });
 
@@ -330,6 +461,7 @@ app.post("/api/account/delete", async (req, res) => {
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (deleteUserError) {
       console.error(`Account deletion: failed to delete auth user ${userId}:`, deleteUserError.message);
+      appendAuditLog("account_deletion_failed", { userId, reason: deleteUserError.message });
       res.status(500).json({
         error: "We removed your saved data but couldn't finish deleting your login. Please email puja@sridwar.com to complete this.",
       });
@@ -337,9 +469,11 @@ app.post("/api/account/delete", async (req, res) => {
     }
 
     console.log(`Account deletion: user ${userId} and associated data deleted successfully.`);
+    appendAuditLog("account_deletion_succeeded", { userId });
     res.json({ status: "deleted" });
   } catch (error: any) {
     console.error("Account deletion error:", error);
+    appendAuditLog("account_deletion_error", { message: error?.message || "unknown error" });
     res.status(500).json({
       error: "Something went wrong deleting your account. Please email puja@sridwar.com and we'll complete it for you within 30 days.",
     });

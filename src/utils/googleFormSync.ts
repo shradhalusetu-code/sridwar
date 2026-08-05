@@ -129,6 +129,136 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
   }
 };
 
+// ─── Offline-safe delivery: retry + local queue ────────────────────────────
+//
+// `fetch(url, { mode: "no-cors" })` against a Google Forms endpoint only
+// ever throws when the request never left the device (offline, DNS failure,
+// airplane mode, etc.) — with `no-cors` the response itself is always
+// opaque, so we can't inspect status codes either way. That means the ONE
+// thing worth handling here is: "the devotee had no connection when they
+// tapped submit." Previously that silently dropped the submission with just
+// a console.error. Now we retry a couple of times with a short backoff, and
+// if it's still failing, we queue the exact same request in localStorage and
+// flush it automatically the moment the browser reports it's back online (or
+// the next time the app loads). Nothing about the calling code, function
+// signatures, or the Google Form field mapping above changes — this only
+// wraps the final network call.
+const OFFLINE_QUEUE_KEY = "sridwar_gform_offline_queue";
+const MAX_INLINE_RETRIES = 2; // quick retries before we fall back to the queue
+const INLINE_RETRY_DELAY_MS = 1200;
+
+interface QueuedFormPost {
+  id: string;
+  url: string;
+  fields: Record<string, string>;
+  queuedAt: number;
+}
+
+function _readQueue(): QueuedFormPost[] {
+  try {
+    const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function _writeQueue(queue: QueuedFormPost[]) {
+  try {
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    // If localStorage is full/unavailable, there's nothing safe to do here —
+    // fail silently rather than throwing inside a background sync helper.
+  }
+}
+
+function _formDataToFields(formData: FormData): Record<string, string> {
+  const fields: Record<string, string> = {};
+  formData.forEach((value, key) => {
+    fields[key] = typeof value === "string" ? value : "";
+  });
+  return fields;
+}
+
+function _delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function _rawPost(url: string, fields: Record<string, string>): Promise<void> {
+  const fd = new FormData();
+  Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
+  await fetch(url, { method: "POST", mode: "no-cors", body: fd });
+}
+
+/**
+ * Posts a Google Form submission with a couple of quick inline retries. If
+ * those still fail (device is genuinely offline), the submission is queued
+ * in localStorage instead of being dropped, and is retried automatically
+ * once connectivity returns. Always resolves — never throws — so it's a
+ * drop-in replacement for the previous raw `fetch(...)` calls.
+ */
+async function postFormWithRetry(url: string, fields: Record<string, string>): Promise<boolean> {
+  for (let attempt = 0; attempt <= MAX_INLINE_RETRIES; attempt++) {
+    try {
+      await _rawPost(url, fields);
+      return true;
+    } catch (err) {
+      if (attempt < MAX_INLINE_RETRIES) {
+        await _delay(INLINE_RETRY_DELAY_MS * (attempt + 1));
+        continue;
+      }
+      console.warn(
+        `[Google Forms Sync]: Offline or network error after ${MAX_INLINE_RETRIES + 1} attempts — queuing submission for retry when back online.`,
+        err
+      );
+      const queue = _readQueue();
+      queue.push({
+        id: `${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        url,
+        fields,
+        queuedAt: Date.now(),
+      });
+      _writeQueue(queue);
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
+ * Attempts to flush any queued offline submissions. Safe to call anytime
+ * (e.g. on app load, or when the browser fires an "online" event) — it's a
+ * no-op if the queue is empty, and entries that still fail simply stay
+ * queued for the next attempt.
+ */
+export async function flushOfflineFormQueue(): Promise<void> {
+  const queue = _readQueue();
+  if (queue.length === 0) return;
+
+  const remaining: QueuedFormPost[] = [];
+  for (const entry of queue) {
+    try {
+      await _rawPost(entry.url, entry.fields);
+      console.log(`[Google Forms Sync]: Flushed queued offline submission ${entry.id}.`);
+    } catch (err) {
+      remaining.push(entry);
+    }
+  }
+  _writeQueue(remaining);
+}
+
+// Auto-flush when the browser regains connectivity, and once on load in
+// case submissions were queued during a previous session.
+if (typeof window !== "undefined") {
+  window.addEventListener("online", () => {
+    flushOfflineFormQueue();
+  });
+  // Fire-and-forget on module load; harmless if the queue is empty.
+  flushOfflineFormQueue();
+}
+
 let cachedEnv: Record<string, string> | null = null;
 
 /**
@@ -456,13 +586,13 @@ export async function syncToGoogleForm(
 
     console.log(`[Google Forms Sync]: Synchronizing form to URL: ${finalFormUrl}`);
 
-    await fetch(finalFormUrl, {
-      method: "POST",
-      mode: "no-cors",
-      body: formData
-    });
+    const delivered = await postFormWithRetry(finalFormUrl, _formDataToFields(formData));
 
-    console.log(`[Google Forms Sync]: Submission completed successfully to Google Drive & Forms.`);
+    if (delivered) {
+      console.log(`[Google Forms Sync]: Submission completed successfully to Google Drive & Forms.`);
+    } else {
+      console.log(`[Google Forms Sync]: Submission queued for delivery once back online.`);
+    }
     return true;
 
   } catch (error) {
@@ -531,10 +661,12 @@ export async function postPendingRow(
   }
   _pendingSentRefs.add(refId);
   try {
-    const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
-    await fetch(formUrl, { method: "POST", mode: "no-cors", body: fd });
-    console.log(`[Google Forms Sync]: Pending row sent for ${refId}.`);
+    const delivered = await postFormWithRetry(formUrl, payload);
+    console.log(
+      delivered
+        ? `[Google Forms Sync]: Pending row sent for ${refId}.`
+        : `[Google Forms Sync]: Pending row for ${refId} queued for delivery once back online.`
+    );
     return true;
   } catch (err) {
     console.error(`[Google Forms Sync Error]: Pending row failed for ${refId}`, err);
@@ -559,10 +691,12 @@ export async function postFinalRow(
   }
   _finalSentRefs.add(refId);
   try {
-    const fd = new FormData();
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v));
-    await fetch(formUrl, { method: "POST", mode: "no-cors", body: fd });
-    console.log(`[Google Forms Sync]: Final row sent for ${refId}.`);
+    const delivered = await postFormWithRetry(formUrl, payload);
+    console.log(
+      delivered
+        ? `[Google Forms Sync]: Final row sent for ${refId}.`
+        : `[Google Forms Sync]: Final row for ${refId} queued for delivery once back online.`
+    );
     return true;
   } catch (err) {
     console.error(`[Google Forms Sync Error]: Final row failed for ${refId}`, err);
