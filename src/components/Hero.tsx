@@ -11,6 +11,7 @@ import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
+import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
 import { gaContactFormStart, gaContactFormSubmit, gaNavClick } from "../utils/analytics";
@@ -63,6 +64,12 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   const [upiAmount, setUpiAmount] = useState<number | null>(null);
 
   const t = TRANSLATIONS[currentLanguage];
+  const darshanConfirmation = getDevotionalConfirmation({
+    category: "darshan_certificate",
+    serviceName: "Darshan Certificate",
+    devoteeName: name,
+    refId,
+  });
 
   const handleOpenCertificateModal = () => {
     setIsModalOpen(true);
@@ -583,15 +590,11 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   <p className="text-xs text-white/50 uppercase tracking-widest font-mono">Reference ID: {refId}</p>
                 </div>
 
-                {/* The Mandatory Confirmation Copy requested by the User */}
+                {/* Devotional confirmation copy — shared wording via devotionalMessages.ts */}
                 <div className="p-5 bg-white/5 border border-white/10 rounded-2xl text-left text-xs text-white/90 leading-relaxed shadow-sm">
-                  <p className="mb-2"><strong>Dear {name},</strong></p>
-                  <p className="mb-3">
-                    Your request for the Darshan Certificate has been lovingly received by our team of devoted priests and seva coordinators.
-                  </p>
-                  <p className="mb-4">
-                    Like a diya lit with pure intention, your certificate is being handcrafted with sacred blessings and will be delivered to you within 3-7 working days — straight to your:
-                  </p>
+                  <p className="mb-2"><strong>{darshanConfirmation.greeting}</strong></p>
+                  <p className="mb-3">{darshanConfirmation.opening}</p>
+                  <p className="mb-4">{darshanConfirmation.blessing}</p>
                   <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono bg-black/40 p-3 rounded-xl border border-white/10">
                     <div>
                       <span className="block text-base">💬</span>
@@ -603,7 +606,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                     </div>
                     <div>
                       <span className="block text-base">⏱</span>
-                      <span className="block font-bold text-[#FFB347]">Within 24 Hrs</span>
+                      <span className="block font-bold text-[#FFB347]">3–7 Days</span>
                     </div>
                   </div>
                 </div>
@@ -614,7 +617,20 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   <span>Powered by Sri Dwar Technology</span>
                 </div>
 
-                <div className="pt-2">
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    id="download-confirmation-message"
+                    onClick={() => downloadConfirmationMessage({
+                      category: "darshan_certificate",
+                      serviceName: "Darshan Certificate",
+                      devoteeName: name,
+                      refId,
+                    })}
+                    className="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow border border-white/10"
+                  >
+                    <span>📩</span>
+                    <span>Download Confirmation</span>
+                  </button>
                   <button
                     id="close-confirmation-modal"
                     onClick={() => setIsModalOpen(false)}

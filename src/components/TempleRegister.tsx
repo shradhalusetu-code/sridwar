@@ -13,7 +13,7 @@ import {
   Search, ChevronDown, ChevronRight, Plus, Check, X,
   MapPin, Phone, Mail, User, Heart, Sparkles,
   Building2, Send, Copy, Share2, ExternalLink, ArrowLeft,
-  Landmark, BookOpen, Gift, Users, Star, Globe, Mic, Calendar
+  Landmark, BookOpen, Gift, Users, Star, Globe, Mic, Calendar, Download
 } from "lucide-react";
 import { TEMPLES_LIST } from "../data/temples";
 import registerPriestImg from "../assets/images/Register_Priest.jpg";
@@ -26,6 +26,7 @@ import OptimizedImage from "./OptimizedImage";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
+import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
@@ -537,6 +538,9 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   const [basicSubmitted, setBasicSubmitted] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
+  // Set only when a real divine contribution was paid (not on Skip) — drives
+  // the devotional confirmation shown on the success screen below.
+  const [donationConfirmed, setDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
 
   const [form, setForm] = useState<DevoteeForm>({
     name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "",
@@ -701,6 +705,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         paymentMethod: details.method,
         paymentStatus: "pending_verification",
       });
+      setDonationConfirmed({ amount: details.amount, method: details.method });
     } finally {
       setSubmitting(false);
       setStep("form-success");
@@ -710,6 +715,19 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   // ── Success ──
   if (step === "form-success") {
     const refId = refIdRef.current;
+    // Devotional confirmation — shown only when a real divine contribution
+    // was paid (not on Skip). No "Download Certificate" is offered here:
+    // the actual certificate is handcrafted and shared on WhatsApp/Email
+    // within 3–7 working days. The devotee can download this confirmation
+    // message instead.
+    const confirmation = donationConfirmed
+      ? getDevotionalConfirmation({
+          category: "temple_contribution",
+          serviceName: "Devotee Registration Divine Contribution",
+          devoteeName: form.name,
+          refId,
+        })
+      : null;
     return (
       <div className="glass-panel rounded-3xl p-8 text-center space-y-5 border border-[#FFB347]/20">
         <div className="w-16 h-16 rounded-full bg-[#FFB347]/15 flex items-center justify-center mx-auto">
@@ -722,11 +740,28 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         <div className="text-xs font-mono text-[#FFB347]/70 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-2.5 inline-block">
           REF: {refId}
         </div>
-        <div className="pt-2">
+
+        {confirmation && (
+          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs text-white/90 leading-relaxed space-y-2">
+            <p>{confirmation.opening}</p>
+            <p>{confirmation.blessing}</p>
+          </div>
+        )}
+
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          {confirmation && (
+            <button
+              onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: "Devotee Registration Divine Contribution", devoteeName: form.name, refId })}
+              className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-[#FFB347]" /><span>Download Confirmation</span>
+            </button>
+          )}
           <button
             onClick={() => {
               setStep("form-basic");
               setBasicSubmitted(false);
+              setDonationConfirmed(null);
               setForm({ name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "", selectedInterests: [], message: "", donationAmount: "", donationNote: "" });
               onBack();
             }}
@@ -1015,6 +1050,9 @@ function DharmicExpertSection() {
   const [basicSyncError, setBasicSyncError] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
+  // Set only when a real divine contribution was paid (not on Skip) — drives
+  // the devotional confirmation shown on the success screen below.
+  const [donationConfirmed, setDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
 
   // Send-link sub-flow
   const [sendLinkName, setSendLinkName] = useState("");
@@ -1239,6 +1277,7 @@ function DharmicExpertSection() {
       paymentMethod: details.method,
       paymentStatus: "pending_verification",
     });
+    setDonationConfirmed({ amount: details.amount, method: details.method });
     setSubmitting(false);
     setExpertStep("form-success");
   };
@@ -1394,6 +1433,19 @@ function DharmicExpertSection() {
 
   // ── Success screen ──
   if (expertStep === "form-success") {
+    // Devotional confirmation — shown only when a real divine contribution
+    // was paid (not on Skip). No "Download Certificate" is offered here:
+    // the actual certificate is handcrafted and shared on WhatsApp/Email
+    // within 3–7 working days. The expert can download this confirmation
+    // message instead.
+    const confirmation = donationConfirmed
+      ? getDevotionalConfirmation({
+          category: "temple_contribution",
+          serviceName: `Dharmic Expert Registration Divine Contribution — ${form.category || "Dharmic Directory"}`,
+          devoteeName: form.fullName,
+          refId: expertRefIdRef.current,
+        })
+      : null;
     return (
       <div className="glass-panel rounded-3xl p-8 text-center space-y-5 border border-[#FFB347]/20">
         <div className="w-16 h-16 rounded-full bg-[#FFB347]/15 flex items-center justify-center mx-auto">
@@ -1403,29 +1455,48 @@ function DharmicExpertSection() {
         <p className="text-white/60 text-sm leading-relaxed max-w-sm mx-auto">
           Thank you for helping Sridwar Technology build India's trusted digital dharmic directory. Your submitted details will help devotees discover local pujaris, pandits, gurus, sants, sadhus, purohits, seers, and other dharmic experts with trust and devotion.
         </p>
+
+        {confirmation && (
+          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs text-white/90 leading-relaxed space-y-2">
+            <p>{confirmation.opening}</p>
+            <p>{confirmation.blessing}</p>
+          </div>
+        )}
+
         <div className="text-xs font-mono text-[#5EEAD4]/60 bg-[#5EEAD4]/5 border border-[#5EEAD4]/15 rounded-xl px-4 py-2.5">
           Powered by Sridwar Technology
         </div>
-        <button
-          onClick={() => {
-            setExpertStep("category-select");
-            setBasicSubmitted(false);
-            setBasicSyncError(false);
-            setForm({
-              fullName: "", title: "", category: "", city: "", pincode: "",
-              associatedPlace: "", experience: "", languages: [], sampradaya: "", bio: "",
-              phone: "", email: "", willingToTravel: "", onlineConsultation: "",
-              selectedPujaServices: [], selectedExpertise: [], specialSkills: "",
-              donationAmount: "", donationNote: "",
-            });
-            // Fresh registration → fresh Ref ID, so this expert's two rows
-            // (Pending + Final) never get matched to the previous expert's.
-            expertRefIdRef.current = makeSubmissionRef("EXP");
-          }}
-          className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" /><span>Register Another Expert</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          {confirmation && (
+            <button
+              onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Dharmic Expert Registration Divine Contribution — ${form.category || "Dharmic Directory"}`, devoteeName: form.fullName, refId: expertRefIdRef.current })}
+              className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-[#FFB347]" /><span>Download Confirmation</span>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setExpertStep("category-select");
+              setBasicSubmitted(false);
+              setBasicSyncError(false);
+              setDonationConfirmed(null);
+              setForm({
+                fullName: "", title: "", category: "", city: "", pincode: "",
+                associatedPlace: "", experience: "", languages: [], sampradaya: "", bio: "",
+                phone: "", email: "", willingToTravel: "", onlineConsultation: "",
+                selectedPujaServices: [], selectedExpertise: [], specialSkills: "",
+                donationAmount: "", donationNote: "",
+              });
+              // Fresh registration → fresh Ref ID, so this expert's two rows
+              // (Pending + Final) never get matched to the previous expert's.
+              expertRefIdRef.current = makeSubmissionRef("EXP");
+            }}
+            className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /><span>Register Another Expert</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -1964,6 +2035,9 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   const [submittingDonation, setSubmittingDonation] = useState(false);
   const [showDonationUpi, setShowDonationUpi] = useState(false);
   const [donationRefId, setDonationRefId] = useState("");
+  // Set only when a real divine contribution was paid (not on Skip) — drives
+  // the devotional confirmation shown on the Dharmic ID ("dharmic") screen.
+  const [devoteeDonationConfirmed, setDevoteeDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
 
   // ── Dharmic ID ──
   const [dharmicId, setDharmicId] = useState("");
@@ -1980,6 +2054,9 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   const [templeRegStep, setTempleRegStep] = useState<"details" | "divine contribution" | "done">("details");
   const [templeRegDonationAmount, setTempleRegDonationAmount] = useState("");
   const [templeRegDonationNote, setTempleRegDonationNote] = useState("");
+  // Set only when a real divine contribution was paid (not on Skip) — drives
+  // the devotional confirmation shown on the "done" success screen below.
+  const [templeRegDonationConfirmed, setTempleRegDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
   const [showTempleRegUpi, setShowTempleRegUpi] = useState(false);
 
   // ── Back-button trap ──────────────────────────────────────────────────
@@ -2151,11 +2228,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
     setShowDonationUpi(false);
     setSubmittingDonation(true);
     await finalize(true, String(details.amount), details.method);
+    setDevoteeDonationConfirmed({ amount: details.amount, method: details.method });
     setSubmittingDonation(false);
   };
 
   const handleSkipDonation = async () => {
     setSubmittingDonation(true);
+    setDevoteeDonationConfirmed(null);
     await finalize(false);
     setSubmittingDonation(false);
   };
@@ -2230,6 +2309,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         refId: templeRegRefIdRef.current,
         payload: { templeName: templeReg.templeName, city: templeReg.city, state: templeReg.state, deity: templeReg.deity, address: templeReg.address, notes: templeReg.notes, donationNote: templeRegDonationNote, donation: "skipped" },
       });
+      setTempleRegDonationConfirmed(null);
       setTempleRegStep("done");
       setTempleRegSuccess(true);
       return;
@@ -2266,6 +2346,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       paymentMethod: details.method,
       paymentStatus: "pending_verification",
     });
+    setTempleRegDonationConfirmed({ amount: details.amount, method: details.method });
     setSubmittingTempleReg(false);
     setTempleRegStep("done");
     setTempleRegSuccess(true);
@@ -2320,7 +2401,21 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           </div>
 
           {/* ── Step: Done (success after divine contribution or skip) ── */}
-          {templeRegStep === "done" && templeRegSuccess ? (
+          {templeRegStep === "done" && templeRegSuccess ? (() => {
+            // Devotional confirmation — shown only when a real divine
+            // contribution was paid (not on Skip). No "Download Certificate"
+            // is offered here: the actual certificate is handcrafted and
+            // shared on WhatsApp/Email within 3–7 working days. The contact
+            // can download this confirmation message instead.
+            const confirmation = templeRegDonationConfirmed
+              ? getDevotionalConfirmation({
+                  category: "temple_contribution",
+                  serviceName: `Temple Registration Divine Contribution — ${templeReg.templeName}`,
+                  devoteeName: templeReg.contactName,
+                  refId: templeRegRefIdRef.current,
+                })
+              : null;
+            return (
             <div className="glass-panel rounded-3xl p-8 text-center space-y-5 border border-[#FFB347]/20">
               <div className="w-16 h-16 rounded-full bg-[#FFB347]/15 flex items-center justify-center mx-auto">
                 <Check className="w-8 h-8 text-[#FFB347]" />
@@ -2331,35 +2426,56 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 <strong className="text-[#FFB347]"> {templeReg.templeName}</strong> has been submitted for review.
                 Our team will reach out within 48 hours at the contact details provided.
               </p>
+
+              {confirmation && (
+                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs text-white/90 leading-relaxed space-y-2">
+                  <p>{confirmation.opening}</p>
+                  <p>{confirmation.blessing}</p>
+                </div>
+              )}
+
               <div className="text-xs font-mono text-[#5EEAD4]/60 bg-[#5EEAD4]/5 border border-[#5EEAD4]/15 rounded-xl px-4 py-2">
                 Securely managed by Sridwar Technology · Sri Dwar
               </div>
-              {!standaloneTempleReg && (
-                <button
-                  onClick={() => {
-                    setTempleRegSuccess(false);
-                    setTempleRegStep("details");
-                    setStep("find");
-                    // Fresh registration next time → fresh form + Ref ID, so
-                    // it's never matched to this temple's rows in the sheet.
-                    setTempleReg({
-                      templeName: "", city: "", state: "", deity: "", address: "",
-                      contactName: "", contactPhone: "", contactEmail: "", notes: ""
-                    });
-                    setTempleRegDonationAmount("");
-                    setTempleRegDonationNote("");
-                    setTempleRegErrors({});
-                    templeRegRefIdRef.current = makeSubmissionRef("TREG");
-                  }}
-                  className="inline-flex items-center space-x-2 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold text-sm px-6 py-2.5 rounded-xl transition-all cursor-pointer"
-                >
-                  <ArrowLeft className="w-4 h-4" /> <span>Back to Home</span>
-                </button>
-              )}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                {confirmation && (
+                  <button
+                    onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Temple Registration Divine Contribution — ${templeReg.templeName}`, devoteeName: templeReg.contactName, refId: templeRegRefIdRef.current })}
+                    className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-[#FFB347]" /><span>Download Confirmation</span>
+                  </button>
+                )}
+                {!standaloneTempleReg && (
+                  <button
+                    onClick={() => {
+                      setTempleRegSuccess(false);
+                      setTempleRegStep("details");
+                      setStep("find");
+                      // Fresh registration next time → fresh form + Ref ID, so
+                      // it's never matched to this temple's rows in the sheet.
+                      setTempleReg({
+                        templeName: "", city: "", state: "", deity: "", address: "",
+                        contactName: "", contactPhone: "", contactEmail: "", notes: ""
+                      });
+                      setTempleRegDonationAmount("");
+                      setTempleRegDonationNote("");
+                      setTempleRegDonationConfirmed(null);
+                      setTempleRegErrors({});
+                      templeRegRefIdRef.current = makeSubmissionRef("TREG");
+                    }}
+                    className="inline-flex items-center space-x-2 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold text-sm px-6 py-2.5 rounded-xl transition-all cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> <span>Back to Home</span>
+                  </button>
+                )}
+              </div>
             </div>
+            );
+          })()
 
           /* ── Step: Optional Divine Contribution (after successful details sync) ── */
-          ) : templeRegStep === "divine contribution" ? (
+          : templeRegStep === "divine contribution" ? (
             <div className="space-y-5">
               {/* Registration confirmed banner */}
               <div className="flex items-center space-x-3 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-2xl px-4 py-3.5">
@@ -2607,6 +2723,19 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
   // ── Dharma Portal ──
   if (step === "dharmic") {
+    // Devotional confirmation — shown only when a real divine contribution
+    // was paid on the previous step (not on Skip). No "Download Certificate"
+    // is offered here: the actual certificate is handcrafted and shared on
+    // WhatsApp/Email within 3–7 working days. The devotee can download this
+    // confirmation message instead.
+    const confirmation = devoteeDonationConfirmed
+      ? getDevotionalConfirmation({
+          category: "temple_contribution",
+          serviceName: `Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}`,
+          devoteeName: devotee.name,
+          refId: donationRefId || devoteeFlowRefIdRef.current,
+        })
+      : null;
     return (
       <section
         id="dharma-portal-section"
@@ -2662,6 +2791,19 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             </div>
           </div>
 
+          {confirmation && (
+            <div className="glass-panel rounded-2xl p-4 border border-white/10 text-left text-xs text-white/90 leading-relaxed space-y-2">
+              <p>{confirmation.opening}</p>
+              <p>{confirmation.blessing}</p>
+              <button
+                onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}`, devoteeName: devotee.name, refId: donationRefId || devoteeFlowRefIdRef.current })}
+                className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>Download Confirmation</span>
+              </button>
+            </div>
+          )}
+
           <div className="glass-panel rounded-2xl p-4 border border-white/8 space-y-2">
             <p className="text-[11px] text-white/50 leading-relaxed">
               🔔 Your details and Dharmic ID have been securely synced by Sridwar Technology.
@@ -2678,7 +2820,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <BookOpen className="w-3.5 h-3.5" /><span>Book a Puja</span>
             </button>
             <button
-              onClick={() => { setStep("find"); setDevotee({ name:"", phone:"", email:"", city:"", puja:"", notes:"" }); setSelectedTemple(""); setSearchQuery(""); devoteeFlowRefIdRef.current = makeSubmissionRef("TDEV"); }}
+              onClick={() => { setStep("find"); setDevotee({ name:"", phone:"", email:"", city:"", puja:"", notes:"" }); setSelectedTemple(""); setSearchQuery(""); setDevoteeDonationConfirmed(null); devoteeFlowRefIdRef.current = makeSubmissionRef("TDEV"); }}
               className="flex items-center justify-center space-x-1.5 bg-[#5EEAD4]/10 hover:bg-[#5EEAD4]/15 border border-[#5EEAD4]/20 text-[#5EEAD4] text-xs font-semibold py-3 rounded-xl transition-all cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" /><span>Back to Home</span>

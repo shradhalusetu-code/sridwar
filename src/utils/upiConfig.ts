@@ -20,7 +20,7 @@
  * ============================================================
  */
 
-export const UPI_ID = "kunu1995@ibl"; // ✅ Your real UPI ID (decoded from your QR code)
+export const UPI_ID = "sridwar@axisbank"; // ✅ Your real UPI ID (decoded from your latest QR code)
 export const PAYEE_NAME = "Kunu Rana"; // Shown in the payer's UPI app
 
 /**

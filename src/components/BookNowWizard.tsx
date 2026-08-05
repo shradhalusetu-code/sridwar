@@ -9,6 +9,7 @@ import { syncToGoogleForm } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
+import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
 import { gaBookNowOpen, gaBookingDetailsSubmit, gaCheckoutInitiate, gaBookingComplete, gaCertificateAction } from "../utils/analytics";
@@ -77,6 +78,13 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   }, [isOpen, defaultPujaName, defaultPrice]);
 
   if (!isOpen) return null;
+
+  const wizardConfirmation = getDevotionalConfirmation({
+    category: "puja_seva",
+    serviceName: pujaName,
+    devoteeName,
+    refId,
+  });
 
   // Step 1 → Step 2: the instant the devotee's details are validated and
   // they proceed toward payment, sync the FIRST (and only "pending") row to
@@ -415,15 +423,19 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       </div>
                     </div>
                   </div>
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs text-white/90 leading-relaxed">
+                    <p>{wizardConfirmation.opening}</p>
+                    <p className="mt-2">{wizardConfirmation.blessing}</p>
+                  </div>
                   <div className="flex items-start space-x-1.5 text-[10px] font-mono text-emerald-300 bg-emerald-950/20 py-2 px-2.5 rounded-xl border border-emerald-500/20 text-left">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-px" />
-                    <span>Reference: {refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available), photo/video evidence, and your final Sankalpa Certificate on WhatsApp &amp; Email within 3 working days of completion.</span>
+                    <span>Reference: {refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available) and photo/video evidence, in addition to your Sankalpa Certificate.</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <button id="pdf-download-btn" onClick={() => { gaCertificateAction("download", refId); alert("Your puja has not been performed yet, so the certificate isn't ready. Once the temple priest completes your puja, your Sankalpa Certificate PDF will be generated and dispatched to your WhatsApp & Email within 3 working days."); }}
+                    <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category: "puja_seva", serviceName: pujaName, devoteeName, refId }); }}
                       className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
                       <Download className="w-3.5 h-3.5 text-[#FFB347]" />
-                      <span>Download Certificate PDF</span>
+                      <span>Download Confirmation</span>
                     </button>
                     <button id="close-success-wizard" onClick={handleClose}
                       className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">

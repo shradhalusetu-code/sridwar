@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { X, Check, Copy, ShieldCheck, RefreshCw } from "lucide-react";
-import { buildUpiQrImageUrl, buildUpiLink, PAYEE_NAME } from "../utils/upiConfig";
+import { buildUpiQrImageUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
 
 interface UPIPaymentModalProps {
   isOpen: boolean;
@@ -51,7 +51,6 @@ export default function UPIPaymentModal({
 
   if (!isOpen) return null;
 
-  const upiId = "sridwar@upi";
   const WHATSAPP_NUMBER = "919777645062";
   const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
 
@@ -96,7 +95,7 @@ export default function UPIPaymentModal({
   };
 
   const handleCopyUPI = () => {
-    navigator.clipboard.writeText(upiId);
+    navigator.clipboard.writeText(UPI_ID);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -199,9 +198,6 @@ export default function UPIPaymentModal({
                   draggable={false}
                 />
               </div>
-              <p className="text-[9px] text-white/30 font-mono text-center">
-                Receiving account: <span className="text-white/60 font-bold">{PAYEE_NAME}</span>
-              </p>
               <p className="text-[11px] text-white/55 text-center leading-relaxed">
                 On a phone you can also{" "}
                 <a href={buildUpiLink(effectiveAmount, bookingName)} className="text-[#5EEAD4] underline font-semibold">
@@ -228,7 +224,7 @@ export default function UPIPaymentModal({
             <div className="flex items-center justify-between bg-white/5 px-4 py-3 rounded-xl border border-white/10">
               <div>
                 <span className="block text-[9px] text-white/40 font-mono uppercase">UPI ID · Sridwar</span>
-                <span className="text-sm font-bold text-white font-mono">{upiId}</span>
+                <span className="text-sm font-bold text-white font-mono">{UPI_ID}</span>
               </div>
               <button onClick={handleCopyUPI}
                 className="flex items-center space-x-1 bg-[#FFB347]/10 hover:bg-[#FFB347]/20 text-[#FFB347] px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[#FFB347]/20 transition-all">
