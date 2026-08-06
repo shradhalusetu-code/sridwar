@@ -17,7 +17,6 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 // @ts-ignore
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
-import RefundRequestModal, { RefundRequestBooking } from "./RefundRequestModal";
 import ReferralDashboardPanel from "./ReferralDashboardPanel";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
@@ -62,12 +61,11 @@ export default function AuthDashboard({
   const [authFormMode, setAuthFormMode] = useState<"signup" | "signin">("signup");
   const [passwordField, setPasswordField] = useState("");
   const [authErrorMessage, setAuthErrorMessage] = useState("");
-  // Forgot-password flow — self-service, no page/component change needed by
-  // the devotee beyond tapping a link on the sign-in form. Supabase sends a
-  // password-reset email containing a link back to the site with a
-  // recovery token; Supabase's own JS SDK handles that token automatically
-  // and fires a PASSWORD_RECOVERY auth event, which we listen for below to
-  // show the "set a new password" step.
+  // Forgot-password flow. Supabase sends a password-reset email with a
+  // link back to "?page=login" (see handleSendResetEmail below), which
+  // App.tsx's existing deep-link handling uses to open this component
+  // directly. Recovery mode is then detected two ways — see the two
+  // useEffects further down for why both exist.
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
@@ -129,10 +127,6 @@ export default function AuthDashboard({
   // activity on any device, not just this browser's session.
   const [activityRecords, setActivityRecords] = useState<ActivityRecord[]>([]);
   const [formSubmissions, setFormSubmissions] = useState<FormSubmissionRecord[]>([]);
-
-  // Refund / Cancellation request modal — opened from a specific row in the
-  // "All Account Activity" ledger below. Non-null booking = modal open.
-  const [refundRequestBooking, setRefundRequestBooking] = useState<RefundRequestBooking | null>(null);
 
   // Post-login "Contribute / Donate" panel — lets an already-logged-in
   // devotee start a new temple divine contribution from their Profile page,
@@ -197,11 +191,42 @@ export default function AuthDashboard({
     }
   }, [isLoggedIn]);
 
+  // ─── Why the reset-password link used to strand devotees on the homepage ──
+  //
+  // Two separate bugs combined to make this look completely broken:
+  //
+  // 1. `redirectTo` pointed at the bare site root. This is a single-page
+  //    app where "Login" is a `currentPage` state value, not a real route
+  //    — landing on "/" never opened this component at all, so there was
+  //    no reset form to find. Fixed below by appending "?page=login",
+  //    which App.tsx already recognizes as a valid deep-link target (see
+  //    VALID_DEEP_LINK_PAGES in App.tsx) and uses to set currentPage to
+  //    "login" on load — no changes needed there.
+  //
+  // 2. Even with that fixed, there was a race condition: supabase-js starts
+  //    parsing the recovery token out of the URL the instant the client is
+  //    created in supabaseClient.ts (imported eagerly at the top of
+  //    App.tsx, so this happens on every page load). This component,
+  //    however, is lazy-loaded — its PASSWORD_RECOVERY listener below only
+  //    starts listening once its JS chunk has been fetched and it has
+  //    mounted, which can easily happen AFTER supabase-js has already
+  //    fired (and thus missed) that event. The fix is to not depend on
+  //    catching that event at all: Supabase's reset-link URL always
+  //    contains "type=recovery" in its hash fragment, so we check that
+  //    directly and synchronously on mount — a signal that can't be missed
+  //    due to timing. The event listener is kept as a harmless backup.
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
+      setIsPasswordRecoveryMode(true);
+    }
+  }, []);
+
   // Listen for Supabase's PASSWORD_RECOVERY event. When a devotee taps the
   // reset link in their email, Supabase's client SDK opens the app/site,
   // reads the recovery token from the URL automatically, exchanges it for
   // a temporary session, and fires this event — that's our signal to show
   // the "choose a new password" screen instead of the normal login form.
+  // (Kept as a backup alongside the direct hash check above.)
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
@@ -229,7 +254,9 @@ export default function AuthDashboard({
 
     setIsSendingResetEmail(true);
     const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
-      redirectTo: window.location.origin,
+      // "?page=login" makes App.tsx open straight to this component on
+      // load — see the note above for why the bare site root wasn't enough.
+      redirectTo: `${window.location.origin}/?page=login`,
     });
     setIsSendingResetEmail(false);
 
@@ -267,6 +294,13 @@ export default function AuthDashboard({
     setNewPasswordSuccess(true);
     setNewPasswordField("");
     setConfirmNewPasswordField("");
+    // Strip the recovery token out of the address bar now that it's been
+    // used — leaving it there would let a page refresh re-trigger recovery
+    // mode indefinitely, and there's no reason for an access token to
+    // linger visibly in the URL/browser history any longer than it has to.
+    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
+      window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+    }
     setTimeout(() => {
       setIsPasswordRecoveryMode(false);
       setNewPasswordSuccess(false);
@@ -372,7 +406,6 @@ export default function AuthDashboard({
     devotee_registration: "Devotee Registration",
     expert_registration: "Dharmic Expert Registration",
     temple_committee_registration: "Temple Committee Registration",
-    refund_cancellation_request: "Refund / Cancellation Request",
   };
   const paymentStatusBadge = (status: string) => {
     if (status === "confirmed") {
@@ -1263,20 +1296,6 @@ export default function AuthDashboard({
                               {badge.label}
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => setRefundRequestBooking({
-                              refId: rec.refId,
-                              itemName: rec.itemName,
-                              amount: rec.amount,
-                              activityType: rec.activityType,
-                              paymentMethod: rec.paymentMethod,
-                              createdAt: rec.createdAt,
-                            })}
-                            className="mt-2.5 w-full text-center text-[9px] font-mono uppercase tracking-wider text-white/40 hover:text-[#FFB347] border border-white/10 hover:border-[#FFB347]/30 rounded-lg py-1.5 transition-colors"
-                          >
-                            Request Cancellation / Refund
-                          </button>
                         </div>
                       );
                     })}
@@ -1804,18 +1823,6 @@ export default function AuthDashboard({
         }`}
         devoteeName={pendingLogin?.name || "Devotee"}
         refId={contributionRefId}
-      />
-
-      {/* ── Refund / Cancellation Request — opened from the activity ledger ── */}
-      <RefundRequestModal
-        isOpen={!!refundRequestBooking}
-        onClose={() => setRefundRequestBooking(null)}
-        booking={refundRequestBooking}
-        devoteeName={pendingLogin?.name || userProfile.name || "Devotee"}
-        devoteeEmail={userProfile.email}
-        devoteePhone={userPhone}
-        onOpenLegalDoc={onOpenLegalDoc}
-        onSubmitted={() => { fetchFormSubmissions().then(setFormSubmissions); }}
       />
 
       {/* ── Delete My Account — self-service confirmation modal ───────────── */}
