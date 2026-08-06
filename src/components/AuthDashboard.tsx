@@ -735,8 +735,16 @@ export default function AuthDashboard({
     <section id="auth-dashboard-section" className="py-24 bg-[#021816] text-left text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Conditional Layout based on Logon Status */}
-        {!isLoggedIn ? (
+        {/* Conditional Layout based on Logon Status.
+            isPasswordRecoveryMode is included here deliberately: verifyOtp()
+            for a recovery token creates a real Supabase session, which flips
+            isLoggedIn to true via the onAuthStateChange listener in App.tsx.
+            Without this override, a devotee who already has a cached/active
+            session (the common case) would be sent straight to their Profile
+            Dashboard instead of the "set new password" form — which has no
+            password-reset option of its own. Recovery mode must win over an
+            existing session until the new password is saved. */}
+        {(!isLoggedIn || isPasswordRecoveryMode) ? (
           
           /* LOGIN PANEL FORM OVERLAY */
           <div className="max-w-md mx-auto bg-[#092320] rounded-3xl border border-white/10 p-6 sm:p-8 shadow-xl" id="google-login-panel">
