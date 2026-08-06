@@ -297,6 +297,15 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
   }
 ];
 
+// ─── Temporary feature flag ─────────────────────────────────────────────────
+// The "Divine Miracles & Success Stories" testimonial carousel (all
+// devotee comments/stories) is temporarily disabled per product request, so
+// devotees cannot see them for now. The "Share Your Devotion Story" button
+// stays visible and fully functional — devotees can still submit stories,
+// they just aren't shown on the page. Nothing below is deleted: flip this
+// flag back to true to restore the carousel exactly as it was.
+const SHOW_DEVOTEE_TESTIMONIALS = false;
+
 /** Fisher–Yates shuffle — returns a new array in random order without mutating the input. */
 function shuffleArray<T>(items: T[]): T[] {
   const arr = [...items];
@@ -472,7 +481,7 @@ export default function DevoteeExperiences() {
     }, 2000);
   };
 
-  if (testimonials.length === 0) return null;
+  if (SHOW_DEVOTEE_TESTIMONIALS && testimonials.length === 0) return null;
 
   const currentDevotee = testimonials[currentIndex];
 
@@ -485,147 +494,156 @@ export default function DevoteeExperiences() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 relative z-10">
-        
-        {/* Header styling */}
-        <div className="text-center space-y-2 mb-6">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-            <Users className="w-3.5 h-3.5 text-[#5EEAD4]" />
-            <span className="text-[10px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
-              Devotee Experiences
-            </span>
-          </div>
-          <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
-            Divine Miracles & Success Stories
-          </h2>
-          <p className="text-[10px] text-white/40 font-mono max-w-md mx-auto pt-1">
-            Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
-            any specific spiritual, health, or personal outcome.
-          </p>
-        </div>
 
-        {/* Carousel Container */}
-        <div className="relative max-w-4xl mx-auto">
-          
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-[#062421]/90 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md">
-            
-            {/* Spiritual symbol decoration */}
-            <div className="absolute top-4 right-6 text-white/5 font-serif text-8xl pointer-events-none select-none">
-              ॐ
+        {/* Header + testimonial carousel (all devotee comments/stories) —
+            temporarily disabled, see SHOW_DEVOTEE_TESTIMONIALS above. Flip
+            that flag back to true to restore this exactly as it was; the
+            Share Story button below stays visible either way. */}
+        {SHOW_DEVOTEE_TESTIMONIALS && (
+          <>
+            {/* Header styling */}
+            <div className="text-center space-y-2 mb-6">
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                <Users className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                <span className="text-[10px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
+                  Devotee Experiences
+                </span>
+              </div>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
+                Divine Miracles & Success Stories
+              </h2>
+              <p className="text-[10px] text-white/40 font-mono max-w-md mx-auto pt-1">
+                Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
+                any specific spiritual, health, or personal outcome.
+              </p>
             </div>
 
-            {/* Left Column: Avatar & Service Details */}
-            <div className="md:col-span-4 flex flex-col items-center text-center border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-8">
-              {/* Profile Avatar icon placeholder representation */}
-              <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2 border-[#FFB347]/30 shadow-lg relative overflow-hidden bg-[#021816]">
-                {currentDevotee.avatarUrl ? (
-                  <img
-                    src={currentDevotee.avatarUrl}
-                    alt={currentDevotee.name}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <span className="text-3xl font-serif font-black uppercase text-[#FFB347]">
-                    {currentDevotee.name.charAt(0)}
-                  </span>
-                )}
-                {/* Small heart/star badge details */}
-                <div className="absolute -bottom-1 -right-1 bg-teal-500 text-white rounded-full p-1 border border-[#062421] shadow z-10">
-                  <CheckCircle className="w-3.5 h-3.5" />
+            {/* Carousel Container */}
+            <div className="relative max-w-4xl mx-auto">
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-[#062421]/90 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md">
+
+                {/* Spiritual symbol decoration */}
+                <div className="absolute top-4 right-6 text-white/5 font-serif text-8xl pointer-events-none select-none">
+                  ॐ
                 </div>
-              </div>
 
-              <h4 className="font-serif text-xl font-bold text-white tracking-tight">{currentDevotee.name}</h4>
-              <div className="flex items-center text-white/50 text-xs mt-1">
-                <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] mr-1" />
-                {currentDevotee.location}
-              </div>
-
-              {/* Service Tag */}
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-teal-950/80 border border-[#5EEAD4]/20 text-[11px] font-sans font-bold text-[#5EEAD4] tracking-wide uppercase">
-                {currentDevotee.serviceName}
-              </div>
-            </div>
-
-            {/* Right Column: Quote & Story */}
-            <div className="md:col-span-8 flex flex-col justify-between py-2 pl-0 md:pl-4 min-h-[220px]">
-              <div>
-                {/* Trust Stars — supports half-star ratings like 4.5 */}
-                <div className="flex items-center space-x-1 mb-4">
-                  {[...Array(5)].map((_, i) => {
-                    const fillPercent = Math.max(0, Math.min(1, currentDevotee.rating - i)) * 100;
-                    return (
-                      <span key={i} className="relative inline-block w-4 h-4">
-                        <Star className="absolute inset-0 w-4 h-4 text-white/20" />
-                        <span className="absolute inset-0 overflow-hidden" style={{ width: `${fillPercent}%` }}>
-                          <Star className="w-4 h-4 text-[#FFB347] fill-[#FFB347]" />
-                        </span>
+                {/* Left Column: Avatar & Service Details */}
+                <div className="md:col-span-4 flex flex-col items-center text-center border-b md:border-b-0 md:border-r border-white/10 pb-6 md:pb-0 md:pr-8">
+                  {/* Profile Avatar icon placeholder representation */}
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2 border-[#FFB347]/30 shadow-lg relative overflow-hidden bg-[#021816]">
+                    {currentDevotee.avatarUrl ? (
+                      <img
+                        src={currentDevotee.avatarUrl}
+                        alt={currentDevotee.name}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="text-3xl font-serif font-black uppercase text-[#FFB347]">
+                        {currentDevotee.name.charAt(0)}
                       </span>
-                    );
-                  })}
-                  <span className="text-xs text-white/50 font-mono pl-1">({currentDevotee.rating})</span>
+                    )}
+                    {/* Small heart/star badge details */}
+                    <div className="absolute -bottom-1 -right-1 bg-teal-500 text-white rounded-full p-1 border border-[#062421] shadow z-10">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+
+                  <h4 className="font-serif text-xl font-bold text-white tracking-tight">{currentDevotee.name}</h4>
+                  <div className="flex items-center text-white/50 text-xs mt-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] mr-1" />
+                    {currentDevotee.location}
+                  </div>
+
+                  {/* Service Tag */}
+                  <div className="mt-4 px-3 py-1.5 rounded-xl bg-teal-950/80 border border-[#5EEAD4]/20 text-[11px] font-sans font-bold text-[#5EEAD4] tracking-wide uppercase">
+                    {currentDevotee.serviceName}
+                  </div>
                 </div>
 
-                {/* Quote details */}
-                <div className="relative">
-                  <span className="absolute -top-6 -left-3 text-white/10 font-serif text-7xl select-none">“</span>
-                  <p className="text-sm md:text-base text-white/80 italic leading-relaxed relative z-10 pl-2">
-                    {currentDevotee.story}
-                  </p>
+                {/* Right Column: Quote & Story */}
+                <div className="md:col-span-8 flex flex-col justify-between py-2 pl-0 md:pl-4 min-h-[220px]">
+                  <div>
+                    {/* Trust Stars — supports half-star ratings like 4.5 */}
+                    <div className="flex items-center space-x-1 mb-4">
+                      {[...Array(5)].map((_, i) => {
+                        const fillPercent = Math.max(0, Math.min(1, currentDevotee.rating - i)) * 100;
+                        return (
+                          <span key={i} className="relative inline-block w-4 h-4">
+                            <Star className="absolute inset-0 w-4 h-4 text-white/20" />
+                            <span className="absolute inset-0 overflow-hidden" style={{ width: `${fillPercent}%` }}>
+                              <Star className="w-4 h-4 text-[#FFB347] fill-[#FFB347]" />
+                            </span>
+                          </span>
+                        );
+                      })}
+                      <span className="text-xs text-white/50 font-mono pl-1">({currentDevotee.rating})</span>
+                    </div>
+
+                    {/* Quote details */}
+                    <div className="relative">
+                      <span className="absolute -top-6 -left-3 text-white/10 font-serif text-7xl select-none">“</span>
+                      <p className="text-sm md:text-base text-white/80 italic leading-relaxed relative z-10 pl-2">
+                        {currentDevotee.story}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom Stamp Badge */}
+                  <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap items-center gap-4">
+                    <div className="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-500/20 rounded-lg px-2.5 py-1 text-emerald-400 text-xs font-bold font-sans">
+                      <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <span>{currentDevotee.badge}</span>
+                    </div>
+                  </div>
+
                 </div>
+
               </div>
 
-              {/* Bottom Stamp Badge */}
-              <div className="mt-6 pt-4 border-t border-white/5 flex flex-wrap items-center gap-4">
-                <div className="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-500/20 rounded-lg px-2.5 py-1 text-emerald-400 text-xs font-bold font-sans">
-                  <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
-                  <span>{currentDevotee.badge}</span>
+              {/* Nav Controls */}
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  id="devotee-carousel-prev"
+                  onClick={handlePrev}
+                  aria-label="Previous devotee story"
+                  className="flex-shrink-0 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                {/* Pagination indicators dots — scrolls horizontally instead of pushing the arrows off-screen when there are many stories */}
+                <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
+                  <div className="flex items-center justify-center space-x-2 w-max mx-auto px-1">
+                    {testimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentIndex(index)}
+                        className={`h-2 rounded-full transition-all duration-300 flex-shrink-0 ${index === currentIndex ? "w-6 bg-[#FFB347]" : "w-2 bg-white/20 hover:bg-white/40"}`}
+                        title={`Go to story ${index + 1}`}
+                      />
+                    ))}
+                  </div>
                 </div>
+
+                <button
+                  id="devotee-carousel-next"
+                  onClick={handleNext}
+                  aria-label="Next devotee story"
+                  className="flex-shrink-0 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
 
             </div>
+          </>
+        )}
 
-          </div>
-
-          {/* Nav Controls */}
-          <div className="flex items-center gap-3 mt-6">
-            <button
-              id="devotee-carousel-prev"
-              onClick={handlePrev}
-              aria-label="Previous devotee story"
-              className="flex-shrink-0 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-
-            {/* Pagination indicators dots — scrolls horizontally instead of pushing the arrows off-screen when there are many stories */}
-            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar">
-              <div className="flex items-center justify-center space-x-2 w-max mx-auto px-1">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`h-2 rounded-full transition-all duration-300 flex-shrink-0 ${index === currentIndex ? "w-6 bg-[#FFB347]" : "w-2 bg-white/20 hover:bg-white/40"}`}
-                    title={`Go to story ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <button
-              id="devotee-carousel-next"
-              onClick={handleNext}
-              aria-label="Next devotee story"
-              className="flex-shrink-0 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white transition-all cursor-pointer shadow hover:text-[#5EEAD4]"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-
-        </div>
-
-        {/* Action Button: Share Testimonial */}
-        <div className="mt-8 text-center" id="devotee-experiences-action">
+        {/* Action Button: Share Testimonial — always visible, regardless of
+            SHOW_DEVOTEE_TESTIMONIALS, so devotees can still submit stories. */}
+        <div className={SHOW_DEVOTEE_TESTIMONIALS ? "mt-8 text-center" : "text-center"} id="devotee-experiences-action">
           <button
             onClick={() => setIsModalOpen(true)}
             className="relative inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest shadow-xl transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"

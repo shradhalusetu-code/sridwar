@@ -7,8 +7,8 @@ android {
         applicationId "com.shradhalu.sridwar"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.0.3"
+        versionCode 6
+        versionName "1.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -33,6 +33,21 @@ android {
             // behaviour) before shipping, since any native-layer change
             // deserves a real test pass even when the risk is low.
             minifyEnabled true
+            // Added per Play Console's "Improve your app's memory and
+            // performance with R8 optimisation" recommendation (Release
+            // dashboard, v1.0.4 review) — strips unused resources
+            // (images, layouts, strings) the same way minifyEnabled
+            // already strips unused code. Low risk for the same reason
+            // minifyEnabled is: nearly everything the app actually shows
+            // lives in the JS bundle under base/assets/public, which this
+            // does not touch. It only prunes native Android resources
+            // (e.g. unused drawables/layouts pulled in by AndroidX/
+            // Capacitor libraries) that nothing in the app references.
+            // Still worth a release-build smoke test after enabling, same
+            // as with minifyEnabled — confirm icons, splash screen, and
+            // status bar theming all still render correctly, since those
+            // are the resource types most likely to be touched.
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

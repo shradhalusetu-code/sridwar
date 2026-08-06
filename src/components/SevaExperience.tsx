@@ -26,6 +26,16 @@ import { sectionTopPadding } from "../utils/androidSpacing";
 // removed and no functionality was deleted.
 const SHOW_SEVA_LIVE_DASHBOARD = false;
 
+// ─── Temporary feature flag ─────────────────────────────────────────────────
+// The Prayer Wall's visible comment list (real devotee reviews + anything a
+// visitor has sent) is temporarily hidden on the Sacred Moments card per
+// product request, so devotees cannot see them for now. The "Offer your
+// prayers or type a mantra..." input + send button stay visible and fully
+// functional — a devotee can still offer a prayer, it just isn't shown on
+// the page. Nothing is deleted: flip this flag back to true to restore the
+// list exactly as it was.
+const SHOW_PRAYER_WALL_COMMENTS = false;
+
 // ─── Persisted "completed seva offering" records ───────────────────────────
 // These power ONLY the Live Devotional Dashboard's "Recent Seva Completed"
 // list — the Structured Seva Offering cards (Gau Seva, Annadan, etc.) are
@@ -532,9 +542,11 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               )}
             </div>
 
-            {/* Always-visible: first 4 FEATURED_SEVAS in 2×2 grid */}
+            {/* Always-visible: first 2 FEATURED_SEVAS (temporarily reduced
+                from 4 — the other 2 now live in "More Sacred Sevas" below,
+                not deleted). */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {FEATURED_SEVAS.slice(0, 4).map((seva) => (
+              {FEATURED_SEVAS.slice(0, 2).map((seva) => (
                 <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
               ))}
             </div>
@@ -600,23 +612,29 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                 {/* Messages — fixed height, shows ~8-9 cards at a glance;
                     scroll for the rest. line-clamp-2 keeps every card a
                     predictable height so that estimate holds regardless of
-                    how long an individual review is. */}
-                <div
-                  id="chat-messages-container"
-                  className="h-[640px] overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
-                >
-                  {prayerWallCards.map((msg, i) => (
-                    <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-bold text-[#5EEAD4]">{msg.name}</span>
-                        <span className="text-[9px] text-white/40 font-mono">{msg.location}</span>
+                    how long an individual review is.
+                    Temporarily hidden, see SHOW_PRAYER_WALL_COMMENTS above —
+                    when hidden, no fixed-height block is rendered at all, so
+                    no empty gap is left above the input below. */}
+                {SHOW_PRAYER_WALL_COMMENTS && (
+                  <div
+                    id="chat-messages-container"
+                    className="h-[640px] overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
+                  >
+                    {prayerWallCards.map((msg, i) => (
+                      <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="font-bold text-[#5EEAD4]">{msg.name}</span>
+                          <span className="text-[9px] text-white/40 font-mono">{msg.location}</span>
+                        </div>
+                        <p className="text-white/80 line-clamp-2">{msg.msg}</p>
                       </div>
-                      <p className="text-white/80 line-clamp-2">{msg.msg}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
 
-                {/* Input */}
+                {/* Input — "Offer your prayers or type a mantra..." stays
+                    visible and functional regardless of SHOW_PRAYER_WALL_COMMENTS. */}
                 <form onSubmit={handleSendMessage} className="flex gap-2 shrink-0">
                   <input
                     id="chat-input-box"
@@ -662,7 +680,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                   <div>
                     <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
                     <span className="block text-[10px] text-white/50 font-mono mt-0.5">
-                      {FEATURED_SEVAS.slice(4).length + EXTRA_SEVAS.length} additional offerings{isDiscountActive() ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
+                      {FEATURED_SEVAS.slice(2).length + EXTRA_SEVAS.length} additional offerings{isDiscountActive() ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
                     </span>
                   </div>
                 </div>
@@ -683,7 +701,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               {accordionOpen && (
                 <div className="bg-[#021816] p-4 border-t border-white/10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {FEATURED_SEVAS.slice(4).map((seva) => (
+                    {FEATURED_SEVAS.slice(2).map((seva) => (
                       <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                     ))}
                     {EXTRA_SEVAS.map((seva) => (
