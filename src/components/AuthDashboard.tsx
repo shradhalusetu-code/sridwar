@@ -191,42 +191,74 @@ export default function AuthDashboard({
     }
   }, [isLoggedIn]);
 
-  // ─── Why the reset-password link used to strand devotees on the homepage ──
+  // ─── Why the reset-password link still wasn't showing a reset form ───────
   //
-  // Two separate bugs combined to make this look completely broken:
+  // The redirect itself now correctly lands on this page (previous fix
+  // worked). What's still missing is that Supabase's DEFAULT "Reset
+  // Password" email template uses {{ .ConfirmationURL }}, which routes the
+  // click through Supabase's own hosted verification page first — and
+  // *that* hop is where things get lost. This is a well-documented
+  // Supabase gotcha, not something specific to this app: that hosted
+  // redirect can fire a SIGNED_IN event before PASSWORD_RECOVERY, and can
+  // clear the token from the URL before this component's own checks ever
+  // see it, depending on timing outside our control.
   //
-  // 1. `redirectTo` pointed at the bare site root. This is a single-page
-  //    app where "Login" is a `currentPage` state value, not a real route
-  //    — landing on "/" never opened this component at all, so there was
-  //    no reset form to find. Fixed below by appending "?page=login",
-  //    which App.tsx already recognizes as a valid deep-link target (see
-  //    VALID_DEEP_LINK_PAGES in App.tsx) and uses to set currentPage to
-  //    "login" on load — no changes needed there.
+  // The fix Supabase itself recommends for client-only apps like this one
+  // is to skip that hop entirely: change the email template to link
+  // straight back to the app with an explicit token_hash, and verify it
+  // directly here with supabase.auth.verifyOtp(). This is deterministic —
+  // no dependence on background event timing at all.
   //
-  // 2. Even with that fixed, there was a race condition: supabase-js starts
-  //    parsing the recovery token out of the URL the instant the client is
-  //    created in supabaseClient.ts (imported eagerly at the top of
-  //    App.tsx, so this happens on every page load). This component,
-  //    however, is lazy-loaded — its PASSWORD_RECOVERY listener below only
-  //    starts listening once its JS chunk has been fetched and it has
-  //    mounted, which can easily happen AFTER supabase-js has already
-  //    fired (and thus missed) that event. The fix is to not depend on
-  //    catching that event at all: Supabase's reset-link URL always
-  //    contains "type=recovery" in its hash fragment, so we check that
-  //    directly and synchronously on mount — a signal that can't be missed
-  //    due to timing. The event listener is kept as a harmless backup.
+  // 👉 REQUIRED Dashboard step: in Supabase → Authentication → Email
+  //    Templates → "Reset Password", replace the body with one that links
+  //    to: {{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery
+  //    (full template provided separately). Without that template change,
+  //    this code has nothing to read and falls back to the older
+  //    hash-based checks below, which is what's currently happening.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+    if (tokenHash && type === "recovery") {
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" }).then(({ error }) => {
+        if (error) {
+          console.error("[AuthDashboard] Recovery link verification failed:", error.message);
+          setForgotPasswordError(
+            "This password reset link is invalid or has expired. Please request a new one below."
+          );
+          setShowForgotPassword(true);
+        } else {
+          setIsPasswordRecoveryMode(true);
+        }
+        // Strip token_hash/type out of the address bar either way — a
+        // failed or already-used token shouldn't keep re-attempting on
+        // every refresh, and a valid one shouldn't linger visibly either.
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete("token_hash");
+        cleanParams.delete("type");
+        const cleanSearch = cleanParams.toString();
+        window.history.replaceState(
+          window.history.state,
+          "",
+          window.location.pathname + (cleanSearch ? `?${cleanSearch}` : "")
+        );
+      });
+    }
+  }, []);
+
+  // Fallback #1: some older/default Supabase email templates deliver the
+  // recovery token as a URL hash fragment (#...type=recovery...) instead
+  // of the query-string token_hash above. Harmless to keep checking for
+  // both.
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
       setIsPasswordRecoveryMode(true);
     }
   }, []);
 
-  // Listen for Supabase's PASSWORD_RECOVERY event. When a devotee taps the
-  // reset link in their email, Supabase's client SDK opens the app/site,
-  // reads the recovery token from the URL automatically, exchanges it for
-  // a temporary session, and fires this event — that's our signal to show
-  // the "choose a new password" screen instead of the normal login form.
-  // (Kept as a backup alongside the direct hash check above.)
+  // Fallback #2: listen for Supabase's PASSWORD_RECOVERY event too, in case
+  // neither URL-based check above catches it first.
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
