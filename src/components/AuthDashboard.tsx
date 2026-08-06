@@ -17,6 +17,7 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 // @ts-ignore
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
+import RefundRequestModal, { RefundRequestBooking } from "./RefundRequestModal";
 import ReferralDashboardPanel from "./ReferralDashboardPanel";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
@@ -128,6 +129,10 @@ export default function AuthDashboard({
   // activity on any device, not just this browser's session.
   const [activityRecords, setActivityRecords] = useState<ActivityRecord[]>([]);
   const [formSubmissions, setFormSubmissions] = useState<FormSubmissionRecord[]>([]);
+
+  // Refund / Cancellation request modal — opened from a specific row in the
+  // "All Account Activity" ledger below. Non-null booking = modal open.
+  const [refundRequestBooking, setRefundRequestBooking] = useState<RefundRequestBooking | null>(null);
 
   // Post-login "Contribute / Donate" panel — lets an already-logged-in
   // devotee start a new temple divine contribution from their Profile page,
@@ -367,6 +372,7 @@ export default function AuthDashboard({
     devotee_registration: "Devotee Registration",
     expert_registration: "Dharmic Expert Registration",
     temple_committee_registration: "Temple Committee Registration",
+    refund_cancellation_request: "Refund / Cancellation Request",
   };
   const paymentStatusBadge = (status: string) => {
     if (status === "confirmed") {
@@ -1257,6 +1263,20 @@ export default function AuthDashboard({
                               {badge.label}
                             </span>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => setRefundRequestBooking({
+                              refId: rec.refId,
+                              itemName: rec.itemName,
+                              amount: rec.amount,
+                              activityType: rec.activityType,
+                              paymentMethod: rec.paymentMethod,
+                              createdAt: rec.createdAt,
+                            })}
+                            className="mt-2.5 w-full text-center text-[9px] font-mono uppercase tracking-wider text-white/40 hover:text-[#FFB347] border border-white/10 hover:border-[#FFB347]/30 rounded-lg py-1.5 transition-colors"
+                          >
+                            Request Cancellation / Refund
+                          </button>
                         </div>
                       );
                     })}
@@ -1784,6 +1804,18 @@ export default function AuthDashboard({
         }`}
         devoteeName={pendingLogin?.name || "Devotee"}
         refId={contributionRefId}
+      />
+
+      {/* ── Refund / Cancellation Request — opened from the activity ledger ── */}
+      <RefundRequestModal
+        isOpen={!!refundRequestBooking}
+        onClose={() => setRefundRequestBooking(null)}
+        booking={refundRequestBooking}
+        devoteeName={pendingLogin?.name || userProfile.name || "Devotee"}
+        devoteeEmail={userProfile.email}
+        devoteePhone={userPhone}
+        onOpenLegalDoc={onOpenLegalDoc}
+        onSubmitted={() => { fetchFormSubmissions().then(setFormSubmissions); }}
       />
 
       {/* ── Delete My Account — self-service confirmation modal ───────────── */}

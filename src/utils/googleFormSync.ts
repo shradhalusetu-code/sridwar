@@ -126,6 +126,27 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
       typeKey: "entry.943423993"
     },
     isEnabled: true
+  },
+  // ✅ Refund / Cancellation requests (RefundRequestModal.tsx, triggered from
+  // the "All Account Activity" ledger in AuthDashboard.tsx). No dedicated
+  // Google Form/Sheet exists for this yet, so — same pattern already used
+  // above for subscription_signup — it reuses the devotee_support form for
+  // now. Nothing is lost: the `details` field always includes the booking
+  // ref, item, amount, and reason, and the `type` field is fixed to
+  // "Refund/Cancellation Request" so these rows are easy to filter out from
+  // general inquiries in the sheet.
+  // 👉 IMPORTANT: Once you create a dedicated Google Form for refund
+  //    requests, replace formUrl and the entry.XXXXXXXXX values below.
+  refund_cancellation_request: {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
+    mappedFields: {
+      nameKey: "entry.898437491",
+      emailKey: "entry.969380068",
+      phoneKey: "entry.1486488215",
+      detailsKey: "entry.1306645637",
+      typeKey: "entry.943423993"
+    },
+    isEnabled: true
   }
 };
 

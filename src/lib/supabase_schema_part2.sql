@@ -34,7 +34,7 @@ create table if not exists public.form_submissions (
   form_type text not null check (form_type in (
     'contact_us', 'testimonial', 'darshan_certificate',
     'devotee_registration', 'expert_registration', 'temple_committee_registration',
-    'subscription_signup'
+    'subscription_signup', 'refund_cancellation_request'
   )),
   name text,
   email text,
@@ -44,14 +44,14 @@ create table if not exists public.form_submissions (
   created_at timestamptz not null default now()
 );
 
--- Re-running this migration on a table created before subscription_signup
--- existed refreshes the form_type constraint to accept it.
+-- Re-running this migration on a table created before subscription_signup /
+-- refund_cancellation_request existed refreshes the form_type constraint to accept them.
 alter table public.form_submissions drop constraint if exists form_submissions_form_type_check;
 alter table public.form_submissions add constraint form_submissions_form_type_check
   check (form_type in (
     'contact_us', 'testimonial', 'darshan_certificate',
     'devotee_registration', 'expert_registration', 'temple_committee_registration',
-    'subscription_signup'
+    'subscription_signup', 'refund_cancellation_request'
   ));
 
 create index if not exists form_submissions_user_id_idx on public.form_submissions(user_id);

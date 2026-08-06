@@ -305,6 +305,43 @@ Always close with a brief warm greeting (e.g. "May Lord Jagannath bless your hom
   }
 });
 
+const refundRequestSchema = z
+  .object({
+    requestRefId: z.string().min(1),
+    bookingRefId: z.string().min(1),
+    itemName: z.string().min(1),
+    amount: z.union([z.number(), z.string()]),
+    devoteeName: z.string().min(1),
+    devoteeEmail: z.string().min(1),
+    devoteePhone: z.string().min(1),
+    reason: z.string().min(1),
+  })
+  .passthrough();
+
+// Best-effort audit record for refund/cancellation requests submitted via
+// RefundRequestModal.tsx. This is intentionally NOT the system of record —
+// the Google Forms sync and the Supabase `form_submissions` row (both fired
+// client-side alongside this call) are what durably capture the request
+// even if this endpoint is briefly unreachable. This just gives you a
+// server-side, timestamped audit trail to cross-check against, consistent
+// with the account-deletion and form-submission audit logging above.
+app.post("/api/refund-request", validateBody(refundRequestSchema), (req, res) => {
+  const { requestRefId, bookingRefId, itemName, amount, devoteeName, devoteeEmail, devoteePhone, reason } = req.body;
+
+  appendAuditLog("refund_request_submitted", {
+    requestRefId,
+    bookingRefId,
+    itemName,
+    amount,
+    devoteeName,
+    devoteeEmail,
+    devoteePhone,
+    reason,
+  });
+
+  res.json({ status: "received", requestRefId });
+});
+
 // 2. Connector: Simulated Real-Time Forms Submission & Real-Time Google Sheets/Drive Sync logs
 app.get("/api/config", (req, res) => {
   res.json({

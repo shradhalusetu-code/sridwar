@@ -497,6 +497,10 @@ export default function DevoteeExperiences() {
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
             Divine Miracles & Success Stories
           </h2>
+          <p className="text-[10px] text-white/40 font-mono max-w-md mx-auto pt-1">
+            Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
+            any specific spiritual, health, or personal outcome.
+          </p>
         </div>
 
         {/* Carousel Container */}

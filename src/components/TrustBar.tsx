@@ -20,6 +20,12 @@ interface TrustBarProps {
  *    Priests" here — that word should only return once a real
  *    verification process is in place and priests.ts reflects it).
  *  - "Languages Supported" is computed from the app's own translations.
+ *  - "Secure Offerings" intentionally says "Bank-Grade" rather than "100%" —
+ *    the Privacy Policy itself (Section 8, Data Security) correctly states
+ *    that no internet transmission or storage system can be guaranteed
+ *    100% secure, so an unqualified "100% Secure" badge on the homepage
+ *    directly contradicted that and read as an absolute, unverifiable claim
+ *    — exactly what Play Store review flags as a deceptive-claims risk.
  *  - The rest are genuine feature/policy claims (things Sri Dwar actually
  *    does), not fabricated headcounts.
  *
@@ -32,7 +38,7 @@ export default function TrustBar({ isAndroidApp = false }: TrustBarProps) {
     { value: `${PRIEST_PROFILES.length}+`, label: "Priests Network" },
     { value: `${TEMPLES_LIST.length}+`, label: "Temples Network" },
     { value: `${Object.keys(TRANSLATIONS).length}`, label: "Languages Supported" },
-    { value: "100%", label: "Secure Offerings" },
+    { value: "Bank-Grade", label: "Secure Offerings" },
     { value: "24/7", label: "Live Ritual Streams" },
     { value: "Free", label: "Temple Registration" },
     { value: "Global", label: "Devotees Welcome" },
