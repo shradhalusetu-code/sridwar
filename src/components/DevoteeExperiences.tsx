@@ -486,7 +486,7 @@ export default function DevoteeExperiences() {
   const currentDevotee = testimonials[currentIndex];
 
   return (
-    <section id="devotee-experiences-section" className="relative py-16 bg-gradient-to-b from-[#021816] to-[#042825] border-t border-white/10 overflow-hidden">
+    <section id="devotee-experiences-section" className={`relative ${SHOW_DEVOTEE_TESTIMONIALS ? "py-16" : "py-10"} bg-gradient-to-b from-[#021816] to-[#042825] border-t border-white/10 overflow-hidden`}>
       {/* Sacred background patterns */}
       <div className="absolute inset-0 pointer-events-none opacity-5">
         <div className="absolute top-1/2 left-1/4 w-80 h-80 rounded-full bg-[#FFB347] blur-[120px]" />
@@ -495,29 +495,32 @@ export default function DevoteeExperiences() {
 
       <div className="max-w-6xl mx-auto px-4 relative z-10">
 
-        {/* Header + testimonial carousel (all devotee comments/stories) —
-            temporarily disabled, see SHOW_DEVOTEE_TESTIMONIALS above. Flip
-            that flag back to true to restore this exactly as it was; the
-            Share Story button below stays visible either way. */}
+        {/* Header — always visible so devotees understand what the Share
+            Story button below is for, even while the testimonial carousel
+            (all devotee comments/stories) stays hidden per product request.
+            See SHOW_DEVOTEE_TESTIMONIALS below to restore the carousel. */}
+        <div className="text-center space-y-2 mb-3">
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+            <Users className="w-3.5 h-3.5 text-[#5EEAD4]" />
+            <span className="text-[10px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
+              Devotee Experiences
+            </span>
+          </div>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
+            Divine Miracles & Success Stories
+          </h2>
+          <p className="text-[10px] text-white/40 font-mono max-w-md mx-auto pt-1">
+            Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
+            any specific spiritual, health, or personal outcome.
+          </p>
+        </div>
+
+        {/* Testimonial carousel (all devotee comments/stories) — temporarily
+            disabled, see SHOW_DEVOTEE_TESTIMONIALS above. Flip that flag back
+            to true to restore this exactly as it was; the header above and
+            the Share Story button below stay visible either way. */}
         {SHOW_DEVOTEE_TESTIMONIALS && (
           <>
-            {/* Header styling */}
-            <div className="text-center space-y-2 mb-6">
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                <Users className="w-3.5 h-3.5 text-[#5EEAD4]" />
-                <span className="text-[10px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
-                  Devotee Experiences
-                </span>
-              </div>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
-                Divine Miracles & Success Stories
-              </h2>
-              <p className="text-[10px] text-white/40 font-mono max-w-md mx-auto pt-1">
-                Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
-                any specific spiritual, health, or personal outcome.
-              </p>
-            </div>
-
             {/* Carousel Container */}
             <div className="relative max-w-4xl mx-auto">
 
@@ -643,7 +646,7 @@ export default function DevoteeExperiences() {
 
         {/* Action Button: Share Testimonial — always visible, regardless of
             SHOW_DEVOTEE_TESTIMONIALS, so devotees can still submit stories. */}
-        <div className={SHOW_DEVOTEE_TESTIMONIALS ? "mt-8 text-center" : "text-center"} id="devotee-experiences-action">
+        <div className={SHOW_DEVOTEE_TESTIMONIALS ? "mt-8 text-center" : "mt-2 text-center"} id="devotee-experiences-action">
           <button
             onClick={() => setIsModalOpen(true)}
             className="relative inline-flex items-center space-x-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest shadow-xl transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
