@@ -28,6 +28,7 @@ const TemplateBazaar = lazy(() => import("./components/TemplateBazaar"));
 const AboutUs = lazy(() => import("./components/AboutUs"));
 const FounderStory = lazy(() => import("./components/FounderStory"));
 const ContactUs = lazy(() => import("./components/ContactUs"));
+const ReportTempleIssues = lazy(() => import("./components/ReportTempleIssues"));
 const AuthDashboard = lazy(() => import("./components/AuthDashboard"));
 const AIAssistant = lazy(() => import("./components/AIAssistant"));
 const BookNowWizard = lazy(() => import("./components/BookNowWizard"));
@@ -37,6 +38,7 @@ const HolisticWellness = lazy(() => import("./components/HolisticWellness"));
 const UPIPaymentModal = lazy(() => import("./components/UPIPaymentModal"));
 const OfferPopup = lazy(() => import("./components/OfferPopup"));
 const ReferralPlans = lazy(() => import("./components/ReferralPlans"));
+const CounsellingGuidance = lazy(() => import("./components/CounsellingGuidance"));
 import dpiitCertificate from "./assets/images/DPIIT_Certificate.jpg";
 import dpiitCertificateWebp from "./assets/images/DPIIT_Certificate.webp";
 import fssaiCertificate from "./assets/images/FSSAI_Certificate.jpg";
@@ -58,7 +60,7 @@ import {
 } from "./utils/analytics";
 import {
   ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
-  Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin
+  Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin, HeartHandshake
 } from "lucide-react";
 
 export default function App() {
@@ -181,11 +183,20 @@ export default function App() {
     "about": "/about",
     "founder-story": "/founder-story",
     "contact": "/contact",
+    // Deliberately matches the exact real-world URL requested:
+    // https://sridwar.com/Report-Temple-Issues (capitalized, unlike most
+    // other paths above) — same intentional-exception pattern already used
+    // for "/Counselling" below.
+    "report-temple-issues": "/Report-Temple-Issues",
     "live-darshan": "/darshan",
     "temple-register": "/temple-register",
     "add-temple": "/add-temple",
     "login": "/login",
     "plans": "/plans",
+    // Deliberately capital "C" (matches the exact real-world URL requested:
+    // https://sridwar.com/Counselling) — every other path above is
+    // lowercase by convention, but this one intentionally isn't.
+    "counselling": "/Counselling",
   };
   const PATH_TO_PAGE: Record<string, string> = Object.fromEntries(
     Object.entries(PAGE_PATHS).map(([page, urlPath]) => [urlPath, page])
@@ -207,11 +218,13 @@ export default function App() {
     "about": "About Sri Dwar – Our Mission & Founder Story",
     "founder-story": "The Founder's Story Behind Sri Dwar",
     "contact": "Contact Sri Dwar – Support & Inquiries",
+    "report-temple-issues": "Raise Temple Issues With Elected Representatives | Sri Dwar",
     "live-darshan": "Live Temple Darshan Online – Watch Aarti from India | Sri Dwar",
     "temple-register": "Register Your Temple or Priest Profile – Sri Dwar",
     "add-temple": "Register Your Temple & Local Pujaris | Sri Dwar",
     "login": "Sign In to Sri Dwar – My Account",
     "plans": "Referral Plans, Cashback & Rewards | Sri Dwar",
+    "counselling": "Counselling & Guidance – Personal, Family & Life Support | Sri Dwar",
   };
   useEffect(() => {
     document.title = PAGE_TITLES[currentPage] || PAGE_TITLES.home;
@@ -319,8 +332,8 @@ export default function App() {
     // and land exactly where they expect, instead of the homepage.
     const VALID_DEEP_LINK_PAGES = [
       "seva", "puja", "priests", "products", "about",
-      "founder-story", "contact", "live-darshan",
-      "temple-register", "add-temple", "login",
+      "founder-story", "contact", "live-darshan", "report-temple-issues",
+      "temple-register", "add-temple", "login", "counselling",
     ];
     const urlParams = new URLSearchParams(window.location.search);
     const requestedPage = urlParams.get("page");
@@ -625,6 +638,43 @@ export default function App() {
 
             <DevoteeExperiences />
 
+            {/* Counselling & Guidance — homepage entry point. A single,
+                unobtrusive banner (not a new top-level nav item, and not a
+                10th card forced into HomeCarousel's deliberately-curated
+                9-offering set above) so this new service is reachable
+                straight from Home without touching either of those. Icon-
+                driven for now since real photography for this section
+                hasn't been supplied yet — swap in an <OptimizedImage>
+                background later if desired. */}
+            <section className="bg-[#021816] py-2">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button
+                  type="button"
+                  onClick={() => handleNavigate("counselling")}
+                  className="w-full text-left flex flex-col sm:flex-row sm:items-center gap-4 bg-gradient-to-r from-[#092320] to-[#0D2F2B] hover:from-[#0D2F2B] hover:to-[#123A34] border border-[#5EEAD4]/25 hover:border-[#5EEAD4]/50 rounded-3xl p-5 sm:p-6 transition-all group cursor-pointer"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-[#5EEAD4]/12 border border-[#5EEAD4]/25 flex items-center justify-center shrink-0">
+                    <HeartHandshake className="w-6 h-6 text-[#5EEAD4]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-serif text-base sm:text-lg font-bold text-white">Counselling & Guidance</h3>
+                      <span className="text-[9px] font-mono font-bold text-[#021816] bg-[#5EEAD4] px-2 py-0.5 rounded-full uppercase tracking-wide">
+                        Sessions from ₹299
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/55 leading-relaxed mt-1 max-w-2xl">
+                      Affordable, confidential guidance for individuals, students, couples, families, professionals & seniors —
+                      from experienced Pandits and Dharmic experts, focused on strengthening families, not creating separation.
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5EEAD4] group-hover:text-white shrink-0 self-start sm:self-center bg-white/5 group-hover:bg-[#5EEAD4]/15 border border-white/10 group-hover:border-[#5EEAD4]/30 rounded-full px-4 py-2 transition-all">
+                    Explore Guidance <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </button>
+              </div>
+            </section>
+
             {/* Trust-bar stats — placed right after Divine Miracles &
                 Success Stories so real devotee testimonials build trust
                 first, reinforced immediately by concrete platform numbers. */}
@@ -642,6 +692,7 @@ export default function App() {
                   setWizardDefaults({ pujaName: `Sponsorship contribution: ${sevaName}`, price });
                   setIsBookNowOpen(true);
                 }}
+                onNavigate={handleNavigate}
               />
             </Suspense>
           </div>
@@ -663,6 +714,7 @@ export default function App() {
                 }}
               />
               <HolisticWellness
+                isAndroidApp={isAndroidApp}
                 onBookService={(serviceName, price) => {
                   setWizardDefaults({ pujaName: serviceName, price });
                   setIsBookNowOpen(true);
@@ -717,8 +769,16 @@ export default function App() {
         {currentPage === "contact" && (
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
-              <ContactUs />
+              <ContactUs onNavigate={handleNavigate} />
               <FAQs />
+            </Suspense>
+          </div>
+        )}
+
+        {currentPage === "report-temple-issues" && (
+          <div className="animate-fadeIn">
+            <Suspense fallback={pageLoadingFallback}>
+              <ReportTempleIssues onNavigate={handleNavigate} />
             </Suspense>
           </div>
         )}
@@ -777,6 +837,21 @@ export default function App() {
                 onNavigate={handleNavigate}
                 onOpenLegalDoc={(doc) => setActiveLegalDoc(doc as any)}
                 userProfile={userProfile}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {currentPage === "counselling" && (
+          <div className="animate-fadeIn">
+            <Suspense fallback={pageLoadingFallback}>
+              <CounsellingGuidance
+                onNavigate={handleNavigate}
+                isAndroidApp={isAndroidApp}
+                onBookSession={(label, price) => {
+                  setWizardDefaults({ pujaName: label, price });
+                  setIsBookNowOpen(true);
+                }}
               />
             </Suspense>
           </div>

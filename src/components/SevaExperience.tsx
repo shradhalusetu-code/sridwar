@@ -5,7 +5,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck } from "lucide-react";
+import { Heart, Send, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
@@ -317,6 +317,12 @@ interface SevaExperienceProps {
    *  the isAndroidApp prop already passed to Hero / TrustBar / HomeCarousel
    *  from App.tsx. */
   isAndroidApp?: boolean;
+  /** Optional — lets the "Counselling & Guidance" card inside "More Sacred
+   *  Sevas" below route to the dedicated Counselling page (App.tsx passes
+   *  its handleNavigate here). Optional + guarded with `?.()` at the call
+   *  site so this component still renders safely if a caller doesn't wire
+   *  it up. */
+  onNavigate?: (page: string) => void;
 }
 
 // The Prayer Wall starts empty — no example devotees or sample messages are
@@ -330,7 +336,7 @@ const INITIAL_CHAT_MESSAGES: { name: string; msg: string; location: string }[] =
 // like "Example: a devotee sponsored Gau Seva") has been removed — it looked
 // like fake/misleading live activity to devotees.
 
-export default function SevaExperience({ onSponsorSeva, initialHighlightId = null, isAndroidApp = false }: SevaExperienceProps) {
+export default function SevaExperience({ onSponsorSeva, initialHighlightId = null, isAndroidApp = false, onNavigate }: SevaExperienceProps) {
   const [chatMessages, setChatMessages] = useState(INITIAL_CHAT_MESSAGES);
   const [inputMessage, setInputMessage] = useState("");
   // Note: UPI/Details state removed — Sponsor Seva now routes through
@@ -456,6 +462,18 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
 
   const slide = JAGANNATH_SLIDES[slideIndex];
 
+  // Sponsorship Services visibility — Android app shows only the first 2
+  // FEATURED_SEVAS up front (everything else, including all of EXTRA_SEVAS,
+  // stays inside the "More Sacred Sevas" accordion below). The website has
+  // no such limit since it scrolls freely, so it shows every Sponsorship
+  // Services card (all of FEATURED_SEVAS + EXTRA_SEVAS) up front, with
+  // nothing left to hide in the accordion.
+  const visibleFeaturedSevas = isAndroidApp ? FEATURED_SEVAS.slice(0, 2) : FEATURED_SEVAS;
+  const visibleExtraSevas = isAndroidApp ? [] : EXTRA_SEVAS;
+  const hiddenFeaturedSevas = isAndroidApp ? FEATURED_SEVAS.slice(2) : [];
+  const hiddenExtraSevas = isAndroidApp ? EXTRA_SEVAS : [];
+  const hasHiddenSevas = hiddenFeaturedSevas.length > 0 || hiddenExtraSevas.length > 0;
+
   // Devotee Reviews, reshaped to the same {name, msg, location} card shape as
   // the Prayer Wall's own messages, so they render as one continuous,
   // scrollable list of real devotee names + city + message cards — followed
@@ -516,6 +534,53 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
         {SHOW_SEVA_LIVE_DASHBOARD && <SevaLiveDashboard extraRecentSevas={sessionRecentSevas} />}
 
         {/*
+          ── Counselling & Guidance ──
+          Moved above Sacred Moments / Sponsorship Services (was previously
+          a thin banner below both). Rebuilt as a full-width card, identical
+          on the website and the Android app, so it carries enough visual
+          weight to open this part of the page rather than looking like an
+          afterthought — a plain "button-only" banner would have looked
+          sparse sitting first. On desktop the icon/copy sit beside the CTA
+          in one row so the full section width is used with no dead space;
+          on mobile everything stacks. Routes to the dedicated Counselling
+          page via onNavigate — guarded with `?.()` so this still renders
+          safely even if a future caller forgets to wire the prop.
+          Copy is deliberately wellbeing/spiritual-guidance language only —
+          no medical, healthcare, legal, or "guaranteed outcome" wording —
+          consistent with the full disclaimer on the Counselling page.
+        */}
+        <div className="bg-gradient-to-r from-[#092320] to-[#0D2F2B] border border-[#5EEAD4]/25 rounded-3xl p-5 sm:p-6 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+              <div className="w-12 h-12 rounded-2xl bg-[#5EEAD4]/12 border border-[#5EEAD4]/25 flex items-center justify-center shrink-0">
+                <HeartHandshake className="w-6 h-6 text-[#5EEAD4]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-serif text-lg font-bold text-white">Counselling & Guidance</h3>
+                  <span className="text-[9px] font-mono font-bold text-[#021816] bg-[#5EEAD4] px-2 py-0.5 rounded-full uppercase tracking-wide">
+                    Sessions from ₹299
+                  </span>
+                </div>
+                <p className="text-[11px] text-white/60 leading-relaxed mt-1.5 max-w-xl">
+                  Confidential, wellbeing-oriented guidance for individuals, students, couples, families,
+                  professionals & seniors — from experienced Pandits and Dharmic experts, offered in good faith as
+                  personal and spiritual guidance, never as medical, psychiatric, or legal advice, and with no
+                  guaranteed outcome.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate?.("counselling")}
+              className="shrink-0 w-full lg:w-auto inline-flex items-center justify-center gap-1.5 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold text-xs px-5 py-3 rounded-full transition-all shadow"
+            >
+              Explore Guidance <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/*
           ── Main 2-column row ──
           The Sponsorship Services column (4 always-visible cards) and the
           Sacred Moments column are laid out independently now (lg:items-start,
@@ -527,35 +592,15 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           the Sacred Moments card sizes naturally to its own content and
           Sponsorship Services is never artificially stretched.
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-start">
+        <div className={isAndroidApp ? "grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 lg:items-start" : "flex flex-col gap-8"}>
 
-          {/* LEFT: Sponsorship Services — col-span-7 */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
-
-            {/* Heading row */}
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif text-xl font-bold text-white">Sponsorship Services</h3>
-              {isDiscountActive() && (
-                <span className="text-[10px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
-                  {DISCOUNT_TAG} All Sevas
-                </span>
-              )}
-            </div>
-
-            {/* Always-visible: first 2 FEATURED_SEVAS (temporarily reduced
-                from 4 — the other 2 now live in "More Sacred Sevas" below,
-                not deleted). */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {FEATURED_SEVAS.slice(0, 2).map((seva) => (
-                <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-              ))}
-            </div>
-          </div>
-
-          {/* RIGHT: Live Feed + Chat — col-span-5, sticky top. Sized by its
-              own content (see the fixed-height review list below), not
-              stretched to match the Sponsorship Services column. */}
-          <div className="lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0">
+          {/* Sacred Moments — Live Feed + Chat. On the Android app this
+              stays as the RIGHT sticky column (col-span-5) next to
+              Sponsorship Services, exactly as before. On the website it now
+              renders FIRST, full width (centered, capped so it doesn't
+              stretch too wide), with Sponsorship Services moved below it —
+              see the comment on that block for why. */}
+          <div className={isAndroidApp ? "lg:col-span-5 lg:sticky lg:top-20 mt-2 lg:mt-0 lg:order-2" : "w-full max-w-2xl mx-auto"}>
             <div className="flex flex-col bg-[#092320] rounded-3xl border border-white/10 overflow-hidden shadow-md text-white">
 
               {/* Photo gallery header — this is a rotating slideshow of temple
@@ -619,7 +664,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                 {SHOW_PRAYER_WALL_COMMENTS && (
                   <div
                     id="chat-messages-container"
-                    className="h-[640px] overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
+                    className="h-[420px] sm:h-[520px] lg:h-[640px] overflow-y-auto space-y-2.5 mb-3 pr-1 text-left"
                   >
                     {prayerWallCards.map((msg, i) => (
                       <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
@@ -657,6 +702,47 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
             </div>
           </div>
 
+          {/* Sponsorship Services. On the Android app this stays the LEFT
+              column (col-span-7) beside Sacred Moments, exactly as before —
+              it only ever holds 2 always-visible cards there, so it never
+              runs noticeably taller or shorter than the Sacred Moments
+              column beside it.
+              On the website, every Sponsorship Services card now renders
+              here (see visibleFeaturedSevas/visibleExtraSevas above), which
+              can add up to a lot of cards — far more than would fit neatly
+              beside a fixed-height Sacred Moments column without leaving a
+              tall empty gap next to it. So on the website this block now
+              renders BELOW Sacred Moments instead, full width, in a 3-column
+              grid that spreads the cards out evenly with no leftover empty
+              space. */}
+          <div className={isAndroidApp ? "lg:col-span-7 flex flex-col gap-4 lg:order-1" : "flex flex-col gap-4"}>
+
+            {/* Heading row */}
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-xl font-bold text-white">Sponsorship Services</h3>
+              {isDiscountActive() && (
+                <span className="text-[10px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
+                  {DISCOUNT_TAG} All Sevas
+                </span>
+              )}
+            </div>
+
+            {/* Always-visible: on Android, first 2 FEATURED_SEVAS only —
+                everything else lives in "More Sacred Sevas" below, not
+                deleted. On the website, every Sponsorship Services card
+                (all FEATURED_SEVAS + EXTRA_SEVAS) shows here directly, in a
+                3-column grid on large screens so the wider, single-column
+                layout fills up evenly instead of leaving gaps. */}
+            <div className={isAndroidApp ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"}>
+              {visibleFeaturedSevas.map((seva) => (
+                <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+              ))}
+              {visibleExtraSevas.map((seva) => (
+                <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+              ))}
+            </div>
+          </div>
+
         </div>
 
         {/*
@@ -666,53 +752,59 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           Sevas" only grows content that lives BELOW the equal-height
           Sponsorship/Live Feed row — it never resizes or shifts that row,
           keeping the overall dashboard size fixed and stable on toggle.
+          On the website this whole row never renders — hasHiddenSevas is
+          always false there since every Sponsorship Services card already
+          shows above. On the Android app it renders as before, holding
+          everything past the first 2 FEATURED_SEVAS.
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mt-4">
-          <div className="lg:col-span-7">
-            <div className="border border-white/10 rounded-2xl overflow-hidden">
-              <button
-                onClick={() => setAccordionOpen((p) => !p)}
-                className="w-full flex items-center justify-between px-5 py-4 bg-[#092320] hover:bg-[#0D2F2B] transition-colors text-left"
-                aria-expanded={accordionOpen}
-              >
-                <div className="flex items-center space-x-3">
-                  <Sparkles className="w-4 h-4 text-[#FFB347]" />
-                  <div>
-                    <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
-                    <span className="block text-[10px] text-white/50 font-mono mt-0.5">
-                      {FEATURED_SEVAS.slice(2).length + EXTRA_SEVAS.length} additional offerings{isDiscountActive() ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
-                    </span>
+        {hasHiddenSevas && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mt-4">
+            <div className="lg:col-span-7">
+              <div className="border border-white/10 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setAccordionOpen((p) => !p)}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-[#092320] hover:bg-[#0D2F2B] transition-colors text-left"
+                  aria-expanded={accordionOpen}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Sparkles className="w-4 h-4 text-[#FFB347]" />
+                    <div>
+                      <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
+                      <span className="block text-[10px] text-white/50 font-mono mt-0.5">
+                        {hiddenFeaturedSevas.length + hiddenExtraSevas.length} additional offerings{isDiscountActive() ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {isDiscountActive() && (
-                    <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
-                      {DISCOUNT_TAG}
-                    </span>
-                  )}
-                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
-                    {accordionOpen
-                      ? <ChevronUp className="w-4 h-4 text-[#5EEAD4]" />
-                      : <ChevronDown className="w-4 h-4 text-[#5EEAD4]" />}
+                  <div className="flex items-center space-x-2">
+                    {isDiscountActive() && (
+                      <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
+                        {DISCOUNT_TAG}
+                      </span>
+                    )}
+                    <div className="p-1.5 rounded-lg bg-white/5 border border-white/10">
+                      {accordionOpen
+                        ? <ChevronUp className="w-4 h-4 text-[#5EEAD4]" />
+                        : <ChevronDown className="w-4 h-4 text-[#5EEAD4]" />}
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
 
-              {accordionOpen && (
-                <div className="bg-[#021816] p-4 border-t border-white/10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {FEATURED_SEVAS.slice(2).map((seva) => (
-                      <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-                    ))}
-                    {EXTRA_SEVAS.map((seva) => (
-                      <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-                    ))}
+                {accordionOpen && (
+                  <div className="bg-[#021816] p-4 border-t border-white/10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {hiddenFeaturedSevas.map((seva) => (
+                        <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+                      ))}
+                      {hiddenExtraSevas.map((seva) => (
+                        <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
       </div>
 

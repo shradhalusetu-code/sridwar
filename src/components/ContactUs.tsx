@@ -4,7 +4,7 @@
  */
 
 import { useState, FormEvent } from "react";
-import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check } from "lucide-react";
+import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
@@ -16,7 +16,14 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 // @ts-ignore
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 
-export default function ContactUs() {
+interface ContactUsProps {
+  /** Optional — lets the "Raise Temple Issues" banner below navigate to
+   * that page. Safe to omit; the banner simply won't be clickable/won't
+   * navigate if absent (existing <ContactUs /> callers are unaffected). */
+  onNavigate?: (page: string) => void;
+}
+
+export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -432,6 +439,33 @@ export default function ContactUs() {
           </div>
 
         </div>
+
+        {/* ── New section below Support: Raise Temple Issues With Elected
+             Representatives (https://sridwar.com/Report-Temple-Issues).
+             Purely additive — does not change anything above. ── */}
+        <button
+          type="button"
+          onClick={() => onNavigate?.("report-temple-issues")}
+          className="w-full mt-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left bg-[#092320] border border-white/10 hover:border-[#FFB347]/40 hover:bg-white/5 transition-colors rounded-3xl p-6 sm:p-8 cursor-pointer"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-[#FFB347]/10 border border-[#FFB347]/30 flex items-center justify-center shrink-0">
+              <Landmark className="w-5 h-5 text-[#FFB347]" />
+            </div>
+            <div>
+              <h3 className="font-serif text-lg font-bold text-white">Raise Temple Issues With Elected Representatives</h3>
+              <p className="text-xs text-white/60 mt-1 max-w-xl">
+                <span className="block text-white font-semibold mb-1">Protect What Our Ancestors Preserved</span>
+                From the smallest village shrine to great temple celebrations, help bring attention to what
+                matters. Share your concerns, suggestions, and ideas, and direct them to the appropriate
+                local, district, state, or national representatives.
+              </p>
+            </div>
+          </div>
+          <span className="flex items-center gap-1 text-xs font-bold text-[#FFB347] shrink-0 self-end sm:self-center">
+            Raise an issue <ChevronRight className="w-4 h-4" />
+          </span>
+        </button>
 
       </div>
     </section>

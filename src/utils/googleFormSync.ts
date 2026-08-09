@@ -147,6 +147,32 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
       typeKey: "entry.943423993"
     },
     isEnabled: true
+  },
+  // ✅ Temple/Culture Issue Reports (ReportTempleIssues.tsx — "Raise Temple
+  // Issues With Elected Representatives"). Previously this formType had NO
+  // entry here at all, so every submission silently fell through to
+  // getSyncConfig's `DEFAULT_CONFIGS.devotee_support` fallback — it still
+  // worked, but that fallback was implicit and would have silently changed
+  // behaviour for temple issue reports the moment devotee_support's own
+  // config was ever edited for an unrelated reason. Giving it its own named
+  // entry makes the destination explicit and independently editable. It
+  // reuses the devotee_support form/sheet for now (same reuse pattern as
+  // subscription_signup and refund_cancellation_request above) — nothing is
+  // lost, since `details` always carries the full category/location/issue/
+  // recipients block and `type` is fixed to "Temple/Culture Issue Report —
+  // <category>" so these rows are easy to filter out from general inquiries.
+  // 👉 IMPORTANT: Once you create a dedicated Google Form for temple/culture
+  //    issue reports, replace formUrl and the entry.XXXXXXXXX values below.
+  temple_issue_report: {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
+    mappedFields: {
+      nameKey: "entry.898437491",
+      emailKey: "entry.969380068",
+      phoneKey: "entry.1486488215",
+      detailsKey: "entry.1306645637",
+      typeKey: "entry.943423993"
+    },
+    isEnabled: true
   }
 };
 

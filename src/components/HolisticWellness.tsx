@@ -542,11 +542,21 @@ function ServiceCard({
 
 interface HolisticWellnessProps {
   onBookService?: (serviceName: string, price: number) => void;
+  /** True only inside the Capacitor Android app shell — see isAndroidApp in
+   *  App.tsx. On Android, only the first ANDROID_VISIBLE_COUNT offerings
+   *  show up front and the rest sit behind the accordion below. On the
+   *  website there is no limit — every offering in the active category is
+   *  always visible, since the site scrolls freely. Defaults to false so
+   *  this still shows everything if a caller forgets to pass it. */
+  isAndroidApp?: boolean;
 }
 
-const VISIBLE_COUNT = 9; // Cards always shown; rest go into accordion
+// Cards always shown on the Android app before "Show More" — the website
+// always shows every offering in the active category instead (see
+// visibleCards below).
+const ANDROID_VISIBLE_COUNT = 4;
 
-export default function HolisticWellness({ onBookService }: HolisticWellnessProps) {
+export default function HolisticWellness({ onBookService, isAndroidApp = false }: HolisticWellnessProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [accordionOpen, setAccordionOpen] = useState(false);
 
@@ -554,8 +564,9 @@ export default function HolisticWellness({ onBookService }: HolisticWellnessProp
     ? SERVICES
     : SERVICES.filter((s) => s.category === activeCategory);
 
-  const visibleCards  = filtered.slice(0, VISIBLE_COUNT);
-  const hiddenCards   = filtered.slice(VISIBLE_COUNT);
+  const visibleCount  = isAndroidApp ? ANDROID_VISIBLE_COUNT : filtered.length;
+  const visibleCards  = filtered.slice(0, visibleCount);
+  const hiddenCards   = filtered.slice(visibleCount);
   const hasHidden     = hiddenCards.length > 0;
 
   const handleBook = (title: string, price: number) => {

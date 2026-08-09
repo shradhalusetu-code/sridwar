@@ -187,3 +187,18 @@ export function gaDonationInitiate(amount: number): void {
 export function gaCertificateAction(action: "download" | "share" | "copy", refId: string): void {
   gaEvent("certificate_action", { action, ref_id: refId });
 }
+
+/** Temple/culture issue report form started (first field interaction) */
+export function gaTempleIssueFormStart(): void {
+  gaEvent("temple_issue_form_start");
+}
+
+/** Temple/culture issue report submitted */
+export function gaTempleIssueSubmit(category: string, issueType: string, recipientCount: number): void {
+  gaEvent("temple_issue_submit", { category, issue_type: issueType, recipient_count: recipientCount });
+}
+
+/** Voluntary contribution made from the Temple Issue Report flow */
+export function gaTempleIssueContribution(amount: number): void {
+  gaEvent("temple_issue_contribution", { value: amount, currency: "INR" });
+}

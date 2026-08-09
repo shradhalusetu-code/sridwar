@@ -26,7 +26,8 @@ export type FormSubmissionType =
   | "expert_registration"
   | "temple_committee_registration"
   | "subscription_signup"
-  | "refund_cancellation_request";
+  | "refund_cancellation_request"
+  | "temple_issue_report";
 
 export interface ActivityRecord {
   id: string;
