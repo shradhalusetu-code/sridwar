@@ -57,11 +57,26 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
   // still in flight lets a second scrollTo start mid-animation — on
   // Android WebView in particular this reliably left the track scrolled to
   // a position that didn't match any card, so the "stuck" arrow appeared to
-  // do nothing on the next click. The lock is released a beat after each
-  // scroll should have finished, not on a raw scroll event, since
-  // scroll-snap fires many intermediate scroll events during one glide.
+  // do nothing on the next click.
+  //
+  // IMPORTANT: the lock used to be released by a single fixed setTimeout
+  // (500ms) after every scroll. That was the actual bug behind the report
+  // of the carousel feeling "slow and unresponsive" and getting "stuck"
+  // at the end instead of looping: a one-card hop finishes well under
+  // 500ms, so every ordinary click felt sluggish waiting out the rest of
+  // the lock — but the wrap-around jump from the LAST card back to the
+  // FIRST is by far the longest scroll distance in the whole carousel, and
+  // on slower Android WebView renders it often hadn't finished settling by
+  // 500ms. The lock would release early, a queued click (or the next
+  // auto-rotate tick) would fire a second scrollTo mid-glide, and the two
+  // smooth-scrolls fought each other, leaving the track stopped between
+  // cards where no further click could move it — exactly the "stuck at
+  // the end" symptom. Below, the lock is released the moment the track's
+  // scrollLeft actually stops changing (polled per animation frame), with
+  // a generous max-wait as a safety net — fast for short hops, patient
+  // for the long wrap-around one.
   const isAnimatingRef = useRef(false);
-  const animationUnlockRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settleRafRef = useRef<number | null>(null);
 
   const goTo = useCallback((index: number) => {
     const next = ((index % cards.length) + cards.length) % cards.length;
@@ -112,15 +127,48 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
     const maxScrollLeft = track.scrollWidth - track.clientWidth;
     const clampedLeft = Math.min(Math.max(0, targetLeft), Math.max(0, maxScrollLeft));
 
-    if (animationUnlockRef.current) clearTimeout(animationUnlockRef.current);
+    if (settleRafRef.current) cancelAnimationFrame(settleRafRef.current);
+
+    // Already there (e.g. initial render) — nothing will scroll, so there's
+    // no settling to wait for. Skip straight out instead of arming the lock.
+    if (Math.abs(track.scrollLeft - clampedLeft) < 1) {
+      isAnimatingRef.current = false;
+      return;
+    }
+
     isAnimatingRef.current = true;
     track.scrollTo({ left: clampedLeft, behavior: "smooth" });
-    // Release the lock a little after a smooth scroll of this distance
-    // would realistically finish, rather than trusting a single scroll
-    // event (scroll-snap containers fire many scroll events mid-glide).
-    animationUnlockRef.current = setTimeout(() => {
-      isAnimatingRef.current = false;
-    }, 500);
+
+    // Poll scrollLeft every animation frame and release the lock as soon as
+    // it stops moving for a few consecutive frames — this adapts to the
+    // actual distance/duration of the glide instead of guessing a fixed
+    // delay, so short one-card hops unlock almost immediately and the long
+    // last→first wrap-around gets however long it genuinely needs.
+    // MAX_SETTLE_WAIT_MS is only a safety net in case a scroll never fires
+    // another event (e.g. the browser silently clamps/ignores it).
+    const MAX_SETTLE_WAIT_MS = 1200;
+    const startedAt = performance.now();
+    let lastLeft = track.scrollLeft;
+    let stableFrames = 0;
+
+    const poll = () => {
+      const current = track.scrollLeft;
+      if (Math.abs(current - lastLeft) < 0.5) {
+        stableFrames += 1;
+      } else {
+        stableFrames = 0;
+        lastLeft = current;
+      }
+      const settled = stableFrames >= 3;
+      const timedOut = performance.now() - startedAt > MAX_SETTLE_WAIT_MS;
+      if (settled || timedOut) {
+        isAnimatingRef.current = false;
+        settleRafRef.current = null;
+        return;
+      }
+      settleRafRef.current = requestAnimationFrame(poll);
+    };
+    settleRafRef.current = requestAnimationFrame(poll);
   }, [activeIndex]);
 
   // Auto-rotate every ~4.5s, paused on hover/touch (so devotees reading a
@@ -149,7 +197,7 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
   useEffect(() => {
     return () => {
       if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-      if (animationUnlockRef.current) clearTimeout(animationUnlockRef.current);
+      if (settleRafRef.current) cancelAnimationFrame(settleRafRef.current);
     };
   }, []);
 
