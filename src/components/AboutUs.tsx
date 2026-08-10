@@ -152,11 +152,11 @@ function FounderCard({ founder }: { founder: Founder }) {
               href={founder.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#FFB347] hover:bg-[#F27D26] active:scale-[0.98] transition-all text-[#021816] font-sans font-bold text-sm px-5 py-2.5 rounded-full shadow-lg"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0A66C2] to-[#0E76E0] hover:from-[#0958A8] hover:to-[#0A66C2] active:scale-[0.98] transition-all duration-300 hover:scale-105 text-white font-sans font-extrabold text-xs uppercase tracking-widest px-5 py-3 rounded-full border border-[#7DD3FC]/50 shadow-[0_0_16px_rgba(10,102,194,0.45)] hover:shadow-[0_0_24px_rgba(14,118,224,0.65)] cursor-pointer"
             >
-              <Linkedin className="w-4 h-4" strokeWidth={2.5} />
+              <Linkedin className="w-4 h-4 text-[#BFE3FF] shrink-0" strokeWidth={2.5} />
               Connect on LinkedIn
-              <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.75} />
+              <ArrowUpRight className="w-3.5 h-3.5 shrink-0" strokeWidth={2.75} />
             </a>
           </div>
         </div>

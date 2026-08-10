@@ -123,6 +123,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
 
   // What/where
   const [itemName, setItemName] = useState("");
@@ -138,6 +139,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
   // Optional local representative details
   const [mlaName, setMlaName] = useState("");
   const [mpName, setMpName] = useState("");
+  const [additionalRepDetails, setAdditionalRepDetails] = useState("");
 
   // Recipients
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
@@ -184,6 +186,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
     const nameErr = validateName(name);
     const emailErr = validateEmail(email);
     const phoneErr = validatePhone(phone);
+    const whatsappErr = whatsapp.trim() ? validatePhone(whatsapp) : null;
     const itemErr = itemName.trim() ? null : "Please enter the temple / committee / pandal / mandal / festival name.";
     const locationErr = village.trim() && state.trim() ? null : "Please enter at least the village/town/city and state.";
     const descErr = validateTextMinLength(description, "Issue / concern / suggestion", 20);
@@ -192,7 +195,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
       : null;
     const consentErr = consent ? null : "Please confirm you've read and accept the disclaimer below.";
 
-    const err = firstError(nameErr, emailErr, phoneErr, itemErr, locationErr, descErr, recipientErr, consentErr);
+    const err = firstError(nameErr, emailErr, phoneErr, whatsappErr, itemErr, locationErr, descErr, recipientErr, consentErr);
     if (err) { alert(err); return; }
 
     setIsSyncing(true);
@@ -214,11 +217,20 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
       `Description: ${description}`,
       mlaName.trim() ? `Local MLA: ${mlaName.trim()}` : null,
       mpName.trim() ? `Local MP: ${mpName.trim()}` : null,
+      additionalRepDetails.trim() ? `Additional Representative/Official Details: ${additionalRepDetails.trim()}` : null,
       `Recipients Selected: ${recipientNames || "None specified"}`,
+      whatsapp.trim() ? `Devotee WhatsApp Number: ${whatsapp.trim()}` : null,
       `[Ref: ${newRefId}]`,
     ].filter(Boolean).join(" | ");
 
     try {
+      // NOTE: the Google Form behind "temple_issue_report" only has
+      // name/email/phone/details/type entry IDs mapped (see
+      // googleFormSync.ts) — there's no dedicated WhatsApp column yet, so
+      // the WhatsApp number travels inside `details` above (same pattern
+      // already used here for MLA/MP) rather than being silently dropped.
+      // `phone` continues to map to the sheet's phone column and now
+      // represents the Devotee Contact Number field below.
       await syncToGoogleForm("temple_issue_report", {
         name, email, phone,
         type: `Temple/Culture Issue Report — ${category}`,
@@ -233,7 +245,9 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
         name, email, phone, refId: newRefId,
         payload: {
           category, itemName, village, district, state, issueType, description,
-          mlaName, mpName, recipients: selectedRecipients, otherRecipient: includeOther ? otherRecipient : "",
+          whatsapp: whatsapp.trim() || null,
+          mlaName, mpName, additionalRepDetails: additionalRepDetails.trim() || null,
+          recipients: selectedRecipients, otherRecipient: includeOther ? otherRecipient : "",
           status: "submitted",
         },
       });
@@ -276,11 +290,11 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
     setContributionDone(false);
     setDonationAmount(null);
     setRefId("");
-    setName(""); setEmail(""); setPhone("");
+    setName(""); setEmail(""); setPhone(""); setWhatsapp("");
     setItemName(""); setCategory(CATEGORY_OPTIONS[0]);
     setVillage(""); setDistrict(""); setState("");
     setIssueType(ISSUE_TYPE_OPTIONS[0]); setDescription("");
-    setMlaName(""); setMpName("");
+    setMlaName(""); setMpName(""); setAdditionalRepDetails("");
     setSelectedRecipients([]); setOtherRecipient(""); setIncludeOther(false);
     setConsent(false); setHasStarted(false);
   };
@@ -445,9 +459,24 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">Additional Representative / Government Official Details (Optional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Know a specific representative or official this should reach? Add their name, phone, email, or any other contact detail here."
+                  value={additionalRepDetails}
+                  onChange={(e) => setAdditionalRepDetails(e.target.value)}
+                  className="w-full text-xs p-3.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
+                />
+                <p className="text-[10px] text-white/40 mt-1">
+                  Not limited to the Local MLA / MP fields above — add anyone else (block/district officer, municipal
+                  councillor, temple trust member, etc.) you'd like us to try and reach.
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">Full Name *</label>
+                  <label className="block text-xs font-bold text-white/80 mb-1">Devotee Name *</label>
                   <input
                     type="text" required placeholder="e.g. Kunu Rana"
                     value={name} onChange={(e) => setName(e.target.value)}
@@ -455,7 +484,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">Phone Number *</label>
+                  <label className="block text-xs font-bold text-white/80 mb-1">Devotee Contact Number *</label>
                   <input
                     type="tel" required placeholder="Mandatory for follow-up"
                     value={phone} onChange={(e) => setPhone(e.target.value)}
@@ -465,12 +494,43 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">Email Address *</label>
+                <label className="block text-xs font-bold text-white/80 mb-1">Devotee WhatsApp Number (Optional, if different)</label>
+                <input
+                  type="tel" placeholder="Leave blank if same as Contact Number above"
+                  value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/80 mb-1">Devotee Email ID *</label>
                 <input
                   type="email" required placeholder="e.g. kunu@shradhalu.com"
                   value={email} onChange={(e) => setEmail(e.target.value)}
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
                 />
+              </div>
+
+              {/* ── Privacy disclosure — placed directly below the Email ID
+                   field per policy. Worded to match what actually happens to
+                   the data: identity/contact info is withheld from the
+                   recipients (only the report content + selected recipient
+                   list goes out), but it is NOT anonymous end-to-end, since
+                   Sri Dwar itself retains it (in this form state, the Google
+                   Sheet, and the Supabase form_submissions ledger above) to
+                   send acknowledgements, status updates, and any Darshan
+                   Certificate. Avoid overpromising "complete anonymity". ── */}
+              <div className="flex items-start gap-2.5 bg-[#5EEAD4]/5 border border-[#5EEAD4]/20 px-3.5 py-3 rounded-xl text-[10px] text-white/70 leading-relaxed">
+                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                <span>
+                  🙏 <strong className="text-[#5EEAD4]">Your privacy, respected:</strong> your name and contact details
+                  are <strong>not shared</strong> with the government bodies, elected representatives, temple authorities,
+                  or other recipients you select above — they only receive the report content itself. Sri Dwar keeps
+                  your details on file solely to send you acknowledgements, response and action updates, and your
+                  participation/thank-you certificate if applicable. As this information is retained by Sri Dwar for
+                  that purpose, it is kept confidential rather than fully anonymous — we do not sell it or share it
+                  with anyone beyond what's needed to process your report.
+                </span>
               </div>
             </div>
 
@@ -481,7 +541,16 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 <p className="text-[11px] text-white/50">You choose. We connect. Select every recipient this should reach.</p>
               </div>
 
-              <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
+              {/* flex-1 + min-h-0 lets this list grow to fill whatever
+                  height the "Send this to" card ends up with (it matches
+                  the taller left-hand form column on desktop) instead of
+                  stopping at a fixed max-height and leaving empty space
+                  above the submit button below. overflow-y-auto still
+                  kicks in to scroll internally if the recipient list itself
+                  ever grows taller than the available space. On mobile,
+                  where the card is only as tall as its own content, this
+                  has no visible effect — the list simply sizes to fit. */}
+              <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-1">
                 {RECIPIENT_GROUPS.map((group) => (
                   <div key={group.level}>
                     <div className="flex items-center gap-1.5 mb-1.5">
@@ -559,7 +628,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
               <button
                 type="submit"
                 disabled={isSyncing}
-                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs transition-all tracking-widest shadow flex items-center justify-center space-x-1.5 cursor-pointer uppercase mt-auto"
+                className="relative w-full bg-gradient-to-r from-[#7C2D12] via-[#C2410C] to-[#EA580C] hover:from-[#9A3412] hover:via-[#EA580C] hover:to-[#F97316] disabled:opacity-70 text-white font-extrabold py-3.5 rounded-xl text-xs transition-all duration-300 hover:scale-[1.02] active:scale-95 tracking-widest shadow-[0_0_16px_rgba(234,88,12,0.45)] hover:shadow-[0_0_24px_rgba(249,115,22,0.6)] flex items-center justify-center space-x-1.5 cursor-pointer uppercase mt-auto border border-[#FDBA74]/40"
               >
                 {isSyncing ? (
                   <>
@@ -568,8 +637,8 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   </>
                 ) : (
                   <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Submit Report</span>
+                    <Megaphone className="w-3.5 h-3.5 text-[#FED7AA] shrink-0" />
+                    <span>Raise an Issue</span>
                   </>
                 )}
               </button>

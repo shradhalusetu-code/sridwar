@@ -201,6 +201,49 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
     };
   }, []);
 
+  // Keep the pagination dots in sync with whatever card is actually
+  // centered in view — not just with activeIndex changes driven by the
+  // arrows/dots/auto-rotate above. Without this, a devotee who manually
+  // swipes or drags the track directly (bypassing goTo entirely) ends up
+  // with a dot highlighted that no longer matches the offering actually on
+  // screen. Debounced so it only recalculates once the scroll has actually
+  // settled, and skipped entirely while our own programmatic scrollTo()
+  // (isAnimatingRef) is mid-flight, since that path already sets
+  // activeIndex directly and reacting here too would just be redundant.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    let settleTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const syncActiveIndexToScroll = () => {
+      if (isAnimatingRef.current) return;
+      if (settleTimeout) clearTimeout(settleTimeout);
+      settleTimeout = setTimeout(() => {
+        const trackRect = track.getBoundingClientRect();
+        const trackCenter = trackRect.left + trackRect.width / 2;
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+        cardRefs.current.forEach((card, i) => {
+          if (!card) return;
+          const cardRect = card.getBoundingClientRect();
+          const cardCenter = cardRect.left + cardRect.width / 2;
+          const distance = Math.abs(cardCenter - trackCenter);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = i;
+          }
+        });
+        setActiveIndex((prev) => (prev === closestIndex ? prev : closestIndex));
+      }, 120);
+    };
+
+    track.addEventListener("scroll", syncActiveIndexToScroll, { passive: true });
+    return () => {
+      track.removeEventListener("scroll", syncActiveIndexToScroll);
+      if (settleTimeout) clearTimeout(settleTimeout);
+    };
+  }, []);
+
   const handleCardClick = (card: CarouselCard) => {
     gaNavClick(`home_carousel_${card.id}`, "home_carousel");
     // Always a plain page navigation — lands on that page's own header,

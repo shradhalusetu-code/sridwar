@@ -156,7 +156,18 @@ function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: Drop
   const [selected, setSelected] = useState(options[0]);
 
   return (
-    <div className="bg-[#092320]/80 rounded-2xl border border-white/10 h-full flex flex-col relative">
+    <div
+      className={`bg-[#092320]/80 rounded-2xl border border-white/10 h-full flex flex-col relative transition-[z-index] ${
+        // When this card's list is open, lift the WHOLE card (not just the
+        // dropdown) above its siblings. Previously only the dropdown itself
+        // carried a z-index, but its stacking context is compared against
+        // sibling *cards* in DOM order — so a card lower in the grid (e.g.
+        // Bhajan/Stotram, Sun Rise, Moon Rise) could still paint on top of
+        // an open dropdown from a card above it, making the open list look
+        // "hidden" or blocked/clipped by the row underneath.
+        open ? "z-40" : "z-0"
+      }`}
+    >
       {imageUrl && (
         <div className="w-full aspect-[3/2] overflow-hidden rounded-t-2xl">
           <OptimizedImage
@@ -188,26 +199,49 @@ function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: Drop
         {open && (
           <>
             {/* Invisible backdrop closes the dropdown on outside click */}
-            <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+            <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
 
-            <div className="absolute left-0 right-0 mt-2 z-30 max-h-72 overflow-y-auto bg-[#021816] rounded-xl border border-white/10 shadow-2xl p-1.5 space-y-1">
-              {options.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => {
-                    setSelected(opt);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-xs transition-all ${
-                    selected === opt
-                      ? "bg-gradient-to-r from-[#FFB347]/20 to-[#F27D26]/20 border border-[#FFB347] text-white font-semibold"
-                      : "text-white/75 hover:bg-white/5 hover:text-[#5EEAD4]"
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+            {/* Outer wrapper clips the rounded corners; the inner div is the
+                actual scroll area, bounded to a viewport-relative height
+                (not a fixed max-h-72) so long lists like Bhajan/Stotram
+                always have room to scroll instead of getting visually cut
+                off. overscroll-contain + stopped touchmove propagation
+                ensure swiping the list on Android/iOS scrolls the list
+                itself instead of the page grabbing the gesture. */}
+            <div className="absolute left-0 right-0 mt-2 z-40 rounded-xl border border-white/10 bg-[#021816] shadow-2xl overflow-hidden">
+              <div
+                className="max-h-[45vh] sm:max-h-80 overflow-y-auto overscroll-contain p-1.5 space-y-1"
+                style={{ WebkitOverflowScrolling: "touch" }}
+                onTouchMove={(e) => e.stopPropagation()}
+              >
+                {options.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      setSelected(opt);
+                      setOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg text-xs transition-all ${
+                      selected === opt
+                        ? "bg-gradient-to-r from-[#FFB347]/20 to-[#F27D26]/20 border border-[#FFB347] text-white font-semibold"
+                        : "text-white/75 hover:bg-white/5 hover:text-[#5EEAD4]"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+
+              {/* Fade + bounce-chevron scroll indicator — only for lists
+                  tall enough to need scrolling, so devotees on both web and
+                  the Android app can see at a glance that more options sit
+                  below the fold. */}
+              {options.length > 6 && (
+                <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#021816] to-transparent flex items-end justify-center pb-1">
+                  <ChevronDown className="w-3.5 h-3.5 text-white/60 animate-bounce" />
+                </div>
+              )}
             </div>
           </>
         )}

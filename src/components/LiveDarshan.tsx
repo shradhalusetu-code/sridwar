@@ -6,8 +6,9 @@
 import { useState } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { LIVE_DARSHAN_INFO } from "../data/liveDarshan";
-import { Heart, MapPin, ChevronRight, ChevronDown, Users } from "lucide-react";
+import { Heart, MapPin, ChevronRight, ChevronDown, Users, Award, Megaphone } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
+import SacredMoments from "./SacredMoments";
 
 interface LiveDarshanProps {
   onNavigate?: (page: string) => void;
@@ -49,7 +50,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
 
         {/* VIRTUAL LIVE DARSHAN ROOM SECTION */}
         <div
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start bg-[#092320]/85 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:items-stretch bg-[#092320]/85 rounded-3xl border border-white/10 p-6 md:p-10 shadow-2xl relative overflow-hidden backdrop-blur-md"
           style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
         >
 
@@ -147,12 +148,17 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           </div>
 
           {/* Left side: Live Video screen player (cols 7) */}
-          <div className="lg:col-span-7 flex flex-col">
-            <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.75rem] flex items-end mb-2">
+          <div className="lg:col-span-7 flex flex-col h-full">
+            {/* items-start (not items-end) so this heading and the matching
+                one in the right-hand column below both begin at the same
+                top line — a temple name that wraps to two lines used to
+                push its heading's top edge higher than the shorter
+                right-column heading since both were bottom-anchored. */}
+            <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.75rem] flex items-start mb-2">
               {darshanTemple.name} — {LIVE_STREAM_FEED_ENABLED ? "Live Sanctified Stream" : "Darshan Preview"}
             </h4>
 
-            <div className="aspect-video w-full rounded-2xl bg-[#021816]/95 overflow-hidden relative border border-white/10 shadow-2xl flex items-center justify-center group">
+            <div className="aspect-video w-full rounded-2xl bg-[#021816]/95 overflow-hidden relative border border-white/10 shadow-2xl flex items-center justify-center group flex-1">
               {/* Deity Photo */}
               <OptimizedImage
                 src={darshanTemple.imageUrl}
@@ -175,7 +181,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           {/* Right side: Detailed notes, timing, interactive actions (cols 5) */}
           <div className="lg:col-span-5 flex flex-col justify-between text-left space-y-6 h-full">
             <div className="space-y-4">
-              <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.75rem] flex items-end mb-2">
+              <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight min-h-[3.75rem] flex items-start mb-2">
                 {LIVE_STREAM_FEED_ENABLED ? "Live Sanctified Darshan" : "Darshan Preview"}
               </h4>
 
@@ -224,32 +230,91 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
             </div>
 
             <div className="space-y-3">
-              {onNavigate && (
+              {/* ── Receive Darshan Certificate + Raise Temple Issues + Sponsor
+                   Aarti — three equal-width, horizontally aligned buttons
+                   directly below the blessing quote above. Each keeps its
+                   own devotional color identity (teal for the certificate,
+                   crimson for temple issues, saffron/gold for Aarti — the
+                   original treatment) but all three now share the same
+                   glow + hover-pop language so they read as one deliberate
+                   button group instead of a mismatched pair + single button.
+                   The certificate modal itself still lives in Hero.tsx, so
+                   this reuses the exact same "navigate home, then dispatch
+                   the shared open event" pattern already used by the
+                   footer's "Darshan Certificate" link — no duplicate
+                   modal/state. ── */}
+              <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
                 <button
-                  id="pathway-watch-live"
-                  onClick={() => onNavigate("seva")}
-                  className="relative w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest py-4 px-6 rounded-full transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
+                  id="darshan-page-receive-certificate-cta"
+                  onClick={() => {
+                    onNavigate?.("home");
+                    setTimeout(() => {
+                      window.dispatchEvent(new CustomEvent("sd-open-darshan-register"));
+                    }, 150);
+                  }}
+                  className="w-full h-full min-h-[3.25rem] bg-gradient-to-r from-[#0F766E] to-[#0D9488] hover:from-[#0D9488] hover:to-[#14B8A6] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-3 rounded-full border border-[#5EEAD4]/40 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center text-center space-x-2 cursor-pointer"
                   style={{
-                    boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
-                    animation: "sponsorAartiPulse 2s ease-in-out infinite",
+                    boxShadow: "0 0 16px rgba(20,184,166,0.4)",
+                    animation: "certificateGlowPulse 2.4s ease-in-out infinite",
                   }}
                 >
-                  <span
-                    className="absolute inset-0 rounded-full"
-                    style={{ animation: "sponsorAartiRing 2s ease-in-out infinite" }}
-                    aria-hidden="true"
-                  />
-                  <Heart className="w-4 h-4 text-[#FFD700] shrink-0" style={{ animation: "sponsorAartiFlicker 1.5s ease-in-out infinite alternate" }} />
-                  <span>Click Here to Participate & Sponsor Aarti</span>
-                  <ChevronRight className="w-4 h-4 shrink-0" />
+                  <Award className="w-4 h-4 text-[#99F6E4] shrink-0" />
+                  <span>Receive Darshan Certificate</span>
                 </button>
-              )}
+
+                {onNavigate && (
+                  <button
+                    id="darshan-page-raise-temple-issues-cta"
+                    onClick={() => onNavigate("report-temple-issues")}
+                    className="w-full h-full min-h-[3.25rem] bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-3 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center text-center space-x-2 cursor-pointer"
+                    style={{
+                      boxShadow: "0 0 16px rgba(190,18,60,0.4)",
+                      animation: "issuesGlowPulse 2.4s ease-in-out infinite",
+                    }}
+                  >
+                    <Megaphone className="w-4 h-4 text-[#FDA4AF] shrink-0" />
+                    <span>Raise Temple Issues</span>
+                  </button>
+                )}
+
+                {onNavigate && (
+                  <button
+                    id="pathway-watch-live"
+                    onClick={() => onNavigate("seva")}
+                    className="relative w-full h-full min-h-[3.25rem] flex items-center justify-center text-center space-x-1.5 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-3 rounded-full transition-all hover:scale-105 active:scale-95 border border-[#FFD700]/60 cursor-pointer"
+                    style={{
+                      boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
+                      animation: "sponsorAartiPulse 2s ease-in-out infinite",
+                    }}
+                  >
+                    <span
+                      className="absolute inset-0 rounded-full"
+                      style={{ animation: "sponsorAartiRing 2s ease-in-out infinite" }}
+                      aria-hidden="true"
+                    />
+                    <Heart className="w-4 h-4 text-[#FFD700] shrink-0" style={{ animation: "sponsorAartiFlicker 1.5s ease-in-out infinite alternate" }} />
+                    <span>Participate & Sponsor Aarti</span>
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
         </div>
 
-        {/* Keyframes for the Sponsor Aarti button pulse — matches the Setu Yatra Challenge button treatment */}
+        {/* Sacred Moments — moved here from the Seva Hub page, directly
+            below the Darshan Preview card, since it's the same devotional
+            photo gallery + Prayer Wall content and belongs beside the
+            Darshan experience. Fully self-contained (see SacredMoments.tsx)
+            so it needs no props here. */}
+        <SacredMoments />
+
+        {/* Keyframes for the three devotional CTA buttons' glow/pop treatment.
+            sponsorAarti* already existed; certificateGlowPulse and
+            issuesGlowPulse are the matching teal/crimson counterparts so all
+            three buttons in the row share one consistent, polished pulse
+            language. */}
         <style>{`
           @keyframes sponsorAartiPulse {
             0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
@@ -262,6 +327,14 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
           @keyframes sponsorAartiFlicker {
             0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
             100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+          }
+          @keyframes certificateGlowPulse {
+            0%, 100% { box-shadow: 0 0 16px rgba(20,184,166,0.4); }
+            50%       { box-shadow: 0 0 26px rgba(94,234,212,0.65); }
+          }
+          @keyframes issuesGlowPulse {
+            0%, 100% { box-shadow: 0 0 16px rgba(190,18,60,0.4); }
+            50%       { box-shadow: 0 0 26px rgba(225,29,72,0.6); }
           }
         `}</style>
 

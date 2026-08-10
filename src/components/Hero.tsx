@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, FormEvent } from "react";
-import { Award, BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Flame } from "lucide-react";
+import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
@@ -14,7 +14,7 @@ import UPIPaymentModal from "./UPIPaymentModal";
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
-import { gaContactFormStart, gaContactFormSubmit, gaNavClick } from "../utils/analytics";
+import { gaContactFormStart, gaContactFormSubmit } from "../utils/analytics";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
 import OptimizedImage from "./OptimizedImage";
 // @ts-ignore
@@ -26,10 +26,9 @@ interface HeroProps {
   currentLanguage: Language;
   isAndroidApp?: boolean;
   onNavigate: (page: string) => void;
-  onOpenSetuYatra: () => void;
 }
 
-export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate, onOpenSetuYatra }: HeroProps) {
+export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate }: HeroProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Register with the shared Back-button trap while the Darshan Certificate
@@ -260,56 +259,6 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             <p className="text-sm sm:text-base text-white/85 font-sans font-normal leading-relaxed max-w-2xl text-center mx-auto">
               Experience sacred rituals, divine temple offerings, and personalized pujas from the most revered temples of India — performed in your name and Gotra with live streaming coordinates.
             </p>
-
-            {/* CTA Option Blocks */}
-            <div className={`flex flex-wrap justify-center ${isAndroidApp ? "gap-4 pt-2" : "gap-3 pt-1"}`}>
-
-              {/* 1. Darshan Certificate — teal green */}
-              <button
-                id="hero-receive-certificate-cta"
-                onClick={handleOpenCertificateModal}
-                className="bg-[#0F766E] hover:bg-[#0D9488] text-white font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full shadow-[0_0_18px_rgba(20,184,166,0.35)] hover:shadow-[0_0_24px_rgba(20,184,166,0.55)] transition-all hover:scale-105 flex items-center space-x-2 border border-[#14B8A6]/60 cursor-pointer"
-              >
-                <Award className="w-4 h-4 text-[#99F6E4]" />
-                <span>Receive Darshan Certificate</span>
-              </button>
-
-              {/* 2. Setu Yatra Challenge — deep saffron/flame — pulsing attention button */}
-              <button
-                id="hero-setu-yatra-cta"
-                onClick={() => { gaNavClick("setu_yatra_challenge", "hero"); onOpenSetuYatra(); }}
-                className="relative bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center space-x-2 border border-[#FFD700]/60 cursor-pointer"
-                style={{
-                  boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
-                  animation: "setuYatraPulse 2s ease-in-out infinite",
-                }}
-              >
-                {/* Outer glow ring */}
-                <span
-                  className="absolute inset-0 rounded-full"
-                  style={{ animation: "setuYatraRing 2s ease-in-out infinite" }}
-                  aria-hidden="true"
-                />
-                <Flame className="w-4 h-4 text-[#FFD700] shrink-0" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
-                <span>Setu Yatra Challenge</span>
-              </button>
-            </div>
-
-            {/* Keyframes for the Setu Yatra button pulse — injected once into the document head */}
-            <style>{`
-              @keyframes setuYatraPulse {
-                0%, 100% { box-shadow: 0 0 20px rgba(255,107,0,0.5), 0 0 40px rgba(255,107,0,0.25); transform: scale(1); }
-                50%       { box-shadow: 0 0 32px rgba(255,153,0,0.8), 0 0 64px rgba(255,153,0,0.4); transform: scale(1.04); }
-              }
-              @keyframes setuYatraRing {
-                0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
-                50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
-              }
-              @keyframes setuYatraFlicker {
-                0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
-                100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
-              }
-            `}</style>
           </div>
 
         </div>

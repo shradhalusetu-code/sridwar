@@ -612,15 +612,6 @@ export default function App() {
               currentLanguage={currentLanguage}
               isAndroidApp={isAndroidApp}
               onNavigate={handleNavigate}
-              onOpenSetuYatra={() => setIsOfferPopupOpen(true)}
-            />
-            
-            {/* Refer, Earn & Grow with Dharma — referral, affiliate, commission
-                and subscription ecosystem, shown above Featured Temple
-                Experience so every visitor sees the earning opportunity
-                right after the cinematic entrance. */}
-            <ReferAndEarn
-              onNavigate={handleNavigate}
             />
 
             {/* Spotlight and lists */}
@@ -637,6 +628,14 @@ export default function App() {
             />
 
             <DevoteeExperiences />
+
+            {/* Refer, Earn & Grow with Dharma — referral, affiliate, commission
+                and subscription ecosystem, shown below Divine Miracles &
+                Success Stories so the earning opportunity lands right after
+                real devotee testimonials build trust. */}
+            <ReferAndEarn
+              onNavigate={handleNavigate}
+            />
 
             {/* Counselling & Guidance — homepage entry point. A single,
                 unobtrusive banner (not a new top-level nav item, and not a
@@ -659,9 +658,6 @@ export default function App() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-serif text-base sm:text-lg font-bold text-white">Counselling & Guidance</h3>
-                      <span className="text-[9px] font-mono font-bold text-[#021816] bg-[#5EEAD4] px-2 py-0.5 rounded-full uppercase tracking-wide">
-                        Sessions from ₹299
-                      </span>
                     </div>
                     <p className="text-xs text-white/55 leading-relaxed mt-1 max-w-2xl">
                       Affordable, confidential guidance for individuals, students, couples, families, professionals & seniors —
@@ -675,9 +671,11 @@ export default function App() {
               </div>
             </section>
 
-            {/* Trust-bar stats — placed right after Divine Miracles &
-                Success Stories so real devotee testimonials build trust
-                first, reinforced immediately by concrete platform numbers. */}
+            {/* Trust-bar stats — placed near the end of the homepage flow,
+                after Divine Miracles & Success Stories and Refer, Earn &
+                Grow with Dharma, so real devotee testimonials and the
+                earning opportunity are both reinforced by concrete
+                platform numbers before the footer. */}
             <TrustBar isAndroidApp={isAndroidApp} />
           </div>
         )}
@@ -693,6 +691,7 @@ export default function App() {
                   setIsBookNowOpen(true);
                 }}
                 onNavigate={handleNavigate}
+                onOpenSevaModal={() => setIsSevaModalOpen(true)}
               />
             </Suspense>
           </div>
@@ -837,6 +836,7 @@ export default function App() {
                 onNavigate={handleNavigate}
                 onOpenLegalDoc={(doc) => setActiveLegalDoc(doc as any)}
                 userProfile={userProfile}
+                onOpenSetuYatra={() => setIsOfferPopupOpen(true)}
               />
             </Suspense>
           </div>

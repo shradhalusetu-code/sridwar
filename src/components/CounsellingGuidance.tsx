@@ -30,9 +30,10 @@ import {
   ChevronLeft, ChevronRight, ArrowRight, Compass, Brain, HeartHandshake, Users,
   GraduationCap, Briefcase, Gem, Scale, Sunset, HelpCircle, ShieldCheck, Lock,
   Clock, PhoneCall, Sparkles, Check, Heart, CalendarClock, Repeat, Hourglass, Pill,
-  ChevronDown,
+  ChevronDown, Tag, UserCheck, X, Star, Languages,
 } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
+import { PRIEST_PROFILES } from "../data/priests";
 
 // Artwork for each of the 10 guidance areas — compressed and converted to
 // WebP (with a matching JPEG fallback for OptimizedImage). Kept as the
@@ -461,9 +462,49 @@ const HOW_IT_WORKS = [
   },
 ];
 
+// ── Guidance counselors ─────────────────────────────────────────────────────
+// Drawn directly from the existing priest/pujari directory (PRIEST_PROFILES,
+// data/priests.ts) — no new/invented profiles. Only entries that actually
+// list advice/guidance specializations (adviceAreas) are offered here, since
+// those are the ones equipped to hold a guidance conversation rather than
+// just perform a puja. Deduplicated by name so the same real person isn't
+// offered twice under two directory entries.
+interface GuidanceCounselor {
+  id: string;
+  name: string;
+  expertise: string;
+  location: string;
+  yearsExperience: number;
+  languages: string[];
+}
+
+const GUIDANCE_COUNSELORS: GuidanceCounselor[] = (() => {
+  const seen = new Set<string>();
+  const list: GuidanceCounselor[] = [];
+  for (const p of PRIEST_PROFILES) {
+    if (!p.adviceAreas || p.adviceAreas.length === 0) continue;
+    if (seen.has(p.name)) continue;
+    seen.add(p.name);
+    list.push({
+      id: p.id,
+      name: p.name,
+      expertise: p.adviceAreas[0],
+      location: `${p.currentCity}, ${p.currentState}`,
+      yearsExperience: p.yearsExperience,
+      languages: p.languagesSpoken,
+    });
+  }
+  return list;
+})();
+
 // ─── Small building blocks ─────────────────────────────────────────────────
 
-function ServiceCard({ service, onBook }: { service: GuidanceService; onBook: (title: string) => void }) {
+function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: {
+  service: GuidanceService;
+  onBook: (title: string) => void;
+  selectedCounselor: GuidanceCounselor | null;
+  onChooseCounselor: () => void;
+}) {
   return (
     <div
       id={service.id}
@@ -551,14 +592,35 @@ function ServiceCard({ service, onBook }: { service: GuidanceService; onBook: (t
           </p>
         </div>
 
+        {/* Choose Your Counselor — same shared selection everywhere */}
+        <button
+          type="button"
+          onClick={onChooseCounselor}
+          className="mt-3 w-full inline-flex items-center gap-2 text-left bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#5EEAD4]/40 rounded-xl px-3 py-2 transition-colors"
+        >
+          <span
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+            style={{ background: service.bg, border: `1px solid ${service.border}`, color: service.color }}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[9px] font-mono font-bold text-white/40 uppercase tracking-wide">Choose Your Counselor</span>
+            <span className="block text-[11px] font-semibold text-white truncate">
+              {selectedCounselor ? selectedCounselor.name : "Any available expert"}
+            </span>
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 text-white/30 shrink-0" />
+        </button>
+
         <button
           onClick={() => onBook(service.title)}
-          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2.5 rounded-xl border transition-all hover:text-[#021816]"
+          className="mt-2 w-full inline-flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2.5 rounded-xl border transition-all hover:text-[#021816]"
           style={{ borderColor: service.border, color: service.color, background: "transparent" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = service.color; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
         >
-          Explore & Book <ArrowRight className="w-3.5 h-3.5" />
+          Explore Guidance <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
@@ -592,6 +654,21 @@ interface CounsellingGuidanceProps {
 export default function CounsellingGuidance({ onNavigate, onBookSession, isAndroidApp = false }: CounsellingGuidanceProps) {
   const [guidanceAccordionOpen, setGuidanceAccordionOpen] = useState(false);
 
+  // ── "Choose Your Counselor" ────────────────────────────────────────────
+  // A single, shared counselor selection used consistently across every one
+  // of the 10 Guidance Areas — pulled straight from the existing priest
+  // directory (PRIEST_PROFILES in data/priests.ts), filtered to entries that
+  // actually list guidance/advice specializations. Picking a counselor from
+  // any card opens the same picker and updates the same state, so whichever
+  // Pandit/Pujari/expert a devotee chooses is reflected everywhere. Purely
+  // additive — the booking wizard itself, its fields, and its flow are
+  // untouched; the chosen counselor's name is just appended to the label
+  // already passed to onBookSession.
+  const counselors = GUIDANCE_COUNSELORS;
+  const [selectedCounselorId, setSelectedCounselorId] = useState<string | null>(null);
+  const [isCounselorPickerOpen, setIsCounselorPickerOpen] = useState(false);
+  const selectedCounselor = counselors.find((c) => c.id === selectedCounselorId) ?? null;
+
   const visibleServices = isAndroidApp ? SERVICES.slice(0, ANDROID_VISIBLE_COUNT) : SERVICES;
   const hiddenServices = isAndroidApp ? SERVICES.slice(ANDROID_VISIBLE_COUNT) : [];
   const hasHiddenServices = hiddenServices.length > 0;
@@ -601,7 +678,10 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
     // the person can choose a different format lower down, or the team can
     // adjust duration/price after the initial conversation if needed.
     const standard = SESSION_FORMATS.find((f) => f.id === "standard-session")!;
-    onBookSession(`Counselling & Guidance: ${title}`, standard.price);
+    const label = selectedCounselor
+      ? `Counselling & Guidance: ${title} — with ${selectedCounselor.name}`
+      : `Counselling & Guidance: ${title}`;
+    onBookSession(label, standard.price);
   };
 
   const handleBookFormat = (format: SessionFormat) => {
@@ -686,15 +766,17 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             <button
               type="button"
               onClick={() => scrollToSection("guidance-services")}
-              className="inline-flex items-center gap-1.5 bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold text-xs px-5 py-3 rounded-full transition-all shadow"
+              className="relative inline-flex items-center gap-1.5 bg-gradient-to-r from-[#B45309] via-[#F59E0B] to-[#FCD34D] hover:from-[#D97706] hover:via-[#FBBF24] hover:to-[#FDE68A] text-[#021816] font-extrabold text-xs uppercase tracking-widest px-5 py-3 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 border border-[#FDE68A]/70 shadow-[0_0_16px_rgba(245,158,11,0.45)] hover:shadow-[0_0_24px_rgba(252,211,77,0.65)]"
             >
+              <Compass className="w-3.5 h-3.5" />
               Explore the 10 Guidance Areas <ArrowRight className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={() => scrollToSection("guidance-pricing")}
-              className="inline-flex items-center gap-1.5 border border-white/15 hover:border-[#5EEAD4]/50 text-white/80 hover:text-[#5EEAD4] font-bold text-xs px-5 py-3 rounded-full transition-all"
+              className="inline-flex items-center gap-1.5 bg-[#0F766E]/20 border border-[#5EEAD4]/40 hover:bg-[#0F766E]/40 hover:border-[#5EEAD4]/70 text-[#5EEAD4] hover:text-[#99F6E4] font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-full transition-all duration-300 hover:scale-105"
             >
+              <Tag className="w-3.5 h-3.5" />
               See Session Pricing
             </button>
           </div>
@@ -739,7 +821,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {visibleServices.map((service) => (
-              <ServiceCard key={service.id} service={service} onBook={handleBookService} />
+              <ServiceCard key={service.id} service={service} onBook={handleBookService} selectedCounselor={selectedCounselor} onChooseCounselor={() => setIsCounselorPickerOpen(true)} />
             ))}
           </div>
 
@@ -776,7 +858,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               {guidanceAccordionOpen && (
                 <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {hiddenServices.map((service) => (
-                    <ServiceCard key={service.id} service={service} onBook={handleBookService} />
+                    <ServiceCard key={service.id} service={service} onBook={handleBookService} selectedCounselor={selectedCounselor} onChooseCounselor={() => setIsCounselorPickerOpen(true)} />
                   ))}
                 </div>
               )}
@@ -950,6 +1032,89 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
         </div>
 
       </div>
+
+      {/* ── Choose Your Counselor picker — shared across every offering ── */}
+      {isCounselorPickerOpen && (
+        <div
+          className="fixed inset-0 z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
+          style={{ touchAction: "pan-y" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setIsCounselorPickerOpen(false); }}
+        >
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCounselorPickerOpen(false)} />
+          <div
+            className="relative w-full sm:max-w-lg bg-[#042825] border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 flex flex-col overflow-hidden"
+            style={{ maxHeight: "85vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#5EEAD4] via-[#FFB347] to-[#5EEAD4] z-10" />
+            <button
+              onClick={() => setIsCounselorPickerOpen(false)}
+              className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
+              aria-label="Close counselor picker"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="p-6 pb-3 shrink-0">
+              <h3 className="font-serif text-xl font-bold text-white text-center">Choose Your Counselor</h3>
+              <p className="text-xs text-white/60 text-center max-w-sm mx-auto mt-1.5">
+                Pick an available, experienced Pandit, Pujari, or Dharmic guidance expert from our directory. Your
+                choice applies across every Guidance Area.
+              </p>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 space-y-2">
+              <button
+                type="button"
+                onClick={() => { setSelectedCounselorId(null); setIsCounselorPickerOpen(false); }}
+                className={`w-full text-left flex items-center gap-3 rounded-xl px-3 py-2.5 border transition-colors ${
+                  !selectedCounselorId ? "bg-[#5EEAD4]/10 border-[#5EEAD4]/50" : "bg-white/5 border-white/10 hover:border-white/25"
+                }`}
+              >
+                <span className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 text-white/70" />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-xs font-bold text-white">Any available expert</span>
+                  <span className="block text-[10px] text-white/50">Sri Dwar will assign a suitable counselor</span>
+                </span>
+                {!selectedCounselorId && <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />}
+              </button>
+
+              {GUIDANCE_COUNSELORS.map((c) => {
+                const active = c.id === selectedCounselorId;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => { setSelectedCounselorId(c.id); setIsCounselorPickerOpen(false); }}
+                    className={`w-full text-left flex items-center gap-3 rounded-xl px-3 py-2.5 border transition-colors ${
+                      active ? "bg-[#5EEAD4]/10 border-[#5EEAD4]/50" : "bg-white/5 border-white/10 hover:border-white/25"
+                    }`}
+                  >
+                    <span className="w-9 h-9 rounded-full bg-[#FFB347]/15 border border-[#FFB347]/30 flex items-center justify-center shrink-0 text-[#FFB347]">
+                      <UserCheck className="w-4 h-4" />
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-xs font-bold text-white truncate">{c.name}</span>
+                      <span className="block text-[10px] text-white/50 truncate">{c.expertise} · {c.location}</span>
+                      <span className="flex items-center gap-2 mt-0.5">
+                        <span className="inline-flex items-center gap-0.5 text-[9px] text-white/40">
+                          <Star className="w-2.5 h-2.5" /> {c.yearsExperience} yrs
+                        </span>
+                        <span className="inline-flex items-center gap-0.5 text-[9px] text-white/40 truncate">
+                          <Languages className="w-2.5 h-2.5 shrink-0" /> {c.languages.join(", ")}
+                        </span>
+                      </span>
+                    </span>
+                    {active && <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

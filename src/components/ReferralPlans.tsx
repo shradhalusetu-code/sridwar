@@ -161,6 +161,10 @@ interface ReferralPlansProps {
   onNavigate: (page: string) => void;
   onOpenLegalDoc: (doc: string) => void;
   userProfile?: { name: string; email: string };
+  /** Opens the "Setu Yatra Challenge" promo modal (owned by App.tsx / the
+   *  OfferPopup component) — the same modal the homepage Hero button used
+   *  to open before the button moved here. */
+  onOpenSetuYatra: () => void;
 }
 
 /**
@@ -169,7 +173,7 @@ interface ReferralPlansProps {
  * cashback structure, milestone rewards, seasonal campaigns, the six 5-tier
  * subscription ladders, fraud protection, and the cashback disclaimer.
  */
-export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile }: ReferralPlansProps) {
+export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile, onOpenSetuYatra }: ReferralPlansProps) {
   const [activeCategory, setActiveCategory] = useState<PlanCategoryId>("devotee");
   const [billing, setBilling] = useState<BillingCycle>("monthly");
   const [activeSignup, setActiveSignup] = useState<{ tier: DevoteeReferralTier | ProviderCategoryTier; billing: BillingCycle } | null>(null);
@@ -448,6 +452,48 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile 
             </button>
           </div>
         </div>
+
+        {/* Setu Yatra Challenge — moved here from the homepage Hero, same
+            button, same pulsing saffron/flame treatment, same modal
+            (OfferPopup, owned by App.tsx). Just relocated below Plans,
+            Rewards & Cashback Details, not redesigned. */}
+        <div className="flex justify-center mt-8">
+          <button
+            id="plans-setu-yatra-cta"
+            onClick={onOpenSetuYatra}
+            className="relative bg-gradient-to-r from-[#3730A3] via-[#6D28D9] to-[#7C3AED] hover:from-[#4338CA] hover:via-[#7C3AED] hover:to-[#8B5CF6] text-white font-extrabold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all hover:scale-105 flex items-center space-x-2 border border-[#C4B5FD]/60 cursor-pointer"
+            style={{
+              boxShadow: "0 0 20px rgba(109, 40, 217, 0.5), 0 0 40px rgba(124, 58, 237, 0.25)",
+              animation: "setuYatraPulse 2s ease-in-out infinite",
+            }}
+          >
+            {/* Outer glow ring */}
+            <span
+              className="absolute inset-0 rounded-full"
+              style={{ animation: "setuYatraRing 2s ease-in-out infinite" }}
+              aria-hidden="true"
+            />
+            <Landmark className="w-4 h-4 text-[#C4B5FD] shrink-0" style={{ animation: "setuYatraFlicker 1.5s ease-in-out infinite alternate" }} />
+            <span>Setu Yatra Challenge</span>
+          </button>
+        </div>
+
+        {/* Keyframes for the Setu Yatra button pulse — same animation the
+            homepage Hero button used, injected once into the document head. */}
+        <style>{`
+          @keyframes setuYatraPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(109,40,217,0.5), 0 0 40px rgba(124,58,237,0.25); transform: scale(1); }
+            50%       { box-shadow: 0 0 32px rgba(139,92,246,0.8), 0 0 64px rgba(139,92,246,0.4); transform: scale(1.04); }
+          }
+          @keyframes setuYatraRing {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(196,181,253,0.0); }
+            50%       { box-shadow: 0 0 0 6px rgba(196,181,253,0.18); }
+          }
+          @keyframes setuYatraFlicker {
+            0%   { opacity: 1;   transform: rotate(-5deg) scale(1.05); }
+            100% { opacity: 0.75; transform: rotate(5deg)  scale(0.95); }
+          }
+        `}</style>
       </div>
 
       {activeSignup && (

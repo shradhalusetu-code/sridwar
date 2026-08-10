@@ -49,17 +49,18 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
             <button
               id="refer-earn-get-link-cta"
               onClick={() => onNavigate("login")}
-              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#FFB347] to-[#FF8A00] text-[#021816] text-sm font-bold px-5 py-3 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              className="relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#065F46] via-[#059669] to-[#FFB347] hover:from-[#047857] hover:via-[#10B981] hover:to-[#FFC670] text-white text-xs font-extrabold uppercase tracking-widest px-5 py-3 rounded-full border border-[#6EE7B7]/50 shadow-[0_0_16px_rgba(5,150,105,0.45)] hover:shadow-[0_0_24px_rgba(16,185,129,0.6)] hover:-translate-y-0.5 transition-all duration-300"
             >
-              <Sparkles className="w-4 h-4" />
+              <Wallet className="w-4 h-4 text-[#D1FAE5] shrink-0" />
               Get My Referral Link
             </button>
             <button
               id="refer-earn-view-plans-cta"
               onClick={() => onNavigate("plans")}
-              className="inline-flex items-center justify-center gap-1.5 border border-[#FFB347]/40 text-[#FFB347] text-sm font-bold px-5 py-3 rounded-full hover:bg-[#FFB347] hover:text-[#021816] transition-all"
+              className="inline-flex items-center justify-center gap-1.5 bg-[#FFB347]/10 border border-[#FFB347]/40 text-[#FFB347] hover:bg-[#FFB347] hover:text-[#021816] text-xs font-extrabold uppercase tracking-widest px-5 py-3 rounded-full transition-all duration-300 hover:scale-105"
             >
-              See Full Plans, Rewards & Cashback Details
+              <Sparkles className="w-3.5 h-3.5" />
+              See Full Plans & Rewards
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBasket, Globe, Share2, Heart, Calendar, User, Eye, Compass, Landmark, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
+import { Menu, X, ShoppingBasket, Globe, Share2, Calendar, User, Eye, Compass, Landmark, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
@@ -149,7 +149,7 @@ export default function Navbar({
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-6 lg:gap-12">
+          <div className="flex items-center justify-between gap-4 lg:gap-6">
             {/* Left: Brand Identity */}
             <div
               id="brand-logo-trigger"
@@ -159,8 +159,14 @@ export default function Navbar({
               <SriDwarLogo variant="colored" iconSize="md" showTagline={true} className="" />
             </div>
 
-            {/* Middle: Desktop Navigation Items */}
-            <div className="hidden lg:flex items-center space-x-4 xl:space-x-7 flex-1 justify-center" id="desktop-menu">
+            {/* Middle: Desktop Navigation Items — anchored to the right edge of
+                its flexible space (not centered across the full remaining
+                width) so the nav labels sit close to the language/controls
+                capsule instead of leaving a large empty gap before it. Any
+                extra room from a wide viewport now collects between the logo
+                and the nav group, which reads as a natural, balanced header
+                instead of stray whitespace next to the language button. */}
+            <div className="hidden lg:flex items-center space-x-4 xl:space-x-7 flex-1 justify-end pr-4 xl:pr-6" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -277,26 +283,15 @@ export default function Navbar({
               {/* Action CTA Buttons */}
               <div className="flex items-center space-x-2.5">
                 <button
-                  id="nav-explore-shrines"
+                  id="nav-counselling"
                   onClick={() => {
-                    gaNavClick("temple-experience-section", "navbar");
-                    onNavigate("home");
-                    setTimeout(() => {
-                      document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
-                    }, 150);
+                    gaNavClick("counselling", "navbar");
+                    onNavigate("counselling");
                   }}
-                  className="hidden xl:flex bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#818CF8]/30 transition-all duration-300 items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
+                  className="hidden xl:flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
                 >
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
-                  <span>Shrines</span>
-                </button>
-                <button
-                  id="nav-direct-donate-seva"
-                  onClick={onOpenSevaModal}
-                  className="bg-[#0F766E]/65 hover:bg-[#14B8A6]/80 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-white/10 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
-                >
-                  <Heart className="w-3.5 h-3.5 text-[#FFB347] fill-[#FFB347]" />
-                  <span>{t.donate}</span>
+                  <span>Counselling</span>
                 </button>
                 <button
                   id="nav-add-temple"
@@ -304,7 +299,7 @@ export default function Navbar({
                     gaNavClick("add-temple", "navbar");
                     onNavigate("add-temple");
                   }}
-                  className="bg-[#9F1239]/65 hover:bg-[#BE123C]/80 text-white text-[11px] font-semibold px-4 py-2 rounded-full border border-[#FDA4AF]/30 transition-all duration-300 flex items-center space-x-1.5 hover:scale-101 h-9 outline-none cursor-pointer whitespace-nowrap"
+                  className="bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 flex items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(190,18,60,0.35)] hover:shadow-[0_0_16px_rgba(225,29,72,0.55)]"
                 >
                   <Landmark className="w-3.5 h-3.5 text-[#FDA4AF]" />
                   <span>Add Temple</span>
@@ -410,31 +405,16 @@ export default function Navbar({
               {/* Floating menu buttons inside drawer */}
               <div className="mt-6 flex flex-col space-y-3">
                 <button
-                  id="mobile-explore-shrines-btn"
+                  id="mobile-counselling-btn"
                   onClick={() => {
-                    gaNavClick("temple-experience-section", "mobile_nav");
-                    onNavigate("home");
+                    gaNavClick("counselling", "mobile_nav");
+                    onNavigate("counselling");
                     setIsMobileMenuOpen(false);
-                    setTimeout(() => {
-                      document.getElementById("temple-experience-section")?.scrollIntoView({ behavior: "smooth" });
-                    }, 200);
                   }}
-                  className="w-full bg-[#3730A3]/70 hover:bg-[#4338CA]/90 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#818CF8]/30 shadow hover:scale-[1.01] transition-transform"
+                  className="w-full bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#A5B4FC]/40 shadow-[0_0_12px_rgba(99,102,241,0.35)] hover:scale-[1.02] transition-all"
                 >
                   <Compass className="w-4 h-4 text-[#C7D2FE]" />
-                  <span>Shrines</span>
-                </button>
-
-                <button
-                  id="mobile-seva-btn"
-                  onClick={() => {
-                    onOpenSevaModal();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full bg-[#0F766E] hover:bg-[#14B8A6] text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-white/10 shadow hover:scale-[1.01] transition-transform"
-                >
-                  <Heart className="w-4 h-4 text-[#FFB347] fill-[#FFB347]" />
-                  <span>{t.donate}</span>
+                  <span>Counselling</span>
                 </button>
 
                 <button
@@ -444,7 +424,7 @@ export default function Navbar({
                     onNavigate("add-temple");
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full bg-[#9F1239]/80 hover:bg-[#BE123C] text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#FDA4AF]/30 shadow hover:scale-[1.01] transition-transform"
+                  className="w-full bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#FDA4AF]/40 shadow-[0_0_12px_rgba(190,18,60,0.35)] hover:scale-[1.02] transition-all"
                 >
                   <Landmark className="w-4 h-4 text-[#FDA4AF]" />
                   <span>Add Temple</span>
