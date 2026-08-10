@@ -303,7 +303,10 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
     <section
       id="report-temple-issues-section"
       className="py-24 bg-[#021816] text-left text-white"
-      style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
+      style={{
+        paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 6rem)`,
+      }}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 

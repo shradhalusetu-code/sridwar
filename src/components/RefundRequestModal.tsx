@@ -207,7 +207,10 @@ export default function RefundRequestModal({
         style={{ maxHeight: "100%" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="shrink-0 bg-white/5 px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl">
+        <div
+          className="shrink-0 bg-white/5 px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+        >
           <div>
             <h3 className="font-serif text-sm font-bold text-white">Request Cancellation / Refund</h3>
             <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider">Reviewed by our team</p>

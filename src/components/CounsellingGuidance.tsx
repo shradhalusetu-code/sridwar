@@ -716,7 +716,13 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
   };
 
   return (
-    <section className="pb-16 pt-8 sm:pt-10 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen">
+    <section
+      className="pb-16 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen"
+      style={{
+        paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)",
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Breadcrumb */}
@@ -1043,19 +1049,23 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCounselorPickerOpen(false)} />
           <div
             className="relative w-full sm:max-w-lg bg-[#042825] border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 flex flex-col overflow-hidden"
-            style={{ maxHeight: "85vh" }}
+            style={{ maxHeight: "100%" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#5EEAD4] via-[#FFB347] to-[#5EEAD4] z-10" />
             <button
               onClick={() => setIsCounselorPickerOpen(false)}
-              className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
+              className="absolute right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
+              style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
               aria-label="Close counselor picker"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="p-6 pb-3 shrink-0">
+            <div
+              className="p-6 pb-3 shrink-0"
+              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.5rem)" }}
+            >
               <h3 className="font-serif text-xl font-bold text-white text-center">Choose Your Counselor</h3>
               <p className="text-xs text-white/60 text-center max-w-sm mx-auto mt-1.5">
                 Pick an available, experienced Pandit, Pujari, or Dharmic guidance expert from our directory. Your
@@ -1063,7 +1073,13 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               </p>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 space-y-2">
+            <div
+              className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 space-y-2"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
+              }}
+            >
               <button
                 type="button"
                 onClick={() => { setSelectedCounselorId(null); setIsCounselorPickerOpen(false); }}

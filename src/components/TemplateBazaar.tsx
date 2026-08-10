@@ -665,7 +665,10 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
           >
 
             {/* Sticky Modal Header with Logo */}
-            <div className="shrink-0 bg-[#021816] px-5 py-4 border-b border-white/10 sm:rounded-t-3xl">
+            <div
+              className="shrink-0 bg-[#021816] px-5 py-4 border-b border-white/10 sm:rounded-t-3xl"
+              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+            >
               {/* Sri Dwar Brand Logo */}
               <div className="flex justify-center mb-3">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />

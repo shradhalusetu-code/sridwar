@@ -279,7 +279,10 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
           >
             
             {/* Modal Header */}
-            <div className="shrink-0 bg-[#021816] text-white px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl">
+            <div
+              className="shrink-0 bg-[#021816] text-white px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
+              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+            >
               <div className="flex items-center space-x-3">
                 <SriDwarLogo
                   iconSize="sm"

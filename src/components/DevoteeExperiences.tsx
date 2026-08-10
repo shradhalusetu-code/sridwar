@@ -707,7 +707,8 @@ export default function DevoteeExperiences() {
               
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
+                className="absolute right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
+                style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -716,7 +717,11 @@ export default function DevoteeExperiences() {
               {/* Scrollable body — THE ONLY scroll container */}
               <div
                 className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8"
-                style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}
+                style={{
+                  WebkitOverflowScrolling: "touch",
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.5rem)",
+                  paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)",
+                }}
               >
               <div className="flex justify-center mb-2">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />

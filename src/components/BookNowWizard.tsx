@@ -172,7 +172,10 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
   // ─── Shared sticky header pieces ────────────────────────────────────────
   const Header = (
-    <div className="shrink-0 bg-[#021816] border-b border-white/10">
+    <div
+      className="shrink-0 bg-[#021816] border-b border-white/10"
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+    >
       {/* Brand bar */}
       <div className="px-5 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">

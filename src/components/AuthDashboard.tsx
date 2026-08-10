@@ -732,7 +732,14 @@ export default function AuthDashboard({
   // bookedItems (from this browser session) and an honest empty state.
 
   return (
-    <section id="auth-dashboard-section" className="py-24 bg-[#021816] text-left text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
+    <section
+      id="auth-dashboard-section"
+      className="py-24 bg-[#021816] text-left text-white"
+      style={{
+        paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)`,
+        paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 6rem)`,
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Conditional Layout based on Logon Status.
@@ -1739,11 +1746,20 @@ export default function AuthDashboard({
 
       {/* ── Step 3: Puja Sankalpa Portal ─────────────────────────────────── */}
       {showSankalpaForm && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] overflow-y-auto p-4 py-6">
+        <div
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] overflow-y-auto p-4 py-6"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2rem)",
+          }}
+        >
           <div className="bg-[#092320] rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl mx-auto my-4 text-white">
 
             {/* Header with SriDwarLogo */}
-            <div className="bg-[#021816] px-5 py-4 border-b border-white/10 rounded-t-3xl">
+            <div
+              className="bg-[#021816] px-5 py-4 border-b border-white/10 rounded-t-3xl"
+              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+            >
               <div className="flex justify-center mb-3">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
               </div>
@@ -1868,12 +1884,23 @@ export default function AuthDashboard({
       {/* ── Delete My Account — self-service confirmation modal ───────────── */}
       {showDeleteAccountConfirm && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+          style={{ touchAction: "pan-y" }}
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-account-modal-title"
         >
-          <div className="w-full max-w-sm bg-[#092320] border border-red-500/30 rounded-3xl p-6 shadow-2xl text-left">
+          <div
+            className="w-full max-w-sm bg-[#092320] border border-red-500/30 rounded-3xl shadow-2xl text-left flex flex-col"
+            style={{ maxHeight: "100%" }}
+          >
+          <div
+            className="overflow-y-auto p-6"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
+            }}
+          >
             <div className="flex items-center gap-2 mb-3">
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
               <h3 id="delete-account-modal-title" className="font-serif text-lg font-bold text-white">
@@ -1940,16 +1967,25 @@ export default function AuthDashboard({
               </button>
             </div>
           </div>
+          </div>
         </div>
       )}
 
       {/* ── Account deleted — brief confirmation before signing out ───────── */}
       {deleteAccountSuccess && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm bg-[#092320] border border-emerald-500/30 rounded-3xl p-6 shadow-2xl text-center">
-            <ShieldCheck className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
-            <h3 className="font-serif text-lg font-bold text-white mb-1">Account Deleted</h3>
-            <p className="text-xs text-white/70">Your Dharmic ID and personal data have been removed. Signing you out...</p>
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div
+            className="w-full max-w-sm bg-[#092320] border border-emerald-500/30 rounded-3xl shadow-2xl text-center overflow-y-auto"
+            style={{
+              maxHeight: "100%",
+              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
+            }}
+          >
+            <div className="p-6 pb-0">
+              <ShieldCheck className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
+              <h3 className="font-serif text-lg font-bold text-white mb-1">Account Deleted</h3>
+              <p className="text-xs text-white/70">Your Dharmic ID and personal data have been removed. Signing you out...</p>
+            </div>
           </div>
         </div>
       )}

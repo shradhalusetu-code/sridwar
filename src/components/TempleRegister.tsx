@@ -2378,7 +2378,10 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       <section
         id="temple-register-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 80px)" }}
+        style={{
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
+        }}
       >
         <div className="max-w-2xl mx-auto">
           {!standaloneTempleReg && (
@@ -2740,7 +2743,10 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       <section
         id="dharma-portal-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4 flex items-center"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 80px)" }}
+        style={{
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
+        }}
       >
         <div className="max-w-md mx-auto w-full space-y-6">
           <div className="relative flex items-center justify-center mb-2">
@@ -2839,7 +2845,10 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       <section
         id="divine contribution-step-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4 flex items-center"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 80px)" }}
+        style={{
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
+        }}
       >
         <div className="max-w-md mx-auto w-full space-y-6">
           <button
@@ -2954,7 +2963,10 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       <section
         id="devotee-portal-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 80px)" }}
+        style={{
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
+        }}
       >
         <div className="max-w-lg mx-auto space-y-6">
           <button
