@@ -201,7 +201,7 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
           className="fixed bottom-24 right-6 z-40 w-92 max-w-[calc(100vw-32px)] bg-[#092320]/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl flex flex-col justify-between overflow-hidden animate-slideUp text-left text-xs text-white"
           style={{
             bottom: "calc(6rem + env(safe-area-inset-bottom, 0px))",
-            maxHeight: "calc(100vh - 7rem - env(safe-area-inset-top, 24px))",
+            maxHeight: "calc(100vh - 7rem - var(--safe-area-inset-top, env(safe-area-inset-top, 24px)))",
           }}
         >
           {/* Chat Header */}

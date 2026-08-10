@@ -413,7 +413,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     <section
       id="temple-bazaar-section"
       className="py-16 bg-[#021816] text-white relative"
-      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}
+      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)` }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -667,22 +667,24 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
             {/* Sticky Modal Header with Logo */}
             <div
               className="shrink-0 bg-[#021816] px-5 py-4 border-b border-white/10 sm:rounded-t-3xl"
-              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
             >
               {/* Sri Dwar Brand Logo */}
               <div className="flex justify-center mb-3">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
               </div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-serif text-sm font-bold text-white">Puja Sankalpa Portal</h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 truncate max-w-[200px]">
+              {/* min-w-0 lets this text block shrink instead of pushing
+                  into or overlapping the ✕ button on narrow Android widths. */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Puja Sankalpa Portal</h3>
+                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 truncate">
                     {selectedItem.name}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowSankalpa(false)}
-                  className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 ml-2"
+                  className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 ml-2 w-8 h-8 flex items-center justify-center"
                 >
                   <X className="w-4 h-4" />
                 </button>

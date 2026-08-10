@@ -129,17 +129,17 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
         {/* Modal Header */}
         <div
           className="shrink-0 bg-[#021816] text-white px-6 py-5 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
-          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.25rem)" }}
+          style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.25rem)" }}
         >
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             {/* Brand logo */}
-            <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
-            <div className="h-6 w-px bg-white/20" aria-hidden="true" />
-            <div className="flex items-center space-x-2">
+            <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} className="shrink-0" />
+            <div className="h-6 w-px bg-white/20 shrink-0" aria-hidden="true" />
+            <div className="flex items-center space-x-2 min-w-0">
               <Flame className="w-5 h-5 text-[#FFB347] animate-pulse shrink-0" />
-              <div className="text-left">
-                <h3 className="font-serif text-base font-bold text-white leading-tight">Setu Yatra Challenge</h3>
-                <p className="text-[11px] font-mono text-[#FFB347] uppercase tracking-wide">Limited-Time Seva Opportunity</p>
+              <div className="text-left min-w-0">
+                <h3 className="font-serif text-base font-bold text-white leading-tight break-words">Setu Yatra Challenge</h3>
+                <p className="text-[11px] font-mono text-[#FFB347] uppercase tracking-wide break-words">Limited-Time Seva Opportunity</p>
               </div>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
             id="close-offer-popup"
             onClick={handleClose}
             aria-label="Close"
-            className="text-white hover:text-[#FFB347] p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
+            className="text-white hover:text-[#FFB347] p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all shrink-0 ml-2 w-9 h-9 flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>

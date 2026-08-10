@@ -117,7 +117,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
         ref={topAnchorRef}
         id="priest-detail-section"
         className="py-16 bg-[#021816] text-white min-h-[60vh]"
-        style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 100px)` }}
+        style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 100px)` }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
@@ -198,7 +198,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
 
   // ── LISTING VIEW ─────────────────────────────────────────────────────────
   return (
-    <section ref={topAnchorRef} id="priest-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 80px)` }}>
+    <section ref={topAnchorRef} id="priest-section" className="py-20 bg-[#021816] text-white" style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {onBack && (

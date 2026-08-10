@@ -708,7 +708,7 @@ export default function DevoteeExperiences() {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
-                style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+                style={{ top: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -719,7 +719,7 @@ export default function DevoteeExperiences() {
                 className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8"
                 style={{
                   WebkitOverflowScrolling: "touch",
-                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.5rem)",
+                  paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.5rem)",
                   paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)",
                 }}
               >

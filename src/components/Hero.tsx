@@ -281,9 +281,9 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             {/* Modal Header */}
             <div
               className="shrink-0 bg-[#021816] text-white px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
-              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
                 <SriDwarLogo
                   iconSize="sm"
                   showTagline={false}
@@ -291,15 +291,15 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   useImageOnly={true}
                   className="shrink-0"
                 />
-                <div className="text-left">
-                  <h3 className="font-serif text-lg font-bold tracking-tight text-white">Sri Dwar Darshan Register</h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase">Handsigned by Revered Pundits</p>
+                <div className="text-left min-w-0">
+                  <h3 className="font-serif text-lg font-bold tracking-tight text-white leading-tight break-words">Sri Dwar Darshan Register</h3>
+                  <p className="text-[10px] font-mono text-[#FFB347] uppercase break-words">Handsigned by Revered Pundits</p>
                 </div>
               </div>
               <button 
                 id="close-certificate-modal"
                 onClick={() => setIsModalOpen(false)} 
-                className="text-white hover:text-[#FFB347] p-1.5 bg-white/10 rounded-full text-sm font-bold"
+                className="text-white hover:text-[#FFB347] p-1.5 bg-white/10 rounded-full text-sm font-bold shrink-0 ml-2 w-8 h-8 flex items-center justify-center"
               >
                 ✕
               </button>

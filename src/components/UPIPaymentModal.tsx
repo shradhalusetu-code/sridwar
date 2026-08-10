@@ -138,13 +138,13 @@ export default function UPIPaymentModal({
         {/* ── Sticky header ── */}
         <div
           className="shrink-0 bg-white/5 px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
-          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+          style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
         >
-          <div>
-            <h3 className="font-serif text-sm font-bold text-white">Complete Your Sacred Offering</h3>
-            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider">PhonePe · GPay · Paytm · BHIM</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Complete Your Sacred Offering</h3>
+            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">PhonePe · GPay · Paytm · BHIM</p>
           </div>
-          <button onClick={onClose} className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0">
+          <button onClick={onClose} className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 w-8 h-8 flex items-center justify-center ml-2">
             <X className="w-4 h-4" />
           </button>
         </div>

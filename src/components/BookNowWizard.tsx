@@ -171,24 +171,40 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   };
 
   // ─── Shared sticky header pieces ────────────────────────────────────────
+  // Android fix: the previous plain `env(safe-area-inset-top, 0px)` value is
+  // unreliable inside some Android WebViews (Capacitor included) — on
+  // Chromium builds older than v140 it silently resolves to 0px even when a
+  // real status bar is present (see the matching note in androidSpacing.ts
+  // and index.css), so the brand bar rendered flush against — or under —
+  // the status bar, which is what clipped/overlapped the "Puja Sankalpa
+  // Portal" title and pushed the ✕ button up into the clock/battery row.
+  // Reading var(--safe-area-inset-top) first (Capacitor 8.3+ injects the
+  // correct value there) with env() and a fixed px fallback keeps this
+  // consistent with every other safe-area usage in the app, and the extra
+  // +14px buffer guarantees breathing room even in the worst case.
   const Header = (
     <div
       className="shrink-0 bg-[#021816] border-b border-white/10"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 14px)" }}
     >
-      {/* Brand bar */}
-      <div className="px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="shrink-0" />
-          <div>
-            <h3 className="font-serif text-base font-bold text-left text-white">Puja Sankalpa Portal</h3>
-            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider text-left">Vedic Rites, Followed Faithfully</p>
+      {/* Brand bar — items-start (not items-center) so the ✕ button stays
+          pinned to the top-right even if the title/subtitle wrap to extra
+          lines on narrow Android widths, instead of drifting/overlapping. */}
+      <div className="px-5 pt-2 pb-4 flex items-start justify-between gap-3">
+        <div className="flex items-start space-x-3 min-w-0 flex-1">
+          <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="shrink-0 mt-0.5" />
+          {/* min-w-0 is required here — without it, a flex child with long
+              text refuses to shrink below its content width and can spill
+              out over the ✕ button instead of wrapping. */}
+          <div className="min-w-0">
+            <h3 className="font-serif text-sm sm:text-base font-bold text-left text-white leading-snug break-words">Puja Sankalpa Portal</h3>
+            <p className="text-[9px] sm:text-[10px] font-mono text-[#FFB347] uppercase tracking-wide sm:tracking-wider text-left leading-snug break-words mt-0.5">Vedic Rites, Followed Faithfully</p>
           </div>
         </div>
         <button
           id="close-wizard"
           onClick={handleClose}
-          className="text-white hover:text-[#FFB347] p-1.5 bg-white/5 border border-white/10 hover:border-white/20 rounded-full text-xs font-bold w-7 h-7 flex items-center justify-center cursor-pointer shrink-0"
+          className="text-white hover:text-[#FFB347] p-1.5 bg-white/5 border border-white/10 hover:border-white/20 rounded-full text-xs font-bold w-8 h-8 flex items-center justify-center cursor-pointer shrink-0"
         >✕</button>
       </div>
       <div className="bg-[#021816]/50 border-t border-white/5 px-5 py-3 flex justify-between items-center text-xs font-mono">

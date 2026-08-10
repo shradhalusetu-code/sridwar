@@ -1758,21 +1758,23 @@ export default function AuthDashboard({
             {/* Header with SriDwarLogo */}
             <div
               className="bg-[#021816] px-5 py-4 border-b border-white/10 rounded-t-3xl"
-              style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
             >
               <div className="flex justify-center mb-3">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />
               </div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-serif text-sm font-bold text-white">Puja Sankalpa Portal</h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5">
+              {/* min-w-0 lets this text block shrink/wrap instead of pushing
+                  into or overlapping the ✕ button on narrow Android widths. */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Puja Sankalpa Portal</h3>
+                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 leading-snug break-words">
                     Temple Redevelopment Divine Contribution
                   </p>
                 </div>
                 <button
                   onClick={() => setShowSankalpaForm(false)}
-                  className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 ml-2"
+                  className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 ml-2 w-8 h-8 flex items-center justify-center"
                 >
                   ✕
                 </button>
