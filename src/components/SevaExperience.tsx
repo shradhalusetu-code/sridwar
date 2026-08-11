@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
-import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
+import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { SEVA_OFFERINGS } from "../data/sevaOfferings";
 import SevaOfferingCard from "./SevaOfferingCard";
 import OptimizedImage from "./OptimizedImage";
@@ -144,11 +144,17 @@ const renderSevaIcon = (id: string) => {
 };
 
 // donationTiers store the pre-discount base price; the sitewide 20%
-// discount (see utils/discount.ts) is applied here at render time.
+// discount (see utils/discount.ts) is still applied here at render time —
+// getDiscountedPrice() is unchanged and keeps computing the real charged
+// amount. Only the "original" (pre-discount, strikethrough) value is now
+// gated behind isDiscountPromoVisible("seva"), which is currently off, so
+// Seva cards show their discounted price as the plain, permanent price
+// with no strikethrough or "20% OFF" wording. Flip that category flag in
+// utils/discount.ts to bring the strikethrough back.
 const getSevaDiscountedPrice = (amount: number): { display: number; original: number | null } => {
-  return isDiscountActive()
+  return isDiscountPromoVisible("seva")
     ? { display: getDiscountedPrice(amount), original: amount }
-    : { display: amount, original: null };
+    : { display: getDiscountedPrice(amount), original: null };
 };
 
 interface SevaCardProps {
@@ -195,7 +201,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
               </span>
             </div>
             {/* Discount badge on image */}
-            {isDiscountActive() && (
+            {isDiscountPromoVisible("seva") && (
               <div className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
                 {DISCOUNT_TAG}
               </div>
@@ -238,7 +244,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
         className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow flex items-center justify-center gap-1.5"
       >
         <Tag className="w-3.5 h-3.5" />
-        {isDiscountActive() ? `SPONSOR SEVA — ${DISCOUNT_TAG} 🙏` : "SPONSOR SEVA 🙏"}
+        {isDiscountPromoVisible("seva") ? `SPONSOR SEVA — ${DISCOUNT_TAG} 🙏` : "SPONSOR SEVA 🙏"}
       </button>
     </div>
   );
@@ -508,7 +514,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           {/* Heading row */}
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-xl font-bold text-white">Sponsorship Services</h3>
-            {isDiscountActive() && (
+            {isDiscountPromoVisible("seva") && (
               <span className="text-[10px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
                 {DISCOUNT_TAG} All Sevas
               </span>
@@ -554,12 +560,12 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                   <div>
                     <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
                     <span className="block text-[10px] text-white/50 font-mono mt-0.5">
-                      {hiddenFeaturedSevas.length + hiddenExtraSevas.length} additional offerings{isDiscountActive() ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
+                      {hiddenFeaturedSevas.length + hiddenExtraSevas.length} additional offerings{isDiscountPromoVisible("seva") ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {isDiscountActive() && (
+                  {isDiscountPromoVisible("seva") && (
                     <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
                       {DISCOUNT_TAG}
                     </span>

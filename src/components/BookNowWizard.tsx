@@ -10,7 +10,7 @@ import { recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
 import { getDevotionalConfirmation, downloadConfirmationMessage, DevotionalServiceCategory } from "../utils/devotionalMessages";
-import { isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
+import { isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
 import { gaBookNowOpen, gaBookingDetailsSubmit, gaCheckoutInitiate, gaBookingComplete, gaCertificateAction } from "../utils/analytics";
 
@@ -486,7 +486,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.feeLabel}</label>
                       <input id="wizard-puja-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
-                      {isDiscountActive() && (
+                      {category === "holistic_wellness" && isDiscountPromoVisible("holistic_wellness") && (
                         <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 {DISCOUNT_TAG} already applied</p>
                       )}
                     </div>

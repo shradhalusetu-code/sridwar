@@ -52,7 +52,7 @@ import {
   REFERRAL_KYC_THRESHOLD, REFERRAL_CASHBACK_DISCLAIMER,
 } from "./data/referralProgram";
 import { Product, Temple, CartItem } from "./types";
-import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "./utils/discount";
+import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "./utils/discount";
 import {
   gaPageView, gaBookNowOpen, gaBookingComplete, gaCartCheckout, gaCartPurchase,
   gaSevaSelect, gaAddToCart, gaNavClick, gaSocialClick, gaWhatsAppClick,
@@ -1263,7 +1263,7 @@ export default function App() {
                       </div>
                     </div>
                     <div className="text-right">
-                      {isDiscountActive() && (
+                      {isDiscountPromoVisible("seva") && (
                         <span className="block text-[9px] text-white/35 line-through font-mono">₹{item.price}</span>
                       )}
                       <span className="text-xs font-black font-serif text-[#FFB347]">₹{getDiscountedPrice(item.price)}</span>
@@ -1426,13 +1426,13 @@ export default function App() {
                         />
                         <div className="truncate text-left">
                           <span className="block font-bold text-white truncate">{item.product.name}</span>
-                          {isDiscountActive() ? (
+                          {isDiscountPromoVisible("bazaar") ? (
                             <span className="flex items-center space-x-1.5 mt-0.5">
                               <span className="text-[9px] text-white/35 line-through font-mono">₹{item.product.price}</span>
                               <span className="text-[10px] text-[#FFB347] font-bold font-serif">₹{getDiscountedPrice(item.product.price)} INR</span>
                             </span>
                           ) : (
-                            <span className="block text-[10px] text-[#FFB347] font-bold font-serif mt-0.5">₹{item.product.price} INR</span>
+                            <span className="block text-[10px] text-[#FFB347] font-bold font-serif mt-0.5">₹{getDiscountedPrice(item.product.price)} INR</span>
                           )}
                         </div>
                       </div>
@@ -1479,12 +1479,12 @@ export default function App() {
               <div className="flex justify-between items-center text-sm">
                 <div>
                   <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
-                  {isDiscountActive() && (
+                  {isDiscountPromoVisible("bazaar") && (
                     <span className="block text-[9px] font-mono text-[#FFB347]">🎉 {DISCOUNT_TAG}</span>
                   )}
                 </div>
                 <div className="text-right">
-                  {isDiscountActive() && (
+                  {isDiscountPromoVisible("bazaar") && (
                     <span className="block text-[10px] text-white/35 line-through font-mono">
                       ₹{cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)} INR
                     </span>

@@ -26,6 +26,18 @@ import {
   BAZAAR_DISCLAIMER, BazaarProduct,
 } from "../data/bazaarOfferings";
 
+// ─── Devotional Shopping promo visibility ──────────────────────────────────
+// Mirrors the category flag in utils/discount.ts (Devotional Shopping/
+// Temple Bazaar isn't wired through that shared module — this catalogue is
+// local — so it gets its own small on/off switch here instead). `price`
+// below already IS the current discounted amount and stays exactly as-is;
+// this flag only controls whether the crossed-out `mrp` reference price
+// and any "20% OFF" badge text are ever rendered. Both `mrp` and the
+// "20% OFF" badge values are left untouched in BAZAAR_ITEMS below so this
+// can be flipped back on later with no data changes needed.
+const SHOW_BAZAAR_DISCOUNT_PROMO = false;
+const BAZAAR_DISCOUNT_BADGE_TEXT = "20% OFF";
+
 // ─── Product catalogue ─────────────────────────────────────────────────────
 interface BazaarItem {
   id: string;
@@ -551,7 +563,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                     <ShoppingBag className="w-10 h-10 text-white/20" />
                   </div>
                 )}
-                {item.badge && (
+                {item.badge && (SHOW_BAZAAR_DISCOUNT_PROMO || item.badge !== BAZAAR_DISCOUNT_BADGE_TEXT) && (
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
                     {item.badge}
                   </span>
@@ -604,7 +616,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 {/* Price + CTA */}
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10">
                   <div>
-                    <span className="block text-[10px] line-through text-white/30 font-mono">₹{item.mrp}</span>
+                    {SHOW_BAZAAR_DISCOUNT_PROMO && (
+                      <span className="block text-[10px] line-through text-white/30 font-mono">₹{item.mrp}</span>
+                    )}
                     <span className="text-base font-extrabold text-[#FFB347] font-serif">₹{item.price}</span>
                   </div>
                   <button
@@ -710,7 +724,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   <span className="text-xs text-white/70 font-mono truncate">{selectedItem.name}</span>
                 </div>
                 <div className="text-right shrink-0 ml-2">
-                  {selectedItem.mrp > selectedItem.price && (
+                  {SHOW_BAZAAR_DISCOUNT_PROMO && selectedItem.mrp > selectedItem.price && (
                     <span className="block text-[9px] line-through text-white/30 font-mono">₹{selectedItem.mrp}</span>
                   )}
                   <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{selectedItem.price}</span>

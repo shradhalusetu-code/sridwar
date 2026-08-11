@@ -16,7 +16,7 @@ import {
 import SacredIcon from "./SacredIcon";
 import OptimizedImage from "./OptimizedImage";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
-import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
+import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 import { sectionTopPadding } from "../utils/androidSpacing";
 
@@ -1106,7 +1106,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                           <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
                             {/* Price */}
                             <div className="text-right">
-                              {isDiscountActive() ? (
+                              {isDiscountPromoVisible("puja") ? (
                                 <>
                                   <span className="block text-[10px] line-through text-white/30 font-mono">
                                     ₹{puja.price}
@@ -1120,7 +1120,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                                 </>
                               ) : (
                                 <span className="block text-base font-black text-white font-serif">
-                                  ₹{puja.price}
+                                  ₹{discountedPrice}
                                 </span>
                               )}
                             </div>
@@ -1264,14 +1264,14 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                         </div>
                         <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
                           <div className="text-right">
-                            {isDiscountActive() ? (
+                            {isDiscountPromoVisible("puja") ? (
                               <>
                                 <span className="block text-[10px] line-through text-white/30 font-mono">₹{puja.price}</span>
                                 <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
                                 <span className="block text-[9px] text-[#FFB347] font-mono">{DISCOUNT_TAG}</span>
                               </>
                             ) : (
-                              <span className="block text-base font-black text-white font-serif">₹{puja.price}</span>
+                              <span className="block text-base font-black text-white font-serif">₹{discountedPrice}</span>
                             )}
                           </div>
                           <button
