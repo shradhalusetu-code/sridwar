@@ -322,15 +322,17 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     setShowUPI(true);
   };
 
-  // Payment confirmed in the UPI modal — sends the ONE Final row for this
-  // booking, sharing the same Ref ID, with payment status corrected to
-  // "Paid — Confirmed" and the real payment method.
+  // Payment intent submitted in the UPI modal (NOT yet verified) — sends
+  // the ONE Final row for this booking, sharing the same Ref ID, with
+  // payment status corrected to "Payment Submitted — Pending Verification"
+  // and the real payment method. Only mark a row "Paid — Confirmed" from
+  // the admin/reconciliation side once the payment is actually verified.
   const handlePaymentConfirmed = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     paymentCompletedRef.current = true; // lock — do not reset to Step 1
     setShowUPI(false);
     setStep(3);
     gaBookingComplete(pujaName, details.amount, refId);
-    syncToGoogleForm("puja_booking", buildSyncPayload(refId, "Paid — Confirmed", details.amount, details.method));
+    syncToGoogleForm("puja_booking", buildSyncPayload(refId, "Payment Submitted — Pending Verification", details.amount, details.method));
     // Record into the Supabase activity ledger (no-ops for guests who
     // aren't logged in) so this puja shows up on the devotee's own Profile
     // / Order History page. Status is "pending_verification", not

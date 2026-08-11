@@ -313,11 +313,13 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   const newCartTotal = newBazaarCart.reduce((sum, i) => sum + i.amount, 0);
 
   // ── Submit Sankalpa Portal → go to payment ──────────────────────────────
-  // Sends ONE row immediately with payment status "Pending — Payment Not Yet
-  // Confirmed" (the order is captured even if the devotee abandons the UPI
-  // step), then redirects straight to "Complete Your Sacred Offering". Once
-  // payment is actually confirmed, handlePaymentConfirmed sends exactly ONE
-  // more row — same Ref ID — correctly marked "Paid — Confirmed". ──
+  // Sends ONE row immediately with payment status "Pending — Awaiting
+  // Confirmation" (the order is captured even if the devotee abandons the
+  // UPI step), then redirects straight to "Complete Your Sacred Offering".
+  // Once the devotee submits a payment intent, handlePaymentConfirmed sends
+  // exactly ONE more row — same Ref ID — marked "Payment Submitted —
+  // Pending Verification" (never "Paid — Confirmed" at this stage; that
+  // only happens once the admin/reconciliation side actually verifies it).
   const handleSankalpaSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!devoteeName.trim() || !devoteePhone.trim()) {
@@ -356,9 +358,11 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     setShowUPI(true);
   };
 
-  // ── After payment confirmed ─────────────────────────────────────────────
+  // ── After payment intent submitted (NOT yet verified) ───────────────────
   // Sends the ONE Final row for this order, sharing the same Ref ID, with
-  // the payment status corrected to "Paid — Confirmed" and the real method.
+  // the payment status corrected to "Payment Submitted — Pending
+  // Verification" and the real method. Only becomes "Paid — Confirmed"
+  // once the admin/reconciliation side actually verifies the payment.
   const handlePaymentConfirmed = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowUPI(false);
     if (selectedItem) {
@@ -375,7 +379,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                         : `Temple Bazaar Order — ${selectedItem.name}`,
         details:      `Item: ${selectedItem.name} | ` +
                       `Amount: ₹${details.amount} | ` +
-                      `Payment Status: Paid — Confirmed | ` +
+                      `Payment Status: Payment Submitted — Pending Verification | ` +
                       `Payment Method: ${details.method} | ` +
                       (selectedItem.isService
                         ? `Gotra: ${devoteeGotra || "Not provided"} | Rashi: ${devoteeRashi} | Intent: ${sankalpaIntent || "General blessings"}`
@@ -401,7 +405,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     }
     const msg = selectedItem?.isService
       ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a WhatsApp confirmation within 2 hours. Ref: ${refId}`
-      : `🙏 Order confirmed! Your ${selectedItem?.name} will be shipped within 3–5 working days. Ref: ${refId}`;
+      : `🙏 Order received! Once your payment is verified, our team will confirm it and ship your ${selectedItem?.name} within 3–5 working days. Ref: ${refId}`;
     alert(msg);
     // Reset form fields
     setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");

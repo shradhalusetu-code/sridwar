@@ -232,7 +232,7 @@ export default function SubscriptionSignup({
     const finalDetails =
       `Plan: ${tier.name} (${categoryLabel}) | Billing: ${billing} | Amount: ₹${details.amount} | ` +
       `Services: ${servicesLine} | Geography: ${geoLine} | Expertise: ${expertise || "N/A"} | ` +
-      `Payment Status: ${details.amount > 0 ? "Paid — Confirmed" : "Activated — Free Plan"} | ` +
+      `Payment Status: ${details.amount > 0 ? "Payment Submitted — Pending Verification" : "Activated — Free Plan"} | ` +
       `Payment Method: ${details.method} | Ref: ${refId}`;
 
     try {

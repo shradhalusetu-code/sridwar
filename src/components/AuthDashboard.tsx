@@ -668,10 +668,12 @@ export default function AuthDashboard({
     setIsContributionPaymentOpen(true);
   };
 
-  // Step 6 — After payment confirmed: send the ONE Final row (same Ref ID),
-  // with payment status corrected to "Paid — Confirmed" and the real method
-  // (UPI or WhatsApp Pay) + actual confirmed amount — then redirect to the
-  // Dharmic Portal.
+  // Step 6 — After payment intent submitted (NOT yet verified): send the
+  // ONE Final row (same Ref ID), with payment status corrected to
+  // "Payment Submitted — Pending Verification" and the real method (UPI or
+  // WhatsApp Pay) + amount — then redirect to the Dharmic Portal. Only
+  // becomes "Paid — Confirmed" once the admin/reconciliation side actually
+  // verifies the payment.
   const finalizeContribution = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setIsContributionPaymentOpen(false);
     const templeName = selectedTempleId
@@ -684,7 +686,7 @@ export default function AuthDashboard({
       gotra:        sankalpaGotra || userGotra || undefined,
       intent:       sankalpaIntent || undefined,
       type:         `Temple Redevelopment Divine Contribution — ${templeName}`,
-      details:      `Contribution: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
+      details:      `Contribution: ₹${details.amount} | Payment Status: Payment Submitted — Pending Verification | Payment Method: ${details.method} | Temple: ${templeName} | Gotra: ${sankalpaGotra || userGotra || "Not provided"} | Intent: ${sankalpaIntent || "General blessings"} | Ref: ${contributionRefId}`,
       fee:          details.amount,
       temple:       templeName,
       whatsapp:     sankalpaPhone.trim(),

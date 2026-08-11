@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
-import { validateName, validateEmail, validatePhone, validateTextMinLength, firstError } from "../utils/formValidation";
+import { validateName, validateEmail, validatePhone, validateOptionalPhone, validateTextMinLength, firstError } from "../utils/formValidation";
 import { gaTempleIssueFormStart, gaTempleIssueSubmit, gaTempleIssueContribution } from "../utils/analytics";
 import OptimizedImage from "./OptimizedImage";
 import UPIPaymentModal from "./UPIPaymentModal";
@@ -186,7 +186,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
     const nameErr = validateName(name);
     const emailErr = validateEmail(email);
     const phoneErr = validatePhone(phone);
-    const whatsappErr = whatsapp.trim() ? validatePhone(whatsapp) : null;
+    const whatsappErr = validateOptionalPhone(whatsapp);
     const itemErr = itemName.trim() ? null : "Please enter the temple / committee / pandal / mandal / festival name.";
     const locationErr = village.trim() && state.trim() ? null : "Please enter at least the village/town/city and state.";
     const descErr = validateTextMinLength(description, "Issue / concern / suggestion", 20);

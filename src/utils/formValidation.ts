@@ -65,16 +65,59 @@ export function validateEmail(email: string): string | null {
  * Validates a phone number (Indian-primary, international-tolerant).
  * Rules: digits 7–15, no sequential/repeated fakes.
  */
+/**
+ * Returns true if `digits` is a fully sequential ascending or descending run
+ * (e.g. "1234567890", "9876543210", "234567") — used to reject obvious spam
+ * numbers without accidentally rejecting real numbers that merely start with
+ * a couple of similar-looking digits.
+ */
+function isSequentialRun(digits: string): boolean {
+  if (digits.length < 7) return false;
+  let ascending = true;
+  let descending = true;
+  for (let i = 1; i < digits.length; i++) {
+    const diff = digits.charCodeAt(i) - digits.charCodeAt(i - 1);
+    if (diff !== 1) ascending = false;
+    if (diff !== -1) descending = false;
+  }
+  return ascending || descending;
+}
+
 export function validatePhone(phone: string): string | null {
   const v = phone.trim().replace(/[\s\-().+]/g, "");
   if (!v) return "Phone number is required.";
   if (!/^\d{7,15}$/.test(v)) return "Enter a valid phone number (7–15 digits).";
   // Reject obvious fakes: 1111111111, 0000000000, 1234567890, 9999999999
   if (/^(\d)\1{6,}$/.test(v)) return "Please enter a real phone number.";
-  if (/^(0123456789|1234567890|9876543210|1234567|7654321)/.test(v)) {
+  // Reject only an EXACT, fully sequential ascending/descending run — checked
+  // against both the whole number and its last 10 digits (so a real country
+  // code prefix like 91 doesn't hide/obscure a fake local number). Anchoring
+  // to a full match (instead of just a "starts with" prefix check) is the
+  // fix: previously a genuine number like 7654321987 was rejected just for
+  // starting with "7654321", even though it isn't the spam sequence itself.
+  const last10 = v.length > 10 ? v.slice(-10) : v;
+  if (isSequentialRun(v) || isSequentialRun(last10)) {
     return "Please enter a real phone number.";
   }
   return null;
+}
+
+/**
+ * Same rules as validatePhone, but treats common "not applicable" answers
+ * (na, n/a, none, nil, -, etc.) as "not provided" instead of an invalid
+ * phone number. Use this for OPTIONAL phone/WhatsApp fields where a devotee
+ * may legitimately type "NA" to mean "I don't have one" rather than leaving
+ * the field blank — validatePhone alone would otherwise reject that text
+ * with a confusing "Enter a valid phone number" error on a field the
+ * devotee correctly believes they've answered.
+ */
+const NOT_APPLICABLE_ANSWERS = new Set(["na", "n/a", "none", "nil", "nope", "-", "n.a", "n.a."]);
+
+export function validateOptionalPhone(phone: string): string | null {
+  const v = phone.trim();
+  if (!v) return null;
+  if (NOT_APPLICABLE_ANSWERS.has(v.toLowerCase())) return null;
+  return validatePhone(v);
 }
 
 /**

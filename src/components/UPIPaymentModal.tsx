@@ -11,11 +11,25 @@ interface UPIPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   /**
-   * Called once payment is confirmed — either via "I Have Paid" (UPI/QR) or
-   * "Pay via WhatsApp". Receives the actual confirmed amount (custom or
-   * fixed) and which method was used, so the caller's final Google Sync row
-   * can record an accurate divine contribution/payment status — never "Skipped" once a
-   * real payment action has happened.
+   * Called once the devotee has SUBMITTED a payment intent — either via
+   * "I Have Paid" (UPI/QR) or "Pay via WhatsApp". This does NOT mean the
+   * payment has been verified — nobody on the Sri Dwar side has checked the
+   * money actually landed yet, only that the devotee tapped the button (or
+   * opened WhatsApp). Callers should record this as a pending/awaiting-
+   * verification state (never "Paid — Confirmed") and only mark a booking
+   * as truly confirmed, and notify the devotee accordingly, once payment is
+   * actually verified on the admin/reconciliation side. Receives the
+   * amount (custom or fixed) and which method was used, so the caller's
+   * Google Sync row can still record an accurate divine
+   * contribution/payment method — never "Skipped" once a real payment
+   * action has happened.
+   *
+   * This one component is the shared payment-intent trigger for every
+   * payment-structured service on the site — Puja, Seva, Guidance/
+   * Counselling, Holistic Wellness, Contributions/Divine Contributions, and
+   * Temple Bazaar/Bhog Offerings all render this same modal, so the
+   * "pending verification" behaviour below applies uniformly to all of
+   * them without needing to be duplicated per category.
    */
   onPaymentConfirmed: (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => void;
   amount: number | null;
@@ -46,7 +60,15 @@ export default function UPIPaymentModal({
   payeeValue,
 }: UPIPaymentModalProps) {
   const [copied, setCopied] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
+  // NOTE: "submitted" means the devotee tapped "I Have Paid" or opened
+  // "Pay via WhatsApp" — i.e. a payment-intent notification went out to
+  // the Sri Dwar team. It does NOT mean the payment has been verified.
+  // Do not rename this back to "confirmed" — that wording previously led
+  // the UI (and, downstream, the Google Sheet status text some callers
+  // wrote) to imply the booking/payment was already confirmed the instant
+  // this button was tapped, before anyone had actually checked the money
+  // landed.
+  const [submitted, setSubmitted] = useState(false);
   const [customAmount, setCustomAmount] = useState<number | "">(amount || "");
 
   if (!isOpen) return null;
@@ -56,10 +78,10 @@ export default function UPIPaymentModal({
 
   // "Pay via WhatsApp" is a real payment-intent action, not just an
   // informational link — opening it means the devotee has committed to
-  // paying via WhatsApp instead of the QR/UPI button. So it now also
-  // confirms the booking (method: "WhatsApp Pay"), same as "I Have Paid"
-  // does for the UPI/QR path, instead of silently leaving the record
-  // showing no confirmation at all.
+  // paying via WhatsApp instead of the QR/UPI button. So it still notifies
+  // the Sri Dwar team (method: "WhatsApp Pay"), same as "I Have Paid" does
+  // for the UPI/QR path — but this is a PENDING notification, not a
+  // confirmation. Nobody has verified the money landed yet.
   const handleWhatsAppPay = () => {
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
       alert("Minimum divine contribution is ₹" + minAmount);
@@ -74,7 +96,7 @@ export default function UPIPaymentModal({
       "Please confirm my booking after payment. 🙏"
     );
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message, "_blank");
-    setConfirmed(true);
+    setSubmitted(true);
     sendOwnerWhatsAppAlert("WhatsApp Pay");
     setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "WhatsApp Pay" }); }, 1500);
   };
@@ -82,14 +104,14 @@ export default function UPIPaymentModal({
   const sendOwnerWhatsAppAlert = (method: "UPI" | "WhatsApp Pay") => {
     const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     const message = encodeURIComponent(
-      "🔔 *NEW PAYMENT RECEIVED — Sri Dwar*\n\n" +
+      "🔔 *PAYMENT PENDING VERIFICATION — Sri Dwar*\n\n" +
       "📿 *Service:* " + bookingName + "\n" +
       "👤 *Devotee:* " + devoteeName + "\n" +
       "💰 *Amount:* ₹" + effectiveAmount + "\n" +
       "💳 *Method:* " + method + "\n" +
       "🔖 *Ref ID:* " + refId + "\n" +
       "🕐 *Time:* " + now + " IST\n\n" +
-      "Please verify UPI payment and confirm booking. 🙏"
+      "Devotee has submitted this payment — please verify it landed before confirming the booking. 🙏"
     );
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message, "_blank");
   };
@@ -101,12 +123,12 @@ export default function UPIPaymentModal({
   };
 
   const handleConfirmPayment = () => {
-    if (confirmed) return; // guard against double-tap before re-render
+    if (submitted) return; // guard against double-tap before re-render
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
       alert("Minimum divine contribution is ₹" + minAmount);
       return;
     }
-    setConfirmed(true);
+    setSubmitted(true);
     sendOwnerWhatsAppAlert("UPI");
     setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "UPI" }); }, 1500);
   };
@@ -245,7 +267,7 @@ export default function UPIPaymentModal({
               <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 3 working days of payment confirmation. 🙏</span>
             </div>
 
-            {!confirmed ? (
+            {!submitted ? (
               <button onClick={handleConfirmPayment}
                 className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-4 rounded-xl text-xs transition-all tracking-widest uppercase shadow-lg flex items-center justify-center space-x-2">
                 <Check className="w-4 h-4" />
@@ -257,7 +279,7 @@ export default function UPIPaymentModal({
             ) : (
               <div className="w-full bg-[#5EEAD4]/12 border border-[#5EEAD4]/30 text-[#5EEAD4] font-bold py-4 rounded-xl text-xs flex items-center justify-center space-x-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Blessing Activated! Sri Dwar notified...</span>
+                <span>🙏 Payment Noted — Verification Pending</span>
               </div>
             )}
 
