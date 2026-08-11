@@ -9,7 +9,7 @@ import { syncToGoogleForm } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
-import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { getDevotionalConfirmation, downloadConfirmationMessage, DevotionalServiceCategory } from "../utils/devotionalMessages";
 import { isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
 import { gaBookNowOpen, gaBookingDetailsSubmit, gaCheckoutInitiate, gaBookingComplete, gaCertificateAction } from "../utils/analytics";
@@ -19,10 +19,19 @@ interface BookNowWizardProps {
   onClose: () => void;
   defaultPujaName?: string;
   defaultPrice?: number;
+  /** Which service this booking is for — governs the portal's title, which
+   *  fields are collected, and the confirmation wording (see
+   *  devotionalMessages.ts). Defaults to "puja_seva" (the original,
+   *  astrology-field Sankalp flow) so every existing caller that doesn't
+   *  pass this keeps behaving exactly as before. Only "puja_seva" and
+   *  "counselling_guidance" are supported here today; other categories are
+   *  handled by their own dedicated confirmation screens elsewhere. */
+  category?: Extract<DevotionalServiceCategory, "puja_seva" | "counselling_guidance">;
   onSuccess: (bookedItem: { pujaName: string; sankalpaName: string; price: number; refId: string }) => void;
 }
 
-export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, onSuccess }: BookNowWizardProps) {
+export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, category = "puja_seva", onSuccess }: BookNowWizardProps) {
+  const isGuidance = category === "counselling_guidance";
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Request Acknowledgement (NOT a completion certificate — see wizard-success-stage below)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
@@ -80,7 +89,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   if (!isOpen) return null;
 
   const wizardConfirmation = getDevotionalConfirmation({
-    category: "puja_seva",
+    category,
     serviceName: pujaName,
     devoteeName,
     refId,
@@ -111,7 +120,12 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     const newRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
     setRefId(newRefId);
     try {
-      await syncToGoogleForm("puja_booking", {
+      await syncToGoogleForm("puja_booking", isGuidance ? {
+        name: devoteeName, email, phone,
+        details: `Guidance Selection: ${pujaName} | Session Fee: ₹${price} | Payment Status: Pending — Awaiting Confirmation | Guidance Need / Concern / Support Requirement: ${sankalpWish || "None provided"} | Ref: ${newRefId}`,
+        type: `Counselling & Guidance Booking - ${pujaName}`,
+        fee: price, intent: sankalpWish,
+      } : {
         name: devoteeName, email, phone,
         details: `Puja: ${pujaName} | Dakshina: ₹${price} | Payment Status: Pending — Awaiting Confirmation | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${newRefId}`,
         type: `Puja/Seva Booking - ${pujaName}`,
@@ -139,7 +153,12 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     setShowUPI(false);
     setStep(3);
     gaBookingComplete(pujaName, details.amount, refId);
-    syncToGoogleForm("puja_booking", {
+    syncToGoogleForm("puja_booking", isGuidance ? {
+      name: devoteeName, email, phone,
+      details: `Guidance Selection: ${pujaName} | Session Fee: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | Guidance Need / Concern / Support Requirement: ${sankalpWish || "None provided"} | Ref: ${refId}`,
+      type: `Counselling & Guidance Booking - ${pujaName}`,
+      fee: details.amount, intent: sankalpWish,
+    } : {
       name: devoteeName, email, phone,
       details: `Puja: ${pujaName} | Dakshina: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${refId}`,
       type: `Puja/Seva Booking - ${pujaName}`,
@@ -197,8 +216,12 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               text refuses to shrink below its content width and can spill
               out over the ✕ button instead of wrapping. */}
           <div className="min-w-0">
-            <h3 className="font-serif text-sm sm:text-base font-bold text-left text-white leading-snug break-words">Puja Sankalpa Portal</h3>
-            <p className="text-[9px] sm:text-[10px] font-mono text-[#FFB347] uppercase tracking-wide sm:tracking-wider text-left leading-snug break-words mt-0.5">Vedic Rites, Followed Faithfully</p>
+            <h3 className="font-serif text-sm sm:text-base font-bold text-left text-white leading-snug break-words">
+              {isGuidance ? "Guidance Session Portal" : "Puja Sankalpa Portal"}
+            </h3>
+            <p className="text-[9px] sm:text-[10px] font-mono text-[#FFB347] uppercase tracking-wide sm:tracking-wider text-left leading-snug break-words mt-0.5">
+              {isGuidance ? "Confidential, Compassionate Support" : "Vedic Rites, Followed Faithfully"}
+            </p>
           </div>
         </div>
         <button
@@ -209,9 +232,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       </div>
       <div className="bg-[#021816]/50 border-t border-white/5 px-5 py-3 flex justify-between items-center text-xs font-mono">
         {[
-          { n: 1, label: "Devotee Sankalpa" },
+          { n: 1, label: isGuidance ? "Guidance Details" : "Devotee Sankalpa" },
           { n: 2, label: "GPay Gateway" },
-          { n: 3, label: "Blessing Cert" },
+          { n: 3, label: isGuidance ? "Confirmation" : "Blessing Cert" },
         ].map(({ n, label }, i, arr) => (
           <div key={n} className="flex items-center space-x-1">
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${step >= n ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>{n}</span>
@@ -269,7 +292,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               {step === 1 && (
                 <form onSubmit={handleNextToPayment} className="space-y-4">
                   <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[11px] text-[#5EEAD4] text-left leading-relaxed">
-                    <span className="font-bold">🙏 Sanctify Your Rites:</span> Every ritual requires a heartfelt sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.
+                    {isGuidance
+                      ? <><span className="font-bold">🙏 Confidential & Compassionate:</span> Share a little about what you'd like support with, and your chosen Pandit/guidance expert will reach out to confirm your session.</>
+                      : <><span className="font-bold">🙏 Sanctify Your Rites:</span> Every ritual requires a heartfelt sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.</>}
                   </div>
 
                   {hasAutofilled && (
@@ -277,19 +302,23 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <div className="w-2.5 h-2.5 rounded-full bg-[#5EEAD4] animate-pulse shrink-0" />
                       <div>
                         <span className="font-bold text-[#FFB347]">✨ Profile Auto-filled:</span>{" "}
-                        <span className="text-white/80">Gotra ({gotra}), Rashi ({rashi}), and family records have been synchronized instantly.</span>
+                        <span className="text-white/80">
+                          {isGuidance
+                            ? "Your name and contact details have been synchronized instantly from your Dharmic ID."
+                            : <>Gotra ({gotra}), Rashi ({rashi}), and family records have been synchronized instantly.</>}
+                        </span>
                       </div>
                     </div>
                   )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Puja Selected</label>
+                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{isGuidance ? "Guidance Selection" : "Puja Selected"}</label>
                       <input id="wizard-puja-name-input" type="text" value={pujaName} onChange={(e) => setPujaName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Dakshina Offer Fee (₹)</label>
+                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{isGuidance ? "Session Fee (₹)" : "Dakshina Offer Fee (₹)"}</label>
                       <input id="wizard-puja-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                       {isDiscountActive() && (
@@ -304,29 +333,33 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <input id="wizard-devotee-name" type="text" required placeholder="e.g. Anand Satpathy" value={devoteeName} onChange={(e) => setDevoteeName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">DOB (Planetary Calculation)</label>
-                      <input id="wizard-dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)}
-                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4]" />
-                    </div>
+                    {!isGuidance && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">DOB (Planetary Calculation)</label>
+                        <input id="wizard-dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4]" />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
-                      <input id="wizard-gotra" type="text" placeholder="e.g. Kashyap Gotra" value={gotra} onChange={(e) => setGotra(e.target.value)}
-                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
+                  {!isGuidance && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
+                        <input id="wizard-gotra" type="text" placeholder="e.g. Kashyap Gotra" value={gotra} onChange={(e) => setGotra(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Moon Sign (Rashi)</label>
+                        <select id="wizard-rashi" value={rashi} onChange={(e) => setRashi(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#5EEAD4] focus:outline-none focus:border-[#5EEAD4] font-semibold">
+                          {["Mesh (Aries)","Vrishabh (Taurus)","Mithun (Gemini)","Kark (Cancer)","Simha (Leo)","Kanya (Virgo)","Tula (Libra)","Vrishchik (Scorpio)","Dhanu (Sagittarius)","Makar (Capricorn)","Kumbh (Aquarius)","Meen (Pisces)"].map(r => (
+                            <option key={r} value={r} className="bg-[#092320] text-white">{r}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Moon Sign (Rashi)</label>
-                      <select id="wizard-rashi" value={rashi} onChange={(e) => setRashi(e.target.value)}
-                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#5EEAD4] focus:outline-none focus:border-[#5EEAD4] font-semibold">
-                        {["Mesh (Aries)","Vrishabh (Taurus)","Mithun (Gemini)","Kark (Cancer)","Simha (Leo)","Kanya (Virgo)","Tula (Libra)","Vrishchik (Scorpio)","Dhanu (Sagittarius)","Makar (Capricorn)","Kumbh (Aquarius)","Meen (Pisces)"].map(r => (
-                          <option key={r} value={r} className="bg-[#092320] text-white">{r}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -342,9 +375,13 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Sankalpa Intent (Your Prayer Wish)</label>
+                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
+                      {isGuidance ? "Guidance Need / Concern / Support Requirement" : "Sankalpa Intent (Your Prayer Wish)"}
+                    </label>
                     <textarea id="wizard-sankalpa-wish" rows={2} value={sankalpWish} onChange={(e) => setSankalpWish(e.target.value)}
-                      placeholder="State your personal wish clearly, our pundits will read this during holy mantra recitation..."
+                      placeholder={isGuidance
+                        ? "Briefly share what you'd like support with — this is shared only with your assigned guidance expert..."
+                        : "State your personal wish clearly, our pundits will read this during holy mantra recitation..."}
                       className="w-full text-xs p-3 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                   </div>
 
@@ -408,7 +445,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   <div className="w-12 h-12 bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
                     <Check className="w-6 h-6 text-emerald-400 stroke-[3]" />
                   </div>
-                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">Sankalpa Request Received!</h4>
+                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">{isGuidance ? "Guidance Request Received!" : "Sankalpa Request Received!"}</h4>
                   <div id="divine-generated-certificate" className="relative bg-[#021816]/95 border-[10px] border-[#FFB347] p-5 rounded-2xl shadow-xl text-center overflow-hidden border-double">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-gradient-to-b from-[#14B8A6]/20 to-transparent rounded-full" />
                     <div className="absolute right-3 top-3 text-[#FFB347] opacity-10 text-6xl font-serif select-none pointer-events-none">ॐ</div>
@@ -416,22 +453,32 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <div className="border-b border-[#FFB347]/30 pb-1.5 inline-flex justify-center">
                         <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="justify-center" />
                       </div>
-                      <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">Sankalpa Request Acknowledgement</h5>
-                      <p className="text-[10px] text-white/50 font-mono">This confirms that the sacred Sankalpa (intention) submitted by:</p>
-                      <h6 className="font-serif text-base font-black text-[#FFB347] border-b border-white/15 inline-block px-4 pb-0.5">{devoteeName}</h6>
-                      <p className="text-xs text-white/80 font-sans px-2">
-                        has been successfully received for the sacred service: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>, Moon Sign: {rashi}. Your puja is now <strong className="text-[#FFB347]">pending priest assignment and performance</strong> at the temple.
+                      <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">{isGuidance ? "Guidance Request Acknowledgement" : "Sankalpa Request Acknowledgement"}</h5>
+                      <p className="text-[10px] text-white/50 font-mono">
+                        {isGuidance ? "This confirms that the confidential guidance request submitted by:" : "This confirms that the sacred Sankalpa (intention) submitted by:"}
                       </p>
+                      <h6 className="font-serif text-base font-black text-[#FFB347] border-b border-white/15 inline-block px-4 pb-0.5">{devoteeName}</h6>
+                      {isGuidance ? (
+                        <p className="text-xs text-white/80 font-sans px-2">
+                          has been successfully received for: <strong className="text-white">{pujaName}</strong>. Your session is now <strong className="text-[#FFB347]">pending expert assignment and confirmation</strong>.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-white/80 font-sans px-2">
+                          has been successfully received for the sacred service: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>, Moon Sign: {rashi}. Your puja is now <strong className="text-[#FFB347]">pending priest assignment and performance</strong> at the temple.
+                        </p>
+                      )}
                       <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono font-bold text-[#FFB347] bg-[#FFB347]/10 py-1.5 px-3 rounded-full border border-[#FFB347]/30 mx-auto w-fit">
-                        <span>● Status: Request Received — Awaiting Performance</span>
+                        <span>{isGuidance ? "● Status: Request Received — Awaiting Expert Assignment" : "● Status: Request Received — Awaiting Performance"}</span>
                       </div>
                       <p className="text-[11px] text-white/75 font-sans italic leading-relaxed">
-                        "May this sacred intention be carried forward with devotion, for the protection of your home, health, prosperity, and loved ones across all dimensions."
+                        {isGuidance
+                          ? "\"May this conversation bring clarity, comfort, and strength — with compassion, confidentiality, and care.\""
+                          : "\"May this sacred intention be carried forward with devotion, for the protection of your home, health, prosperity, and loved ones across all dimensions.\""}
                       </p>
                       <div className="grid grid-cols-2 gap-4 items-center pt-3 border-t border-white/5 text-[9px] font-mono text-white/60">
                         <div className="text-left">
-                          <span className="block font-bold">Pundit K. K. Dwivedi</span>
-                          <span className="block uppercase text-white/40">Chief Shastri Seal</span>
+                          <span className="block font-bold">{isGuidance ? "Guidance Coordination Team" : "Pundit K. K. Dwivedi"}</span>
+                          <span className="block uppercase text-white/40">{isGuidance ? "Sri Dwar Dharmic Care" : "Chief Shastri Seal"}</span>
                           <span className="block text-emerald-400 font-black">✓ Request Digitally Logged</span>
                         </div>
                         <div className="text-right">
@@ -448,10 +495,14 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   </div>
                   <div className="flex items-start space-x-1.5 text-[10px] font-mono text-emerald-300 bg-emerald-950/20 py-2 px-2.5 rounded-xl border border-emerald-500/20 text-left">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-px" />
-                    <span>Reference: {refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available) and photo/video evidence, in addition to your Sankalpa Certificate.</span>
+                    <span>
+                      {isGuidance
+                        ? `Reference: ${refId}. Your assigned guidance expert will confirm your session timing directly, and you'll receive a confirmation note once your session is scheduled.`
+                        : `Reference: ${refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available) and photo/video evidence, in addition to your Sankalpa Certificate.`}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category: "puja_seva", serviceName: pujaName, devoteeName, refId }); }}
+                    <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category, serviceName: pujaName, devoteeName, refId }); }}
                       className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
                       <Download className="w-3.5 h-3.5 text-[#FFB347]" />
                       <span>Download Confirmation</span>

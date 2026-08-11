@@ -5,7 +5,8 @@
 
 import { useState, useMemo, useRef, useEffect, ElementType } from "react";
 import { ON_LINE_PUJAS } from "../data/spiritualData";
-import { getPriestByDetails } from "../data/priests";
+import { getPriestByDetails, getPriestById, getPriestsByKeywords } from "../data/priests";
+import { TEMPLES_LIST } from "../data/temples";
 import {
   ShieldAlert, Heart, Briefcase, Award, TrendingUp, Sparkles,
   CheckCircle2, Video, Clock, ChevronDown, X, UserCircle2,
@@ -58,6 +59,16 @@ interface SimplePujaOffering {
   customAmountEnabled: boolean;
   ctaLabel: string;
   imageUrl: string;
+  /**
+   * Keyword tags (matched against each priest's pujaExpertise/adviceAreas in
+   * data/priests.ts via getPriestsByKeywords) used to build a live, ranked
+   * list of at least 20 genuinely relevant, experienced priests for this
+   * specific offering — the same pattern used by SevaOfferingCard.tsx and
+   * BazaarOfferingCard.tsx. Never a hardcoded id list, so newly added
+   * priests are picked up automatically. Rendered as the
+   * "Priest / Expert Selection" dropdown below.
+   */
+  priestKeywords: string[];
 }
 
 const SIMPLE_PUJAS: SimplePujaOffering[] = [
@@ -76,7 +87,8 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
       "Suitable for devotees who want a simple daily blessing.",
     ],
     devoteeReceives: [
-      "Digital Puja Certificate as evidence.",
+      "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
+      "Photo evidence and, where available for this offering, a short video/audio clip of the reading.",
       "Certificate issued within 3-7 working days.",
     ],
     certificateTimeline: "Certificate issued within 3-7 working days.",
@@ -84,6 +96,12 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
     imageUrl: import.meta.env.BASE_URL + "images/deity_jagannath_1781872890111.jpg",
+    // A simple daily Sankalp/blessing suits any well-rounded temple priest,
+    // so these keywords deliberately span several specialisms — health,
+    // wealth, protection and festival — resolved live via
+    // getPriestsByKeywords so devotees see a genuinely varied, at-least-20
+    // priest list rather than one narrow expertise.
+    priestKeywords: ["health", "wealth", "protection", "festival"],
   },
   {
     id: "simple-puja-mansik-ichha",
@@ -101,7 +119,8 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
       "Suitable for family wellbeing, health, peace, success, protection, and personal prayer.",
     ],
     devoteeReceives: [
-      "Digital Puja Certificate as evidence.",
+      "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
+      "Photo evidence and, where available for this offering, a short video/audio clip of the reading.",
       "Certificate issued within 3-7 working days.",
     ],
     certificateTimeline: "Certificate issued within 3-7 working days.",
@@ -109,6 +128,12 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
     imageUrl: import.meta.env.BASE_URL + "images/deity_lingaraj_1781872903761.jpg",
+    // Matches the offering's own description — "family wellbeing, health,
+    // peace, success, protection, and personal prayer" — to priests whose
+    // pujaExpertise/adviceAreas are Health & Longevity, Protection/Graha
+    // Shanti, or Marriage & Family Harmony, resolved live via
+    // getPriestsByKeywords.
+    priestKeywords: ["health", "protection", "marriage", "family"],
   },
   {
     id: "simple-puja-sampoorna-bhog-deep",
@@ -129,7 +154,8 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
       "Suitable for important prayers, special blessings, family protection, success, prosperity, and gratitude.",
     ],
     devoteeReceives: [
-      "Digital Puja Certificate as evidence.",
+      "Digital Puja Certificate, approved and signed off by the performing priest — and by the temple, where applicable — as evidence.",
+      "Photo evidence and, where available for this offering, a short video/audio clip of the reading.",
       "Certificate/evidence is typically issued within 3-7 working days, depending on puja complexity and temple confirmation.",
     ],
     certificateTimeline: "Certificate issued within 3-7 working days (longer for multi-day or festival rituals).",
@@ -137,6 +163,12 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
     imageUrl: import.meta.env.BASE_URL + "images/deity_kashi_vishwanath_1781874522891.jpg",
+    // Matches the offering's own description — "important prayers, special
+    // blessings, family protection, success, prosperity, and gratitude" —
+    // to priests specialising in Wealth/Lakshmi Sadhana, Protection/Graha
+    // Shanti, or Festival & Aarti ceremonies (Bhog + Deep is a full Aarti
+    // ritual in spirit), resolved live via getPriestsByKeywords.
+    priestKeywords: ["wealth", "protection", "festival"],
   },
 ];
 
@@ -162,6 +194,21 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   // NOT ask for: a puja-date preference and a delivery pincode.
   const [pujaDate, setPujaDate] = useState("");
   const [pincode, setPincode] = useState("");
+  // "" = no preference — an experienced priest/expert matching this
+  // offering is assigned. Kept optional so a devotee never has to pick a
+  // name to proceed. At least 20 genuinely relevant, experienced priests
+  // are resolved live from the priest directory via getPriestsByKeywords —
+  // never a hardcoded shortlist — same pattern as SevaOfferingCard.tsx and
+  // BazaarOfferingCard.tsx.
+  const [selectedPriestId, setSelectedPriestId] = useState("");
+  const priestOptions = useMemo(
+    () => getPriestsByKeywords(offering.priestKeywords, 20),
+    [offering.priestKeywords]
+  );
+  // "" = "Any Temple" — no preference, an available temple/priest pairing
+  // is assigned. Sourced live from TEMPLES_LIST (data/temples.ts) so every
+  // temple on the platform is selectable, never a hardcoded subset.
+  const [selectedTempleId, setSelectedTempleId] = useState("");
   const [errors, setErrors] = useState<{ pincode?: string }>({});
   const [justBooked, setJustBooked] = useState(false);
   const justBookedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -190,10 +237,15 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
     const amount = isCustomSelected ? customAmountNumber : (selectedOption?.value as number);
 
+    const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
+    const chosenTemple = selectedTempleId ? TEMPLES_LIST.find((t) => t.id === selectedTempleId) : undefined;
+
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
     if (pujaDate) detailParts.push(`Puja Date Preference: ${pujaDate}`);
     if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
+    detailParts.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
+    detailParts.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any experienced priest/expert for this puja"}`);
 
     const composedName = detailParts.length ? `${offering.title} — ${detailParts.join(", ")}` : offering.title;
 
@@ -220,6 +272,8 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     setPujaDate("");
     setPincode("");
     setCustomAmount("");
+    setSelectedPriestId("");
+    setSelectedTempleId("");
     setJustBooked(true);
     if (justBookedTimeoutRef.current) clearTimeout(justBookedTimeoutRef.current);
     justBookedTimeoutRef.current = setTimeout(() => setJustBooked(false), 6000);
@@ -364,6 +418,50 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                 )}
               </div>
             </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+              <div className="relative">
+                <select
+                  id={`simple-puja-temple-${offering.id}`}
+                  value={selectedTempleId}
+                  onChange={(e) => setSelectedTempleId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any Temple</option>
+                  {[...TEMPLES_LIST].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                    <option key={t.id} value={t.id} className="bg-[#092320] text-white">
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
+              <div className="relative">
+                <select
+                  id={`simple-puja-priest-${offering.id}`}
+                  value={selectedPriestId}
+                  onChange={(e) => setSelectedPriestId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any experienced priest/expert for this puja</option>
+                  {priestOptions.map((p) => (
+                    <option key={p.id} value={p.id} className="bg-[#092320] text-white">
+                      {p.name} — {p.currentCity}, {p.currentState} ({p.yearsExperience} yrs)
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+              <p className="text-[9px] text-white/40 mt-1">
+                If your chosen Pandit/Priest is unavailable at your preferred time, another approved and equally experienced priest/expert will graciously perform this Sankalp on your behalf, with the same devotion and tradition.
+              </p>
+            </div>
+
             <p className="text-[9px] text-white/40 -mt-1">Your name, gotra, rashi, contact details and personal wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
           </div>
         )}
@@ -457,7 +555,22 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
   // in App.tsx, so a fresh id always re-triggers this correctly.
   useEffect(() => {
     if (!initialHighlightId) return;
-    const match = SIMPLE_PUJAS.find((p) => p.id === initialHighlightId);
+    // ✅ VISIBILITY-BUG FIX: callers of this prop (e.g. the homepage
+    // carousel) have historically used two different id spellings for the
+    // same Simple Puja — the short slug ("basic-sankalp-puja") and this
+    // file's own prefixed id ("simple-puja-basic-sankalp"). An exact-only
+    // match silently failed whenever the short slug was passed, which
+    // meant activeSimplePujaId never got set — so the card never became
+    // "isActive" and its Puja Date Preference / Pincode / Priest fields
+    // never appeared, even though the devotee had just tapped straight
+    // into that exact puja. Matching on a normalized core slug (dropping
+    // the "simple-puja-" prefix on either side) makes this resilient to
+    // both spellings, and to any future caller, without needing every
+    // other file that supplies this id to agree on one exact string.
+    const normalize = (id: string) => id.replace(/^simple-puja-/, "").toLowerCase();
+    const match =
+      SIMPLE_PUJAS.find((p) => p.id === initialHighlightId) ??
+      SIMPLE_PUJAS.find((p) => normalize(p.id) === normalize(initialHighlightId));
     if (!match) return;
     setSimpleTabActive(true);
     setActiveSimplePujaId(match.id);

@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Heart, Utensils, Flame, Wind, Flower2, Landmark,
   Check, ChevronDown, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
+import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import OptimizedImage from "./OptimizedImage";
 import { validatePincode } from "../utils/formValidation";
 
@@ -51,6 +52,16 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
   const [occasion, setOccasion] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
   const [pincode, setPincode] = useState("");
+  // "" = no preference — an approved priest matching this seva is assigned
+  // by the temple. Kept optional so a devotee never has to pick a name to
+  // proceed. Same pattern as the Simple Pujas priest selector in
+  // OnlinePuja.tsx: at least 20 genuinely relevant priests, verified
+  // against the live directory via each offering's priestKeywords.
+  const [selectedPriestId, setSelectedPriestId] = useState("");
+  const priestOptions = useMemo(
+    () => getPriestsByKeywords(offering.priestKeywords, 20),
+    [offering.priestKeywords]
+  );
   // Validation error for Pincode — shown inline and cleared as soon as the
   // devotee edits the field again.
   const [errors, setErrors] = useState<{ pincode?: string }>({});
@@ -87,12 +98,14 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
     const amount = isCustomSelected ? customAmountNumber : (selectedOption?.value as number);
     const occasionLabel = SEVA_OCCASIONS.find((o) => o.value === occasion)?.label;
+    const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
 
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
     if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
     if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
+    detailParts.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any approved priest for this seva"}`);
 
     const composedName = detailParts.length ? `${offering.title} — ${detailParts.join(", ")}` : offering.title;
 
@@ -117,6 +130,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     setPreferredDate("");
     setPincode("");
     setCustomAmount("");
+    setSelectedPriestId("");
     setJustOffered(true);
     if (justOfferedTimeoutRef.current) clearTimeout(justOfferedTimeoutRef.current);
     justOfferedTimeoutRef.current = setTimeout(() => setJustOffered(false), 6000);
@@ -284,6 +298,28 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
               </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
+              <div className="relative">
+                <select
+                  id={`seva-offering-priest-${offering.id}`}
+                  value={selectedPriestId}
+                  onChange={(e) => setSelectedPriestId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any approved priest for this seva</option>
+                  {priestOptions.map((p) => (
+                    <option key={p.id} value={p.id} className="bg-[#092320] text-white">
+                      {p.name} — {p.currentCity}, {p.currentState} ({p.yearsExperience} yrs)
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+              <p className="text-[9px] text-white/40 mt-1">
+                If your chosen Pandit/Priest is unavailable at your preferred time, another approved and equally experienced priest/expert will graciously perform this seva on your behalf, with the same devotion and tradition.
+              </p>
             </div>
             <p className="text-[9px] text-white/40 -mt-1">Your name, gotra, email, phone and sankalp wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
           </div>

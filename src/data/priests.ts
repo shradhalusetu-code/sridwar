@@ -2112,3 +2112,58 @@ export function getPriestByDetails(priestDetails: string): (PriestProfile & { lo
 export function getPriestById(id: string): (PriestProfile & { localHighlight?: string }) | undefined {
   return PRIEST_PROFILES.find(p => p.id === id);
 }
+
+/**
+ * Resolve a ranked list of priests relevant to the given subject keywords —
+ * used by SevaOfferingCard.tsx and BazaarOfferingCard.tsx to build each
+ * offering's "Priest / Expert Selection" dropdown from its `priestKeywords`.
+ *
+ * Matching is a case-insensitive substring match against each priest's
+ * `pujaExpertise` and `adviceAreas` (union across all given keywords, not an
+ * exact/exhaustive match on every keyword) — this is what the "union match
+ * count" figures noted next to each offering's priestKeywords in
+ * sevaOfferings.ts / bazaarOfferings.ts refer to. Matches are ranked by how
+ * many of the given keywords they satisfy, then by years of experience
+ * (rating is intentionally left unset on every priest profile — see the
+ * note on PriestProfile.rating in types.ts — so it isn't a usable signal).
+ *
+ * If fewer than `limit` priests match any keyword, the list is topped up
+ * with the most experienced remaining priests so the dropdown always shows
+ * a genuinely useful set of options rather than a sparse one.
+ */
+export function getPriestsByKeywords(
+  keywords: string[],
+  limit: number = 20
+): (PriestProfile & { localHighlight?: string })[] {
+  if (!keywords || keywords.length === 0) {
+    return [...PRIEST_PROFILES]
+      .sort((a, b) => b.yearsExperience - a.yearsExperience)
+      .slice(0, limit);
+  }
+
+  const lowerKeywords = keywords.map((k) => k.toLowerCase());
+
+  const scored = PRIEST_PROFILES.map((priest) => {
+    const haystack = [...priest.pujaExpertise, ...priest.adviceAreas].join(" ").toLowerCase();
+    const matchCount = lowerKeywords.reduce((count, kw) => count + (haystack.includes(kw) ? 1 : 0), 0);
+    return { priest, matchCount };
+  });
+
+  const matched = scored
+    .filter((s) => s.matchCount > 0)
+    .sort((a, b) => b.matchCount - a.matchCount || b.priest.yearsExperience - a.priest.yearsExperience)
+    .map((s) => s.priest);
+
+  if (matched.length >= limit) {
+    return matched.slice(0, limit);
+  }
+
+  // Top up with the most experienced remaining (non-matching) priests so
+  // the dropdown never looks sparse, without duplicating anyone already matched.
+  const matchedIds = new Set(matched.map((p) => p.id));
+  const remaining = PRIEST_PROFILES
+    .filter((p) => !matchedIds.has(p.id))
+    .sort((a, b) => b.yearsExperience - a.yearsExperience);
+
+  return [...matched, ...remaining].slice(0, limit);
+}

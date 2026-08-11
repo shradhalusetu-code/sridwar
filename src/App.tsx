@@ -91,7 +91,7 @@ export default function App() {
   const [isOfferPopupOpen, setIsOfferPopupOpen] = useState(false);
   
   // Custom states for wizard pass
-  const [wizardDefaults, setWizardDefaults] = useState({ pujaName: "", price: 1100 });
+  const [wizardDefaults, setWizardDefaults] = useState<{ pujaName: string; price: number; category?: "puja_seva" | "counselling_guidance" }>({ pujaName: "", price: 1100 });
   const [sevaDefaults, setSevaDefaults] = useState({ name: "", price: 501 });
 
   // Authentication states
@@ -849,7 +849,7 @@ export default function App() {
                 onNavigate={handleNavigate}
                 isAndroidApp={isAndroidApp}
                 onBookSession={(label, price) => {
-                  setWizardDefaults({ pujaName: label, price });
+                  setWizardDefaults({ pujaName: label, price, category: "counselling_guidance" });
                   setIsBookNowOpen(true);
                 }}
               />
@@ -1200,6 +1200,7 @@ export default function App() {
           onClose={() => setIsBookNowOpen(false)}
           defaultPujaName={wizardDefaults.pujaName}
           defaultPrice={wizardDefaults.price}
+          category={wizardDefaults.category ?? "puja_seva"}
           onSuccess={handleBookNowSuccess}
         />
       </Suspense>

@@ -10,11 +10,12 @@
  * dropdown(s) (Bhog Type, Mala Type, Item Type…), and devotional add-ons.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ShoppingBag, Flame, Check, ChevronDown, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
 } from "lucide-react";
 import { BazaarProduct, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
+import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import OptimizedImage from "./OptimizedImage";
 import { validatePincode } from "../utils/formValidation";
 
@@ -48,6 +49,16 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   // (same pattern as Simple Pujas) so it's known before checkout even opens.
   const [pincode, setPincode] = useState("");
   const [pincodeError, setPincodeError] = useState<string | undefined>(undefined);
+  // "" = no preference — an approved priest/expert matching this offering
+  // blesses/prepares it before dispatch or temple offering. Same pattern as
+  // the Simple Pujas and Structured Seva Offering priest selectors: at
+  // least 20 genuinely relevant priests, verified against the live
+  // directory via each product's priestKeywords.
+  const [selectedPriestId, setSelectedPriestId] = useState("");
+  const priestOptions = useMemo(
+    () => getPriestsByKeywords(product.priestKeywords, 20),
+    [product.priestKeywords]
+  );
 
   const isCustomSelected = selected === "custom";
   const selectedOption = product.priceOptions.find((p) => String(p.value) === selected);
@@ -71,6 +82,8 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
       a.requiresText && addOnText[a.id]?.trim() ? `${a.label} (${addOnText[a.id].trim()})` : a.label
     );
     if (addOnLabels.length) detailBits.push(`Add-ons: ${addOnLabels.join(", ")}`);
+    const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
+    detailBits.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any approved priest/expert for this offering"}`);
     return `${parts.join(" ")} — ${detailBits.join(", ")}`;
   };
 
@@ -79,6 +92,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
     setAddOnText({});
     setPincode("");
     setPincodeError(undefined);
+    setSelectedPriestId("");
   };
 
   const handlePrimary = () => {
@@ -279,6 +293,35 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
             ) : (
               <p className="text-[9px] text-white/40 mt-1">Shipping charges apply and may vary based on your PIN code.</p>
             )}
+          </div>
+        )}
+
+        {/* Priest / Expert Selection — shown once the card is the active
+            selection, same pattern as Simple Pujas and Structured Seva
+            Offerings. Optional: an approved priest/expert is assigned by
+            the temple if left on "Any". */}
+        {isActive && (
+          <div className="mb-3 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
+            <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
+            <div className="relative">
+              <select
+                id={`bazaar-offering-priest-${product.id}`}
+                value={selectedPriestId}
+                onChange={(e) => setSelectedPriestId(e.target.value)}
+                className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+              >
+                <option value="" className="bg-[#092320] text-white">Any approved priest/expert for this offering</option>
+                {priestOptions.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-[#092320] text-white">
+                    {p.name} — {p.currentCity}, {p.currentState} ({p.yearsExperience} yrs)
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+            </div>
+            <p className="text-[9px] text-white/40 mt-1">
+              If your chosen Pandit/Priest/Expert is unavailable, another approved and equally experienced priest/expert will graciously bless and prepare this offering on your behalf, with the same devotion and tradition.
+            </p>
           </div>
         )}
 

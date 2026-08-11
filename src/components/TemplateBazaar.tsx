@@ -4,7 +4,7 @@
  *
  * TemplateBazaar — Sri Dwar Sacred Marketplace & Temple Bazaar Store
  * Unified section combining sacred products + services.
- * Flow: Browse → Puja Sankalpa Portal → Complete Your Sacred Offering (UPI)
+ * Flow: Browse → Puja Sankalpa Portal (services) / Sacred Bazaar Order (products) → Complete Your Sacred Offering (UPI)
  */
 
 import { useState, useEffect, FormEvent } from "react";
@@ -185,6 +185,11 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   const [devoteeGotra, setDevoteeGotra]     = useState("");
   const [devoteeRashi, setDevoteeRashi]     = useState("Mesh (Aries)");
   const [sankalpaIntent, setSankalpaIntent] = useState("");
+  // Plain order note for physical-product purchases — kept separate from
+  // sankalpaIntent above so a product order (e.g. a Rudraksha mala or an
+  // idol) is never synced with a leftover "Sankalpa Intention" the devotee
+  // never actually saw or filled in on this form.
+  const [orderNote, setOrderNote]           = useState("");
   // Physical product delivery fields (only shown for non-service items)
   const [devoteeAddress, setDevoteeAddress] = useState("");
   const [devoteePincode, setDevoteePincode] = useState("");
@@ -317,20 +322,18 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
       name:         devoteeName.trim(),
       email:        devoteeEmail.trim(),
       phone:        devoteePhone.trim(),
-      gotra:        devoteeGotra || undefined,
-      rashi:        devoteeRashi || undefined,
-      intent:       sankalpaIntent.trim() || undefined,
+      gotra:        selectedItem?.isService ? (devoteeGotra || undefined) : undefined,
+      rashi:        selectedItem?.isService ? (devoteeRashi || undefined) : undefined,
+      intent:       selectedItem?.isService ? (sankalpaIntent.trim() || undefined) : (orderNote.trim() || undefined),
       type:         selectedItem?.isService
                       ? `Puja Service — ${selectedItem?.name}`
                       : `Temple Bazaar Order — ${selectedItem?.name}`,
       details:      `Item: ${selectedItem?.name} | ` +
                     `Amount: ₹${selectedItem?.price} | ` +
                     `Payment Status: Pending — Awaiting Confirmation | ` +
-                    `Gotra: ${devoteeGotra || "Not provided"} | ` +
-                    `Rashi: ${devoteeRashi} | ` +
                     (selectedItem?.isService
-                      ? `Intent: ${sankalpaIntent || "General blessings"}`
-                      : `Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
+                      ? `Gotra: ${devoteeGotra || "Not provided"} | Rashi: ${devoteeRashi} | Intent: ${sankalpaIntent || "General blessings"}`
+                      : `Order Note: ${orderNote.trim() || "None"} | Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
                     ` | Ref: ${refId}`,
       fee:          selectedItem?.price,
       city:         selectedItem?.isService ? "Online Devotee" : devoteeAddress.trim(),
@@ -352,9 +355,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         name:         devoteeName.trim(),
         email:        devoteeEmail.trim(),
         phone:        devoteePhone.trim(),
-        gotra:        devoteeGotra || undefined,
-        rashi:        devoteeRashi || undefined,
-        intent:       sankalpaIntent.trim() || undefined,
+        gotra:        selectedItem.isService ? (devoteeGotra || undefined) : undefined,
+        rashi:        selectedItem.isService ? (devoteeRashi || undefined) : undefined,
+        intent:       selectedItem.isService ? (sankalpaIntent.trim() || undefined) : (orderNote.trim() || undefined),
         type:         selectedItem.isService
                         ? `Puja Service — ${selectedItem.name}`
                         : `Temple Bazaar Order — ${selectedItem.name}`,
@@ -362,11 +365,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                       `Amount: ₹${details.amount} | ` +
                       `Payment Status: Paid — Confirmed | ` +
                       `Payment Method: ${details.method} | ` +
-                      `Gotra: ${devoteeGotra || "Not provided"} | ` +
-                      `Rashi: ${devoteeRashi} | ` +
                       (selectedItem.isService
-                        ? `Intent: ${sankalpaIntent || "General blessings"}`
-                        : `Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
+                        ? `Gotra: ${devoteeGotra || "Not provided"} | Rashi: ${devoteeRashi} | Intent: ${sankalpaIntent || "General blessings"}`
+                        : `Order Note: ${orderNote.trim() || "None"} | Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
                       ` | Ref: ${refId}`,
         fee:          details.amount,
         city:         selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
@@ -393,7 +394,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     // Reset form fields
     setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");
     setDevoteeGotra(""); setDevoteeRashi("Mesh (Aries)");
-    setSankalpaIntent(""); setDevoteeAddress(""); setDevoteePincode("");
+    setSankalpaIntent(""); setOrderNote(""); setDevoteeAddress(""); setDevoteePincode("");
     setSelectedItem(null);
   };
 
@@ -677,7 +678,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   into or overlapping the ✕ button on narrow Android widths. */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Puja Sankalpa Portal</h3>
+                  <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">
+                    {selectedItem.isService ? "Puja Sankalpa Portal" : "Sacred Bazaar Order"}
+                  </h3>
                   <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 truncate">
                     {selectedItem.name}
                   </p>
@@ -715,7 +718,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
               </div>
 
               <p className="text-[11px] text-white/60 leading-relaxed">
-                🙏 Please enter your Sankalpa details so our pandits can perform this {selectedItem.isService ? "seva" : "offering"} in your name and Gotra.
+                {selectedItem.isService
+                  ? "🙏 Please enter your Sankalpa details so our pandits can perform this seva in your name and Gotra."
+                  : "🙏 Please share your details so we can prepare and dispatch your sacred order with care."}
               </p>
 
               {/* Full Name */}
@@ -756,47 +761,73 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 />
               </div>
 
-              {/* Gotra + Rashi */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Gotra + Rashi + Sankalpa Intention — only for temple-performed
+                  seva/puja services. A physical product order (mala, idol,
+                  incense, prasad kit) has no priest reciting a Sankalpa
+                  against these details, so asking for them there was
+                  confusing and meaningless — replaced below with a plain,
+                  optional Order Note for products instead. */}
+              {selectedItem.isService && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-white/80 mb-1">
+                        Gotra <span className="text-white/40 font-normal">(Optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={devoteeGotra}
+                        onChange={e => setDevoteeGotra(e.target.value)}
+                        placeholder="e.g. Kashyap"
+                        className="w-full text-xs px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-white/80 mb-1">Rashi (Moon Sign)</label>
+                      <select
+                        value={devoteeRashi}
+                        onChange={e => setDevoteeRashi(e.target.value)}
+                        className="w-full text-xs px-2.5 py-2.5 rounded-xl bg-[#021816] border border-white/10 text-[#5EEAD4] font-medium focus:outline-none focus:border-[#5EEAD4]"
+                      >
+                        {RASHI_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-white/80 mb-1 flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                      Sankalpa Intention <span className="text-white/40 font-normal">(Optional)</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={sankalpaIntent}
+                      onChange={e => setSankalpaIntent(e.target.value)}
+                      placeholder="e.g. For the health and prosperity of my family..."
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
+                    />
+                    <p className="text-[10px] text-white/30 mt-1 font-mono">The pandit will recite this during Sankalpa</p>
+                  </div>
+                </>
+              )}
+
+              {/* Order Note — only for physical products, replaces the
+                  Sankalpa Intention field above with plain order wording. */}
+              {!selectedItem.isService && (
                 <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">
-                    Gotra <span className="text-white/40 font-normal">(Optional)</span>
+                  <label className="block text-xs font-bold text-white/80 mb-1 flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                    Order Note <span className="text-white/40 font-normal">(Optional)</span>
                   </label>
-                  <input
-                    type="text"
-                    value={devoteeGotra}
-                    onChange={e => setDevoteeGotra(e.target.value)}
-                    placeholder="e.g. Kashyap"
-                    className="w-full text-xs px-3 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                  <textarea
+                    rows={2}
+                    value={orderNote}
+                    onChange={e => setOrderNote(e.target.value)}
+                    placeholder="Any note for our packing team — e.g. gifting instructions..."
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-white/80 mb-1">Rashi (Moon Sign)</label>
-                  <select
-                    value={devoteeRashi}
-                    onChange={e => setDevoteeRashi(e.target.value)}
-                    className="w-full text-xs px-2.5 py-2.5 rounded-xl bg-[#021816] border border-white/10 text-[#5EEAD4] font-medium focus:outline-none focus:border-[#5EEAD4]"
-                  >
-                    {RASHI_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {/* Sankalpa / Intention */}
-              <div>
-                <label className="block text-xs font-bold text-white/80 mb-1 flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-[#5EEAD4]" />
-                  Sankalpa Intention <span className="text-white/40 font-normal">(Optional)</span>
-                </label>
-                <textarea
-                  rows={2}
-                  value={sankalpaIntent}
-                  onChange={e => setSankalpaIntent(e.target.value)}
-                  placeholder="e.g. For the health and prosperity of my family..."
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
-                />
-                <p className="text-[10px] text-white/30 mt-1 font-mono">The pandit will recite this during Sankalpa</p>
-              </div>
+              )}
 
               {/* Delivery fields — only for physical products */}
               {!selectedItem.isService && (
@@ -839,7 +870,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
               >
                 <Flame className="w-4 h-4" />
-                Proceed to Sacred Offering →
+                {selectedItem.isService ? "Proceed to Sacred Offering →" : "Proceed to Checkout →"}
               </button>
             </form>
             </div>

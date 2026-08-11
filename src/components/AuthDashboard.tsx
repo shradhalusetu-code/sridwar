@@ -1744,7 +1744,7 @@ export default function AuthDashboard({
 
       </div>
 
-      {/* ── Step 3: Puja Sankalpa Portal ─────────────────────────────────── */}
+      {/* ── Step 3: Divine Contribution Portal ───────────────────────────── */}
       {showSankalpaForm && (
         <div
           className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] overflow-y-auto p-4 py-6"
@@ -1767,7 +1767,7 @@ export default function AuthDashboard({
                   into or overlapping the ✕ button on narrow Android widths. */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Puja Sankalpa Portal</h3>
+                  <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Divine Contribution Portal</h3>
                   <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 leading-snug break-words">
                     Temple Redevelopment Divine Contribution
                   </p>

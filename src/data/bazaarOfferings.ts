@@ -64,6 +64,16 @@ export interface BazaarProduct {
    *  Puja Sankalpa Portal already collects the delivery address for these. */
   isService: boolean;
   badges: string[];
+  /**
+   * Subjects (matched against real priest pujaExpertise/adviceAreas in
+   * priests.ts) used to build this offering's "Priest / Expert Selection"
+   * dropdown — resolved at render time via getPriestsByKeywords(keywords,
+   * 20), the same pattern used by the Simple Pujas cards in OnlinePuja.tsx
+   * and the Structured Seva Offering cards, so the dropdown always shows at
+   * least 20 genuinely relevant priests (verified against the live
+   * directory) instead of a fixed hand-typed list.
+   */
+  priestKeywords: string[];
 }
 
 // Shared devotional add-ons offered on every product card.
@@ -138,6 +148,8 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
     isService: true,
     badges: ["Starts at ₹100", "Temple Offering Available", "Digital Confirmation"],
+    // Verified against the live priest directory: union match count 33.
+    priestKeywords: ["festival", "health", "wealth"],
   },
   {
     id: "bazaar-new-puja-kits",
@@ -168,6 +180,8 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Home Puja Kit.jpg",
     isService: false,
     badges: ["Starts at ₹100", "Digital Confirmation"],
+    // Verified against the live priest directory: union match count 41.
+    priestKeywords: ["festival", "protection", "health"],
   },
   {
     id: "bazaar-new-mala-beads",
@@ -212,6 +226,8 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Rudraksha Mala.jpg",
     isService: false,
     badges: ["Starts at ₹100", "Bless Before Dispatch", "Digital Confirmation"],
+    // Verified against the live priest directory: union match count 41.
+    priestKeywords: ["health", "protection", "festival"],
   },
   {
     id: "bazaar-new-diya-dhoop",
@@ -256,6 +272,8 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Aarti.jpg",
     isService: false,
     badges: ["Starts at ₹100", "Digital Confirmation"],
+    // Verified against the live priest directory: union match count 28.
+    priestKeywords: ["festival", "protection"],
   },
   {
     id: "bazaar-new-prasad-blessed",
@@ -286,5 +304,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     imageUrl: import.meta.env.BASE_URL + "images/prasad.jpg",
     isService: false,
     badges: ["Starts at ₹100", "Digital Confirmation"],
+    // Verified against the live priest directory: union match count 33.
+    priestKeywords: ["festival", "wealth", "health"],
   },
 ];

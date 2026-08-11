@@ -32,26 +32,64 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
     },
     isEnabled: true
   },
+  // ✅ FIX 7 (re-verified): entry IDs below are matched directly against a
+  // REAL submitted row visible in the live Form_Responses sheet screenshot —
+  // not inferred from a prefilled-link guess. The previous pass here (which
+  // cited a "decoded prefilled link") got Email and Phone backwards and put
+  // Rashi's ID under Phone as well — three fields cross-wired against each
+  // other. Re-derived from the actual sheet row instead, which is unambiguous:
+  //   sent → landed in column          → real entry ID
+  //   data.name           → "Puja Selected"        → entry.898437491
+  //   extractedTemple     → "Dakshina Offer"        → entry.246622329
+  //   data.type (details) → "Devotee Full Name"     → entry.1507238374
+  //   data.dob            → "DOB (Planetary Calc.)" → entry.1732902395
+  //   old phoneKey value  → "Gotra"                 → entry.1568376464
+  //   old cityKey value ("Online Devotee") → "Moon Sign (Rashi)" → entry.21123129
+  //   old whatsappKey value (=phone)       → "Phone Number"      → entry.1096450797
+  //   data.email           → "Email Address"        → entry.1322524758  (this one was NEVER wrong — it was correct before FIX 7 and the last pass broke it)
+  //   data.details          → "Sankalpa Intent"      → entry.1050217824
+  //
+  // ✅ AUDIT (re-confirmed Aug 2026 directly against the live "PUJA" Google
+  // Form, https://docs.google.com/forms/d/1CaBtQkUc-XcQorblYVJAag-5n0dRJ6LAQUzT8ZhHqdI):
+  // the form's 9 fields, in order, are exactly Puja Selected → Dakshina
+  // Offer → Devotee Full Name → DOB (Planetary Calculation) → Gotra →
+  // Moon Sign (Rashi) → Phone Number → Email Address → Sankalpa Intent, and
+  // its formResponse endpoint id
+  // (1FAIpQLSedSW7HeakeLf1uHMBmu7VU94q26HdjL44rFXkPse8yqGrPKw) matches the
+  // formUrl below — confirming this config already points at the correct
+  // dedicated Puja form and the field order this file assumes is accurate.
   puja_booking: {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSedSW7HeakeLf1uHMBmu7VU94q26HdjL44rFXkPse8yqGrPKw/formResponse",
     mappedFields: {
-      nameKey: "entry.898437491",
-      emailKey: "entry.1322524758",
-      phoneKey: "entry.1568376464",
-      detailsKey: "entry.1050217824",
-      typeKey: "entry.1507238374"
+      nameKey: "entry.1507238374",   // Devotee Full Name
+      emailKey: "entry.1322524758",  // Email Address (was wrongly re-mapped to entry.21123129 in the last pass — reverted)
+      phoneKey: "entry.1096450797",  // Phone Number (was wrongly re-mapped to entry.1322524758 in the last pass — corrected)
+      detailsKey: "entry.1050217824",// Sankalpa Intent
+      typeKey: "entry.898437491"     // Puja Selected
     },
     isEnabled: true
   },
-  // ✅ Seva booking — your real Google Form with correct entry IDs
+  // ✅ Seva booking — verified against the real live form the same way as
+  // puja_booking above (test values matched 1:1 to the real sheet columns).
+  // ✅ AUDIT (re-confirmed Aug 2026 directly against the live "SEVA" Google
+  // Form, https://docs.google.com/forms/d/1HCBLvhnjp9r_xxSsn7jLvXGFmu_KijKdp9wekH6H_t8):
+  // the form's 9 fields, in order, are exactly Seva Selected → Seva
+  // Dakshina → Devotee Full Name → DOB (Planetary Calculation) → Gotra →
+  // Moon Sign (Rashi) → Phone Number → Email Address → Seva Intent, and its
+  // formResponse endpoint id (1FAIpQLSfdYMlOpYsjCk8uYO4vJvr1j8IXzvKAVxo8CLGnYkum8zguIA)
+  // matches the formUrl below — confirming this config already points at
+  // the correct dedicated Seva form. Note the last column is labelled "Seva
+  // Intent" on the live form (the code below/older comments call it
+  // "Sankalpa Intent" — same column, that's just legacy naming carried over
+  // from the Puja form's terminology).
   seva_booking: {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfdYMlOpYsjCk8uYO4vJvr1j8IXzvKAVxo8CLGnYkum8zguIA/formResponse",
     mappedFields: {
-      nameKey: "entry.898437491",
-      emailKey: "entry.1681028168",
-      phoneKey: "entry.1364177955",
-      detailsKey: "entry.1455477698",
-      typeKey: "entry.1165779906"
+      nameKey: "entry.1165779906",   // Devotee Full Name (was wrongly entry.898437491)
+      emailKey: "entry.1681028168",  // Email Address (unchanged — was already correct)
+      phoneKey: "entry.1364177955",  // Phone Number (unchanged — was already correct)
+      detailsKey: "entry.1455477698",// Seva Intent (unchanged — was already correct)
+      typeKey: "entry.898437491"     // Seva Selected (was wrongly entry.1165779906)
     },
     isEnabled: true
   },
@@ -369,20 +407,47 @@ function formatEntryKey(key: string | undefined): string | undefined {
  * Retrieves the Google Form sync configuration for a specific form type.
  */
 export function getSyncConfig(formType: string): SyncConfig {
+  const fallback = DEFAULT_CONFIGS[formType] || DEFAULT_CONFIGS.devotee_support;
   const stored = localStorage.getItem(`gform_sync_${formType}`);
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
       if (parsed.formUrl && parsed.formUrl.includes("1FAIpQLScXzRndWwAEvW-68XzS_B5yqS_tK-X-sV0T7U-yB3yK_Z_EHQ")) {
         localStorage.removeItem(`gform_sync_${formType}`);
-        return DEFAULT_CONFIGS[formType] || DEFAULT_CONFIGS.devotee_support;
+        return fallback;
+      }
+      // ✅ AUDIT FIX: saveSyncConfig() is exported for a future settings
+      // panel but is not called anywhere in the current app — nothing in
+      // the codebase writes a "gform_sync_*" key today. That means any
+      // value found here can only be a leftover from an older build (or
+      // hand-edited devtools data), and it silently *replaces* the
+      // carefully verified DEFAULT_CONFIGS mapping above with whatever
+      // shape it happens to have — including a config missing one of the
+      // 5 required entry keys, which would then silently drop that field
+      // for every submission for that devotee, forever, with no visible
+      // error. Validate the shape before trusting it; anything incomplete
+      // falls back to the verified default instead of partially breaking.
+      const fields = parsed?.mappedFields;
+      const hasAllFields =
+        fields &&
+        typeof parsed.formUrl === "string" &&
+        parsed.formUrl.trim() !== "" &&
+        ["nameKey", "emailKey", "phoneKey", "detailsKey", "typeKey"].every(
+          (k) => typeof fields[k] === "string" && fields[k].trim() !== ""
+        );
+      if (!hasAllFields) {
+        console.warn(
+          `[Google Forms Sync]: Ignoring incomplete/stale stored config for "${formType}" — using verified default instead.`
+        );
+        localStorage.removeItem(`gform_sync_${formType}`);
+        return fallback;
       }
       return parsed;
     } catch {
-      return DEFAULT_CONFIGS[formType] || DEFAULT_CONFIGS.devotee_support;
+      return fallback;
     }
   }
-  return DEFAULT_CONFIGS[formType] || DEFAULT_CONFIGS.devotee_support;
+  return fallback;
 }
 
 /**
@@ -414,6 +479,69 @@ function _isDuplicate(formType: string, data: { name: string; phone: string; typ
   // Clean up old entries so the Map doesn't grow forever
   _recentSubmissions.forEach((t, k) => { if (now - t > 10000) _recentSubmissions.delete(k); });
   return false;
+}
+
+/**
+ * Dev-time safety net for exactly the class of bug that caused values to
+ * land in the wrong Google Sheet column in the past: two "different"
+ * fields accidentally sharing the same entry.ID (e.g. a copy-pasted
+ * fallback constant), which makes the second field's value silently
+ * overwrite the first's in the same POST. Called once per submission for
+ * the fields that matter most (name/gotra/rashi/dob/type/dakshina/intent);
+ * a console.warn here is cheap and would have caught this exact bug.
+ */
+function _warnIfDuplicateEntryKeys(formType: string, keys: Record<string, string | undefined>) {
+  const seen = new Map<string, string>();
+  for (const [label, key] of Object.entries(keys)) {
+    if (!key) continue;
+    const prior = seen.get(key);
+    if (prior) {
+      console.warn(
+        `[Google Forms Sync]: "${label}" and "${prior}" both use ${key} for ${formType} — one will silently overwrite the other in the sheet. Give them distinct entry IDs.`
+      );
+    } else {
+      seen.set(key, label);
+    }
+  }
+}
+
+/**
+ * ✅ AUDIT FIX (Puja/Seva mis-routing): decides whether a submission belongs
+ * on the Seva form/sheet or the Puja form/sheet.
+ *
+ * Why this needs to be its own function: the previous inline check was
+ *   data.type.toLowerCase().includes("seva") || data.details.toLowerCase().includes("seva")
+ * which looks reasonable, but BookNowWizard.tsx (the actual Puja/Seva
+ * Sankalpa Portal used for every real booking) always sets
+ *   type: `Puja/Seva Booking - ${pujaName}`
+ * — and the literal boilerplate label "Puja/Seva Booking" itself contains
+ * the substring "seva", regardless of what pujaName is. That made
+ * data.type.includes("seva") TRUE on every single Puja OR Seva booking,
+ * which silently sent every Puja booking to the Seva Google Form/sheet
+ * (wrong form, wrong entry IDs, wrong columns) while still "looking like it
+ * worked" (no error, a row did land somewhere). This is the root cause of
+ * the "randomly mapped" symptom — it wasn't random, it was 100% of Puja
+ * bookings being misrouted to Seva every time.
+ *
+ * Fix: strip the fixed "Puja/Seva Booking" label text out before testing,
+ * so only the real, devotee-facing item name/details decide the routing —
+ * e.g. "Rudrabhishek Maha Puja" → Puja form, "Gau Seva (Sacred Cow Feeding
+ * & Upkeep)" → Seva form, exactly as intended.
+ *
+ * Also: callers that already know for certain which sheet they want
+ * (AuthDashboard's Temple Redevelopment Divine Contribution, TemplateBazaar's
+ * Bazaar/Seva checkout — both call syncToGoogleForm("seva_booking", ...) by
+ * name) are trusted directly rather than re-guessed from text.
+ */
+function _isSevaSubmission(
+  formType: string,
+  data: { type: string; details: string }
+): boolean {
+  if (formType === "seva_booking") return true;
+  const BOILERPLATE = /puja\s*\/\s*seva\s*booking/gi;
+  const cleanType = (data.type || "").toLowerCase().replace(BOILERPLATE, "");
+  const cleanDetails = (data.details || "").toLowerCase().replace(BOILERPLATE, "");
+  return cleanType.includes("seva") || cleanDetails.includes("seva");
 }
 
 /**
@@ -458,8 +586,12 @@ export async function syncToGoogleForm(
   // Now: We check if it's a seva type and route it to seva_booking config directly
   if (formType === "darshan_certificate") {
     finalFormUrl = buildFormResponseUrl(env.GOOGLE_FORM_ID_CERTIFICATE, config.formUrl);
-  } else if (formType === "puja_booking" || formType === "puja" || formType === "seva") {
-    const isSeva = data.type.toLowerCase().includes("seva") || data.details.toLowerCase().includes("seva");
+  } else if (formType === "puja_booking" || formType === "puja" || formType === "seva" || formType === "seva_booking") {
+    // ✅ AUDIT FIX: use the shared, boilerplate-safe detector (see
+    // _isSevaSubmission above) instead of a raw substring test, so real
+    // Puja bookings no longer get swept into the Seva form just because
+    // the fixed "Puja/Seva Booking" label text contains "seva".
+    const isSeva = _isSevaSubmission(formType, data);
     if (isSeva) {
       // ✅ Always use seva_booking config URL — no longer depends on env variable
       const sevaConfig = DEFAULT_CONFIGS["seva_booking"];
@@ -524,78 +656,130 @@ export async function syncToGoogleForm(
       if (contributionKey && data.contribution !== undefined) formData.append(contributionKey, String(data.contribution));
       if (detailsKey) formData.append(detailsKey, data.details);
 
-    } else if (formType === "puja_booking" || formType === "puja" || formType === "seva") {
-      const isSeva = data.type.toLowerCase().includes("seva") || data.details.toLowerCase().includes("seva");
+    } else if (formType === "puja_booking" || formType === "puja" || formType === "seva" || formType === "seva_booking") {
+      // ✅ AUDIT FIX: same shared, boilerplate-safe detector as the URL
+      // section above. This is also what makes AuthDashboard's Temple
+      // Redevelopment Divine Contribution and TemplateBazaar's Bazaar/Seva
+      // checkout (both of which call syncToGoogleForm("seva_booking", ...)
+      // and already pass gotra/rashi/fee expecting them to land in their
+      // own dedicated Sheet columns) actually reach this rich per-field
+      // mapping below, instead of silently falling through to the bare
+      // name/email/phone/details/type-only branch further down — which is
+      // why Gotra, Rashi, and Dakshina Offer were showing up blank or only
+      // buried inside the Intent text for those two flows.
+      const isSeva = _isSevaSubmission(formType, data);
 
       // ✅ FIX 4: Seva section no longer requires env variables to work.
       // Previously it checked: if (isSeva && (env.GOOGLE_FORM_ID_SEVA || ...))
       // This condition ALWAYS failed on GitHub Pages because env is always empty {}.
       // Now it simply checks isSeva — and uses hardcoded fallback entry IDs.
       if (isSeva) {
-        const nameKey = formatEntryKey(env.ENTRY_SEVA_NAME) || "entry.898437491";
-        const emailKey = formatEntryKey(env.ENTRY_SEVA_EMAIL) || "entry.1681028168";
-        const phoneKey = formatEntryKey(env.ENTRY_SEVA_PHONE) || "entry.1364177955";
-        const templeKey = formatEntryKey(env.ENTRY_SEVA_TEMPLE) || "entry.1055169507";
-        const typeKey = formatEntryKey(env.ENTRY_SEVA_SEVA_TYPE) || formatEntryKey(env.ENTRY_SEVA_SELECTED) || "entry.1165779906";
+        // ── Seva mapping — VERIFIED against the real live Google Form ────
+        // ✅ FIX 7: entry IDs decoded from the user's real prefilled link,
+        // confirmed against the real sheet's actual column order (Seva
+        // Selected, Dakshina Offer, Devotee Full Name, DOB, Gotra, Rashi,
+        // Phone, Email, Sankalpa Intent).
+        const nameKey = formatEntryKey(env.ENTRY_SEVA_NAME) || "entry.1165779906";   // Devotee Full Name
+        const emailKey = formatEntryKey(env.ENTRY_SEVA_EMAIL) || "entry.1681028168"; // Email Address
+        const phoneKey = formatEntryKey(env.ENTRY_SEVA_PHONE) || "entry.1364177955"; // Phone Number
+        const typeKey = formatEntryKey(env.ENTRY_SEVA_SEVA_TYPE) || formatEntryKey(env.ENTRY_SEVA_SELECTED) || "entry.898437491"; // Seva Selected
         const phoneVal = data.phone;
-        const whatsappKey = formatEntryKey(env.ENTRY_SEVA_WHATSAPP) || "entry.1015695340";
-        const cityKey = formatEntryKey(env.ENTRY_SEVA_CITY) || "entry.2024101892";
-        const dateKey = formatEntryKey(env.ENTRY_SEVA_DATE) || "entry.1359512036";
-        const notesKey = formatEntryKey(env.ENTRY_SEVA_NOTES) || "entry.1455477698";
-        const feeKey = formatEntryKey(env.ENTRY_SEVA_FEE);
-        const dobKey = formatEntryKey(env.ENTRY_SEVA_DOB);
-        const gotraKey = formatEntryKey(env.ENTRY_SEVA_GOTRA);
-        const rashiKey = formatEntryKey(env.ENTRY_SEVA_RASHI);
-        const intentKey = formatEntryKey(env.ENTRY_SEVA_INTENT);
+        const dateKey = formatEntryKey(env.ENTRY_SEVA_DATE) || "entry.1359512036";   // DOB (only date-shaped field on this form)
+        const notesKey = formatEntryKey(env.ENTRY_SEVA_NOTES) || "entry.1455477698"; // Sankalpa Intent
+        const dakshinaKey = formatEntryKey(env.ENTRY_SEVA_DAKSHINA) || "entry.1055169507"; // Dakshina Offer
+        const dobKey = formatEntryKey(env.ENTRY_SEVA_DOB) || dateKey;                // same real column as dateKey
+        const gotraKey = formatEntryKey(env.ENTRY_SEVA_GOTRA) || "entry.1015695340"; // Gotra
+        const rashiKey = formatEntryKey(env.ENTRY_SEVA_RASHI) || "entry.2024101892"; // Moon Sign (Rashi)
+        const intentKey = formatEntryKey(env.ENTRY_SEVA_INTENT) || notesKey;
+
+        _warnIfDuplicateEntryKeys("seva", {
+          "Devotee Name": nameKey, "Seva Selected": typeKey, "Dakshina Offer": dakshinaKey,
+          "DOB": dobKey, "Gotra": gotraKey, "Rashi": rashiKey, "Phone": phoneKey,
+          "Email": emailKey, "Sankalpa Intent": intentKey,
+        });
 
         if (nameKey) formData.append(nameKey, data.name);
         if (emailKey) formData.append(emailKey, data.email);
         if (phoneKey) formData.append(phoneKey, phoneVal);
-        if (templeKey && extractedTemple) formData.append(templeKey, extractedTemple);
         if (typeKey) formData.append(typeKey, data.type.replace("Puja/Seva Booking - ", ""));
-        if (whatsappKey) formData.append(whatsappKey, data.whatsapp || phoneVal);
-        if (cityKey) formData.append(cityKey, data.city || "Online Devotee");
-        if (dateKey) formData.append(dateKey, data.dob || currentDateTime);
-        if (notesKey) formData.append(notesKey, data.details || data.intent || "");
-        if (feeKey && data.fee !== undefined) formData.append(feeKey, String(data.fee));
+        if (dakshinaKey && data.fee !== undefined) formData.append(dakshinaKey, `₹${data.fee}`);
+        else if (dakshinaKey && data.contribution !== undefined) formData.append(dakshinaKey, `₹${data.contribution}`);
         if (dobKey && data.dob) formData.append(dobKey, data.dob);
+        else if (dateKey && dateKey !== dobKey) formData.append(dateKey, currentDateTime);
         if (gotraKey && data.gotra) formData.append(gotraKey, data.gotra);
         if (rashiKey && data.rashi) formData.append(rashiKey, data.rashi);
-        if (intentKey && data.intent) formData.append(intentKey, data.intent);
+        const sevaIntentParts = [
+          data.intent,
+          extractedTemple ? `Temple: ${extractedTemple}` : "",
+          data.whatsapp && data.whatsapp !== phoneVal ? `WhatsApp: ${data.whatsapp}` : "",
+          data.city ? `City: ${data.city}` : "",
+          data.details,
+        ].filter((v) => v && v.trim()).join(" | ");
+        if (intentKey) formData.append(intentKey, sevaIntentParts || data.details || "");
 
       } else {
-        // Puja mapping
-        const nameKey = formatEntryKey(env.ENTRY_PUJA_NAME) || config.mappedFields.nameKey;
-        const emailKey = formatEntryKey(env.ENTRY_PUJA_EMAIL) || config.mappedFields.emailKey;
-        const phoneKey = formatEntryKey(env.ENTRY_PUJA_PHONE) || config.mappedFields.phoneKey;
-        const templeKey = formatEntryKey(env.ENTRY_PUJA_TEMPLE) || "entry.246622329";
-        const typeKey = formatEntryKey(env.ENTRY_PUJA_PUJA_TYPE) || formatEntryKey(env.ENTRY_PUJA_SELECTED) || "entry.1507238374";
+        // ── Puja mapping — VERIFIED against a REAL submitted row in the live
+        // Form_Responses sheet (the sheet screenshot), not a prefilled-link
+        // guess. The immediately-prior fix pass here had Email and Phone
+        // swapped, and Rashi's real ID misassigned to Phone as well — see
+        // the worked derivation in DEFAULT_CONFIGS.puja_booking above for
+        // exactly how each entry ID was matched to its real column. This
+        // also keeps FIX 6's earlier bug fixed (DOB/Gotra/Rashi/Intent/Fee
+        // previously had no fallback ID at all and were silently never sent).
+        const nameKey = formatEntryKey(env.ENTRY_PUJA_NAME) || "entry.1507238374";   // Devotee Full Name
+        const emailKey = formatEntryKey(env.ENTRY_PUJA_EMAIL) || "entry.1322524758"; // Email Address
+        const phoneKey = formatEntryKey(env.ENTRY_PUJA_PHONE) || "entry.1096450797"; // Phone Number
+        const typeKey = formatEntryKey(env.ENTRY_PUJA_PUJA_TYPE) || formatEntryKey(env.ENTRY_PUJA_SELECTED) || "entry.898437491"; // Puja Selected
         const phoneVal = data.phone;
-        const whatsappKey = formatEntryKey(env.ENTRY_PUJA_WHATSAPP) || "entry.1096450797";
-        const cityKey = formatEntryKey(env.ENTRY_PUJA_CITY) || "entry.21123129";
-        const dateKey = formatEntryKey(env.ENTRY_PUJA_DATE) || "entry.1732902395";
-        const notesKey = formatEntryKey(env.ENTRY_PUJA_NOTES) || "entry.1050217824";
-        const feeKey = formatEntryKey(env.ENTRY_PUJA_FEE);
-        const dobKey = formatEntryKey(env.ENTRY_PUJA_DOB);
-        const gotraKey = formatEntryKey(env.ENTRY_PUJA_GOTRA);
-        const rashiKey = formatEntryKey(env.ENTRY_PUJA_RASHI);
-        const intentKey = formatEntryKey(env.ENTRY_PUJA_INTENT);
+        const dateKey = formatEntryKey(env.ENTRY_PUJA_DATE) || "entry.1732902395";   // DOB (Planetary Calculation) column doubles as the only date field on this form
+        const notesKey = formatEntryKey(env.ENTRY_PUJA_NOTES) || "entry.1050217824"; // Sankalpa Intent
+        const dakshinaKey = formatEntryKey(env.ENTRY_PUJA_DAKSHINA) || "entry.246622329"; // Dakshina Offer
+        const dobKey = formatEntryKey(env.ENTRY_PUJA_DOB) || dateKey;                // DOB (Planetary Calculation) — same real column as dateKey
+        const gotraKey = formatEntryKey(env.ENTRY_PUJA_GOTRA) || "entry.1568376464"; // Gotra
+        const rashiKey = formatEntryKey(env.ENTRY_PUJA_RASHI) || "entry.21123129";   // Moon Sign (Rashi)
+        const intentKey = formatEntryKey(env.ENTRY_PUJA_INTENT) || notesKey;
+        // This form has no separate WhatsApp/City fields of its own — the
+        // real 9 columns are exactly: Puja Selected, Dakshina Offer,
+        // Devotee Full Name, DOB, Gotra, Rashi, Phone, Email, Sankalpa
+        // Intent. WhatsApp/City are folded into Sankalpa Intent below
+        // instead of being sent to an unrelated column.
+
+        _warnIfDuplicateEntryKeys("puja", {
+          "Devotee Name": nameKey, "Puja Selected": typeKey, "Dakshina Offer": dakshinaKey,
+          "DOB": dobKey, "Gotra": gotraKey, "Rashi": rashiKey, "Phone": phoneKey,
+          "Email": emailKey, "Sankalpa Intent": intentKey,
+        });
 
         if (nameKey) formData.append(nameKey, data.name);
         if (emailKey) formData.append(emailKey, data.email);
         if (phoneKey) formData.append(phoneKey, phoneVal);
-        if (templeKey && extractedTemple) formData.append(templeKey, extractedTemple);
+        // Temple has no dedicated column in this sheet (it only has "Puja
+        // Selected" and "Dakshina Offer") — per the mapping rule, anything
+        // without a real destination column belongs in the Sankalpa Intent
+        // text, not in an unrelated field, so it's folded in below instead
+        // of being appended under a temple-shaped key.
         if (typeKey) formData.append(typeKey, data.type.replace("Puja/Seva Booking - ", ""));
-        if (whatsappKey) formData.append(whatsappKey, data.whatsapp || phoneVal);
-        if (cityKey) formData.append(cityKey, data.city || "Online Devotee");
-        if (dateKey) formData.append(dateKey, data.dob || currentDateTime);
-        if (notesKey) formData.append(notesKey, data.details || data.intent || "");
-        if (feeKey && data.fee !== undefined) formData.append(feeKey, String(data.fee));
+        if (dakshinaKey && data.fee !== undefined) formData.append(dakshinaKey, `₹${data.fee}`);
+        else if (dakshinaKey && data.contribution !== undefined) formData.append(dakshinaKey, `₹${data.contribution}`);
         if (dobKey && data.dob) formData.append(dobKey, data.dob);
+        else if (dateKey && dateKey !== dobKey) formData.append(dateKey, currentDateTime);
         if (gotraKey && data.gotra) formData.append(gotraKey, data.gotra);
         if (rashiKey && data.rashi) formData.append(rashiKey, data.rashi);
-        if (intentKey && data.intent) formData.append(intentKey, data.intent);
-        if (config.mappedFields.detailsKey && !notesKey) {
+        // Sankalpa Intent — the one true "catch-all" column. Composed from
+        // every value that either has no dedicated column of its own
+        // (temple, whatsapp/city context, payment/ref context supplied via
+        // data.details) or that benefits from being restated in full
+        // sentence form even though it also has its own column (the
+        // devotee's personal wish/intent).
+        const intentParts = [
+          data.intent,
+          extractedTemple ? `Temple: ${extractedTemple}` : "",
+          data.whatsapp && data.whatsapp !== phoneVal ? `WhatsApp: ${data.whatsapp}` : "",
+          data.city ? `City: ${data.city}` : "",
+          data.details,
+        ].filter((v) => v && v.trim()).join(" | ");
+        if (intentKey) formData.append(intentKey, intentParts || data.details || "");
+        if (config.mappedFields.detailsKey && intentKey !== config.mappedFields.detailsKey) {
           formData.append(config.mappedFields.detailsKey, data.details);
         }
       }
