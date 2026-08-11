@@ -137,6 +137,53 @@ export function validateDOB(dob: string, required = false): string | null {
 }
 
 /**
+ * ─── Booking date lead-time rule ─────────────────────────────────────────
+ * Every Puja/Seva/Darshan/other service date-selection field must give
+ * Sri Dwar at least this many days to contact and coordinate with the
+ * relevant Pandit/Pujari/seva provider before the requested date. Same-day
+ * and next-day (and everything inside this window) must be unselectable —
+ * enforced both via the <input min=...> attribute (blocks the native date
+ * picker) AND via validateBookingDate() below (blocks a manually-typed or
+ * pasted date that bypasses the picker).
+ */
+export const MIN_BOOKING_LEAD_DAYS = 3;
+
+/**
+ * Earliest selectable date, as a "YYYY-MM-DD" string suitable for an
+ * <input type="date" min={...}> attribute — today + MIN_BOOKING_LEAD_DAYS,
+ * in the devotee's local time zone (not UTC, so it lines up with what the
+ * native date picker shows them).
+ */
+export function getMinBookableDateISO(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + MIN_BOOKING_LEAD_DAYS);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Validates a preferred/booking date string ("YYYY-MM-DD") against the
+ * MIN_BOOKING_LEAD_DAYS rule. Pass `required=true` to also reject an empty
+ * value (every current date-selection field on the site treats the date
+ * as optional — "no preference" — so this defaults to false).
+ */
+export function validateBookingDate(dateStr: string, required = false): string | null {
+  const v = dateStr.trim();
+  if (!v) return required ? "Please select a preferred date." : null;
+  const chosen = new Date(`${v}T00:00:00`);
+  if (isNaN(chosen.getTime())) return "Please enter a valid date.";
+  const minDate = new Date();
+  minDate.setHours(0, 0, 0, 0);
+  minDate.setDate(minDate.getDate() + MIN_BOOKING_LEAD_DAYS);
+  if (chosen < minDate) {
+    return `Please select a date at least ${MIN_BOOKING_LEAD_DAYS} days from today, so we have time to coordinate with the Pandit/Pujari.`;
+  }
+  return null;
+}
+
+/**
  * Run multiple validators and return the first error found, or null.
  * Useful for sequential field checks.
  */

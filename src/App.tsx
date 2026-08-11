@@ -91,7 +91,7 @@ export default function App() {
   const [isOfferPopupOpen, setIsOfferPopupOpen] = useState(false);
   
   // Custom states for wizard pass
-  const [wizardDefaults, setWizardDefaults] = useState<{ pujaName: string; price: number; category?: "puja_seva" | "counselling_guidance" }>({ pujaName: "", price: 1100 });
+  const [wizardDefaults, setWizardDefaults] = useState<{ pujaName: string; price: number; category?: "puja_seva" | "counselling_guidance" | "holistic_wellness" | "seva_offering" }>({ pujaName: "", price: 1100 });
   const [sevaDefaults, setSevaDefaults] = useState({ name: "", price: 501 });
 
   // Authentication states
@@ -687,7 +687,7 @@ export default function App() {
                 initialHighlightId={offeringDeepLinkId}
                 isAndroidApp={isAndroidApp}
                 onSponsorSeva={(sevaName, price) => {
-                  setWizardDefaults({ pujaName: `Sponsorship contribution: ${sevaName}`, price });
+                  setWizardDefaults({ pujaName: `Sponsorship contribution: ${sevaName}`, price, category: "seva_offering" });
                   setIsBookNowOpen(true);
                 }}
                 onNavigate={handleNavigate}
@@ -715,7 +715,7 @@ export default function App() {
               <HolisticWellness
                 isAndroidApp={isAndroidApp}
                 onBookService={(serviceName, price) => {
-                  setWizardDefaults({ pujaName: serviceName, price });
+                  setWizardDefaults({ pujaName: serviceName, price, category: "holistic_wellness" });
                   setIsBookNowOpen(true);
                 }}
               />

@@ -21,17 +21,156 @@ interface BookNowWizardProps {
   defaultPrice?: number;
   /** Which service this booking is for — governs the portal's title, which
    *  fields are collected, and the confirmation wording (see
-   *  devotionalMessages.ts). Defaults to "puja_seva" (the original,
-   *  astrology-field Sankalp flow) so every existing caller that doesn't
-   *  pass this keeps behaving exactly as before. Only "puja_seva" and
-   *  "counselling_guidance" are supported here today; other categories are
-   *  handled by their own dedicated confirmation screens elsewhere. */
-  category?: Extract<DevotionalServiceCategory, "puja_seva" | "counselling_guidance">;
+   *  devotionalMessages.ts and WIZARD_CONTENT below). Defaults to
+   *  "puja_seva" (the original, astrology-field Sankalp flow) so every
+   *  existing caller that doesn't pass this keeps behaving exactly as
+   *  before. Four categories have their own fully dedicated portal content
+   *  here: "puja_seva" (Simple Pujas), "counselling_guidance" (Holistic
+   *  Wellness Counselling & Guidance), "holistic_wellness" (Yoga/Ayurveda/
+   *  Healing enrollment — no Puja/Sankalpa wording, since it's not a
+   *  temple ritual), and "seva_offering" (Structured Seva sponsorship —
+   *  keeps "Sankalp"/Gotra since sevas genuinely record a Sankalp, but
+   *  drops all Puja-specific wording and astrology fields). Other
+   *  categories are handled by their own dedicated confirmation screens
+   *  elsewhere. */
+  category?: Extract<DevotionalServiceCategory, "puja_seva" | "counselling_guidance" | "holistic_wellness" | "seva_offering">;
   onSuccess: (bookedItem: { pujaName: string; sankalpaName: string; price: number; refId: string }) => void;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Dedicated per-category portal content. Each of the four categories gets
+// its own title, tagline, step labels, intro banner, field labels/
+// visibility, wish-field copy, and Step 3 acknowledgement wording — so
+// Holistic Wellness & Yogic Sciences and Structured Seva Offerings each
+// read as their own purpose-built form rather than a relabelled "Puja
+// Sankalpa Portal". Only "puja_seva" keeps the astrology fields (DOB,
+// Gotra, Moon Sign) since only Simple Pujas need planetary coordinates
+// for the Sankalp; "seva_offering" keeps Gotra alone (sevas genuinely
+// record "Sankalp with your Gotra" per sevaOfferings.ts) but drops DOB/
+// Rashi; "holistic_wellness" drops all three in favour of a Preferred
+// Session Date; "counselling_guidance" (unchanged) drops all three too.
+// ─────────────────────────────────────────────────────────────────────────
+type WizardCategory = "puja_seva" | "counselling_guidance" | "holistic_wellness" | "seva_offering";
+
+interface WizardCopy {
+  title: string;
+  tagline: string;
+  stepLabels: [string, string, string];
+  introLabel: string;
+  introText: string;
+  selectionLabel: string;
+  feeLabel: string;
+  fields: "astrology" | "gotra_only" | "preferred_date" | "none";
+  autofillText: string;
+  wishLabel: string;
+  wishPlaceholder: string;
+  submitLabel: string;
+  step3Heading: string;
+  cardTitle: string;
+  cardIntro: string;
+  statusText: string;
+  quote: string;
+  teamName: string;
+  teamSubtitle: string;
+  typeLabel: string; // used for the Google Sheet "type"/"details" column so each category is identifiable in the sheet
+}
+
+const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
+  puja_seva: {
+    title: "Puja Sankalpa Portal",
+    tagline: "Vedic Rites, Followed Faithfully",
+    stepLabels: ["Devotee Sankalpa", "GPay Gateway", "Blessing Cert"],
+    introLabel: "🙏 Sanctify Your Rites:",
+    introText: "Every ritual requires a heartfelt sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.",
+    selectionLabel: "Puja Selected",
+    feeLabel: "Dakshina Offer Fee (₹)",
+    fields: "astrology",
+    autofillText: "Gotra, Rashi, and family records have been synchronized instantly.",
+    wishLabel: "Sankalpa Intent (Your Prayer Wish)",
+    wishPlaceholder: "State your personal wish clearly, our pundits will read this during holy mantra recitation...",
+    submitLabel: "Proceed to Secure Offering",
+    step3Heading: "Sankalpa Request Received!",
+    cardTitle: "Sankalpa Request Acknowledgement",
+    cardIntro: "This confirms that the sacred Sankalpa (intention) submitted by:",
+    statusText: "● Status: Request Received — Awaiting Performance",
+    quote: "\"May this sacred intention be carried forward with devotion, for the protection of your home, health, prosperity, and loved ones across all dimensions.\"",
+    teamName: "Pundit K. K. Dwivedi",
+    teamSubtitle: "Chief Shastri Seal",
+    typeLabel: "Puja/Seva Booking",
+  },
+  counselling_guidance: {
+    title: "Guidance Session Portal",
+    tagline: "Confidential, Compassionate Support",
+    stepLabels: ["Guidance Details", "GPay Gateway", "Confirmation"],
+    introLabel: "🙏 Confidential & Compassionate:",
+    introText: "Share a little about what you'd like support with, and your chosen Pandit/guidance expert will reach out to confirm your session.",
+    selectionLabel: "Guidance Selection",
+    feeLabel: "Session Fee (₹)",
+    fields: "none",
+    autofillText: "Your name and contact details have been synchronized instantly from your Dharmic ID.",
+    wishLabel: "Guidance Need / Concern / Support Requirement",
+    wishPlaceholder: "Briefly share what you'd like support with — this is shared only with your assigned guidance expert...",
+    submitLabel: "Proceed to Secure Offering",
+    step3Heading: "Guidance Request Received!",
+    cardTitle: "Guidance Request Acknowledgement",
+    cardIntro: "This confirms that the confidential guidance request submitted by:",
+    statusText: "● Status: Request Received — Awaiting Expert Assignment",
+    quote: "\"May this conversation bring clarity, comfort, and strength — with compassion, confidentiality, and care.\"",
+    teamName: "Guidance Coordination Team",
+    teamSubtitle: "Sri Dwar Dharmic Care",
+    typeLabel: "Counselling & Guidance Booking",
+  },
+  holistic_wellness: {
+    title: "Wellness & Yogic Sciences Enrollment",
+    tagline: "Holistic Practices, Guided With Care",
+    stepLabels: ["Enrollment Details", "GPay Gateway", "Enrollment Confirmed"],
+    introLabel: "🧘 Begin Your Practice:",
+    introText: "Share your enrollment details and, where relevant, your preferred session date — your assigned instructor or wellness expert will confirm timing and any preparation needed.",
+    selectionLabel: "Session / Program Selected",
+    feeLabel: "Enrollment Fee (₹)",
+    fields: "preferred_date",
+    autofillText: "Your name and contact details have been synchronized instantly from your Dharmic ID.",
+    wishLabel: "Health Goal / Focus Area (Optional)",
+    wishPlaceholder: "Share what you'd like to work on — e.g. flexibility, stress relief, a health condition, or a specific practice you're curious about...",
+    submitLabel: "Proceed to Secure Enrollment",
+    step3Heading: "Enrollment Received!",
+    cardTitle: "Wellness Enrollment Acknowledgement",
+    cardIntro: "This confirms that the wellness enrollment submitted by:",
+    statusText: "● Status: Enrollment Received — Awaiting Instructor Assignment",
+    quote: "\"May your practice bring balance to body, clarity to mind, and steadiness to spirit.\"",
+    teamName: "Yogic Sciences & Wellness Team",
+    teamSubtitle: "Sri Dwar Wellness Desk",
+    typeLabel: "Holistic Wellness & Yogic Sciences Enrollment",
+  },
+  seva_offering: {
+    title: "Seva Sankalp Portal",
+    tagline: "Sponsor Seva, Serve With Devotion",
+    stepLabels: ["Seva Sankalp Details", "GPay Gateway", "Seva Certificate"],
+    introLabel: "🙏 Offer With Devotion:",
+    introText: "Every seva sponsorship carries your name and gotra in the Sankalp taken at the temple — a simple, heartfelt way to serve.",
+    selectionLabel: "Seva Selected",
+    feeLabel: "Seva Dakshina (₹)",
+    fields: "gotra_only",
+    autofillText: "Gotra and your saved details have been synchronized instantly.",
+    wishLabel: "Seva Sankalp Wish (Optional Prayer Intent)",
+    wishPlaceholder: "State your personal wish clearly, our pundits will read this during the seva's Sankalp...",
+    submitLabel: "Proceed to Secure Offering",
+    step3Heading: "Seva Sankalp Received!",
+    cardTitle: "Seva Sankalp Acknowledgement",
+    cardIntro: "This confirms that the seva Sankalp submitted by:",
+    statusText: "● Status: Request Received — Awaiting Seva Performance",
+    quote: "\"May this seva you offer bring nourishment, comfort, and protection to all it reaches, and return to you and your family as prosperity and grace.\"",
+    teamName: "Seva Coordination Desk",
+    teamSubtitle: "Sri Dwar Seva Care",
+    typeLabel: "Seva Sankalp Booking",
+  },
+};
+
 export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, category = "puja_seva", onSuccess }: BookNowWizardProps) {
   const isGuidance = category === "counselling_guidance";
+  const isWellness = category === "holistic_wellness";
+  const isSeva = category === "seva_offering";
+  const copy = WIZARD_CONTENT[category];
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Request Acknowledgement (NOT a completion certificate — see wizard-success-stage below)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
@@ -45,6 +184,10 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   const [gotra, setGotra] = useState("");
   const [rashi, setRashi] = useState("Mesh (Aries)");
   const [sankalpWish, setSankalpWish] = useState("");
+  // Only collected/shown for Holistic Wellness enrollments — a Simple
+  // Puja/Seva/Guidance date isn't asked here (those are collected earlier,
+  // on the offering card itself, or aren't date-based).
+  const [preferredSessionDate, setPreferredSessionDate] = useState("");
   const [refId, setRefId] = useState("");
   const [showUPI, setShowUPI] = useState(false);
   const [hasAutofilled, setHasAutofilled] = useState(false);
@@ -60,6 +203,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
       setPujaName(defaultPujaName || "Graha Shanti Maha Puja");
       setPrice(defaultPrice);
+      setPreferredSessionDate("");
       setStep(1);
       gaBookNowOpen(defaultPujaName || "Graha Shanti Maha Puja", defaultPrice);
 
@@ -95,6 +239,49 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     refId,
   });
 
+  // Builds the Google Form sync payload for the current category. Keeps the
+  // same "puja_booking" formType and 9-field mapping for every category
+  // (see googleFormSync.ts _isSevaSubmission — Seva submissions are already
+  // routed to the dedicated seva_booking sheet purely by the word "Seva"
+  // appearing in the type/details text, which every Seva offering title
+  // already contains, so this keeps working without any sync-layer change).
+  // Only the visible text differs: Wellness/Guidance send "N/A" for the
+  // astrology fields (never a fabricated Gotra/Rashi default) since those
+  // fields are neither collected nor relevant for those two categories.
+  const buildSyncPayload = (currentRefId: string, paymentStatus: string, amount: number, paymentMethod?: string) => {
+    const paymentLine = paymentMethod ? ` | Payment Method: ${paymentMethod}` : "";
+    if (isGuidance) {
+      return {
+        name: devoteeName, email, phone,
+        details: `Guidance Selection: ${pujaName} | Session Fee: ₹${amount} | Payment Status: ${paymentStatus}${paymentLine} | Guidance Need / Concern / Support Requirement: ${sankalpWish || "None provided"} | Ref: ${currentRefId}`,
+        type: `${copy.typeLabel} - ${pujaName}`,
+        fee: amount, intent: sankalpWish,
+      };
+    }
+    if (isWellness) {
+      return {
+        name: devoteeName, email, phone,
+        details: `Session/Program: ${pujaName} | Enrollment Fee: ₹${amount} | Payment Status: ${paymentStatus}${paymentLine} | Preferred Session Date: ${preferredSessionDate || "No preference"} | Health Goal / Focus Area: ${sankalpWish || "None provided"} | Ref: ${currentRefId}`,
+        type: `${copy.typeLabel} - ${pujaName}`,
+        fee: amount, dob: "N/A", gotra: "N/A — Wellness Enrollment", rashi: "N/A", intent: sankalpWish,
+      };
+    }
+    if (isSeva) {
+      return {
+        name: devoteeName, email, phone,
+        details: `Seva: ${pujaName} | Seva Dakshina: ₹${amount} | Payment Status: ${paymentStatus}${paymentLine} | Gotra: ${gotra || "Shiva Gotra"} | Wish: ${sankalpWish || "None"} | Ref: ${currentRefId}`,
+        type: `${copy.typeLabel} - ${pujaName}`,
+        fee: amount, dob: "N/A", gotra: gotra || "Shiva Gotra", rashi: "N/A", intent: sankalpWish,
+      };
+    }
+    return {
+      name: devoteeName, email, phone,
+      details: `Puja: ${pujaName} | Dakshina: ₹${amount} | Payment Status: ${paymentStatus}${paymentLine} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${currentRefId}`,
+      type: `${copy.typeLabel} - ${pujaName}`,
+      fee: amount, dob, gotra: gotra || "Shiva Gotra", rashi, intent: sankalpWish,
+    };
+  };
+
   // Step 1 → Step 2: the instant the devotee's details are validated and
   // they proceed toward payment, sync the FIRST (and only "pending") row to
   // Google Forms with their real entered data and a payment status of
@@ -120,17 +307,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     const newRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
     setRefId(newRefId);
     try {
-      await syncToGoogleForm("puja_booking", isGuidance ? {
-        name: devoteeName, email, phone,
-        details: `Guidance Selection: ${pujaName} | Session Fee: ₹${price} | Payment Status: Pending — Awaiting Confirmation | Guidance Need / Concern / Support Requirement: ${sankalpWish || "None provided"} | Ref: ${newRefId}`,
-        type: `Counselling & Guidance Booking - ${pujaName}`,
-        fee: price, intent: sankalpWish,
-      } : {
-        name: devoteeName, email, phone,
-        details: `Puja: ${pujaName} | Dakshina: ₹${price} | Payment Status: Pending — Awaiting Confirmation | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${newRefId}`,
-        type: `Puja/Seva Booking - ${pujaName}`,
-        fee: price, dob, gotra: gotra || "Shiva Gotra", rashi, intent: sankalpWish,
-      });
+      await syncToGoogleForm("puja_booking", buildSyncPayload(newRefId, "Pending — Awaiting Confirmation", price));
     } catch (err) {
       console.error(err);
     } finally {
@@ -153,17 +330,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     setShowUPI(false);
     setStep(3);
     gaBookingComplete(pujaName, details.amount, refId);
-    syncToGoogleForm("puja_booking", isGuidance ? {
-      name: devoteeName, email, phone,
-      details: `Guidance Selection: ${pujaName} | Session Fee: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | Guidance Need / Concern / Support Requirement: ${sankalpWish || "None provided"} | Ref: ${refId}`,
-      type: `Counselling & Guidance Booking - ${pujaName}`,
-      fee: details.amount, intent: sankalpWish,
-    } : {
-      name: devoteeName, email, phone,
-      details: `Puja: ${pujaName} | Dakshina: ₹${details.amount} | Payment Status: Paid — Confirmed | Payment Method: ${details.method} | DOB: ${dob || "N/A"} | Gotra: ${gotra || "Shiva Gotra"} | Rashi: ${rashi} | Wish: ${sankalpWish || "None"} | Ref: ${refId}`,
-      type: `Puja/Seva Booking - ${pujaName}`,
-      fee: details.amount, dob, gotra: gotra || "Shiva Gotra", rashi, intent: sankalpWish,
-    });
+    syncToGoogleForm("puja_booking", buildSyncPayload(refId, "Paid — Confirmed", details.amount, details.method));
     // Record into the Supabase activity ledger (no-ops for guests who
     // aren't logged in) so this puja shows up on the devotee's own Profile
     // / Order History page. Status is "pending_verification", not
@@ -173,7 +340,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     // actually verified, or wire up a real payment gateway that reports
     // back automatically.
     recordActivity({
-      activityType: "puja",
+      activityType: isSeva ? "seva" : (isGuidance || isWellness) ? "other" : "puja",
       itemName: pujaName,
       amount: details.amount,
       refId,
@@ -217,10 +384,10 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               out over the ✕ button instead of wrapping. */}
           <div className="min-w-0">
             <h3 className="font-serif text-sm sm:text-base font-bold text-left text-white leading-snug break-words">
-              {isGuidance ? "Guidance Session Portal" : "Puja Sankalpa Portal"}
+              {copy.title}
             </h3>
             <p className="text-[9px] sm:text-[10px] font-mono text-[#FFB347] uppercase tracking-wide sm:tracking-wider text-left leading-snug break-words mt-0.5">
-              {isGuidance ? "Confidential, Compassionate Support" : "Vedic Rites, Followed Faithfully"}
+              {copy.tagline}
             </p>
           </div>
         </div>
@@ -232,9 +399,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       </div>
       <div className="bg-[#021816]/50 border-t border-white/5 px-5 py-3 flex justify-between items-center text-xs font-mono">
         {[
-          { n: 1, label: isGuidance ? "Guidance Details" : "Devotee Sankalpa" },
-          { n: 2, label: "GPay Gateway" },
-          { n: 3, label: isGuidance ? "Confirmation" : "Blessing Cert" },
+          { n: 1, label: copy.stepLabels[0] },
+          { n: 2, label: copy.stepLabels[1] },
+          { n: 3, label: copy.stepLabels[2] },
         ].map(({ n, label }, i, arr) => (
           <div key={n} className="flex items-center space-x-1">
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${step >= n ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>{n}</span>
@@ -292,9 +459,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               {step === 1 && (
                 <form onSubmit={handleNextToPayment} className="space-y-4">
                   <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[11px] text-[#5EEAD4] text-left leading-relaxed">
-                    {isGuidance
-                      ? <><span className="font-bold">🙏 Confidential & Compassionate:</span> Share a little about what you'd like support with, and your chosen Pandit/guidance expert will reach out to confirm your session.</>
-                      : <><span className="font-bold">🙏 Sanctify Your Rites:</span> Every ritual requires a heartfelt sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.</>}
+                    <span className="font-bold">{copy.introLabel}</span> {copy.introText}
                   </div>
 
                   {hasAutofilled && (
@@ -303,9 +468,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <div>
                         <span className="font-bold text-[#FFB347]">✨ Profile Auto-filled:</span>{" "}
                         <span className="text-white/80">
-                          {isGuidance
-                            ? "Your name and contact details have been synchronized instantly from your Dharmic ID."
-                            : <>Gotra ({gotra}), Rashi ({rashi}), and family records have been synchronized instantly.</>}
+                          {category === "puja_seva"
+                            ? <>Gotra ({gotra}), Rashi ({rashi}), and family records have been synchronized instantly.</>
+                            : copy.autofillText}
                         </span>
                       </div>
                     </div>
@@ -313,12 +478,12 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{isGuidance ? "Guidance Selection" : "Puja Selected"}</label>
+                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.selectionLabel}</label>
                       <input id="wizard-puja-name-input" type="text" value={pujaName} onChange={(e) => setPujaName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{isGuidance ? "Session Fee (₹)" : "Dakshina Offer Fee (₹)"}</label>
+                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.feeLabel}</label>
                       <input id="wizard-puja-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                       {isDiscountActive() && (
@@ -333,16 +498,23 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <input id="wizard-devotee-name" type="text" required placeholder="e.g. Anand Satpathy" value={devoteeName} onChange={(e) => setDevoteeName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
-                    {!isGuidance && (
+                    {copy.fields === "astrology" && (
                       <div>
                         <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">DOB (Planetary Calculation)</label>
                         <input id="wizard-dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)}
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4]" />
                       </div>
                     )}
+                    {copy.fields === "preferred_date" && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Preferred Session Date (Optional)</label>
+                        <input id="wizard-preferred-session-date" type="date" value={preferredSessionDate} onChange={(e) => setPreferredSessionDate(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4]" />
+                      </div>
+                    )}
                   </div>
 
-                  {!isGuidance && (
+                  {copy.fields === "astrology" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
@@ -357,6 +529,16 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                             <option key={r} value={r} className="bg-[#092320] text-white">{r}</option>
                           ))}
                         </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {copy.fields === "gotra_only" && (
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
+                        <input id="wizard-gotra" type="text" placeholder="e.g. Kashyap Gotra" value={gotra} onChange={(e) => setGotra(e.target.value)}
+                          className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                       </div>
                     </div>
                   )}
@@ -376,12 +558,10 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
                   <div>
                     <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
-                      {isGuidance ? "Guidance Need / Concern / Support Requirement" : "Sankalpa Intent (Your Prayer Wish)"}
+                      {copy.wishLabel}
                     </label>
                     <textarea id="wizard-sankalpa-wish" rows={2} value={sankalpWish} onChange={(e) => setSankalpWish(e.target.value)}
-                      placeholder={isGuidance
-                        ? "Briefly share what you'd like support with — this is shared only with your assigned guidance expert..."
-                        : "State your personal wish clearly, our pundits will read this during holy mantra recitation..."}
+                      placeholder={copy.wishPlaceholder}
                       className="w-full text-xs p-3 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                   </div>
 
@@ -392,7 +572,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
                   <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}
                     className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center uppercase tracking-wider">
-                    {isSyncingDetails ? "Saving Your Details…" : "Proceed to Secure Offering"}
+                    {isSyncingDetails ? "Saving Your Details…" : copy.submitLabel}
                   </button>
                 </form>
               )}
@@ -402,7 +582,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                 <div className="space-y-6" id="upi-payment-step">
                   <div className="bg-[#021816] p-4 rounded-2xl border border-white/10 space-y-2 text-left">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-white/50 font-mono">Sacred Service:</span>
+                      <span className="text-white/50 font-mono">{copy.selectionLabel}:</span>
                       <span className="font-bold text-[#FFB347] truncate max-w-[200px]">{pujaName}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
@@ -410,7 +590,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <span className="font-semibold text-white">{devoteeName}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm pt-2 border-t border-white/5">
-                      <span className="font-bold text-[#5EEAD4]">Dakshina Amount:</span>
+                      <span className="font-bold text-[#5EEAD4]">{copy.feeLabel.replace(" (₹)", "")}:</span>
                       <span className="font-black text-[#FFB347] font-serif">₹{price} INR</span>
                     </div>
                   </div>
@@ -445,7 +625,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   <div className="w-12 h-12 bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
                     <Check className="w-6 h-6 text-emerald-400 stroke-[3]" />
                   </div>
-                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">{isGuidance ? "Guidance Request Received!" : "Sankalpa Request Received!"}</h4>
+                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">{copy.step3Heading}</h4>
                   <div id="divine-generated-certificate" className="relative bg-[#021816]/95 border-[10px] border-[#FFB347] p-5 rounded-2xl shadow-xl text-center overflow-hidden border-double">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-gradient-to-b from-[#14B8A6]/20 to-transparent rounded-full" />
                     <div className="absolute right-3 top-3 text-[#FFB347] opacity-10 text-6xl font-serif select-none pointer-events-none">ॐ</div>
@@ -453,32 +633,41 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       <div className="border-b border-[#FFB347]/30 pb-1.5 inline-flex justify-center">
                         <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="justify-center" />
                       </div>
-                      <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">{isGuidance ? "Guidance Request Acknowledgement" : "Sankalpa Request Acknowledgement"}</h5>
+                      <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">{copy.cardTitle}</h5>
                       <p className="text-[10px] text-white/50 font-mono">
-                        {isGuidance ? "This confirms that the confidential guidance request submitted by:" : "This confirms that the sacred Sankalpa (intention) submitted by:"}
+                        {copy.cardIntro}
                       </p>
                       <h6 className="font-serif text-base font-black text-[#FFB347] border-b border-white/15 inline-block px-4 pb-0.5">{devoteeName}</h6>
-                      {isGuidance ? (
+                      {isGuidance && (
                         <p className="text-xs text-white/80 font-sans px-2">
                           has been successfully received for: <strong className="text-white">{pujaName}</strong>. Your session is now <strong className="text-[#FFB347]">pending expert assignment and confirmation</strong>.
                         </p>
-                      ) : (
+                      )}
+                      {isWellness && (
+                        <p className="text-xs text-white/80 font-sans px-2">
+                          has been successfully received for: <strong className="text-white">{pujaName}</strong>{preferredSessionDate ? <> for your preferred date of <strong>{preferredSessionDate}</strong></> : null}. Your enrollment is now <strong className="text-[#FFB347]">pending instructor assignment and confirmation</strong>.
+                        </p>
+                      )}
+                      {isSeva && (
+                        <p className="text-xs text-white/80 font-sans px-2">
+                          has been successfully received for the seva offering: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>. Your seva is now <strong className="text-[#FFB347]">pending priest/temple assignment and performance</strong>.
+                        </p>
+                      )}
+                      {!isGuidance && !isWellness && !isSeva && (
                         <p className="text-xs text-white/80 font-sans px-2">
                           has been successfully received for the sacred service: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>, Moon Sign: {rashi}. Your puja is now <strong className="text-[#FFB347]">pending priest assignment and performance</strong> at the temple.
                         </p>
                       )}
                       <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono font-bold text-[#FFB347] bg-[#FFB347]/10 py-1.5 px-3 rounded-full border border-[#FFB347]/30 mx-auto w-fit">
-                        <span>{isGuidance ? "● Status: Request Received — Awaiting Expert Assignment" : "● Status: Request Received — Awaiting Performance"}</span>
+                        <span>{copy.statusText}</span>
                       </div>
                       <p className="text-[11px] text-white/75 font-sans italic leading-relaxed">
-                        {isGuidance
-                          ? "\"May this conversation bring clarity, comfort, and strength — with compassion, confidentiality, and care.\""
-                          : "\"May this sacred intention be carried forward with devotion, for the protection of your home, health, prosperity, and loved ones across all dimensions.\""}
+                        {copy.quote}
                       </p>
                       <div className="grid grid-cols-2 gap-4 items-center pt-3 border-t border-white/5 text-[9px] font-mono text-white/60">
                         <div className="text-left">
-                          <span className="block font-bold">{isGuidance ? "Guidance Coordination Team" : "Pundit K. K. Dwivedi"}</span>
-                          <span className="block uppercase text-white/40">{isGuidance ? "Sri Dwar Dharmic Care" : "Chief Shastri Seal"}</span>
+                          <span className="block font-bold">{copy.teamName}</span>
+                          <span className="block uppercase text-white/40">{copy.teamSubtitle}</span>
                           <span className="block text-emerald-400 font-black">✓ Request Digitally Logged</span>
                         </div>
                         <div className="text-right">
@@ -496,9 +685,14 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   <div className="flex items-start space-x-1.5 text-[10px] font-mono text-emerald-300 bg-emerald-950/20 py-2 px-2.5 rounded-xl border border-emerald-500/20 text-left">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-px" />
                     <span>
-                      {isGuidance
-                        ? `Reference: ${refId}. Your assigned guidance expert will confirm your session timing directly, and you'll receive a confirmation note once your session is scheduled.`
-                        : `Reference: ${refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available) and photo/video evidence, in addition to your Sankalpa Certificate.`}
+                      {isGuidance &&
+                        `Reference: ${refId}. Your assigned guidance expert will confirm your session timing directly, and you'll receive a confirmation note once your session is scheduled.`}
+                      {isWellness &&
+                        `Reference: ${refId}. Your assigned instructor/wellness expert will confirm your session timing directly, and you'll receive an enrollment confirmation once your session is scheduled.`}
+                      {isSeva &&
+                        `Reference: ${refId}. Once your seva is performed at the supporting temple/Gaushala, you'll receive live updates (where available) and photo evidence, in addition to your Seva Certificate.`}
+                      {!isGuidance && !isWellness && !isSeva &&
+                        `Reference: ${refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available) and photo/video evidence, in addition to your Sankalpa Certificate.`}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">

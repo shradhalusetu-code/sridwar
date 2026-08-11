@@ -26,6 +26,8 @@ export type DevotionalServiceCategory =
   | "darshan_certificate"
   | "puja_seva"
   | "counselling_guidance"
+  | "holistic_wellness"
+  | "seva_offering"
   | "temple_contribution"
   | "bazaar_order"
   | "subscription"
@@ -46,6 +48,10 @@ const OPENING_BY_CATEGORY: Record<DevotionalServiceCategory, (serviceName: strin
     `Your Sankalpa for ${s} has been lovingly received by our team of devoted priests and seva coordinators.`,
   counselling_guidance: (s) =>
     `Your request for ${s} has been warmly and confidentially received by our guidance coordination team.`,
+  holistic_wellness: (s) =>
+    `Your enrollment for ${s} has been warmly received by our Yogic Sciences & Wellness team.`,
+  seva_offering: (s) =>
+    `Your Seva Sankalp for ${s} has been lovingly received by our team of devoted priests and seva coordinators.`,
   temple_contribution: (s) =>
     `Your divine contribution toward ${s} has been lovingly received by our team of devoted priests and seva coordinators.`,
   bazaar_order: (s) =>
@@ -63,6 +69,10 @@ const BLESSING_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
     "Like the flame of a diya carried with unwavering devotion, your ritual is now being prepared with full reverence at the temple, and your Sankalpa Certificate of performance will reach you within 3–7 working days — straight to your email or WhatsApp.",
   counselling_guidance:
     "Your chosen Pandit or Dharmic guidance expert is reviewing your request with care, and will personally reach out to confirm your session timing within 3–7 working days — straight to your email or WhatsApp. Everything you've shared stays confidential.",
+  holistic_wellness:
+    "Like a lamp of steady practice, your session is being scheduled with care by our Yogic Sciences & Wellness team, and your enrollment confirmation will reach you within 3–7 working days — straight to your email or WhatsApp.",
+  seva_offering:
+    "Like the flame of a diya carried with unwavering devotion, your seva is now being prepared with full reverence at the temple, and your Seva Certificate of performance will reach you within 3–7 working days — straight to your email or WhatsApp.",
   temple_contribution:
     "Like a diya lit with pure intention, your acknowledgement letter is being handcrafted with sacred blessings and will be delivered to you within 3–7 working days — straight to your email or WhatsApp.",
   bazaar_order:

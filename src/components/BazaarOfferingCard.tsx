@@ -16,8 +16,20 @@ import {
 } from "lucide-react";
 import { BazaarProduct, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
+import { TEMPLES_LIST } from "../data/temples";
+import { SEVA_OCCASIONS } from "../data/sevaOfferings";
 import OptimizedImage from "./OptimizedImage";
 import { validatePincode } from "../utils/formValidation";
+
+// Bhog Offerings is the one Devotional Shopping product actually offered
+// AT a temple (product.isService === true, prepared/offered to the
+// deity) rather than shipped — so it's the only product card that gets
+// the Occasion + dropdown and Temple Selection + dropdown patterns
+// already used elsewhere (Structured Seva Offerings / Simple Pujas).
+// Every other Devotional Shopping item (Puja Kits, Mala & Beads, Diya &
+// Dhoop, Prasad & Blessed Items) is a physical item shipped to the
+// devotee, so occasion/temple do not apply there.
+const isBhogOffering = (product: BazaarProduct) => product.category === "Bhog Offerings";
 
 interface BazaarOfferingCardProps {
   product: BazaarProduct;
@@ -59,6 +71,10 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
     () => getPriestsByKeywords(product.priestKeywords, 20),
     [product.priestKeywords]
   );
+  // Occasion + Temple Selection — only relevant for Bhog Offerings, since
+  // Bhog is offered to the deity at a temple (see isBhogOffering above).
+  const [occasion, setOccasion] = useState("");
+  const [selectedTempleId, setSelectedTempleId] = useState("");
 
   const isCustomSelected = selected === "custom";
   const selectedOption = product.priceOptions.find((p) => String(p.value) === selected);
@@ -82,6 +98,12 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
       a.requiresText && addOnText[a.id]?.trim() ? `${a.label} (${addOnText[a.id].trim()})` : a.label
     );
     if (addOnLabels.length) detailBits.push(`Add-ons: ${addOnLabels.join(", ")}`);
+    if (isBhogOffering(product)) {
+      const occasionLabel = SEVA_OCCASIONS.find((o) => o.value === occasion)?.label;
+      if (occasionLabel) detailBits.push(`Occasion: ${occasionLabel}`);
+      const chosenTemple = selectedTempleId ? TEMPLES_LIST.find((t) => t.id === selectedTempleId) : undefined;
+      detailBits.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
+    }
     const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
     detailBits.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any approved priest/expert for this offering"}`);
     return `${parts.join(" ")} — ${detailBits.join(", ")}`;
@@ -93,6 +115,8 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
     setPincode("");
     setPincodeError(undefined);
     setSelectedPriestId("");
+    setOccasion("");
+    setSelectedTempleId("");
   };
 
   const handlePrimary = () => {
@@ -293,6 +317,50 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
             ) : (
               <p className="text-[9px] text-white/40 mt-1">Shipping charges apply and may vary based on your PIN code.</p>
             )}
+          </div>
+        )}
+
+        {/* Occasion + Temple Selection — only for Bhog Offerings, since Bhog
+            is offered to the deity at a temple. Replicates the Occasion +
+            dropdown pattern from Structured Seva Offerings and the Temple
+            Selection + dropdown pattern from Simple Pujas. */}
+        {isActive && isBhogOffering(product) && (
+          <div className="space-y-2.5 mb-3 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+              <div className="relative">
+                <select
+                  id={`bazaar-offering-temple-${product.id}`}
+                  value={selectedTempleId}
+                  onChange={(e) => setSelectedTempleId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any Temple</option>
+                  {[...TEMPLES_LIST].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                    <option key={t.id} value={t.id} className="bg-[#092320] text-white">
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
+              <div className="relative">
+                <select
+                  id={`bazaar-offering-occasion-${product.id}`}
+                  value={occasion} onChange={(e) => setOccasion(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                >
+                  <option value="" className="bg-[#092320]">Select occasion (optional)</option>
+                  {SEVA_OCCASIONS.map((o) => (
+                    <option key={o.value} value={o.value} className="bg-[#092320]">{o.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { useState, useMemo, useRef, useEffect, ElementType } from "react";
 import { ON_LINE_PUJAS } from "../data/spiritualData";
 import { getPriestByDetails, getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
+import { SEVA_OCCASIONS } from "../data/sevaOfferings";
 import {
   ShieldAlert, Heart, Briefcase, Award, TrendingUp, Sparkles,
   CheckCircle2, Video, Clock, ChevronDown, X, UserCircle2,
@@ -16,7 +17,7 @@ import SacredIcon from "./SacredIcon";
 import OptimizedImage from "./OptimizedImage";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
-import { validatePincode } from "../utils/formValidation";
+import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 import { sectionTopPadding } from "../utils/androidSpacing";
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -194,6 +195,11 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   // NOT ask for: a puja-date preference and a delivery pincode.
   const [pujaDate, setPujaDate] = useState("");
   const [pincode, setPincode] = useState("");
+  // Occasion — same optional dropdown pattern used under Structured Seva
+  // Offerings (SevaOfferingCard.tsx / SEVA_OCCASIONS), replicated here so
+  // every Simple Puja card lets a devotee optionally note the occasion
+  // (birthday, anniversary, Pitru Memory, gratitude, etc.) behind the puja.
+  const [occasion, setOccasion] = useState("");
   // "" = no preference — an experienced priest/expert matching this
   // offering is assigned. Kept optional so a devotee never has to pick a
   // name to proceed. At least 20 genuinely relevant, experienced priests
@@ -209,7 +215,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   // is assigned. Sourced live from TEMPLES_LIST (data/temples.ts) so every
   // temple on the platform is selectable, never a hardcoded subset.
   const [selectedTempleId, setSelectedTempleId] = useState("");
-  const [errors, setErrors] = useState<{ pincode?: string }>({});
+  const [errors, setErrors] = useState<{ pincode?: string; pujaDate?: string }>({});
   const [justBooked, setJustBooked] = useState(false);
   const justBookedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -229,8 +235,13 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     if (isCustomSelected && !customAmountValid) { alert("Custom sankalp amount starts from ₹100."); return; }
 
     const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
-    if (pincodeErr) {
-      setErrors({ pincode: pincodeErr });
+    // Pandit/Pujari coordination needs lead time — same-day/next-day/within
+    // the 3-day prep window is blocked here too, not just via the date
+    // picker's min attribute (which a manually-typed/pasted date can bypass
+    // in some browsers).
+    const pujaDateErr = pujaDate ? validateBookingDate(pujaDate) : null;
+    if (pincodeErr || pujaDateErr) {
+      setErrors({ pincode: pincodeErr || undefined, pujaDate: pujaDateErr || undefined });
       return;
     }
     setErrors({});
@@ -240,8 +251,11 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
     const chosenTemple = selectedTempleId ? TEMPLES_LIST.find((t) => t.id === selectedTempleId) : undefined;
 
+    const occasionLabel = SEVA_OCCASIONS.find((o) => o.value === occasion)?.label;
+
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
+    if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (pujaDate) detailParts.push(`Puja Date Preference: ${pujaDate}`);
     if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
     detailParts.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
@@ -271,6 +285,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
     setPujaDate("");
     setPincode("");
+    setOccasion("");
     setCustomAmount("");
     setSelectedPriestId("");
     setSelectedTempleId("");
@@ -398,9 +413,16 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
               <div>
                 <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Puja Date Preference</label>
                 <input
-                  type="date" value={pujaDate} onChange={(e) => setPujaDate(e.target.value)}
-                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                  type="date" value={pujaDate} min={getMinBookableDateISO()}
+                  onChange={(e) => { setPujaDate(e.target.value); if (errors.pujaDate) setErrors((p) => ({ ...p, pujaDate: undefined })); }}
+                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none ${
+                    errors.pujaDate ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                  }`}
                 />
+                <p className="text-[9px] text-white/40 mt-1">Please allow at least 3 days so we can coordinate with the Pandit/Pujari.</p>
+                {errors.pujaDate && (
+                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pujaDate}</p>
+                )}
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Pincode</label>
@@ -433,6 +455,25 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                     <option key={t.id} value={t.id} className="bg-[#092320] text-white">
                       {t.name}
                     </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Occasion — replicated from the Occasion + dropdown pattern
+                already used under Structured Seva Offerings (SevaOfferingCard.tsx). */}
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
+              <div className="relative">
+                <select
+                  id={`simple-puja-occasion-${offering.id}`}
+                  value={occasion} onChange={(e) => setOccasion(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                >
+                  <option value="" className="bg-[#092320]">Select occasion (optional)</option>
+                  {SEVA_OCCASIONS.map((o) => (
+                    <option key={o.value} value={o.value} className="bg-[#092320]">{o.label}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />

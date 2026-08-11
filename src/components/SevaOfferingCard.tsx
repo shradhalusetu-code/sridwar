@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
+import { TEMPLES_LIST } from "../data/temples";
 import OptimizedImage from "./OptimizedImage";
-import { validatePincode } from "../utils/formValidation";
+import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 
 const renderOfferingIcon = (id: string) => {
   switch (id) {
@@ -62,9 +63,15 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     () => getPriestsByKeywords(offering.priestKeywords, 20),
     [offering.priestKeywords]
   );
+  // "" = "Any Temple" — no preference, an available temple/priest pairing
+  // is assigned. Sourced live from TEMPLES_LIST (data/temples.ts), the same
+  // Temple Selection + dropdown pattern already used across the Simple
+  // Pujas cards in OnlinePuja.tsx, so every temple on the platform is
+  // selectable here too, never a hardcoded subset.
+  const [selectedTempleId, setSelectedTempleId] = useState("");
   // Validation error for Pincode — shown inline and cleared as soon as the
   // devotee edits the field again.
-  const [errors, setErrors] = useState<{ pincode?: string }>({});
+  const [errors, setErrors] = useState<{ pincode?: string; preferredDate?: string }>({});
   // Brief "thank you" confirmation shown right after offering — the card
   // itself is never hidden or shrunk, so a devotee can immediately fill the
   // form again to offer the same seva for someone else (e.g. another cow,
@@ -90,8 +97,13 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     // Pincode is the only field left on this card — validate its format
     // only when the devotee actually entered one (it's optional here).
     const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
-    if (pincodeErr) {
-      setErrors({ pincode: pincodeErr });
+    // Pandit/Pujari coordination needs lead time — same-day/next-day/within
+    // the 3-day prep window is blocked here too, not just via the date
+    // picker's min attribute (which a manually-typed/pasted date can bypass
+    // in some browsers).
+    const preferredDateErr = preferredDate ? validateBookingDate(preferredDate) : null;
+    if (pincodeErr || preferredDateErr) {
+      setErrors({ pincode: pincodeErr || undefined, preferredDate: preferredDateErr || undefined });
       return;
     }
     setErrors({});
@@ -99,12 +111,14 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     const amount = isCustomSelected ? customAmountNumber : (selectedOption?.value as number);
     const occasionLabel = SEVA_OCCASIONS.find((o) => o.value === occasion)?.label;
     const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
+    const chosenTemple = selectedTempleId ? TEMPLES_LIST.find((t) => t.id === selectedTempleId) : undefined;
 
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
     if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
     if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
+    detailParts.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
     detailParts.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any approved priest for this seva"}`);
 
     const composedName = detailParts.length ? `${offering.title} — ${detailParts.join(", ")}` : offering.title;
@@ -131,6 +145,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     setPincode("");
     setCustomAmount("");
     setSelectedPriestId("");
+    setSelectedTempleId("");
     setJustOffered(true);
     if (justOfferedTimeoutRef.current) clearTimeout(justOfferedTimeoutRef.current);
     justOfferedTimeoutRef.current = setTimeout(() => setJustOffered(false), 6000);
@@ -262,9 +277,16 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
               <div>
                 <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Preferred Seva Date</label>
                 <input
-                  type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)}
-                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                  type="date" value={preferredDate} min={getMinBookableDateISO()}
+                  onChange={(e) => { setPreferredDate(e.target.value); if (errors.preferredDate) setErrors((p) => ({ ...p, preferredDate: undefined })); }}
+                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none ${
+                    errors.preferredDate ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                  }`}
                 />
+                <p className="text-[9px] text-white/40 mt-1">Please allow at least 3 days so we can coordinate with the Pandit/Pujari.</p>
+                {errors.preferredDate && (
+                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.preferredDate}</p>
+                )}
               </div>
               <div>
                 <label className="flex items-center gap-1 text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">
@@ -284,6 +306,30 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                 )}
               </div>
             </div>
+
+            {/* Temple Selection — replicated from the Temple Selection +
+                dropdown pattern already used across the Simple Pujas cards
+                in OnlinePuja.tsx. */}
+            <div>
+              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+              <div className="relative">
+                <select
+                  id={`seva-offering-temple-${offering.id}`}
+                  value={selectedTempleId}
+                  onChange={(e) => setSelectedTempleId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any Temple</option>
+                  {[...TEMPLES_LIST].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                    <option key={t.id} value={t.id} className="bg-[#092320] text-white">
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
+
             <div>
               <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
               <div className="relative">
