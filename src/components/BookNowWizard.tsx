@@ -376,7 +376,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   const Header = (
     <div
       className="shrink-0 bg-[#021816] border-b border-white/10"
-      style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 14px)" }}
+      style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 14px)" }}
     >
       {/* Brand bar — items-start (not items-center) so the ✕ button stays
           pinned to the top-right even if the title/subtitle wrap to extra

@@ -116,7 +116,7 @@ body.capacitor-android {
    --safe-area-inset-top to work around it. Website is unaffected since
    that variable is never defined there, so it falls through to env(). */
 body.capacitor-android #main-navigation {
-  padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 24px));
 }
 
 /* ─── Hero: no longer the first section on the homepage ─────────────────
@@ -159,7 +159,7 @@ body.capacitor-android #dharma-portal-section {
   /* FIX: see the note above #main-navigation — var(--safe-area-inset-top)
      first, env() as fallback, so this actually clears the status bar on
      Android WebView versions where plain env() reports 0px. */
-  padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 80px);
+  padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px);
 }
 
 /* ─── Reduce excessive vertical padding on small Android screens ─────────── */
@@ -222,7 +222,7 @@ body.capacitor-android #ai-chat-panel {
 /* FIX: var(--safe-area-inset-top) first, env() as fallback — same
    Android WebView bug as the navbar above. */
 body.capacitor-android #mobile-drawer-overlay .overflow-y-auto {
-  padding-top: calc(1.5rem + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  padding-top: calc(1.5rem + var(--safe-area-inset-top, env(safe-area-inset-top, 24px)));
 }
 
 /* ─── Android: Modal / overlay scroll fix ──────────────────────────────── */

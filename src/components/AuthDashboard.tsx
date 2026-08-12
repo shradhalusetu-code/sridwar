@@ -738,7 +738,7 @@ export default function AuthDashboard({
       id="auth-dashboard-section"
       className="py-24 bg-[#021816] text-left text-white"
       style={{
-        paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)`,
+        paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 6rem)`,
       }}
     >
@@ -1760,7 +1760,7 @@ export default function AuthDashboard({
             {/* Header with SriDwarLogo */}
             <div
               className="bg-[#021816] px-5 py-4 border-b border-white/10 rounded-t-3xl"
-              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1rem)" }}
             >
               <div className="flex justify-center mb-3">
                 <SriDwarLogo variant="colored" iconSize="sm" showTagline={false} />

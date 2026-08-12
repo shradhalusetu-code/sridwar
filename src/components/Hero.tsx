@@ -281,7 +281,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             {/* Modal Header */}
             <div
               className="shrink-0 bg-[#021816] text-white px-5 py-4 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
-              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1rem)" }}
             >
               <div className="flex items-center space-x-3 min-w-0 flex-1">
                 <SriDwarLogo

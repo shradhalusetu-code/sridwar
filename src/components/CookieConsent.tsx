@@ -18,9 +18,25 @@
  *    (defined in index.html) to start GTM/GA4/Clarity, hides the banner.
  *  - "Decline" -> stores the choice, does NOT load any tracker, hides the
  *    banner. No tracking script is ever fetched for a devotee who declines.
+ *  - The X (close) icon just hides the banner for this page load WITHOUT
+ *    storing any choice — the devotee is asked again on their next visit,
+ *    same as if they'd never seen it. It intentionally does NOT behave
+ *    like "Decline": most people tap an X to dismiss, not to make a
+ *    deliberate privacy choice, and treating the two the same silently
+ *    opted most visitors out of analytics forever the first time they
+ *    closed the banner, which is almost certainly why Google Tag Manager
+ *    stopped detecting any activity on this container.
  *  - Returning devotees who already chose "Accept" never see this banner
  *    again (index.html loads trackers immediately for them); the same is
  *    true for "Decline" — banner won't re-appear, and trackers stay off.
+ *  - ONE-TIME MIGRATION: anyone with "declined" already stored from BEFORE
+ *    the X-icon fix above gets asked again exactly once, the same as a
+ *    first-time visitor. There's no way to tell, after the fact, whether an
+ *    old "declined" value came from a real Decline tap or an X tap — that's
+ *    the whole bug — so this treats every pre-fix "declined" as "never
+ *    asked", one time only (guarded by DECLINE_MIGRATION_KEY below, so it
+ *    can never re-fire and reset a genuine Decline tap made after this fix
+ *    shipped).
  *  - Fully self-contained: safe to drop into App.tsx with no other wiring
  *    beyond the <CookieConsent /> tag and this file's import.
  */
@@ -29,6 +45,11 @@ import { useEffect, useState } from "react";
 import { ShieldCheck, X } from "lucide-react";
 
 const CONSENT_KEY = "sridwar_cookie_consent";
+// Guards the one-time migration below — deliberately a SEPARATE key from
+// CONSENT_KEY, and index.html is never touched, so the "returning devotee
+// who already accepted loads trackers immediately" contract there keeps
+// working exactly as before, for both old and newly-migrated visitors.
+const DECLINE_MIGRATION_KEY = "sridwar_cookie_consent_x_migration_v1";
 
 declare global {
   interface Window {
@@ -40,6 +61,24 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    try {
+      // ONE-TIME MIGRATION — runs at most once per browser, ever. If this
+      // visitor's stored choice is "declined" AND the migration hasn't run
+      // for them yet, clear it so they're treated as "never asked" below,
+      // same as a first-time visitor. Setting DECLINE_MIGRATION_KEY
+      // afterwards (regardless of whether anything needed clearing) means
+      // this block can only ever fire once per browser — a real Decline
+      // tap made after today will never be touched by it again.
+      if (!localStorage.getItem(DECLINE_MIGRATION_KEY)) {
+        if (localStorage.getItem(CONSENT_KEY) === "declined") {
+          localStorage.removeItem(CONSENT_KEY);
+        }
+        localStorage.setItem(DECLINE_MIGRATION_KEY, "1");
+      }
+    } catch (e) {
+      // localStorage unavailable — nothing to migrate, skip silently.
+    }
+
     try {
       const existing = localStorage.getItem(CONSENT_KEY);
       if (!existing) {
@@ -69,6 +108,25 @@ export default function CookieConsent() {
     setVisible(false);
   };
 
+  // BUG FIX — this used to be wired to handleDecline(), which meant tapping
+  // the X icon silently recorded a PERMANENT "declined" choice in
+  // localStorage, exactly like pressing the actual "Decline" button. Most
+  // people tap an X to dismiss a banner, not to make a deliberate,
+  // considered privacy choice — but this code treated the two identically,
+  // and once "declined" was stored, the banner never showed again, so that
+  // devotee could never be asked properly and no tracker would ever load
+  // for them. This is the most likely reason GTM's diagnostics reported no
+  // tag activity for 48 hours straight: X is a far more common reflex tap
+  // than either real button, so it was silently opting out most of the
+  // traffic that ever saw the banner. Closing via X now just hides the
+  // banner for this page load, WITHOUT writing any choice to storage — the
+  // devotee is asked again next visit, same as if they'd never seen it.
+  // Consent-gating itself (the actual compliance fix) is untouched: no
+  // tracker still ever loads without an explicit tap on "Accept".
+  const handleDismiss = () => {
+    setVisible(false);
+  };
+
   if (!visible) return null;
 
   return (
@@ -91,8 +149,8 @@ export default function CookieConsent() {
             </p>
           </div>
           <button
-            onClick={handleDecline}
-            aria-label="Close and decline"
+            onClick={handleDismiss}
+            aria-label="Close (you'll be asked again next visit)"
             className="text-white/40 hover:text-white/70 shrink-0"
           >
             <X className="w-4 h-4" />

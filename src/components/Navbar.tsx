@@ -144,8 +144,8 @@ export default function Navbar({
           // --safe-area-inset-top variable exists there, so it falls
           // straight through to env(), same as before).
           paddingTop: isScrolled
-            ? "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.25rem)"
-            : "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.75rem)",
+            ? "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1.25rem)"
+            : "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1.75rem)",
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

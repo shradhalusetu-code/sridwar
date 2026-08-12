@@ -719,8 +719,8 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
     <section
       className="pb-16 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen"
       style={{
-        paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)",
-        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)",
+        paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6rem)",
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1056,7 +1056,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             <button
               onClick={() => setIsCounselorPickerOpen(false)}
               className="absolute right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
-              style={{ top: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
+              style={{ top: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1rem)" }}
               aria-label="Close counselor picker"
             >
               <X className="w-5 h-5" />
@@ -1064,7 +1064,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
 
             <div
               className="p-6 pb-3 shrink-0"
-              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.5rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1.5rem)" }}
             >
               <h3 className="font-serif text-xl font-bold text-white text-center">Choose Your Counselor</h3>
               <p className="text-xs text-white/60 text-center max-w-sm mx-auto mt-1.5">

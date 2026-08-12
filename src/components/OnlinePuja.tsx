@@ -715,7 +715,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
   };
 
   return (
-    <section id="online-pujas-section" className="py-20 bg-[#021816] text-white" style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)` }}>
+    <section id="online-pujas-section" className="py-20 bg-[#021816] text-white" style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Keyframes for the Priest Directory button pulse — matches the Setu Yatra Challenge button treatment */}

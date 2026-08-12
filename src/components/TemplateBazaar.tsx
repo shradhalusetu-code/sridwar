@@ -430,7 +430,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     <section
       id="temple-bazaar-section"
       className="py-16 bg-[#021816] text-white relative"
-      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)` }}
+      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -686,7 +686,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
             {/* Sticky Modal Header with Logo */}
             <div
               className="shrink-0 bg-[#021816] px-5 py-4 border-b border-white/10 sm:rounded-t-3xl"
-              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1rem)" }}
+              style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1rem)" }}
             >
               {/* Sri Dwar Brand Logo */}
               <div className="flex justify-center mb-3">
@@ -715,7 +715,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
             {/* Single scroll container — the ONLY scrollable element */}
             <div
               className="flex-1 min-h-0 overflow-y-auto"
-              style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)" }}
+              style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)" }}
             >
             <form onSubmit={handleSankalpaSubmit} className="p-5 space-y-4">
 

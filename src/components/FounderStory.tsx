@@ -53,7 +53,7 @@ export default function FounderStory({ onBack, defaultLanguage = "en" }: Founder
     <section
       id="founder-story-page"
       className="py-12 bg-[#021816] text-white text-left"
-      style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)` }}
+      style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}
     >
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {onBack && (

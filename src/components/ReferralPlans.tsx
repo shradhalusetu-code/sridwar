@@ -217,7 +217,10 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
   const activeTiers = PLAN_TIERS_BY_CATEGORY[activeCategory];
 
   return (
-    <section className="pb-14 pt-8 sm:pt-10 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen">
+    <section
+      className="pb-14 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen"
+      style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Breadcrumb / page header */}

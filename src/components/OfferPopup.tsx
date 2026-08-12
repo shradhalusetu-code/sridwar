@@ -129,7 +129,7 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
         {/* Modal Header */}
         <div
           className="shrink-0 bg-[#021816] text-white px-6 py-5 flex items-center justify-between border-b border-white/10 sm:rounded-t-3xl"
-          style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 1.25rem)" }}
+          style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1.25rem)" }}
         >
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             {/* Brand logo */}
@@ -155,7 +155,7 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
 
         <div
           className="flex-1 min-h-0 overflow-y-auto"
-          style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}
+          style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)" }}
         >
           <div className="p-6 space-y-5">
             <h4 className="font-serif text-2xl font-bold leading-snug text-white">

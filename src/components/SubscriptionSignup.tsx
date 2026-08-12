@@ -292,7 +292,7 @@ export default function SubscriptionSignup({
   const Header = (
     <div
       className="shrink-0 bg-[#021816] border-b border-white/10"
-      style={{ paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+      style={{ paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 0px)" }}
     >
       <div className="px-5 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3 min-w-0">

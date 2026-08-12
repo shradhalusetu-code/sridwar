@@ -2379,7 +2379,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         id="temple-register-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4"
         style={{
-          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)",
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
         }}
       >
@@ -2744,7 +2744,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         id="dharma-portal-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4 flex items-center"
         style={{
-          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)",
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
         }}
       >
@@ -2846,7 +2846,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         id="divine contribution-step-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4 flex items-center"
         style={{
-          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)",
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
         }}
       >
@@ -2964,7 +2964,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
         id="devotee-portal-section"
         className="min-h-screen bg-gradient-to-b from-[#021816] via-[#051F1A] to-[#021816] py-20 px-4"
         style={{
-          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)",
+          paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)",
         }}
       >

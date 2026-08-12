@@ -36,7 +36,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
     <section
       id="live-darshan-page-section"
       className="pt-8 sm:pt-10 pb-16 sm:pb-20 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white"
-      style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)` }}
+      style={{ paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
