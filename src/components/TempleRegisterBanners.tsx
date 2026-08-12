@@ -69,7 +69,7 @@ export function TempleBanner() {
         {/* ── RIGHT (below on mobile): text ── */}
         <div className="flex-1 flex flex-col justify-center px-6 py-6 sm:px-8 sm:py-7 min-w-0">
           <span
-            className="inline-flex items-center self-start mb-3 rounded-full px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-widest"
+            className="inline-flex items-center self-start mb-3 rounded-full px-3 py-1 text-[12px] font-mono font-bold uppercase tracking-widest"
             style={{
               background: "rgba(204,119,34,0.12)",
               border: "0.8px solid rgba(204,119,34,0.3)",
@@ -97,7 +97,7 @@ export function TempleBanner() {
             ].map((c) => (
               <span
                 key={c.label}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium"
                 style={{
                   background: "rgba(204,119,34,0.10)",
                   border: "0.8px solid rgba(204,119,34,0.25)",
@@ -165,7 +165,7 @@ export function DharmicExpertBanner() {
         {/* ── RIGHT (below on mobile): text ── */}
         <div className="flex-1 flex flex-col justify-center px-6 py-6 sm:px-8 sm:py-7 min-w-0">
           <span
-            className="inline-flex items-center self-start mb-3 rounded-full px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-widest"
+            className="inline-flex items-center self-start mb-3 rounded-full px-3 py-1 text-[12px] font-mono font-bold uppercase tracking-widest"
             style={{
               background: "rgba(94,234,212,0.10)",
               border: "0.8px solid rgba(94,234,212,0.28)",
@@ -193,7 +193,7 @@ export function DharmicExpertBanner() {
             ].map((c) => (
               <span
                 key={c.label}
-                className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium"
                 style={{
                   background: "rgba(94,234,212,0.08)",
                   border: "0.8px solid rgba(94,234,212,0.22)",

@@ -391,7 +391,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
             <h3 className="font-serif text-sm sm:text-base font-bold text-left text-white leading-snug break-words">
               {copy.title}
             </h3>
-            <p className="text-[9px] sm:text-[10px] font-mono text-[#FFB347] uppercase tracking-wide sm:tracking-wider text-left leading-snug break-words mt-0.5">
+            <p className="text-[11px] sm:text-[12px] font-mono text-[#FFB347] uppercase tracking-wide sm:tracking-wider text-left leading-snug break-words mt-0.5">
               {copy.tagline}
             </p>
           </div>
@@ -409,7 +409,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
           { n: 3, label: copy.stepLabels[2] },
         ].map(({ n, label }, i, arr) => (
           <div key={n} className="flex items-center space-x-1">
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${step >= n ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>{n}</span>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[12px] shrink-0 ${step >= n ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>{n}</span>
             <span className={`hidden sm:inline ${step >= n ? "text-[#FFB347] font-bold" : "text-white/40"}`}>{label}</span>
             {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-white/20 shrink-0 ml-1" />}
           </div>
@@ -463,7 +463,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               {/* ── STEP 1: Sankalpa Details Form ── */}
               {step === 1 && (
                 <form onSubmit={handleNextToPayment} className="space-y-4">
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[11px] text-[#5EEAD4] text-left leading-relaxed">
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[13px] text-[#5EEAD4] text-left leading-relaxed">
                     <span className="font-bold">{copy.introLabel}</span> {copy.introText}
                   </div>
 
@@ -483,36 +483,36 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.selectionLabel}</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.selectionLabel}</label>
                       <input id="wizard-puja-name-input" type="text" value={pujaName} onChange={(e) => setPujaName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.feeLabel}</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{copy.feeLabel}</label>
                       <input id="wizard-puja-price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#FFB347] font-bold focus:outline-none focus:border-[#5EEAD4] text-left" />
                       {category === "holistic_wellness" && isDiscountPromoVisible("holistic_wellness") && (
-                        <p className="text-[9px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 {DISCOUNT_TAG} already applied</p>
+                        <p className="text-[11px] font-mono text-[#5EEAD4] mt-1 text-left">🎉 {DISCOUNT_TAG} already applied</p>
                       )}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Devotee Full Name *</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Devotee Full Name *</label>
                       <input id="wizard-devotee-name" type="text" required placeholder="e.g. Anand Satpathy" value={devoteeName} onChange={(e) => setDevoteeName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
                     {copy.fields === "astrology" && (
                       <div>
-                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">DOB (Planetary Calculation)</label>
+                        <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">DOB (Planetary Calculation)</label>
                         <input id="wizard-dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)}
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4]" />
                       </div>
                     )}
                     {copy.fields === "preferred_date" && (
                       <div>
-                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Preferred Session Date (Optional)</label>
+                        <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Preferred Session Date (Optional)</label>
                         <input id="wizard-preferred-session-date" type="date" value={preferredSessionDate} onChange={(e) => setPreferredSessionDate(e.target.value)}
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4]" />
                       </div>
@@ -522,12 +522,12 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   {copy.fields === "astrology" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
+                        <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
                         <input id="wizard-gotra" type="text" placeholder="e.g. Kashyap Gotra" value={gotra} onChange={(e) => setGotra(e.target.value)}
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Moon Sign (Rashi)</label>
+                        <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Moon Sign (Rashi)</label>
                         <select id="wizard-rashi" value={rashi} onChange={(e) => setRashi(e.target.value)}
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-[#5EEAD4] focus:outline-none focus:border-[#5EEAD4] font-semibold">
                           {["Mesh (Aries)","Vrishabh (Taurus)","Mithun (Gemini)","Kark (Cancer)","Simha (Leo)","Kanya (Virgo)","Tula (Libra)","Vrishchik (Scorpio)","Dhanu (Sagittarius)","Makar (Capricorn)","Kumbh (Aquarius)","Meen (Pisces)"].map(r => (
@@ -541,7 +541,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   {copy.fields === "gotra_only" && (
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
+                        <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Gotra (type Shiva Gotra if unknown)</label>
                         <input id="wizard-gotra" type="text" placeholder="e.g. Kashyap Gotra" value={gotra} onChange={(e) => setGotra(e.target.value)}
                           className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                       </div>
@@ -550,19 +550,19 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Phone Number * (Mandatory)</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Phone Number * (Mandatory)</label>
                       <input id="wizard-phone" type="tel" required placeholder="Mandatory for SMS receipt" value={phone} onChange={(e) => setPhone(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Email Address * (Mandatory)</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Email Address * (Mandatory)</label>
                       <input id="wizard-email" type="email" required placeholder="Mandatory for email receipt" value={email} onChange={(e) => setEmail(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
                       {copy.wishLabel}
                     </label>
                     <textarea id="wizard-sankalpa-wish" rows={2} value={sankalpWish} onChange={(e) => setSankalpWish(e.target.value)}
@@ -570,7 +570,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       className="w-full text-xs p-3 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                   </div>
 
-                  <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10">
+                  <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10">
                     <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
                     <span>Powered by Sri Dwar Technology</span>
                   </div>
@@ -639,7 +639,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                         <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="justify-center" />
                       </div>
                       <h5 className="font-serif text-xl font-bold italic text-[#5EEAD4]">{copy.cardTitle}</h5>
-                      <p className="text-[10px] text-white/50 font-mono">
+                      <p className="text-[12px] text-white/50 font-mono">
                         {copy.cardIntro}
                       </p>
                       <h6 className="font-serif text-base font-black text-[#FFB347] border-b border-white/15 inline-block px-4 pb-0.5">{devoteeName}</h6>
@@ -663,13 +663,13 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                           has been successfully received for the sacred service: <strong className="text-white">{pujaName}</strong> with Gotra: <strong>{gotra || "Shiva Gotra"}</strong>, Moon Sign: {rashi}. Your puja is now <strong className="text-[#FFB347]">pending priest assignment and performance</strong> at the temple.
                         </p>
                       )}
-                      <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono font-bold text-[#FFB347] bg-[#FFB347]/10 py-1.5 px-3 rounded-full border border-[#FFB347]/30 mx-auto w-fit">
+                      <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono font-bold text-[#FFB347] bg-[#FFB347]/10 py-1.5 px-3 rounded-full border border-[#FFB347]/30 mx-auto w-fit">
                         <span>{copy.statusText}</span>
                       </div>
-                      <p className="text-[11px] text-white/75 font-sans italic leading-relaxed">
+                      <p className="text-[13px] text-white/75 font-sans italic leading-relaxed">
                         {copy.quote}
                       </p>
-                      <div className="grid grid-cols-2 gap-4 items-center pt-3 border-t border-white/5 text-[9px] font-mono text-white/60">
+                      <div className="grid grid-cols-2 gap-4 items-center pt-3 border-t border-white/5 text-[11px] font-mono text-white/60">
                         <div className="text-left">
                           <span className="block font-bold">{copy.teamName}</span>
                           <span className="block uppercase text-white/40">{copy.teamSubtitle}</span>
@@ -687,7 +687,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <p>{wizardConfirmation.opening}</p>
                     <p className="mt-2">{wizardConfirmation.blessing}</p>
                   </div>
-                  <div className="flex items-start space-x-1.5 text-[10px] font-mono text-emerald-300 bg-emerald-950/20 py-2 px-2.5 rounded-xl border border-emerald-500/20 text-left">
+                  <div className="flex items-start space-x-1.5 text-[12px] font-mono text-emerald-300 bg-emerald-950/20 py-2 px-2.5 rounded-xl border border-emerald-500/20 text-left">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-px" />
                     <span>
                       {isGuidance &&

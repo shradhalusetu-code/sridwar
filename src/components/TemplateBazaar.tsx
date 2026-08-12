@@ -456,7 +456,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         <div className="mb-12">
           <div className="text-center max-w-2xl mx-auto mb-5">
             <h3 className="font-serif text-xl font-bold text-white">Devotional Shopping Offerings</h3>
-            <p className="text-[11px] text-white/60 mt-1.5 leading-relaxed">{BAZAAR_DELIVERY_NOTE}</p>
+            <p className="text-[13px] text-white/60 mt-1.5 leading-relaxed">{BAZAAR_DELIVERY_NOTE}</p>
           </div>
 
           {/* New products category filter */}
@@ -496,12 +496,12 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 <span className="font-bold text-[#FFB347]">{newBazaarCart.length} item{newBazaarCart.length > 1 ? "s" : ""}</span> in cart · ₹{newCartTotal.toLocaleString("en-IN")}
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={handleClearNewCart} className="text-[10px] text-white/50 underline hover:text-white/70">
+                <button onClick={handleClearNewCart} className="text-[12px] text-white/50 underline hover:text-white/70">
                   Clear
                 </button>
                 <button
                   onClick={handleCheckoutNewCart}
-                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] text-[10px] font-extrabold px-3.5 py-2 rounded-xl uppercase tracking-wide"
+                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] text-[12px] font-extrabold px-3.5 py-2 rounded-xl uppercase tracking-wide"
                 >
                   Checkout
                 </button>
@@ -521,7 +521,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         ══════════════════════════════════════════════════════════════ */}
         <div className="text-center max-w-2xl mx-auto mb-5">
           <h3 className="font-serif text-xl font-bold text-white">Current Offerings</h3>
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-white/60 mt-1.5 leading-relaxed">
+          <p className="flex items-center justify-center gap-1.5 text-[13px] text-white/60 mt-1.5 leading-relaxed">
             <Truck className="w-3.5 h-3.5 text-[#FFB347] shrink-0" />
             Shipping charges will apply on physical items and may vary based on your delivery PIN code.
           </p>
@@ -568,19 +568,19 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   </div>
                 )}
                 {item.badge && (SHOW_BAZAAR_DISCOUNT_PROMO || item.badge !== BAZAAR_DISCOUNT_BADGE_TEXT) && (
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
+                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[11px] font-black px-2 py-0.5 rounded-full tracking-wide">
                     {item.badge}
                   </span>
                 )}
                 {/* Service badge */}
                 {item.isService && (
-                  <span className="absolute top-2 right-2 bg-[#FFB347] text-[#021816] text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide flex items-center gap-1">
+                  <span className="absolute top-2 right-2 bg-[#FFB347] text-[#021816] text-[11px] font-black px-2 py-0.5 rounded-full tracking-wide flex items-center gap-1">
                     <Flame className="w-2.5 h-2.5" />
                     Live Seva
                   </span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#092320]/90 to-transparent p-2">
-                  <span className="text-[9px] font-mono text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="text-[11px] font-mono text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider">
                     {item.category}
                   </span>
                 </div>
@@ -589,14 +589,14 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
               {/* Content */}
               <div className="p-4 flex flex-col flex-1">
                 <h3 className="font-serif font-bold text-white text-sm mb-1">{item.name}</h3>
-                <p className="text-[11px] text-white/60 leading-relaxed mb-3 flex-1">{item.description}</p>
+                <p className="text-[13px] text-white/60 leading-relaxed mb-3 flex-1">{item.description}</p>
 
                 {/* Includes accordion */}
                 {item.includes && (
                   <div className="mb-3">
                     <button
                       onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-                      className="flex items-center gap-1.5 text-[10px] text-[#5EEAD4] font-mono font-bold"
+                      className="flex items-center gap-1.5 text-[12px] text-[#5EEAD4] font-mono font-bold"
                     >
                       <Package className="w-3 h-3" />
                       What's included
@@ -607,7 +607,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                     {expandedItem === item.id && (
                       <ul className="mt-1.5 space-y-0.5">
                         {item.includes.map((inc, i) => (
-                          <li key={i} className="flex items-center gap-1.5 text-[10px] text-white/60">
+                          <li key={i} className="flex items-center gap-1.5 text-[12px] text-white/60">
                             <Star className="w-2.5 h-2.5 text-[#FFB347] shrink-0" />
                             {inc}
                           </li>
@@ -621,13 +621,13 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10">
                   <div>
                     {SHOW_BAZAAR_DISCOUNT_PROMO && (
-                      <span className="block text-[10px] line-through text-white/30 font-mono">₹{item.mrp}</span>
+                      <span className="block text-[12px] line-through text-white/30 font-mono">₹{item.mrp}</span>
                     )}
                     <span className="text-base font-extrabold text-[#FFB347] font-serif">₹{item.price}</span>
                   </div>
                   <button
                     onClick={() => handleBuyNow(item)}
-                    className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[10px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5"
+                    className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5"
                   >
                     {item.isService
                       ? <><Flame className="w-3.5 h-3.5" /> Book Seva</>
@@ -650,7 +650,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
               {badge.icon}
               <div>
                 <span className="block text-xs font-bold text-white">{badge.title}</span>
-                <span className="block text-[10px] text-white/50">{badge.desc}</span>
+                <span className="block text-[12px] text-white/50">{badge.desc}</span>
               </div>
             </div>
           ))}
@@ -663,7 +663,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
 
         {/* Disclaimer */}
         <div className="mt-8 max-w-3xl mx-auto text-center">
-          <p className="text-[10px] text-white/40 leading-relaxed">{BAZAAR_DISCLAIMER}</p>
+          <p className="text-[12px] text-white/40 leading-relaxed">{BAZAAR_DISCLAIMER}</p>
         </div>
 
       </div>
@@ -699,7 +699,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">
                     {selectedItem.isService ? "Puja Sankalpa Portal" : "Sacred Bazaar Order"}
                   </h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 truncate">
+                  <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 truncate">
                     {selectedItem.name}
                   </p>
                 </div>
@@ -729,13 +729,13 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 </div>
                 <div className="text-right shrink-0 ml-2">
                   {SHOW_BAZAAR_DISCOUNT_PROMO && selectedItem.mrp > selectedItem.price && (
-                    <span className="block text-[9px] line-through text-white/30 font-mono">₹{selectedItem.mrp}</span>
+                    <span className="block text-[11px] line-through text-white/30 font-mono">₹{selectedItem.mrp}</span>
                   )}
                   <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{selectedItem.price}</span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-white/60 leading-relaxed">
+              <p className="text-[13px] text-white/60 leading-relaxed">
                 {selectedItem.isService
                   ? "🙏 Please enter your Sankalpa details so our pandits can perform this seva in your name and Gotra."
                   : "🙏 Please share your details so we can prepare and dispatch your sacred order with care."}
@@ -824,7 +824,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                       placeholder="e.g. For the health and prosperity of my family..."
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
                     />
-                    <p className="text-[10px] text-white/30 mt-1 font-mono">The pandit will recite this during Sankalpa</p>
+                    <p className="text-[12px] text-white/30 mt-1 font-mono">The pandit will recite this during Sankalpa</p>
                   </div>
                 </>
               )}
@@ -870,14 +870,14 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                     />
                   </div>
-                  <p className="text-[10px] text-white/40 font-mono">
+                  <p className="text-[12px] text-white/40 font-mono">
                     🚚 Ships within 3–5 working days after payment confirmation.
                   </p>
                 </>
               )}
 
               {selectedItem.isService && (
-                <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[10px] text-emerald-300 font-mono">
+                <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[12px] text-emerald-300 font-mono">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>Live photo proof + WhatsApp confirmation sent within 2 hours of seva completion. 🙏</span>
                 </div>

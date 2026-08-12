@@ -502,14 +502,14 @@ export default function DevoteeExperiences() {
         <div className="text-center space-y-2 mb-3">
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
             <Users className="w-3.5 h-3.5 text-[#5EEAD4]" />
-            <span className="text-[10px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
+            <span className="text-[12px] font-mono tracking-widest text-[#FFB347] uppercase font-bold">
               Devotee Experiences
             </span>
           </div>
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-white tracking-tight">
             Divine Miracles & Success Stories
           </h2>
-          <p className="text-[10px] text-white/40 font-mono max-w-md mx-auto pt-1">
+          <p className="text-[12px] text-white/40 font-mono max-w-md mx-auto pt-1">
             Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
             any specific spiritual, health, or personal outcome.
           </p>
@@ -560,7 +560,7 @@ export default function DevoteeExperiences() {
                   </div>
 
                   {/* Service Tag */}
-                  <div className="mt-4 px-3 py-1.5 rounded-xl bg-teal-950/80 border border-[#5EEAD4]/20 text-[11px] font-sans font-bold text-[#5EEAD4] tracking-wide uppercase">
+                  <div className="mt-4 px-3 py-1.5 rounded-xl bg-teal-950/80 border border-[#5EEAD4]/20 text-[13px] font-sans font-bold text-[#5EEAD4] tracking-wide uppercase">
                     {currentDevotee.serviceName}
                   </div>
                 </div>
@@ -749,7 +749,7 @@ export default function DevoteeExperiences() {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Your Name</label>
+                      <label className="block text-[12px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Your Name</label>
                       <input 
                         required
                         type="text" 
@@ -760,7 +760,7 @@ export default function DevoteeExperiences() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Devotee Location</label>
+                      <label className="block text-[12px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Devotee Location</label>
                       <input 
                         required
                         type="text" 
@@ -773,7 +773,7 @@ export default function DevoteeExperiences() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Spiritual Seva or Puja Availed</label>
+                    <label className="block text-[12px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Spiritual Seva or Puja Availed</label>
                     <input 
                       required
                       type="text" 
@@ -786,8 +786,8 @@ export default function DevoteeExperiences() {
 
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
-                      <label className="block text-[10px] font-bold text-white/70 uppercase tracking-widest">Devotion Rating</label>
-                      <span className="text-[10px] font-mono text-[#FFB347] font-bold">{newRating} Star Gratitude</span>
+                      <label className="block text-[12px] font-bold text-white/70 uppercase tracking-widest">Devotion Rating</label>
+                      <span className="text-[12px] font-mono text-[#FFB347] font-bold">{newRating} Star Gratitude</span>
                     </div>
                     <div className="flex space-x-2 bg-[#021816]/50 p-2 rounded-xl border border-white/5 w-fit">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -804,7 +804,7 @@ export default function DevoteeExperiences() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Your Experience / Miraculous Story</label>
+                    <label className="block text-[12px] font-bold text-white/70 uppercase tracking-widest mb-1.5">Your Experience / Miraculous Story</label>
                     <textarea 
                       required
                       rows={4}
@@ -816,7 +816,7 @@ export default function DevoteeExperiences() {
                   </div>
 
                   {/* Submission agreement check */}
-                  <div className="flex items-start space-x-2 text-[10px] text-white/60">
+                  <div className="flex items-start space-x-2 text-[12px] text-white/60">
                     <input type="checkbox" required defaultChecked className="mt-0.5" />
                     <span>I agree Sri Dwar may review this testimony and feature it on this page for other devotees to read.</span>
                   </div>

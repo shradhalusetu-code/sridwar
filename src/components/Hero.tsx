@@ -293,7 +293,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 />
                 <div className="text-left min-w-0">
                   <h3 className="font-serif text-lg font-bold tracking-tight text-white leading-tight break-words">Sri Dwar Darshan Register</h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase break-words">Handsigned by Revered Pundits</p>
+                  <p className="text-[12px] font-mono text-[#FFB347] uppercase break-words">Handsigned by Revered Pundits</p>
                 </div>
               </div>
               <button 
@@ -472,7 +472,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       }`}
                     >
                       <span className="block font-bold">Skip for Now</span>
-                      <span className="block text-[10px] text-white/40">Continue without support</span>
+                      <span className="block text-[12px] text-white/40">Continue without support</span>
                     </button>
 
                     <button
@@ -486,7 +486,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       }`}
                     >
                       <span className="block font-bold text-saffron">₹5 — member</span>
-                      <span className="block text-[10px] text-white/40">Support temple logistics</span>
+                      <span className="block text-[12px] text-white/40">Support temple logistics</span>
                     </button>
 
                     <button
@@ -500,13 +500,13 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       }`}
                     >
                       <span className="block font-bold text-[#FFB347]">₹51 — Supporter</span>
-                      <span className="block text-[10px] text-white/40">Help digitize more temples</span>
+                      <span className="block text-[12px] text-white/40">Help digitize more temples</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Real-time sync tracker banner representation */}
-                <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
                   <span>Powered by Sri Dwar Technology</span>
                 </div>
@@ -547,7 +547,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   <p className="mb-2"><strong>{darshanConfirmation.greeting}</strong></p>
                   <p className="mb-3">{darshanConfirmation.opening}</p>
                   <p className="mb-4">{darshanConfirmation.blessing}</p>
-                  <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono bg-black/40 p-3 rounded-xl border border-white/10">
+                  <div className="grid grid-cols-3 gap-2 text-center text-[12px] font-mono bg-black/40 p-3 rounded-xl border border-white/10">
                     <div>
                       <span className="block text-base">💬</span>
                       <span className="block font-bold text-emerald-400">WhatsApp</span>
@@ -564,7 +564,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 </div>
 
                 {/* Google Forms Drive Sync report log representation */}
-                <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/40 py-2 rounded-xl border border-emerald-900/40">
+                <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-emerald-400 bg-emerald-950/40 py-2 rounded-xl border border-emerald-900/40">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Powered by Sri Dwar Technology</span>
                 </div>

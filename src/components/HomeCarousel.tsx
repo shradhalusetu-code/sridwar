@@ -342,7 +342,7 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
                       backgroundImage: "linear-gradient(to top, rgba(2,24,22,0.7) 0%, rgba(2,24,22,0) 42%)",
                     }}
                   />
-                  <span className="absolute top-3 left-3 text-[10px] sm:text-[11px] font-black uppercase tracking-wide text-[#021816] bg-[#FFB347] px-3 py-1.5 rounded-full shadow">
+                  <span className="absolute top-3 left-3 text-[12px] sm:text-[13px] font-black uppercase tracking-wide text-[#021816] bg-[#FFB347] px-3 py-1.5 rounded-full shadow">
                     {card.badge}
                   </span>
                 </div>

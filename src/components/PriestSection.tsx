@@ -176,17 +176,17 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 mr-1">
+              <span className="text-[12px] font-mono uppercase tracking-widest text-white/40 mr-1">
                 Languages Spoken:
               </span>
               {p.languagesSpoken.map(l => (
-                <span key={l} className="text-[10px] font-mono bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-white/70">
+                <span key={l} className="text-[12px] font-mono bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-white/70">
                   {l}
                 </span>
               ))}
             </div>
 
-            <p className="text-[10px] text-white/30 font-mono mt-6 pt-4 border-t border-white/10">
+            <p className="text-[12px] text-white/30 font-mono mt-6 pt-4 border-t border-white/10">
               Listed by Sri Dwar as part of the Online Puja priest network. To book a ritual
               with {p.name.split(" ").slice(-1)[0]}, head to the Online Puja section and select this priest from the dropdown.
             </p>
@@ -241,7 +241,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-white mb-1">{g.title}</h4>
-                  <p className="text-[11px] text-white/60 leading-relaxed">{g.desc}</p>
+                  <p className="text-[13px] text-white/60 leading-relaxed">{g.desc}</p>
                 </div>
               </div>
             ))}
@@ -276,7 +276,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
           </select>
         </div>
 
-        <p className="text-[11px] text-white/50 font-mono mb-4">
+        <p className="text-[13px] text-white/50 font-mono mb-4">
           Showing <span className="text-[#5EEAD4] font-bold">{filteredPriests.length}</span> of{" "}
           <span className="text-white/80 font-bold">{PRIEST_PROFILES.length}</span> priests
         </p>
@@ -295,16 +295,16 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
                   <h3 className="font-serif font-black text-white text-sm leading-snug">{p.name}</h3>
                 </div>
 
-                <p className="flex items-center gap-1 text-[10px] text-[#FFB347]/80 font-mono mb-1">
+                <p className="flex items-center gap-1 text-[12px] text-[#FFB347]/80 font-mono mb-1">
                   <MapPin className="w-3 h-3" /> {p.currentCity}, {p.currentState}
                 </p>
 
-                <p className="text-[10px] text-white/50 font-mono mb-3 line-clamp-1">
+                <p className="text-[12px] text-white/50 font-mono mb-3 line-clamp-1">
                   {p.templesAssociated[0]}
                 </p>
 
                 <div className="flex items-center gap-4 mb-3">
-                  <span className="text-[10px] font-mono text-white/60">
+                  <span className="text-[12px] font-mono text-white/60">
                     <span className="text-white font-bold">{p.yearsExperience}</span> yrs experience
                   </span>
                   <StarRating rating={p.rating} />
@@ -312,7 +312,7 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
 
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {p.pujaExpertise.slice(0, 2).map(e => (
-                    <span key={e} className="text-[9px] font-mono uppercase tracking-wide text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
+                    <span key={e} className="text-[11px] font-mono uppercase tracking-wide text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
                       {e}
                     </span>
                   ))}
@@ -320,12 +320,12 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
 
                 {/* Locally-rooted highlight — distinguishes each priest's unique temple role */}
                 {highlight && (
-                  <p className="text-[11px] text-white/65 leading-relaxed mb-4 flex-1">
+                  <p className="text-[13px] text-white/65 leading-relaxed mb-4 flex-1">
                     {highlight}
                   </p>
                 )}
 
-                <span className="flex items-center gap-1 text-[10px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
+                <span className="flex items-center gap-1 text-[12px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
                   <Eye className="w-3 h-3" /> View Full Profile
                 </span>
               </button>
@@ -348,7 +348,7 @@ function Stat({ label, value, icon: Icon }: { label: string; value: string; icon
     <div className="bg-[#021816]/60 border border-white/10 rounded-xl p-3 text-center">
       <Icon className="w-4 h-4 text-[#FFB347] mx-auto mb-1.5" />
       <p className="text-sm font-black text-white font-serif">{value}</p>
-      <p className="text-[9px] font-mono uppercase tracking-widest text-white/40">{label}</p>
+      <p className="text-[11px] font-mono uppercase tracking-widest text-white/40">{label}</p>
     </div>
   );
 }
@@ -357,7 +357,7 @@ function InfoBlock({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div>
-      <h4 className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 mb-2">{title}</h4>
+      <h4 className="text-[12px] font-mono uppercase tracking-widest text-[#FFB347]/70 mb-2">{title}</h4>
       <ul className="space-y-1">
         {items.map(item => (
           <li key={item} className="text-xs text-white/80 flex items-start gap-2">

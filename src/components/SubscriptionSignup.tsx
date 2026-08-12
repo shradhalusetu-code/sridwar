@@ -299,7 +299,7 @@ export default function SubscriptionSignup({
           <SriDwarLogo iconSize="sm" showTagline={false} variant="colored" useImageOnly={true} className="shrink-0" />
           <div className="min-w-0">
             <h3 className="font-serif text-base font-bold text-left text-white truncate">{tier.name}</h3>
-            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider text-left truncate">{categoryLabel} · {priceLabel}</p>
+            <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider text-left truncate">{categoryLabel} · {priceLabel}</p>
           </div>
         </div>
         <button onClick={handleClose} className="text-white hover:text-[#FFB347] p-1.5 bg-white/5 border border-white/10 hover:border-white/20 rounded-full text-xs font-bold w-7 h-7 flex items-center justify-center cursor-pointer shrink-0">✕</button>
@@ -311,7 +311,7 @@ export default function SubscriptionSignup({
           { n: 3, label: "Confirmed" },
         ].map(({ n, label }, i, arr) => (
           <div key={n} className="flex items-center space-x-1">
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${step >= n ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>{n}</span>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[12px] shrink-0 ${step >= n ? "bg-[#FFB347] text-[#021816]" : "bg-white/10 text-white/50"}`}>{n}</span>
             <span className={`hidden sm:inline ${step >= n ? "text-[#FFB347] font-bold" : "text-white/40"}`}>{label}</span>
             {i < arr.length - 1 && <ChevronRight className="w-4 h-4 text-white/20 shrink-0 ml-1" />}
           </div>
@@ -344,36 +344,36 @@ export default function SubscriptionSignup({
               {/* ── STEP 1: Services, Geography & Expertise details form ── */}
               {step === 1 && (
                 <form onSubmit={handleDetailsSubmit} className="space-y-4">
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[11px] text-[#5EEAD4] text-left leading-relaxed">
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[13px] text-[#5EEAD4] text-left leading-relaxed">
                     <span className="font-bold">🙏 A few details first:</span> This helps devotees find you for the right services, in the right place — then you'll be routed straight to payment.
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Full Name *</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Full Name *</label>
                       <input type="text" required placeholder="e.g. Anand Satpathy" value={name} onChange={(e) => setName(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Phone / WhatsApp *</label>
+                      <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Phone / WhatsApp *</label>
                       <input type="tel" required placeholder="10-digit mobile number" value={phone} onChange={(e) => setPhone(e.target.value)}
                         className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Email Address *</label>
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">Email Address *</label>
                     <input type="email" required placeholder="Mandatory for your receipt & confirmation" value={email} onChange={(e) => setEmail(e.target.value)}
                       className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-2 text-left flex items-center gap-1.5">
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-2 text-left flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-[#FFB347]" /> {SERVICES_LABEL[category]}
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {SERVICE_OPTIONS[category].map((svc) => (
-                        <label key={svc} className={`flex items-center gap-2 text-[11px] px-3 py-2 rounded-xl border cursor-pointer transition-all ${selectedServices.includes(svc) ? "bg-[#FFB347]/10 border-[#FFB347]/50 text-[#FFB347]" : "bg-[#021816] border-white/10 text-white/70 hover:border-white/25"}`}>
+                        <label key={svc} className={`flex items-center gap-2 text-[13px] px-3 py-2 rounded-xl border cursor-pointer transition-all ${selectedServices.includes(svc) ? "bg-[#FFB347]/10 border-[#FFB347]/50 text-[#FFB347]" : "bg-[#021816] border-white/10 text-white/70 hover:border-white/25"}`}>
                           <input type="checkbox" checked={selectedServices.includes(svc)} onChange={() => toggleService(svc)} className="accent-[#FFB347] w-3.5 h-3.5 shrink-0" />
                           {svc}
                         </label>
@@ -382,7 +382,7 @@ export default function SubscriptionSignup({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-2 text-left flex items-center gap-1.5">
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-2 text-left flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-[#5EEAD4]" /> Your Geography
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -396,7 +396,7 @@ export default function SubscriptionSignup({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{EXPERTISE_LABEL[category]}</label>
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">{EXPERTISE_LABEL[category]}</label>
                     <textarea rows={3} value={expertise} onChange={(e) => setExpertise(e.target.value)}
                       placeholder={EXPERTISE_PLACEHOLDER[category]}
                       className="w-full text-xs p-3 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
@@ -456,11 +456,11 @@ export default function SubscriptionSignup({
                     Your <span className="text-[#FFB347] font-bold">{tier.name}</span> ({categoryLabel}) plan for{" "}
                     <span className="text-white font-bold">{name}</span> in {geoLine} is now on record.
                   </p>
-                  <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/20 py-2 rounded-xl border border-emerald-500/20">
+                  <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-emerald-400 bg-emerald-950/20 py-2 rounded-xl border border-emerald-500/20">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                     <span>Reference: {refId}</span>
                   </div>
-                  <p className="text-[10px] text-white/40 font-mono">
+                  <p className="text-[12px] text-white/40 font-mono">
                     Our team confirms and activates every plan within 2 hours via WhatsApp & Email. 🙏
                   </p>
                   <button onClick={handleClose}

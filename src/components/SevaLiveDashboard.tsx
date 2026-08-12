@@ -61,7 +61,7 @@ export default function SevaLiveDashboard({ extraRecentSevas = [] }: SevaLiveDas
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-serif text-xl font-bold text-white">Live Devotional Dashboard</h3>
-        <span className="text-[9px] font-mono text-white/40 uppercase tracking-wide bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">
+        <span className="text-[11px] font-mono text-white/40 uppercase tracking-wide bg-white/5 border border-white/10 px-2.5 py-1 rounded-full">
           Illustrative — live sync coming soon
         </span>
       </div>
@@ -78,15 +78,15 @@ export default function SevaLiveDashboard({ extraRecentSevas = [] }: SevaLiveDas
                 <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 inline-flex">
                   <Icon className="w-3.5 h-3.5 text-[#FFB347]" />
                 </div>
-                <span className="text-[8px] font-mono font-bold text-white/40 uppercase tracking-wide bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">Est.</span>
+                <span className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-wide bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">Est.</span>
               </div>
               <span className="block text-lg font-serif font-black text-white">~{stat.value}</span>
-              <span className="block text-[9px] text-white/50 mt-0.5 leading-snug">{stat.label}</span>
+              <span className="block text-[11px] text-white/50 mt-0.5 leading-snug">{stat.label}</span>
             </div>
           );
         })}
       </div>
-      <p className="text-[10px] text-white/40 mb-4 leading-relaxed">
+      <p className="text-[12px] text-white/40 mb-4 leading-relaxed">
         These are estimated figures and may change as the day progresses.
       </p>
 
@@ -99,9 +99,9 @@ export default function SevaLiveDashboard({ extraRecentSevas = [] }: SevaLiveDas
           </div>
           <ul className="space-y-2">
             {upcomingSlots.map((slot, i) => (
-              <li key={i} className="flex items-center justify-between text-[11px] text-white/70 bg-white/5 rounded-xl px-3 py-2">
+              <li key={i} className="flex items-center justify-between text-[13px] text-white/70 bg-white/5 rounded-xl px-3 py-2">
                 <span>{slot.seva}</span>
-                <span className="text-white/40 font-mono text-[10px] shrink-0 ml-2">{slot.when}</span>
+                <span className="text-white/40 font-mono text-[12px] shrink-0 ml-2">{slot.when}</span>
               </li>
             ))}
           </ul>
@@ -115,12 +115,12 @@ export default function SevaLiveDashboard({ extraRecentSevas = [] }: SevaLiveDas
           </div>
           <ul className="space-y-2">
             {recentSevas.map((item, i) => (
-              <li key={i} className="flex items-center justify-between text-[11px] text-white/70 bg-white/5 rounded-xl px-3 py-2 gap-2">
+              <li key={i} className="flex items-center justify-between text-[13px] text-white/70 bg-white/5 rounded-xl px-3 py-2 gap-2">
                 <div className="min-w-0">
                   <span className="block truncate">{item.seva}</span>
-                  <span className="block text-[9px] text-white/40">{item.devotee}</span>
+                  <span className="block text-[11px] text-white/40">{item.devotee}</span>
                 </div>
-                <span className={`text-[9px] font-bold px-2 py-1 rounded-full border shrink-0 ${STATUS_STYLES[item.status]}`}>
+                <span className={`text-[11px] font-bold px-2 py-1 rounded-full border shrink-0 ${STATUS_STYLES[item.status]}`}>
                   {item.status}
                 </span>
               </li>
@@ -129,7 +129,7 @@ export default function SevaLiveDashboard({ extraRecentSevas = [] }: SevaLiveDas
         </div>
       </div>
 
-      <div className="flex items-start space-x-2 text-[10px] text-white/45 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 mt-4">
+      <div className="flex items-start space-x-2 text-[12px] text-white/45 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 mt-4">
         <Send className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
         <span>Certificate status moves from Pending → In Progress → Completed → Certificate Sent as your seva is performed and documented.</span>
       </div>

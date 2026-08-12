@@ -297,7 +297,7 @@ export default function FAQs() {
                   {selectedFaq.category}
                 </span>
               )}
-              <span className="font-serif text-sm sm:text-[15px] font-bold text-white tracking-wide truncate">
+              <span className="font-serif text-sm sm:text-[17px] font-bold text-white tracking-wide truncate">
                 {selectedFaq ? selectedFaq.question : "No matching questions"}
               </span>
             </div>
@@ -329,7 +329,7 @@ export default function FAQs() {
                           : "text-white/75 hover:bg-white/5 hover:text-[#5EEAD4]"
                       }`}
                     >
-                      <span className={`text-[10px] font-mono font-bold uppercase py-0.5 px-2 rounded-lg shrink-0 ${categoryBadgeClass(faq.category)}`}>
+                      <span className={`text-[12px] font-mono font-bold uppercase py-0.5 px-2 rounded-lg shrink-0 ${categoryBadgeClass(faq.category)}`}>
                         {faq.category}
                       </span>
                       <span className="truncate">{faq.question}</span>
@@ -377,7 +377,7 @@ export default function FAQs() {
         </AnimatePresence>
 
         {/* Micro-legal disclaimer for trust-building */}
-        <div className="mt-8 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[11px] text-white/55 font-sans leading-relaxed">
+        <div className="mt-8 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[13px] text-white/55 font-sans leading-relaxed">
           <span className="text-base shrink-0">📜</span>
           <p className="text-left">
             <strong>Gotra & Sankalpa Verification SLA:</strong> All holy names registered on Sri Dwar are entered into physical Sanskrit registries maintained by the pujaris we work with at each of the 32 temples. If you require specialized astrology birth star analysis (Kundli) for exact nakshatras, consult your customized <strong>Dharmic Margadarshak</strong> sidebar guide immediately.
@@ -385,7 +385,7 @@ export default function FAQs() {
         </div>
 
         {/* General disclaimer — FAQ content subject to change */}
-        <div className="mt-4 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[11px] text-white/55 font-sans leading-relaxed">
+        <div className="mt-4 bg-[#092320]/40 border border-white/5 p-4 rounded-2xl flex items-start space-x-3 text-[13px] text-white/55 font-sans leading-relaxed">
           <span className="text-base shrink-0">🙏</span>
           <p className="text-left">
             <strong>Disclaimer:</strong> The information shared above is provided in good faith for general devotee guidance and reflects our current rituals, processes, and policies as accurately as possible. Temple timings, priest availability, Vedic procedures, pricing, shipping schedules, and platform features may evolve due to festival calendars, temple-trust directives, or operational requirements, and Sri Dwar (Shradhalu Private Limited) reserves the right to update, amend, or discontinue any term, service detail, or policy referenced in this FAQ section at its discretion. Where reasonably possible, devotees will be notified of material changes in advance via the registered email, WhatsApp, or the Devotee Console; however, continued use of the platform after such updates are published shall constitute acceptance of the revised terms. For the most current details on any specific booking, ritual, or seva, please reach out to our Devotee Care desk before proceeding.

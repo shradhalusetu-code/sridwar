@@ -193,14 +193,14 @@ export default function SriDwarLogo({
         {showTagline && (
           <div className="w-full flex items-center justify-between my-1 max-w-[140px]">
             <div className="h-[1px] bg-gradient-to-r from-[#f27420] to-transparent w-[42%]" />
-            <span className="text-[5px] text-[#FFB347]">◆</span>
+            <span className="text-[7px] text-[#FFB347]">◆</span>
             <div className="h-[1px] bg-gradient-to-l from-[#f27420] to-transparent w-[42%]" />
           </div>
         )}
 
         {/* "CONNECT. CONTRIBUTE. PRESERVE." Tagline */}
         {showTagline && (
-          <span className="text-[7px] font-semibold tracking-[0.16em] font-sans text-white/60 uppercase leading-none mt-0.5">
+          <span className="text-[9px] font-semibold tracking-[0.16em] font-sans text-white/60 uppercase leading-none mt-0.5">
             Faith Beyond Distance
           </span>
         )}

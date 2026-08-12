@@ -305,7 +305,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
       <div className="w-full h-44 relative overflow-hidden">
         <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
-          <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
+          <span className="text-[11px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
             {offering.category}
           </span>
         </div>
@@ -317,37 +317,37 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
             <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">
               <Flame className="w-4 h-4 text-orange-400" fill="currentColor" />
             </div>
-            <h4 className="text-base font-serif font-bold text-white">{offering.title}</h4>
+            <h4 className="text-lg font-serif font-bold text-white">{offering.title}</h4>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-3 text-[10px] text-white/50 font-mono">
+        <div className="flex items-center gap-3 mb-3 text-[12px] text-white/50 font-mono">
           <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#FFB347]/60" />{offering.duration}</span>
         </div>
 
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {["Starts at ₹100", "Digital Certificate", "Temple Priest Puja", "Evidence Shared"].map((b) => (
-            <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[9px] text-white/55">
+            <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[11px] text-white/55">
               <BadgeCheck className="w-2.5 h-2.5 text-[#5EEAD4]" /><span>{b}</span>
             </span>
           ))}
         </div>
 
-        <p className="text-[11px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
 
         {justBooked && (
-          <div className="flex items-start space-x-1.5 text-[11px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
+          <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
             <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             <span>{offering.title} — Sankalp recorded. Continuing to the Puja Sankalp Portal…</span>
           </div>
         )}
 
         <div className="space-y-1.5 mb-3">
-          <span className="block text-[10px] font-bold text-white/60 uppercase tracking-wide">This puja includes</span>
+          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This puja includes</span>
           <ul className="space-y-1">
             {offering.includes.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[11px] text-white/70">
+              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                 <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
               </li>
             ))}
@@ -355,10 +355,10 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
         </div>
 
         <div className="space-y-1.5 mb-4">
-          <span className="block text-[10px] font-bold text-white/60 uppercase tracking-wide">Devotee receives</span>
+          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">Devotee receives</span>
           <ul className="space-y-1">
             {offering.devoteeReceives.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[11px] text-white/70">
+              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                 <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
               </li>
             ))}
@@ -367,7 +367,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
         {/* Custom Sankalp Amount selector — always visible */}
         <div className="mb-3" onClick={(e) => e.stopPropagation()}>
-          <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1.5">Custom Sankalp Amount</label>
+          <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1.5">Custom Sankalp Amount</label>
           <div className="relative">
             <select
               key={offering.id}
@@ -396,7 +396,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                 onChange={(e) => setCustomAmount(e.target.value)}
                 className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
               />
-              <p className="text-[9px] text-white/40 mt-1">Custom sankalp amount starts from ₹100.</p>
+              <p className="text-[11px] text-white/40 mt-1">Custom sankalp amount starts from ₹100.</p>
             </div>
           )}
         </div>
@@ -411,7 +411,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           <div className="space-y-2.5 mb-4 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Puja Date Preference</label>
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Puja Date Preference</label>
                 <input
                   type="date" value={pujaDate} min={getMinBookableDateISO()}
                   onChange={(e) => { setPujaDate(e.target.value); if (errors.pujaDate) setErrors((p) => ({ ...p, pujaDate: undefined })); }}
@@ -419,13 +419,13 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                     errors.pujaDate ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
                   }`}
                 />
-                <p className="text-[9px] text-white/40 mt-1">Please allow at least 3 days so we can coordinate with the Pandit/Pujari.</p>
+                <p className="text-[11px] text-white/40 mt-1">Please allow at least 3 days so we can coordinate with the Pandit/Pujari.</p>
                 {errors.pujaDate && (
-                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pujaDate}</p>
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pujaDate}</p>
                 )}
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Pincode</label>
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Pincode</label>
                 <input
                   type="text" inputMode="numeric" value={pincode}
                   onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
@@ -436,13 +436,13 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                   }`}
                 />
                 {errors.pincode && (
-                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
               <div className="relative">
                 <select
                   id={`simple-puja-temple-${offering.id}`}
@@ -464,7 +464,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
             {/* Occasion — replicated from the Occasion + dropdown pattern
                 already used under Structured Seva Offerings (SevaOfferingCard.tsx). */}
             <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
               <div className="relative">
                 <select
                   id={`simple-puja-occasion-${offering.id}`}
@@ -481,7 +481,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
               <div className="relative">
                 <select
                   id={`simple-puja-priest-${offering.id}`}
@@ -498,16 +498,16 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
               </div>
-              <p className="text-[9px] text-white/40 mt-1">
+              <p className="text-[11px] text-white/40 mt-1">
                 If your chosen Pandit/Priest is unavailable at your preferred time, another approved and equally experienced priest/expert will graciously perform this Sankalp on your behalf, with the same devotion and tradition.
               </p>
             </div>
 
-            <p className="text-[9px] text-white/40 -mt-1">Your name, gotra, rashi, contact details and personal wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
+            <p className="text-[11px] text-white/40 -mt-1">Your name, gotra, rashi, contact details and personal wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
           </div>
         )}
 
-        <div className="flex items-center space-x-1.5 text-[10px] text-white/50 mb-3">
+        <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3">
           <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
           <span>{offering.certificateTimeline}</span>
         </div>
@@ -758,11 +758,11 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                 <Flame className="w-4 h-4 text-orange-400" fill="currentColor" />
                 Simple Pujas
               </h3>
-              <p className="text-[11px] text-white/60 mt-1 max-w-2xl">
+              <p className="text-[13px] text-white/60 mt-1 max-w-2xl">
                 Worship, prayer, ritual, ceremony, and devotion-based pujas — affordable, structured Sankalp offerings starting at ₹100.
               </p>
             </div>
-            <span className="text-[10px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full shrink-0">
+            <span className="text-[12px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full shrink-0">
               Starts at ₹100
             </span>
           </div>
@@ -786,7 +786,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
           </div>
 
           {/* Disclaimer */}
-          <p className="text-[10px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl">
+          <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl">
             Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple schedule, festival rush, priest availability, and temple rituals.
           </p>
         </div>
@@ -799,7 +799,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
 
             {/* Dropdown 1 – Temple */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
+              <label className="text-[12px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
                 Select Temple
               </label>
               <div className="relative">
@@ -819,7 +819,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
 
             {/* Dropdown 2 – Category */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
+              <label className="text-[12px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
                 Select Puja Category
               </label>
               <div className="relative">
@@ -841,7 +841,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
 
             {/* Dropdown 3 – Priest */}
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
+              <label className="text-[12px] font-mono uppercase tracking-widest text-[#FFB347]/70 pl-1">
                 Select Priest
               </label>
               <div className="relative">
@@ -863,7 +863,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
           {/* Result count + Browse priests link + Clear All on one tidy row */}
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-4 flex-wrap">
-              <span className="text-[11px] text-white/50 font-mono">
+              <span className="text-[13px] text-white/50 font-mono">
                 Showing{" "}
                 <span className="text-[#5EEAD4] font-bold">{filteredPujas.length}</span>
                 {" "}of{" "}
@@ -874,7 +874,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                 <button
                   type="button"
                   onClick={() => onViewPriestProfile("")}
-                  className="relative inline-flex items-center gap-1.5 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-[10px] uppercase tracking-widest px-4 py-2 rounded-full transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
+                  className="relative inline-flex items-center gap-1.5 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-[12px] uppercase tracking-widest px-4 py-2 rounded-full transition-all hover:scale-105 border border-[#FFD700]/60 cursor-pointer"
                   style={{
                     boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
                     animation: "priestDirectoryPulse 2s ease-in-out infinite",
@@ -991,7 +991,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                       <span className="block font-serif font-black text-white text-sm leading-tight">
                         {meta.label}
                       </span>
-                      <span className="block text-[10px] font-mono text-white/40 mt-0.5">
+                      <span className="block text-[12px] font-mono text-white/40 mt-0.5">
                         {pujas.length} {pujas.length === 1 ? "puja" : "pujas"} available
                       </span>
                     </div>
@@ -1049,26 +1049,26 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                               <h3 className="font-serif font-black text-white text-sm leading-snug">
                                 {puja.name}
                               </h3>
-                              <span className="text-[9px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
+                              <span className="text-[11px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
                                 {puja.deityName}
                               </span>
                             </div>
 
                             {/* Temple */}
-                            <p className="text-[10px] font-mono text-[#FFB347]/70">
+                            <p className="text-[12px] font-mono text-[#FFB347]/70">
                               {puja.templeName}
                             </p>
 
                             {/* Duration row */}
                             <div className="flex flex-wrap items-center gap-3 pt-0.5">
-                              <span className="flex items-center gap-1 text-[10px] text-white/50 font-mono">
+                              <span className="flex items-center gap-1 text-[12px] text-white/50 font-mono">
                                 <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
                                 {displayDuration(puja.duration)}
                               </span>
                             </div>
 
                             {/* Prasad / Video indicators */}
-                            <div className="flex items-center gap-4 text-[9px] font-mono text-white/40 pt-0.5">
+                            <div className="flex items-center gap-4 text-[11px] font-mono text-white/40 pt-0.5">
                               <span className="flex items-center gap-1">
                                 <Video className="w-3 h-3 text-emerald-400 shrink-0" />
                                 HD Video
@@ -1085,14 +1085,14 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                               return (
                                 <div className="flex items-center gap-1.5 pt-0.5">
                                   <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-                                  <span className="text-[9px] font-mono text-white/50 truncate">
+                                  <span className="text-[11px] font-mono text-white/50 truncate">
                                     {puja.priestDetails}
                                   </span>
                                   {priest && onViewPriestProfile && (
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
-                                      className="text-[9px] font-bold text-[#5EEAD4] hover:underline shrink-0"
+                                      className="text-[11px] font-bold text-[#5EEAD4] hover:underline shrink-0"
                                     >
                                       View Profile
                                     </button>
@@ -1108,13 +1108,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                             <div className="text-right">
                               {isDiscountPromoVisible("puja") ? (
                                 <>
-                                  <span className="block text-[10px] line-through text-white/30 font-mono">
+                                  <span className="block text-[12px] line-through text-white/30 font-mono">
                                     ₹{puja.price}
                                   </span>
                                   <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">
                                     ₹{discountedPrice}
                                   </span>
-                                  <span className="block text-[9px] text-[#FFB347] font-mono">
+                                  <span className="block text-[11px] text-[#FFB347] font-mono">
                                     {DISCOUNT_TAG}
                                   </span>
                                 </>
@@ -1129,7 +1129,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                             <button
                               id={`puja-book-btn-${puja.id}`}
                               onClick={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
-                              className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[10px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
+                              className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
                             >
                               Book Puja
                             </button>
@@ -1164,7 +1164,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     <span className="block font-serif font-black text-white text-sm leading-tight">
                       Festivals, Ancestral & Graha Shanti
                     </span>
-                    <span className="block text-[10px] font-mono text-white/40 mt-0.5">
+                    <span className="block text-[12px] font-mono text-white/40 mt-0.5">
                       {otherPujas.length} {otherPujas.length === 1 ? "puja" : "pujas"} available
                     </span>
                   </div>
@@ -1218,18 +1218,18 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                             <h3 className="font-serif font-black text-white text-sm leading-snug">
                               {puja.name}
                             </h3>
-                            <span className="text-[9px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
+                            <span className="text-[11px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
                               {puja.deityName}
                             </span>
                           </div>
-                          <p className="text-[10px] font-mono text-[#FFB347]/70">{puja.templeName}</p>
+                          <p className="text-[12px] font-mono text-[#FFB347]/70">{puja.templeName}</p>
                           <div className="flex flex-wrap items-center gap-3 pt-0.5">
-                            <span className="flex items-center gap-1 text-[10px] text-white/50 font-mono">
+                            <span className="flex items-center gap-1 text-[12px] text-white/50 font-mono">
                               <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
                               {displayDuration(puja.duration)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-4 text-[9px] font-mono text-white/40 pt-0.5">
+                          <div className="flex items-center gap-4 text-[11px] font-mono text-white/40 pt-0.5">
                             <span className="flex items-center gap-1">
                               <Video className="w-3 h-3 text-emerald-400 shrink-0" />
                               HD Video
@@ -1246,14 +1246,14 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                             return (
                               <div className="flex items-center gap-1.5 pt-0.5">
                                 <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-                                <span className="text-[9px] font-mono text-white/50 truncate">
+                                <span className="text-[11px] font-mono text-white/50 truncate">
                                   {puja.priestDetails}
                                 </span>
                                 {priest && onViewPriestProfile && (
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
-                                    className="text-[9px] font-bold text-[#5EEAD4] hover:underline shrink-0"
+                                    className="text-[11px] font-bold text-[#5EEAD4] hover:underline shrink-0"
                                   >
                                     View Profile
                                   </button>
@@ -1266,9 +1266,9 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                           <div className="text-right">
                             {isDiscountPromoVisible("puja") ? (
                               <>
-                                <span className="block text-[10px] line-through text-white/30 font-mono">₹{puja.price}</span>
+                                <span className="block text-[12px] line-through text-white/30 font-mono">₹{puja.price}</span>
                                 <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
-                                <span className="block text-[9px] text-[#FFB347] font-mono">{DISCOUNT_TAG}</span>
+                                <span className="block text-[11px] text-[#FFB347] font-mono">{DISCOUNT_TAG}</span>
                               </>
                             ) : (
                               <span className="block text-base font-black text-white font-serif">₹{discountedPrice}</span>
@@ -1277,7 +1277,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                           <button
                             id={`puja-book-btn-${puja.id}`}
                             onClick={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
-                            className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[10px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
+                            className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
                           >
                             Book Puja
                           </button>

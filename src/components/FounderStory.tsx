@@ -27,7 +27,7 @@ const LANGS: StoryLang[] = ["en", "hi", "or"];
 function renderParagraph(text: string, key: string | number) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g).filter((p) => p !== "");
   return (
-    <p key={key} className="text-white/85 leading-relaxed font-sans text-[15px] sm:text-base mb-4">
+    <p key={key} className="text-white/85 leading-relaxed font-sans text-[17px] sm:text-base mb-4">
       {parts.map((part, i) => {
         if (part.startsWith("**") && part.endsWith("**")) {
           return (
@@ -122,7 +122,7 @@ export default function FounderStory({ onBack, defaultLanguage = "en" }: Founder
                     .getElementById(`story-${lang}-${sec.id}`)
                     ?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
-                className="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-[#5EEAD4]/90 bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-3 py-1.5 hover:bg-[#5EEAD4]/20 transition-colors"
+                className="text-[13px] sm:text-xs font-mono uppercase tracking-wider text-[#5EEAD4]/90 bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-3 py-1.5 hover:bg-[#5EEAD4]/20 transition-colors"
               >
                 {sec.title}
               </a>

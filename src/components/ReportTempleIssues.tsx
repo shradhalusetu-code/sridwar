@@ -350,11 +350,11 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
           {HOW_IT_WORKS.map((step, i) => (
             <div key={step.title} className="bg-[#092320] border border-white/10 rounded-2xl p-5 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-[#FFB347] text-[#021816] text-[11px] font-extrabold flex items-center justify-center shrink-0">{i + 1}</span>
+                <span className="w-6 h-6 rounded-full bg-[#FFB347] text-[#021816] text-[13px] font-extrabold flex items-center justify-center shrink-0">{i + 1}</span>
                 <step.icon className="w-4 h-4 text-[#5EEAD4]" />
               </div>
               <h3 className="text-xs font-bold text-white">{step.title}</h3>
-              <p className="text-[11px] text-white/60 leading-relaxed">{step.body}</p>
+              <p className="text-[13px] text-white/60 leading-relaxed">{step.body}</p>
             </div>
           ))}
         </div>
@@ -440,7 +440,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full text-xs p-3.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
                 />
-                <p className="text-[10px] text-white/40 mt-1">Have photos? Email them to puja@sridwar.com or share via our WhatsApp helpline with your reference ID once submitted.</p>
+                <p className="text-[12px] text-white/40 mt-1">Have photos? Email them to puja@sridwar.com or share via our WhatsApp helpline with your reference ID once submitted.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -471,7 +471,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   onChange={(e) => setAdditionalRepDetails(e.target.value)}
                   className="w-full text-xs p-3.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
                 />
-                <p className="text-[10px] text-white/40 mt-1">
+                <p className="text-[12px] text-white/40 mt-1">
                   Not limited to the Local MLA / MP fields above — add anyone else (block/district officer, municipal
                   councillor, temple trust member, etc.) you'd like us to try and reach.
                 </p>
@@ -523,7 +523,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                    Sheet, and the Supabase form_submissions ledger above) to
                    send acknowledgements, status updates, and any Darshan
                    Certificate. Avoid overpromising "complete anonymity". ── */}
-              <div className="flex items-start gap-2.5 bg-[#5EEAD4]/5 border border-[#5EEAD4]/20 px-3.5 py-3 rounded-xl text-[10px] text-white/70 leading-relaxed">
+              <div className="flex items-start gap-2.5 bg-[#5EEAD4]/5 border border-[#5EEAD4]/20 px-3.5 py-3 rounded-xl text-[12px] text-white/70 leading-relaxed">
                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#5EEAD4]" />
                 <span>
                   🙏 <strong className="text-[#5EEAD4]">Your privacy, respected:</strong> your name and contact details
@@ -541,7 +541,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
             <div className="lg:col-span-5 bg-[#092320] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-5 flex flex-col">
               <div>
                 <h2 className="font-serif text-lg font-bold text-white mb-1">Send this to</h2>
-                <p className="text-[11px] text-white/50">You choose. We connect. Select every recipient this should reach.</p>
+                <p className="text-[13px] text-white/50">You choose. We connect. Select every recipient this should reach.</p>
               </div>
 
               {/* flex-1 + min-h-0 lets this list grow to fill whatever
@@ -558,7 +558,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   <div key={group.level}>
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <group.icon className="w-3.5 h-3.5 text-[#FFB347]" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#FFB347]/80">{group.level}</span>
+                      <span className="text-[12px] font-bold uppercase tracking-wider text-[#FFB347]/80">{group.level}</span>
                     </div>
                     <div className="space-y-1.5">
                       {group.options.map((opt) => (
@@ -577,8 +577,8 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                             className="mt-0.5 accent-[#5EEAD4]"
                           />
                           <span>
-                            <span className="block text-[11px] font-bold text-white">{opt.label}</span>
-                            <span className="block text-[10px] text-white/50">{opt.helper}</span>
+                            <span className="block text-[13px] font-bold text-white">{opt.label}</span>
+                            <span className="block text-[12px] text-white/50">{opt.helper}</span>
                           </span>
                         </label>
                       ))}
@@ -594,7 +594,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                       onChange={(e) => setIncludeOther(e.target.checked)}
                       className="mt-0.5 accent-[#5EEAD4]"
                     />
-                    <span className="block text-[11px] font-bold text-white">Other relevant authority</span>
+                    <span className="block text-[13px] font-bold text-white">Other relevant authority</span>
                   </label>
                   {includeOther && (
                     <input
@@ -608,7 +608,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 </div>
               </div>
 
-              <label className="flex items-start gap-2.5 text-[10px] text-white/60 leading-relaxed">
+              <label className="flex items-start gap-2.5 text-[12px] text-white/60 leading-relaxed">
                 <input
                   type="checkbox"
                   checked={consent}
@@ -623,7 +623,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 </span>
               </label>
 
-              <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+              <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Powered by Sri Dwar Technology</span>
               </div>
@@ -650,7 +650,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 <button
                   type="button"
                   onClick={() => onNavigate("contact")}
-                  className="w-full flex items-center justify-center gap-1 text-[11px] text-white/50 hover:text-[#5EEAD4] transition-colors"
+                  className="w-full flex items-center justify-center gap-1 text-[13px] text-white/50 hover:text-[#5EEAD4] transition-colors"
                 >
                   Have a general query instead? Use Devotee Support <ChevronRight className="w-3 h-3" />
                 </button>
@@ -719,19 +719,19 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-serif text-xl font-bold text-[#5EEAD4]">Your Report Is On Its Way!</h3>
-                  <p className="text-[10px] text-white/40 font-mono">Reference ID: {refId}</p>
+                  <p className="text-[12px] text-white/40 font-mono">Reference ID: {refId}</p>
                 </div>
                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs leading-relaxed text-white/80">
                   Dear <strong>{name}</strong>, your report on <strong>{itemName || "the item you reported"}</strong> has
                   been logged and shared with the recipients you selected. You'll receive <strong>weekly updates</strong> by
                   email/WhatsApp on the status, any response received, and proposed improvements — where available.
                 </div>
-                <div className="flex items-start gap-2 bg-amber-950/20 border border-amber-500/20 px-3 py-2.5 rounded-xl text-[10px] text-amber-200/80 text-left leading-relaxed">
+                <div className="flex items-start gap-2 bg-amber-950/20 border border-amber-500/20 px-3 py-2.5 rounded-xl text-[12px] text-amber-200/80 text-left leading-relaxed">
                   <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-300" />
                   <span>Reminder: Sri Dwar facilitates this communication but is not responsible for the actions or
                   outcomes of any representative, authority, or temple body.</span>
                 </div>
-                <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
+                <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Automated real-time synchronization completed</span>
                 </div>
@@ -758,14 +758,14 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
              copy of this notice (previously repeated near the top of the
              page as well). ──────────────────────────────────────────────── */}
         <div className="max-w-2xl mx-auto mt-14 text-center space-y-3">
-          <p className="text-[11px] text-white/40 leading-relaxed">
+          <p className="text-[13px] text-white/40 leading-relaxed">
             Sri Dwar only facilitates sharing the information you submit with the recipients you choose. We
             are not a government body, are not responsible for the actions, decisions, or outcomes of any
             representative, authority, or temple body, and cannot guarantee a response. This initiative
             simply aims to encourage elected representatives and authorities to actively support temples,
             culture, and traditions.
           </p>
-          <p className="text-[11px] text-white/40 leading-relaxed">
+          <p className="text-[13px] text-white/40 leading-relaxed">
             🙏 Together, let's preserve our temples, honour our traditions, and bring local and major temples, festivals,
             and celebrations to a wider — and eventually global — community of devotees.
           </p>

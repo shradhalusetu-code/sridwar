@@ -172,14 +172,14 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         <div className="w-full h-44 relative overflow-hidden">
           <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
-            <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
+            <span className="text-[11px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
               {offering.category}
             </span>
           </div>
         </div>
       ) : (
         <div className="w-full h-44 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-between px-4">
-          <span className="text-[9px] font-mono font-bold text-teal-300 uppercase tracking-wider">{offering.category}</span>
+          <span className="text-[11px] font-mono font-bold text-teal-300 uppercase tracking-wider">{offering.category}</span>
           <div className="p-2 rounded-xl bg-white/5 border border-white/10">{renderOfferingIcon(offering.id)}</div>
         </div>
       )}
@@ -187,32 +187,32 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center space-x-2 mb-2">
           <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">{renderOfferingIcon(offering.id)}</div>
-          <h4 className="text-base font-serif font-bold text-white">{offering.title}</h4>
+          <h4 className="text-lg font-serif font-bold text-white">{offering.title}</h4>
         </div>
 
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {["Starts at ₹100", "Digital Certificate", "Evidence Shared", "Seva in Your Name"].map((b) => (
-            <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[9px] text-white/55">
+            <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[11px] text-white/55">
               <BadgeCheck className="w-2.5 h-2.5 text-[#5EEAD4]" /><span>{b}</span>
             </span>
           ))}
         </div>
 
-        <p className="text-[11px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
 
         {justOffered && (
-          <div className="flex items-start space-x-1.5 text-[11px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
+          <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
             <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             <span>{offering.title} offered — thank you! You can offer it again below for another person, cow, or occasion.</span>
           </div>
         )}
 
         <div className="space-y-1.5 mb-3">
-          <span className="block text-[10px] font-bold text-white/60 uppercase tracking-wide">This seva includes</span>
+          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This seva includes</span>
           <ul className="space-y-1">
             {offering.includes.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[11px] text-white/70">
+              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                 <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
               </li>
             ))}
@@ -220,10 +220,10 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         </div>
 
         <div className="space-y-1.5 mb-4">
-          <span className="block text-[10px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
+          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
           <ul className="space-y-1">
             {offering.devoteeReceives.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[11px] text-white/70">
+              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                 <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
               </li>
             ))}
@@ -232,7 +232,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
         {/* Amount / option selector — always visible */}
         <div className="mb-3" onClick={(e) => e.stopPropagation()}>
-          <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1.5">{offering.dropdownLabel}</label>
+          <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1.5">{offering.dropdownLabel}</label>
           <div className="relative">
             <select
               id={`seva-offering-select-${offering.id}`}
@@ -260,7 +260,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                 onChange={(e) => setCustomAmount(e.target.value)}
                 className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
               />
-              <p className="text-[9px] text-white/40 mt-1">Custom seva amount starts from ₹100.</p>
+              <p className="text-[11px] text-white/40 mt-1">Custom seva amount starts from ₹100.</p>
             </div>
           )}
         </div>
@@ -275,7 +275,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           <div className="space-y-2.5 mb-4 pt-3 border-t border-white/10" onClick={(e) => e.stopPropagation()}>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Preferred Seva Date</label>
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Preferred Seva Date</label>
                 <input
                   type="date" value={preferredDate} min={getMinBookableDateISO()}
                   onChange={(e) => { setPreferredDate(e.target.value); if (errors.preferredDate) setErrors((p) => ({ ...p, preferredDate: undefined })); }}
@@ -283,13 +283,13 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                     errors.preferredDate ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
                   }`}
                 />
-                <p className="text-[9px] text-white/40 mt-1">Please allow at least 3 days so we can coordinate with the Pandit/Pujari.</p>
+                <p className="text-[11px] text-white/40 mt-1">Please allow at least 3 days so we can coordinate with the Pandit/Pujari.</p>
                 {errors.preferredDate && (
-                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.preferredDate}</p>
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.preferredDate}</p>
                 )}
               </div>
               <div>
-                <label className="flex items-center gap-1 text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">
+                <label className="flex items-center gap-1 text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">
                   <MapPin className="w-3 h-3 text-[#FFB347]" /> Pincode
                 </label>
                 <input
@@ -302,7 +302,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                   }`}
                 />
                 {errors.pincode && (
-                  <p className="flex items-center gap-1 text-[10px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
                 )}
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                 dropdown pattern already used across the Simple Pujas cards
                 in OnlinePuja.tsx. */}
             <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
               <div className="relative">
                 <select
                   id={`seva-offering-temple-${offering.id}`}
@@ -331,7 +331,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
               <div className="relative">
                 <select
                   value={occasion} onChange={(e) => setOccasion(e.target.value)}
@@ -346,7 +346,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
               <div className="relative">
                 <select
                   id={`seva-offering-priest-${offering.id}`}
@@ -363,15 +363,15 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
               </div>
-              <p className="text-[9px] text-white/40 mt-1">
+              <p className="text-[11px] text-white/40 mt-1">
                 If your chosen Pandit/Priest is unavailable at your preferred time, another approved and equally experienced priest/expert will graciously perform this seva on your behalf, with the same devotion and tradition.
               </p>
             </div>
-            <p className="text-[9px] text-white/40 -mt-1">Your name, gotra, email, phone and sankalp wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
+            <p className="text-[11px] text-white/40 -mt-1">Your name, gotra, email, phone and sankalp wish are captured next in the Sankalp Portal — auto-filled from your Dharmic ID if you're logged in.</p>
           </div>
         )}
 
-        <div className="flex items-center space-x-1.5 text-[10px] text-white/50 mb-3">
+        <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3">
           <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
           <span>{offering.certificateTimeline}</span>
         </div>

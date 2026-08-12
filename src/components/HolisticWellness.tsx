@@ -417,7 +417,7 @@ function ServiceCard({
       {/* Badge */}
       {service.badge && (
         <div
-          className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest z-10"
+          className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-widest z-10"
           style={{ background: service.categoryColor + "20", color: service.categoryColor, border: `1px solid ${service.categoryColor}40` }}
         >
           {service.badge}
@@ -446,30 +446,30 @@ function ServiceCard({
           </div>
           <div className="flex-1 min-w-0">
             <span
-              className="text-[9px] font-black uppercase tracking-widest block mb-0.5"
+              className="text-[11px] font-black uppercase tracking-widest block mb-0.5"
               style={{ color: service.categoryColor }}
             >
               {CATEGORIES.find((c) => c.key === service.category)?.label}
             </span>
             <h3 className="text-sm font-bold text-white leading-tight">{service.title}</h3>
-            <p className="text-[11px] text-white/45 mt-0.5">{service.subtitle}</p>
+            <p className="text-[13px] text-white/45 mt-0.5">{service.subtitle}</p>
           </div>
         </div>
 
         {/* Meta pills */}
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <span className="flex items-center space-x-1 bg-white/5 rounded-full px-2.5 py-1 text-[10px] text-white/50">
+          <span className="flex items-center space-x-1 bg-white/5 rounded-full px-2.5 py-1 text-[12px] text-white/50">
             <Clock className="w-3 h-3 shrink-0" />
             <span>{service.duration}</span>
           </span>
-          <span className="flex items-center space-x-1 bg-white/5 rounded-full px-2.5 py-1 text-[10px] text-white/50">
+          <span className="flex items-center space-x-1 bg-white/5 rounded-full px-2.5 py-1 text-[12px] text-white/50">
             <Users className="w-3 h-3 shrink-0" />
             <span>{service.participants}</span>
           </span>
         </div>
 
         {/* Description */}
-        <p className="text-[11px] text-white/55 leading-relaxed line-clamp-3">
+        <p className="text-[13px] text-white/55 leading-relaxed line-clamp-3">
           {service.description}
         </p>
 
@@ -477,7 +477,7 @@ function ServiceCard({
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-2 text-[10px] font-semibold transition-colors"
+          className="mt-2 text-[12px] font-semibold transition-colors"
           style={{ color: service.categoryColor }}
         >
           {expanded ? "Show less ↑" : "View benefits ↓"}
@@ -485,14 +485,14 @@ function ServiceCard({
 
         {expanded && (
           <div className="mt-3 space-y-1.5 animate-fadeIn">
-            <p className="text-[9px] font-mono uppercase tracking-widest text-white/30 mb-2">Key benefits</p>
+            <p className="text-[11px] font-mono uppercase tracking-widest text-white/30 mb-2">Key benefits</p>
             {service.benefits.map((b) => (
               <div key={b} className="flex items-center space-x-2">
                 <div className="w-1 h-1 rounded-full shrink-0" style={{ background: service.categoryColor }} />
-                <span className="text-[11px] text-white/60">{b}</span>
+                <span className="text-[13px] text-white/60">{b}</span>
               </div>
             ))}
-            <p className="text-[9px] font-mono text-white/25 mt-2 pt-2 border-t border-white/5">
+            <p className="text-[11px] font-mono text-white/25 mt-2 pt-2 border-t border-white/5">
               ✦ {service.tradition}
             </p>
           </div>
@@ -502,10 +502,10 @@ function ServiceCard({
       {/* Footer */}
       <div className="mt-auto px-5 py-4 border-t border-white/8 flex items-center justify-between">
         <div>
-          <span className="text-[10px] text-white/35 font-mono">Starting from</span>
+          <span className="text-[12px] text-white/35 font-mono">Starting from</span>
           {isDiscountActive() ? (
             <div className="flex items-center space-x-2">
-              <p className="text-[11px] text-white/40 line-through font-mono">
+              <p className="text-[13px] text-white/40 line-through font-mono">
                 ₹{service.price.toLocaleString("en-IN")}
               </p>
               <p className="text-base font-black text-white">
@@ -518,13 +518,13 @@ function ServiceCard({
             </p>
           )}
           {isDiscountActive() && (
-            <span className="block text-[9px] font-mono font-bold text-[#FFB347]">{DISCOUNT_TAG}</span>
+            <span className="block text-[11px] font-mono font-bold text-[#FFB347]">{DISCOUNT_TAG}</span>
           )}
         </div>
         <button
           type="button"
           onClick={() => onBook(service.title, getDiscountedPrice(service.price))}
-          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer"
+          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer"
           style={{
             background: service.categoryColor,
             color: "#021816",
@@ -597,7 +597,7 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
         <div className="text-center mb-12">
           <div className="inline-flex items-center space-x-2 bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-4 py-1.5 mb-5">
             <span className="text-base">🌿</span>
-            <span className="text-[10px] font-mono font-bold text-[#5EEAD4] uppercase tracking-widest">Holistic Wellness & Yogic Sciences</span>
+            <span className="text-[12px] font-mono font-bold text-[#5EEAD4] uppercase tracking-widest">Holistic Wellness & Yogic Sciences</span>
           </div>
 
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mb-4 leading-tight">
@@ -619,7 +619,7 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
             ].map(({ value, label, color }) => (
               <div key={label} className="text-center">
                 <p className="text-xl font-black" style={{ color }}>{value}</p>
-                <p className="text-[10px] text-white/35 font-mono uppercase tracking-wide mt-0.5">{label}</p>
+                <p className="text-[12px] text-white/35 font-mono uppercase tracking-wide mt-0.5">{label}</p>
               </div>
             ))}
           </div>
@@ -676,7 +676,7 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
                   <p className="text-sm font-bold text-white">
                     {accordionOpen ? "Hide Additional Offerings" : `Show ${hiddenCards.length} More Offerings`}
                   </p>
-                  <p className="text-[10px] text-white/35 font-mono mt-0.5">
+                  <p className="text-[12px] text-white/35 font-mono mt-0.5">
                     {accordionOpen
                       ? "Collapse this section"
                       : "Yoga Nidra · Jyotish · Shatkarma · Retreats & more"}
@@ -732,13 +732,13 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
               <div key={title} className="space-y-2">
                 <div className="text-2xl mb-2">{icon}</div>
                 <h4 className="text-sm font-bold" style={{ color }}>{title}</h4>
-                <p className="text-[11px] text-white/45 leading-relaxed">{desc}</p>
+                <p className="text-[13px] text-white/45 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-6 pt-6 border-t border-white/8 text-center">
-            <p className="text-[11px] text-white/30 font-mono">
+            <p className="text-[13px] text-white/30 font-mono">
               ✦ Sri Dwar Holistic Wellness is a curated referral and booking platform. All therapies are delivered by independent, certified practitioners. We do not offer medical advice.
             </p>
           </div>

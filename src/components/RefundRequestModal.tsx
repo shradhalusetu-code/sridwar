@@ -213,7 +213,7 @@ export default function RefundRequestModal({
         >
           <div className="min-w-0 flex-1">
             <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Request Cancellation / Refund</h3>
-            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">Reviewed by our team</p>
+            <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">Reviewed by our team</p>
           </div>
           <button onClick={resetAndClose} className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 w-8 h-8 flex items-center justify-center ml-2">
             <X className="w-4 h-4" />
@@ -231,14 +231,14 @@ export default function RefundRequestModal({
             {!submitted ? (
               <>
                 <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-1">
-                  <span className="block text-[10px] font-mono text-white/40 uppercase tracking-widest">Booking</span>
+                  <span className="block text-[12px] font-mono text-white/40 uppercase tracking-widest">Booking</span>
                   <span className="block text-sm font-bold text-white">{booking.itemName}</span>
-                  <span className="block text-[10px] text-white/50 font-mono">
+                  <span className="block text-[12px] text-white/50 font-mono">
                     Ref: {booking.refId} · Paid ₹{booking.amount}{booking.paymentMethod ? ` · ${booking.paymentMethod}` : ""}
                   </span>
                 </div>
 
-                <div className="flex items-start space-x-2 bg-[#FFB347]/8 border border-[#FFB347]/20 px-3 py-2.5 rounded-xl text-[10px] text-[#FFB347] font-mono leading-relaxed">
+                <div className="flex items-start space-x-2 bg-[#FFB347]/8 border border-[#FFB347]/20 px-3 py-2.5 rounded-xl text-[12px] text-[#FFB347] font-mono leading-relaxed">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>
                     Submitting this doesn't cancel the booking automatically — our team reviews and confirms every
@@ -288,7 +288,7 @@ export default function RefundRequestModal({
                     placeholder="e.g. 98765 43210"
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                   />
-                  <p className="text-[9px] text-white/30 mt-1 font-mono">
+                  <p className="text-[11px] text-white/30 mt-1 font-mono">
                     We'll reach out here and at {devoteeEmail} to confirm.
                   </p>
                 </div>
@@ -315,7 +315,7 @@ export default function RefundRequestModal({
                   )}
                 </button>
 
-                <p className="text-[9px] text-white/20 text-center font-mono pb-1">
+                <p className="text-[11px] text-white/20 text-center font-mono pb-1">
                   Approved refunds are typically initiated within 7–15 business days of confirmation.
                 </p>
               </>
@@ -330,7 +330,7 @@ export default function RefundRequestModal({
                 <button
                   type="button"
                   onClick={() => onOpenLegalDoc?.("refund")}
-                  className="inline-flex items-center gap-1 text-[10px] text-[#5EEAD4] underline underline-offset-2 font-mono"
+                  className="inline-flex items-center gap-1 text-[12px] text-[#5EEAD4] underline underline-offset-2 font-mono"
                 >
                   <span>View full Refund &amp; Cancellation Policy</span>
                   <ExternalLink className="w-3 h-3" />

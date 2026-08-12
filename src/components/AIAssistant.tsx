@@ -210,7 +210,7 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
               <Sparkles className="w-5 h-5 text-[#FFB347] fill-[#FFB347] animate-spin duration-3000" />
               <div>
                 <h4 className="font-serif text-sm font-bold tracking-tight">Margadarshak AI</h4>
-                <div className="flex items-center space-x-1 text-[9px] text-[#5EEAD4] opacity-90 font-mono uppercase font-bold">
+                <div className="flex items-center space-x-1 text-[11px] text-[#5EEAD4] opacity-90 font-mono uppercase font-bold">
                   <span className="w-1.5 h-1.5 bg-[#5EEAD4] rounded-full animate-ping" />
                   <span>Sri Dwar Spiritual Guide</span>
                 </div>
@@ -246,7 +246,7 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white/5 border border-white/10 p-3 rounded-2xl rounded-tl-none text-white/50 font-mono text-[10px] space-x-1 flex items-center">
+                <div className="bg-white/5 border border-white/10 p-3 rounded-2xl rounded-tl-none text-white/50 font-mono text-[12px] space-x-1 flex items-center">
                   <RefreshCw className="w-3 h-3 animate-spin text-[#5EEAD4]" />
                   <span>Chanting mantras for cosmic replies...</span>
                 </div>
@@ -256,14 +256,14 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
 
           {/* Suggestions Tray */}
           <div className="px-4 py-2 border-t border-white/5 bg-[#092320]">
-            <span className="block text-[9px] text-white/40 font-mono uppercase mb-1">Quick suggestions:</span>
+            <span className="block text-[11px] text-white/40 font-mono uppercase mb-1">Quick suggestions:</span>
             <div className="flex flex-wrap gap-1.5">
               {suggestionPills.map((pill, idx) => (
                 <button
                   key={idx}
                   id={`ai-suggestion-pill-${idx}`}
                   onClick={() => handleSendMessage(pill)}
-                  className="bg-white/5 hover:bg-[#5EEAD4]/10 hover:text-[#5EEAD4] text-[10px] text-white/80 px-2.5 py-1 rounded-full border border-white/10 text-left transition-all font-medium"
+                  className="bg-white/5 hover:bg-[#5EEAD4]/10 hover:text-[#5EEAD4] text-[12px] text-white/80 px-2.5 py-1 rounded-full border border-white/10 text-left transition-all font-medium"
                 >
                   {pill}
                 </button>

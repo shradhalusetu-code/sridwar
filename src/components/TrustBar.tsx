@@ -58,7 +58,7 @@ export default function TrustBar({ isAndroidApp = false }: TrustBarProps) {
               <span className="text-lg font-bold text-[#FFB347] font-serif filter drop-shadow">
                 {stat.value}
               </span>
-              <span className="text-[10px] text-white/80 font-mono tracking-tight leading-tight break-words mt-1">
+              <span className="text-[12px] text-white/80 font-mono tracking-tight leading-tight break-words mt-1">
                 {stat.label}
               </span>
             </div>

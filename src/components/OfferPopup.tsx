@@ -139,7 +139,7 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
               <Flame className="w-5 h-5 text-[#FFB347] animate-pulse shrink-0" />
               <div className="text-left min-w-0">
                 <h3 className="font-serif text-base font-bold text-white leading-tight break-words">Setu Yatra Challenge</h3>
-                <p className="text-[11px] font-mono text-[#FFB347] uppercase tracking-wide break-words">Limited-Time Seva Opportunity</p>
+                <p className="text-[13px] font-mono text-[#FFB347] uppercase tracking-wide break-words">Limited-Time Seva Opportunity</p>
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
 
             {/* Rewards box */}
             <div className="bg-[#021816]/80 border border-[#FFB347]/20 rounded-2xl p-5 space-y-3">
-              <span className="block text-[11px] font-mono font-bold text-[#FFB347] uppercase tracking-widest">
+              <span className="block text-[13px] font-mono font-bold text-[#FFB347] uppercase tracking-widest">
                 🏆 Your Rewards
               </span>
               {REWARD_LINES.map((line, idx) => (
@@ -240,18 +240,18 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
             </button>
 
             <div className="flex items-center justify-between pt-1 border-t border-white/10">
-              <span className="text-[11px] font-mono text-white/40">
+              <span className="text-[13px] font-mono text-white/40">
                 Offer closes in: <span className="text-[#FF9933] font-bold">{countdown}</span>
               </span>
               <button
                 onClick={handleClose}
-                className="text-[11px] text-white/40 underline hover:text-white/60 transition-colors"
+                className="text-[13px] text-white/40 underline hover:text-white/60 transition-colors"
               >
                 Maybe later
               </button>
             </div>
 
-            <p className="text-[9px] text-white/30 text-center">
+            <p className="text-[11px] text-white/30 text-center">
               Entries are subject to verification. Terms & Conditions apply.
             </p>
           </div>

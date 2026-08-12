@@ -247,7 +247,7 @@ function DropdownGroup({ label, icon, options, placeholderNote, imageUrl }: Drop
         )}
       </div>
 
-      <p className="text-[11px] text-white/50 italic mt-3 leading-relaxed">{placeholderNote(selected)}</p>
+      <p className="text-[13px] text-white/50 italic mt-3 leading-relaxed">{placeholderNote(selected)}</p>
       </div>
     </div>
   );

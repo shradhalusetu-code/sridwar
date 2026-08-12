@@ -158,8 +158,8 @@ export default function Navbar({
             : "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1.75rem)",
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4 lg:gap-6">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between gap-3 lg:gap-4">
             {/* Left: Brand Identity */}
             <div
               id="brand-logo-trigger"
@@ -176,13 +176,13 @@ export default function Navbar({
                 extra room from a wide viewport now collects between the logo
                 and the nav group, which reads as a natural, balanced header
                 instead of stray whitespace next to the language button. */}
-            <div className="hidden lg:flex items-center space-x-4 xl:space-x-7 flex-1 justify-end pr-4 xl:pr-6" id="desktop-menu">
+            <div className="hidden lg:flex items-center space-x-3 xl:space-x-5 flex-1 justify-end pr-3 xl:pr-4" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   id={`nav-${item.id}`}
                   onClick={() => { gaNavClick(item.id, "desktop_nav"); onNavigate(item.id); }}
-                  className={`relative text-[11px] font-semibold tracking-wide transition-colors duration-200 outline-none hover:text-white whitespace-nowrap ${
+                  className={`relative text-[13px] font-semibold tracking-wide transition-colors duration-200 outline-none hover:text-white whitespace-nowrap ${
                     currentPage === item.id
                       ? "text-[#5EEAD4] font-bold"
                       : "text-white/70"
@@ -197,15 +197,15 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden lg:flex items-center space-x-3 xl:space-x-4 shrink-0">
+            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 shrink-0">
               {/* Preference & Account Utilities Capsule */}
-              <div className="flex items-center space-x-1.5 bg-white/5 border border-white/10 p-1.5 rounded-full backdrop-blur-md h-10">
+              <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
                 <div className="relative">
                   <button
                     id="lang-selector-btn"
                     onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                    className="flex items-center space-x-1 text-[11px] font-semibold px-2 py-1 rounded-full text-white/90 hover:bg-white/10 hover:text-white transition-all outline-none h-7 whitespace-nowrap"
+                    className="flex items-center space-x-1 text-[13px] font-semibold px-1.5 py-1 rounded-full text-white/90 hover:bg-white/10 hover:text-white transition-all outline-none h-7 whitespace-nowrap"
                   >
                     <Globe className="w-3.5 h-3.5 text-[#5EEAD4]" />
                     <span>
@@ -264,7 +264,7 @@ export default function Navbar({
                 >
                   <ShoppingBasket className="w-4 h-4 text-white" />
                   {totalCartItems > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#FFB347] text-[#021816] text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(255,179,71,0.5)]">
+                    <span className="absolute -top-1 -right-1 bg-[#FFB347] text-[#021816] text-[11px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(255,179,71,0.5)]">
                       {totalCartItems}
                     </span>
                   )}
@@ -277,7 +277,7 @@ export default function Navbar({
                 <button
                   id="navbar-account-trigger"
                   onClick={() => onNavigate("login")}
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all outline-none border h-7 ${
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-[13px] font-semibold transition-all outline-none border h-7 ${
                     isLoggedIn
                       ? "bg-[#0F766E] text-white border-[#FFB347] shadow-[0_0_10px_rgba(20,184,166,0.3)]"
                       : "border-transparent text-white/90 hover:bg-white/10"
@@ -291,14 +291,14 @@ export default function Navbar({
               </div>
 
               {/* Action CTA Buttons */}
-              <div className="flex items-center space-x-2.5">
+              <div className="flex items-center space-x-2">
                 <button
                   id="nav-sponsor"
                   onClick={() => {
                     gaNavClick("sponsor", "navbar");
                     onOpenSevaModal();
                   }}
-                  className="hidden xl:flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
+                  className="hidden xl:flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
                 >
                   <HeartHandshake className="w-3.5 h-3.5 text-[#FCD34D]" />
                   <span>Sponsor</span>
@@ -309,7 +309,7 @@ export default function Navbar({
                     gaNavClick("counselling", "navbar");
                     onNavigate("counselling");
                   }}
-                  className="hidden xl:flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
+                  className="hidden xl:flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
                 >
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
                   <span>Counselling</span>
@@ -321,7 +321,7 @@ export default function Navbar({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => gaAppDownloadClick("play_store", "navbar")}
-                    className="hidden xl:flex bg-white/5 hover:bg-white/10 text-white text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-white/15 hover:border-[#5EEAD4]/40 transition-all duration-300 items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap"
+                    className="hidden xl:flex bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold uppercase tracking-wide px-2.5 py-2 rounded-full border border-white/15 hover:border-[#5EEAD4]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap"
                     aria-label="Get Sri Dwar on Google Play"
                     title="Get Sri Dwar on Google Play"
                   >
@@ -340,7 +340,7 @@ export default function Navbar({
                     gaNavClick("add-temple", "navbar");
                     onNavigate("add-temple");
                   }}
-                  className="bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 flex items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(190,18,60,0.35)] hover:shadow-[0_0_16px_rgba(225,29,72,0.55)]"
+                  className="bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 flex items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(190,18,60,0.35)] hover:shadow-[0_0_16px_rgba(225,29,72,0.55)]"
                 >
                   <Landmark className="w-3.5 h-3.5 text-[#FDA4AF]" />
                   <span>Add Temple</span>
@@ -358,7 +358,7 @@ export default function Navbar({
               >
                 <ShoppingBasket className="w-5.5 h-5.5" />
                 {totalCartItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#FFB347] text-[#021816] text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[#FFB347] text-[#021816] text-[11px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                     {totalCartItems}
                   </span>
                 )}
@@ -605,7 +605,7 @@ export default function Navbar({
                   <Mail className="w-4 h-4" />
                 </a>
               </div>
-              <p className="text-[9px] text-white/40 mt-4 text-center">
+              <p className="text-[11px] text-white/40 mt-4 text-center">
                 Shradhalu Private Limited
               </p>
             </div>

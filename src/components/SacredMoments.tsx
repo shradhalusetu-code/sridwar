@@ -146,7 +146,7 @@ export default function SacredMoments() {
             photos, not a live video feed, so it is labeled honestly. */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
           <h3 className="font-serif text-base font-bold text-white">Sacred Moments</h3>
-          <div className="bg-white/10 text-white/80 text-[9px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 uppercase border border-white/10">
+          <div className="bg-white/10 text-white/80 text-[11px] font-black tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 uppercase border border-white/10">
             Gallery
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function SacredMoments() {
           {/* Slide caption */}
           <div className="absolute inset-x-0 bottom-0 p-3">
             <h4 className="font-serif text-sm font-bold text-white drop-shadow">{slide.title}</h4>
-            <p className="text-[10px] text-white/80 mt-0.5 drop-shadow">{slide.desc}</p>
+            <p className="text-[12px] text-white/80 mt-0.5 drop-shadow">{slide.desc}</p>
           </div>
           {/* Slide dots */}
           <div className="absolute top-2 right-2 flex gap-1">
@@ -185,9 +185,9 @@ export default function SacredMoments() {
         <div className="px-4 pb-4 flex flex-col">
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3 shrink-0">
             <span className="text-xs font-bold text-white/80">Prayer Wall</span>
-            <span className="text-[9px] font-mono text-white/40">Prayers</span>
+            <span className="text-[11px] font-mono text-white/40">Prayers</span>
           </div>
-          <p className="text-[10px] text-white/40 -mt-2 mb-2 shrink-0">
+          <p className="text-[12px] text-white/40 -mt-2 mb-2 shrink-0">
             Devotee reviews, plus a private space to offer your own prayer. Your prayer is saved to our records so the team can include it here for other devotees; it is not shared publicly until reviewed. Automated replies are marked "AI-generated".
           </p>
 
@@ -207,7 +207,7 @@ export default function SacredMoments() {
                 <div key={i} className="text-xs bg-white/5 p-2.5 rounded-2xl border border-white/10">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="font-bold text-[#5EEAD4]">{msg.name}</span>
-                    <span className="text-[9px] text-white/40 font-mono">{msg.location}</span>
+                    <span className="text-[11px] text-white/40 font-mono">{msg.location}</span>
                   </div>
                   <p className="text-white/80 line-clamp-2">{msg.msg}</p>
                 </div>

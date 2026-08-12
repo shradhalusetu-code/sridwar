@@ -164,7 +164,7 @@ export default function UPIPaymentModal({
         >
           <div className="min-w-0 flex-1">
             <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Complete Your Sacred Offering</h3>
-            <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">PhonePe · GPay · Paytm · BHIM</p>
+            <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">PhonePe · GPay · Paytm · BHIM</p>
           </div>
           <button onClick={onClose} className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 w-8 h-8 flex items-center justify-center ml-2">
             <X className="w-4 h-4" />
@@ -189,10 +189,10 @@ export default function UPIPaymentModal({
 
             {/* Amount Display */}
             <div className="bg-white/5 rounded-2xl p-4 border border-white/10 text-center space-y-1">
-              <span className="block text-[10px] font-mono text-white/40 uppercase tracking-widest">{bookingName}</span>
+              <span className="block text-[12px] font-mono text-white/40 uppercase tracking-widest">{bookingName}</span>
               {allowCustomAmount ? (
                 <div className="space-y-2">
-                  <p className="text-[10px] text-white/50">Enter your divine contribution amount</p>
+                  <p className="text-[12px] text-white/50">Enter your divine contribution amount</p>
                   <div className="flex items-center justify-center space-x-2">
                     <span className="text-xl font-black text-[#FFB347]">₹</span>
                     <input
@@ -202,17 +202,17 @@ export default function UPIPaymentModal({
                       placeholder="51"
                     />
                   </div>
-                  <p className="text-[9px] text-white/30 font-mono">Min ₹{minAmount} · Max ₹{maxAmount}</p>
+                  <p className="text-[11px] text-white/30 font-mono">Min ₹{minAmount} · Max ₹{maxAmount}</p>
                 </div>
               ) : (
                 <span className="text-3xl font-black font-serif text-[#FFB347]">₹{amount}</span>
               )}
-              <span className="block text-[10px] text-white/30 font-mono">Ref: {refId}</span>
+              <span className="block text-[12px] text-white/30 font-mono">Ref: {refId}</span>
             </div>
 
             {/* Dynamic UPI QR Code */}
             <div className="flex flex-col items-center space-y-2">
-              <span className="text-[10px] text-white/50 font-mono uppercase tracking-wider">📱 Scan QR with PhonePe · GPay · Paytm · BHIM</span>
+              <span className="text-[12px] text-white/50 font-mono uppercase tracking-wider">📱 Scan QR with PhonePe · GPay · Paytm · BHIM</span>
               <div className="bg-white p-3 rounded-2xl shadow-xl border-4 border-[#FFB347]">
                 <img
                   src={buildUpiQrImageUrl(effectiveAmount, bookingName)}
@@ -223,7 +223,7 @@ export default function UPIPaymentModal({
                   draggable={false}
                 />
               </div>
-              <p className="text-[11px] text-white/55 text-center leading-relaxed">
+              <p className="text-[13px] text-white/55 text-center leading-relaxed">
                 On a phone you can also{" "}
                 <a href={buildUpiLink(effectiveAmount, bookingName)} className="text-[#5EEAD4] underline font-semibold">
                   tap here to pay directly
@@ -233,7 +233,7 @@ export default function UPIPaymentModal({
 
             <div className="flex items-center space-x-3">
               <div className="flex-1 h-px bg-white/10" />
-              <span className="text-[10px] text-white/30 font-mono">OR</span>
+              <span className="text-[12px] text-white/30 font-mono">OR</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
@@ -242,27 +242,27 @@ export default function UPIPaymentModal({
               <span className="text-lg">💬</span>
               <div className="text-left">
                 <span className="block font-extrabold">Pay via WhatsApp</span>
-                <span className="block text-[9px] font-normal opacity-80">Opens WhatsApp with payment details</span>
+                <span className="block text-[11px] font-normal opacity-80">Opens WhatsApp with payment details</span>
               </div>
             </button>
 
             <div className="flex items-center justify-between bg-white/5 px-4 py-3 rounded-xl border border-white/10">
               <div>
-                <span className="block text-[9px] text-white/40 font-mono uppercase">UPI ID · Sridwar</span>
+                <span className="block text-[11px] text-white/40 font-mono uppercase">UPI ID · Sridwar</span>
                 <span className="text-sm font-bold text-white font-mono">{UPI_ID}</span>
               </div>
               <button onClick={handleCopyUPI}
-                className="flex items-center space-x-1 bg-[#FFB347]/10 hover:bg-[#FFB347]/20 text-[#FFB347] px-3 py-1.5 rounded-lg text-[10px] font-bold border border-[#FFB347]/20 transition-all">
+                className="flex items-center space-x-1 bg-[#FFB347]/10 hover:bg-[#FFB347]/20 text-[#FFB347] px-3 py-1.5 rounded-lg text-[12px] font-bold border border-[#FFB347]/20 transition-all">
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 <span>{copied ? "Copied!" : "Copy UPI"}</span>
               </button>
             </div>
 
-            <div className="text-[10px] text-white/40 font-mono text-center">
+            <div className="text-[12px] text-white/40 font-mono text-center">
               Booking for: <span className="text-white/70 font-bold">{devoteeName}</span>
             </div>
 
-            <div className="flex items-start space-x-2 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 px-3 py-2.5 rounded-xl text-[10px] text-[#5EEAD4] font-mono">
+            <div className="flex items-start space-x-2 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 px-3 py-2.5 rounded-xl text-[12px] text-[#5EEAD4] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 3 working days of payment confirmation. 🙏</span>
             </div>
@@ -273,7 +273,7 @@ export default function UPIPaymentModal({
                 <Check className="w-4 h-4" />
                 <div className="text-left">
                   <span className="block">I Have Paid — Notify Sri Dwar 🙏</span>
-                  <span className="block text-[9px] font-normal opacity-70 normal-case tracking-normal">Sends instant WhatsApp alert to our team</span>
+                  <span className="block text-[11px] font-normal opacity-70 normal-case tracking-normal">Sends instant WhatsApp alert to our team</span>
                 </div>
               </button>
             ) : (
@@ -283,7 +283,7 @@ export default function UPIPaymentModal({
               </div>
             )}
 
-            <p className="text-[9px] text-white/20 text-center font-mono pb-1">
+            <p className="text-[11px] text-white/20 text-center font-mono pb-1">
               Our team confirms bookings within 2 hours via WhatsApp & Email. 🙏
             </p>
 

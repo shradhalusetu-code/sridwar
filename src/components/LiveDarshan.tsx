@@ -73,7 +73,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   <span className="text-xs font-mono text-[#5EEAD4] tracking-wider uppercase font-bold">
                     Virtual Live Darshan Room
                   </span>
-                  <span className="bg-amber-500/15 text-amber-300 border border-amber-400/30 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                  <span className="bg-amber-500/15 text-amber-300 border border-amber-400/30 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
                     Feed Updating Soon
                   </span>
                 </>
@@ -82,7 +82,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   <span className="text-xs font-mono text-[#5EEAD4] tracking-wider uppercase font-bold">
                     Darshan Preview
                   </span>
-                  <span className="bg-white/10 text-white/70 border border-white/15 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                  <span className="bg-white/10 text-white/70 border border-white/15 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md">
                     Live Video Coming Soon
                   </span>
                 </>
@@ -103,7 +103,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   </span>
                   <div className="truncate">
                     <span className="block font-bold truncate text-white text-xs">{darshanTemple.name}</span>
-                    <span className="block text-[10px] text-white/55 truncate">{darshanTemple.deity}</span>
+                    <span className="block text-[12px] text-white/55 truncate">{darshanTemple.deity}</span>
                   </div>
                 </div>
                 <ChevronDown
@@ -136,7 +136,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                           </span>
                           <div className="truncate">
                             <span className="block font-bold truncate text-white">{templeObj.name}</span>
-                            <span className="block text-[10px] text-white/55 truncate">{templeObj.deity}</span>
+                            <span className="block text-[12px] text-white/55 truncate">{templeObj.deity}</span>
                           </div>
                         </div>
                       </button>
@@ -171,7 +171,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/50 pointer-events-none" />
               <div className="absolute inset-0 bg-yellow-600/5 mix-blend-color-burn pointer-events-none" />
 
-              <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-[9px] font-mono text-white/80 flex items-center space-x-1 border border-white/10 z-10">
+              <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-lg text-[11px] font-mono text-white/80 flex items-center space-x-1 border border-white/10 z-10">
                 <MapPin className="w-3 h-3 text-[#5EEAD4] shrink-0" />
                 <span>{darshanInfo.gps}</span>
               </div>
@@ -252,7 +252,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                       window.dispatchEvent(new CustomEvent("sd-open-darshan-register"));
                     }, 150);
                   }}
-                  className="w-full h-full min-h-[3.25rem] bg-gradient-to-r from-[#0F766E] to-[#0D9488] hover:from-[#0D9488] hover:to-[#14B8A6] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-3 rounded-full border border-[#5EEAD4]/40 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center text-center space-x-2 cursor-pointer"
+                  className="w-full h-full min-h-[3.25rem] bg-gradient-to-r from-[#0F766E] to-[#0D9488] hover:from-[#0D9488] hover:to-[#14B8A6] text-white font-bold text-[12px] sm:text-[13px] uppercase tracking-wider py-3.5 px-3 rounded-full border border-[#5EEAD4]/40 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center text-center space-x-2 cursor-pointer"
                   style={{
                     boxShadow: "0 0 16px rgba(20,184,166,0.4)",
                     animation: "certificateGlowPulse 2.4s ease-in-out infinite",
@@ -266,7 +266,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   <button
                     id="darshan-page-raise-temple-issues-cta"
                     onClick={() => onNavigate("report-temple-issues")}
-                    className="w-full h-full min-h-[3.25rem] bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-3 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center text-center space-x-2 cursor-pointer"
+                    className="w-full h-full min-h-[3.25rem] bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white font-bold text-[12px] sm:text-[13px] uppercase tracking-wider py-3.5 px-3 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center text-center space-x-2 cursor-pointer"
                     style={{
                       boxShadow: "0 0 16px rgba(190,18,60,0.4)",
                       animation: "issuesGlowPulse 2.4s ease-in-out infinite",
@@ -281,7 +281,7 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                   <button
                     id="pathway-watch-live"
                     onClick={() => onNavigate("seva")}
-                    className="relative w-full h-full min-h-[3.25rem] flex items-center justify-center text-center space-x-1.5 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-3 rounded-full transition-all hover:scale-105 active:scale-95 border border-[#FFD700]/60 cursor-pointer"
+                    className="relative w-full h-full min-h-[3.25rem] flex items-center justify-center text-center space-x-1.5 bg-gradient-to-r from-[#FF6B00] to-[#FF9900] hover:from-[#FF8C00] hover:to-[#FFB300] text-white font-extrabold text-[12px] sm:text-[13px] uppercase tracking-wider py-3.5 px-3 rounded-full transition-all hover:scale-105 active:scale-95 border border-[#FFD700]/60 cursor-pointer"
                     style={{
                       boxShadow: "0 0 20px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.25)",
                       animation: "sponsorAartiPulse 2s ease-in-out infinite",

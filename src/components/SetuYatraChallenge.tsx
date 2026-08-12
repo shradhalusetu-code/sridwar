@@ -19,14 +19,14 @@ function H3({ children }: { children: ReactNode }) {
   return <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono mt-6 mb-2">{children}</h3>;
 }
 function P({ children }: { children: ReactNode }) {
-  return <p className="text-[13px] text-white/65 leading-relaxed mb-2">{children}</p>;
+  return <p className="text-[15px] text-white/65 leading-relaxed mb-2">{children}</p>;
 }
 function UL({ children }: { children: ReactNode }) {
   return <ul className="space-y-1.5 mb-2">{children}</ul>;
 }
 function LI({ children }: { children: ReactNode }) {
   return (
-    <li className="text-[13px] text-white/65 leading-relaxed flex gap-2">
+    <li className="text-[15px] text-white/65 leading-relaxed flex gap-2">
       <span className="text-[#5EEAD4] mt-0.5">•</span><span>{children}</span>
     </li>
   );
@@ -49,15 +49,15 @@ function GuideContent() {
 
       <H3>How the Challenge Works</H3>
       <OL>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">You add real, checkable entries — temples, puja mandals, puja committees, priests, dharmic experts, or yourself — to the Sri Dwar directory.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Every valid entry receives a personal acknowledgement from the Sri Dwar team.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">At the end of the offer period, contributors are ranked by the number of valid entries they have submitted.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Top contributors win a fully-covered 1-week Yatra. The single top-ranked contributor wins the Grand Prize — a fully-covered All India Yatra.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">You add real, checkable entries — temples, puja mandals, puja committees, priests, dharmic experts, or yourself — to the Sri Dwar directory.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Every valid entry receives a personal acknowledgement from the Sri Dwar team.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">At the end of the offer period, contributors are ranked by the number of valid entries they have submitted.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Top contributors win a fully-covered 1-week Yatra. The single top-ranked contributor wins the Grand Prize — a fully-covered All India Yatra.</li>
       </OL>
 
       <H3>What You Can Add</H3>
       <div className="overflow-x-auto -mx-1 mb-2">
-        <table className="w-full text-[12px] border-collapse">
+        <table className="w-full text-[14px] border-collapse">
           <tbody>
             {[
               ["🛕", "Temple", "Any temple, mandir, or shrine — large or small, well-known or local"],
@@ -80,40 +80,40 @@ function GuideContent() {
 
       <p className="text-xs font-bold text-[#5EEAD4] mt-3 mb-1">A. Add a Temple, Puja Mandal, or Puja Committee</p>
       <OL>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Open the <strong className="text-white/80">Register Your Temple or Puja Committee</strong> section.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Fill in the temple/committee name, city, state, presiding deity, and address as accurately as possible.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Add the contact person's name and phone number — a real, reachable contact (priest, committee head, or trustee, wherever possible).</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Open the <strong className="text-white/80">Register Your Temple or Puja Committee</strong> section.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Fill in the temple/committee name, city, state, presiding deity, and address as accurately as possible.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Add the contact person's name and phone number — a real, reachable contact (priest, committee head, or trustee, wherever possible).</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">
           In the <strong className="text-white/80">Additional Notes</strong> field, write:{" "}
-          <code className="text-[11px] bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-[#FFB347]">Setu Yatra Challenge — Suggested by [Your Full Name], [Your WhatsApp Number]</code>{" "}
+          <code className="text-[13px] bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-[#FFB347]">Setu Yatra Challenge — Suggested by [Your Full Name], [Your WhatsApp Number]</code>{" "}
           — this is how your divine contribution gets credited to you.
         </li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Submit. You'll see a confirmation on screen once it goes through.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Submit. You'll see a confirmation on screen once it goes through.</li>
       </OL>
 
       <p className="text-xs font-bold text-[#5EEAD4] mt-3 mb-1">B. Add a Priest or Dharmic Expert</p>
       <OL>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Open the <strong className="text-white/80">Register a Dharmic Expert</strong> section.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Select the correct category (Pandit, Acharya, Astrologer, etc.) and fill in their name, city, experience, and services offered.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Open the <strong className="text-white/80">Register a Dharmic Expert</strong> section.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Select the correct category (Pandit, Acharya, Astrologer, etc.) and fill in their name, city, experience, and services offered.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">
           In the <strong className="text-white/80">Short Bio</strong> field, add:{" "}
-          <code className="text-[11px] bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-[#FFB347]">Setu Yatra Challenge — Suggested by [Your Full Name], [Your WhatsApp Number]</code>.
+          <code className="text-[13px] bg-white/8 border border-white/10 rounded px-1.5 py-0.5 text-[#FFB347]">Setu Yatra Challenge — Suggested by [Your Full Name], [Your WhatsApp Number]</code>.
         </li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Submit with their consent — only add dharmic experts who are real, reachable, and willing to be listed.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Submit with their consent — only add dharmic experts who are real, reachable, and willing to be listed.</li>
       </OL>
 
       <p className="text-xs font-bold text-[#5EEAD4] mt-3 mb-1">C. Add Yourself as a Devotee</p>
       <OL>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Open <strong className="text-white/80">Your Sacred Profile</strong>.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">Complete your devotee profile to receive your Sri Dwar Dharmic ID.</li>
-        <li className="text-[13px] text-white/65 leading-relaxed pl-1">This entry is automatically credited to you — no referral note needed.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Open <strong className="text-white/80">Your Sacred Profile</strong>.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">Complete your devotee profile to receive your Sri Dwar Dharmic ID.</li>
+        <li className="text-[15px] text-white/65 leading-relaxed pl-1">This entry is automatically credited to you — no referral note needed.</li>
       </OL>
 
       <p className="text-xs font-bold text-[#5EEAD4] mt-3 mb-1">D. Confirm Your Entry (Recommended)</p>
       <P>After submitting, send a short WhatsApp message confirming what you added:</P>
       <div className="bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 mb-2 space-y-1.5">
-        <p className="text-[12px] text-[#5EEAD4] font-mono flex items-center gap-1.5"><MessageCircle className="w-3 h-3" /> WhatsApp: +91 97776 45062</p>
-        <p className="text-[12px] text-white/55 italic leading-relaxed">
+        <p className="text-[14px] text-[#5EEAD4] font-mono flex items-center gap-1.5"><MessageCircle className="w-3 h-3" /> WhatsApp: +91 97776 45062</p>
+        <p className="text-[14px] text-white/55 italic leading-relaxed">
           "Setu Yatra Challenge entry — I added [Temple/Priest/My Profile] for [Name/City]. My name: [Your Name], [Your Phone Number]."
         </p>
       </div>
@@ -156,7 +156,7 @@ function TermsContent() {
   return (
     <div>
       <div className="bg-[#FFB347]/8 border border-[#FFB347]/25 rounded-xl px-3.5 py-3 mb-4">
-        <p className="text-[12px] text-[#FFB347]/90 leading-relaxed">
+        <p className="text-[14px] text-[#FFB347]/90 leading-relaxed">
           ⚠️ These are the governing rules for the Setu Yatra Challenge offer. Please read in full before participating.
         </p>
       </div>
@@ -209,7 +209,7 @@ function TermsContent() {
 
       <H3>7. Prizes</H3>
       <div className="overflow-x-auto -mx-1 mb-2">
-        <table className="w-full text-[12px] border-collapse">
+        <table className="w-full text-[14px] border-collapse">
           <tbody>
             {[
               ["Yatra Package 1", "Chhota Char Dham Yatra — Kedarnath, Gangotri, Yamunotri & Badrinath"],
@@ -260,8 +260,8 @@ function TermsContent() {
       <H3>13. Grievance &amp; Contact</H3>
       <P>For any queries, disputes, or grievances relating to this Offer, please contact:</P>
       <div className="bg-white/5 border border-white/10 rounded-xl px-3.5 py-3 mb-2 space-y-1.5">
-        <p className="text-[12px] text-white/70 font-mono flex items-center gap-1.5"><Mail className="w-3 h-3 text-[#5EEAD4]" /> puja@sridwar.com</p>
-        <p className="text-[12px] text-white/70 font-mono flex items-center gap-1.5"><MessageCircle className="w-3 h-3 text-[#5EEAD4]" /> +91 97776 45062</p>
+        <p className="text-[14px] text-white/70 font-mono flex items-center gap-1.5"><Mail className="w-3 h-3 text-[#5EEAD4]" /> puja@sridwar.com</p>
+        <p className="text-[14px] text-white/70 font-mono flex items-center gap-1.5"><MessageCircle className="w-3 h-3 text-[#5EEAD4]" /> +91 97776 45062</p>
       </div>
       <P>We aim to acknowledge grievances within 24 hours and resolve them within 15 working days, consistent with Sri Dwar's standard grievance redressal policy.</P>
 
@@ -277,7 +277,7 @@ function TermsContent() {
 
       <div className="border-t border-white/10 mt-5 pt-4 flex items-start gap-2">
         <MapPin className="w-3.5 h-3.5 text-white/30 shrink-0 mt-0.5" />
-        <p className="text-[11px] text-white/30 font-mono leading-relaxed">
+        <p className="text-[13px] text-white/30 font-mono leading-relaxed">
           Shradhalu Private Limited · Sobra, Maa Biraja Khetra, Jajpur, Odisha 755019, India
         </p>
       </div>
@@ -309,7 +309,7 @@ function SetuYatraModal({ initialTab, onClose }: { initialTab: Tab; onClose: () 
             </div>
             <div className="min-w-0">
               <p className="text-sm font-serif font-black text-white leading-tight truncate">Setu Yatra Challenge</p>
-              <p className="text-[10px] text-white/40 font-mono">An Initiative by Sridwar Technology</p>
+              <p className="text-[12px] text-white/40 font-mono">An Initiative by Sridwar Technology</p>
             </div>
           </div>
           <button
@@ -377,19 +377,19 @@ export function SetuYatraFooterLinks() {
     <>
       <div className="flex items-center justify-center gap-1.5 flex-wrap pt-1">
         <Trophy className="w-3 h-3 text-[#FFB347]/70" />
-        <span className="text-[11px] text-white/40">Part of the Setu Yatra Challenge —</span>
+        <span className="text-[13px] text-white/40">Part of the Setu Yatra Challenge —</span>
         <button
           type="button"
           onClick={() => setOpenTab("guide")}
-          className="text-[11px] font-semibold text-[#FFB347] hover:text-[#FFC97A] underline underline-offset-2 cursor-pointer"
+          className="text-[13px] font-semibold text-[#FFB347] hover:text-[#FFC97A] underline underline-offset-2 cursor-pointer"
         >
           How It Works
         </button>
-        <span className="text-[11px] text-white/30">·</span>
+        <span className="text-[13px] text-white/30">·</span>
         <button
           type="button"
           onClick={() => setOpenTab("terms")}
-          className="text-[11px] font-semibold text-[#5EEAD4] hover:text-[#9DECD8] underline underline-offset-2 cursor-pointer"
+          className="text-[13px] font-semibold text-[#5EEAD4] hover:text-[#9DECD8] underline underline-offset-2 cursor-pointer"
         >
           Terms &amp; Conditions
         </button>

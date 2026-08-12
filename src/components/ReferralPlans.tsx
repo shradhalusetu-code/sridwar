@@ -63,17 +63,17 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
         {isDevoteeTier(tier) && (
           <span className="block text-2xl font-serif font-black text-white/30 mt-1.5 text-left">{tier.cashbackRatePercent}% Cashback</span>
         )}
-        <p className="text-[10px] text-white/35 mt-1 mb-3 leading-snug">{tier.tagline}</p>
+        <p className="text-[12px] text-white/35 mt-1 mb-3 leading-snug">{tier.tagline}</p>
 
-        <div className="space-y-1.5 text-[10px] text-white/45 flex-1">
+        <div className="space-y-1.5 text-[12px] text-white/45 flex-1">
           {previewLines.map((line) => (
             <div key={line} className="flex gap-1.5"><Check className="w-3 h-3 text-white/25 shrink-0 mt-0.5" /><span>{line}</span></div>
           ))}
         </div>
 
         <div className="mt-3 pt-3 border-t border-white/5 text-center">
-          <span className="block text-[9px] text-[#FFB347]/70 font-semibold leading-snug mb-2">{unlockRequirement}</span>
-          <span className="inline-block text-[9px] font-bold text-white/30 uppercase tracking-wide border border-white/10 rounded-full px-2.5 py-1">
+          <span className="block text-[11px] text-[#FFB347]/70 font-semibold leading-snug mb-2">{unlockRequirement}</span>
+          <span className="inline-block text-[11px] font-bold text-white/30 uppercase tracking-wide border border-white/10 rounded-full px-2.5 py-1">
             Locked — pricing revealed on unlock
           </span>
         </div>
@@ -88,12 +88,12 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       }`}
     >
       {tier.highlight && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFB347] text-[#021816] text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFB347] text-[#021816] text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
           Most Popular
         </span>
       )}
       {!tier.highlight && isFree && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#5EEAD4] text-[#021816] text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#5EEAD4] text-[#021816] text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
           Always Free
         </span>
       )}
@@ -101,14 +101,14 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       <span className="font-serif text-base font-bold text-white">{tier.name}</span>
       <span className={`text-lg font-serif font-black mt-0.5 ${isFree ? "text-[#5EEAD4]" : "text-[#FFB347]"}`}>{priceLabel}</span>
       {!isFree && billing === "annual" && (
-        <span className="text-[9px] text-[#5EEAD4] font-semibold">{tier.annualSavingsLabel}</span>
+        <span className="text-[11px] text-[#5EEAD4] font-semibold">{tier.annualSavingsLabel}</span>
       )}
       {isDevoteeTier(tier) && (
         <span className="text-2xl font-serif font-black text-[#FFB347] mt-1.5">{tier.cashbackRatePercent}% Cashback</span>
       )}
-      <p className="text-[10px] text-white/50 mt-1 mb-3 leading-snug">{tier.tagline}</p>
+      <p className="text-[12px] text-white/50 mt-1 mb-3 leading-snug">{tier.tagline}</p>
 
-      <div className="space-y-1.5 text-[10px] text-white/70 flex-1">
+      <div className="space-y-1.5 text-[12px] text-white/70 flex-1">
         {isDevoteeTier(tier) ? (
           <>
             <div className="flex gap-1.5"><Wallet className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{tier.referralCapacity}</span></div>
@@ -127,10 +127,10 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
             <div className="flex gap-1.5"><Wallet className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{tier.commissionEligibility}</span></div>
             {(tier.priorityListing || tier.premiumVisibility || tier.verifiedBadge || tier.marketingTools) && (
               <div className="flex flex-wrap gap-1 pt-0.5">
-                {tier.priorityListing && <span className="text-[9px] font-semibold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-1.5 py-0.5">Priority listing</span>}
-                {tier.premiumVisibility && <span className="text-[9px] font-semibold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-1.5 py-0.5">Premium visibility</span>}
-                {tier.verifiedBadge && <span className="text-[9px] font-semibold text-[#FFB347] bg-[#FFB347]/10 border border-[#FFB347]/20 rounded-full px-1.5 py-0.5">Verified badge</span>}
-                {tier.marketingTools && <span className="text-[9px] font-semibold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-1.5 py-0.5">Marketing tools</span>}
+                {tier.priorityListing && <span className="text-[11px] font-semibold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-1.5 py-0.5">Priority listing</span>}
+                {tier.premiumVisibility && <span className="text-[11px] font-semibold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-1.5 py-0.5">Premium visibility</span>}
+                {tier.verifiedBadge && <span className="text-[11px] font-semibold text-[#FFB347] bg-[#FFB347]/10 border border-[#FFB347]/20 rounded-full px-1.5 py-0.5">Verified badge</span>}
+                {tier.marketingTools && <span className="text-[11px] font-semibold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 rounded-full px-1.5 py-0.5">Marketing tools</span>}
               </div>
             )}
           </>
@@ -139,13 +139,13 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
 
       <div className="mt-3 pt-3 border-t border-white/5 space-y-1">
         {(isDevoteeTier(tier) ? tier.bonusPerks : tier.exclusiveBenefits).slice(0, 3).map((b) => (
-          <span key={b} className="block text-[9px] text-white/45 leading-snug">✦ {b}</span>
+          <span key={b} className="block text-[11px] text-white/45 leading-snug">✦ {b}</span>
         ))}
       </div>
 
       <button
         onClick={onSelect}
-        className={`mt-3 w-full text-center text-[11px] font-bold px-3 py-2 rounded-full transition-all ${
+        className={`mt-3 w-full text-center text-[13px] font-bold px-3 py-2 rounded-full transition-all ${
           isFree
             ? "bg-[#5EEAD4] text-[#021816] border border-[#5EEAD4] hover:opacity-90"
             : "border border-[#FFB347]/40 text-[#FFB347] hover:bg-[#FFB347] hover:text-[#021816]"
@@ -285,16 +285,16 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               </button>
             </div>
             {billing === "annual" && (
-              <span className="text-[10px] font-bold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/30 px-2.5 py-1 rounded-full">
+              <span className="text-[12px] font-bold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/30 px-2.5 py-1 rounded-full">
                 Save with annual billing — up to 60 days free
               </span>
             )}
           </div>
 
-          <p className="text-[11px] text-white/50 mb-3 max-w-2xl">{activeCategoryMeta.intro}</p>
+          <p className="text-[13px] text-white/50 mb-3 max-w-2xl">{activeCategoryMeta.intro}</p>
 
           {activeCategory === "devotee" && (
-            <p className="text-[11px] text-white/60 mb-4 max-w-2xl">
+            <p className="text-[13px] text-white/60 mb-4 max-w-2xl">
               On top of your standard booking cashback, each Devotee Referral Circle tier earns an{" "}
               <span className="font-black text-[#FFB347]">additional</span> referral cashback:{" "}
               {(activeTiers as DevoteeReferralTier[]).map((tier, i, arr) => (
@@ -323,12 +323,12 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
             })}
           </div>
 
-          <p className="text-[10px] text-white/40 mt-3 italic">
+          <p className="text-[12px] text-white/40 mt-3 italic">
             {activeCategory === "devotee"
               ? "The Devotee Circles are always free — there is no subscription fee at any tier. Referral cashback and bonus figures are good-faith average estimates based on platform activity, not guaranteed income."
               : "Lead, fee, and opportunity figures are good-faith average estimates based on platform activity, not guaranteed income. Subscription fees are service fees for platform benefits, not an investment."}
           </p>
-          <p className="text-[10px] text-white/40 mt-1 italic">
+          <p className="text-[12px] text-white/40 mt-1 italic">
             {activeCategory === "devotee"
               ? "New devotees start on the first Circle. Higher Circles unlock automatically as your own genuine bookings and verified community divine contributions grow — never by recruiting other people or paying for a higher tier."
               : "New providers start on the first tier of each ladder. Higher tiers unlock automatically as verified referred devotees (genuine customers) grow — no separate application needed."}
@@ -346,11 +346,11 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               <div key={tier.bookingLabel} className="bg-[#021816] border border-white/10 rounded-2xl p-4 text-center">
                 <span className="block text-3xl font-serif font-black text-[#FFB347]">{tier.rate}%</span>
                 <span className="block text-xs font-bold text-white uppercase tracking-wide mt-1">{tier.bookingLabel}</span>
-                <p className="text-[11px] text-white/55 mt-2 leading-snug">{tier.description}</p>
+                <p className="text-[13px] text-white/55 mt-2 leading-snug">{tier.description}</p>
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-white/40 mt-4 italic">
+          <p className="text-[12px] text-white/40 mt-4 italic">
             Cashback percentages reset per referred devotee, apply to eligible, paid bookings only, and stop accruing after that
             devotee's {REFERRAL_CASHBACK_BOOKING_CAP}th successful booking. Higher subscription tiers unlock boosted cashback percentages —
             see plans above.
@@ -370,8 +370,8 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                   <span className="text-xl leading-none">{m.icon}</span>
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-white block">{m.title}</span>
-                    <span className="text-[10px] text-white/50 block line-clamp-2">{m.requirement}</span>
-                    <span className="text-[10px] text-[#FFB347] font-semibold block mt-0.5">{m.reward}</span>
+                    <span className="text-[12px] text-white/50 block line-clamp-2">{m.requirement}</span>
+                    <span className="text-[12px] text-[#FFB347] font-semibold block mt-0.5">{m.reward}</span>
                   </div>
                 </div>
               ))}
@@ -384,7 +384,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                 <Gift className="w-5 h-5 text-[#5EEAD4]" />
                 <h2 className="font-serif text-base font-bold text-white">Seasonal Campaigns & Grand Prizes</h2>
               </div>
-              <span className="text-[9px] text-white/40 font-mono">
+              <span className="text-[11px] text-white/40 font-mono">
                 {showAllCampaigns ? `All ${SEASONAL_CAMPAIGNS.length}` : `${VISIBLE_CAMPAIGN_COUNT} of ${SEASONAL_CAMPAIGNS.length}`}
               </span>
             </div>
@@ -399,15 +399,15 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                 <div key={c.name} className="bg-[#021816] border border-white/5 rounded-xl p-3 min-h-[68px]">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-white">{c.name}</span>
-                    <span className="text-[9px] font-mono text-[#FFB347] bg-[#FFB347]/10 px-2 py-0.5 rounded-full border border-[#FFB347]/20 shrink-0">{c.window}</span>
+                    <span className="text-[11px] font-mono text-[#FFB347] bg-[#FFB347]/10 px-2 py-0.5 rounded-full border border-[#FFB347]/20 shrink-0">{c.window}</span>
                   </div>
-                  <p className="text-[10px] text-white/55 mt-1 leading-snug line-clamp-2">{c.description}</p>
+                  <p className="text-[12px] text-white/55 mt-1 leading-snug line-clamp-2">{c.description}</p>
                 </div>
               ))}
               {!showAllCampaigns && SEASONAL_CAMPAIGNS.length > VISIBLE_CAMPAIGN_COUNT && (
                 <button
                   onClick={() => setShowAllCampaigns(true)}
-                  className="w-full text-center text-[10px] font-bold text-[#FFB347] hover:text-white py-2 rounded-xl border border-dashed border-[#FFB347]/30 hover:border-[#FFB347]/60 transition-colors"
+                  className="w-full text-center text-[12px] font-bold text-[#FFB347] hover:text-white py-2 rounded-xl border border-dashed border-[#FFB347]/30 hover:border-[#FFB347]/60 transition-colors"
                 >
                   Scroll or tap to see {SEASONAL_CAMPAIGNS.length - VISIBLE_CAMPAIGN_COUNT} more campaigns
                 </button>
@@ -425,24 +425,24 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 mb-4">
             {FRAUD_PREVENTION_RULES.map((r) => (
               <div key={r.title} className="bg-[#021816] border border-white/5 rounded-xl p-3">
-                <span className="text-[10px] font-bold text-white block mb-1">{r.title}</span>
-                <span className="text-[9px] text-white/50 leading-snug block">{r.description}</span>
+                <span className="text-[12px] font-bold text-white block mb-1">{r.title}</span>
+                <span className="text-[11px] text-white/50 leading-snug block">{r.description}</span>
               </div>
             ))}
           </div>
 
           <div className="bg-[#021816] border border-[#FFB347]/20 rounded-2xl p-4 mb-4">
-            <span className="text-[10px] font-bold text-[#FFB347] block mb-1.5 uppercase tracking-wide">{REFERRAL_CASHBACK_DISCLAIMER.title}</span>
+            <span className="text-[12px] font-bold text-[#FFB347] block mb-1.5 uppercase tracking-wide">{REFERRAL_CASHBACK_DISCLAIMER.title}</span>
             <ul className="space-y-1">
               {REFERRAL_CASHBACK_DISCLAIMER.points.map((point) => (
-                <li key={point} className="text-[9px] text-white/50 leading-snug flex gap-1.5">
+                <li key={point} className="text-[11px] text-white/50 leading-snug flex gap-1.5">
                   <span className="text-[#FFB347]/60">•</span>
                   <span>{point}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px]">
             <span className="text-white/50">Every Dharmic ID's referral data is protected under our:</span>
             <button onClick={() => onOpenLegalDoc("referral")} className="text-[#FFB347] font-bold underline underline-offset-2 hover:text-white flex items-center gap-1">
               Refer & Earn Program Terms <ChevronRight className="w-3 h-3" />

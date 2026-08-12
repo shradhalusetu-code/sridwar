@@ -124,7 +124,7 @@ function FounderCard({ founder }: { founder: Founder }) {
             <h3 className="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight">
               {founder.name}
             </h3>
-            <p className="text-[11px] sm:text-xs font-mono uppercase tracking-widest text-[#FFB347] font-bold mt-1.5">
+            <p className="text-[13px] sm:text-xs font-mono uppercase tracking-widest text-[#FFB347] font-bold mt-1.5">
               {founder.title}
             </p>
           </div>
@@ -138,7 +138,7 @@ function FounderCard({ founder }: { founder: Founder }) {
             {founder.pills.map((pill, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-[11px] text-white/85 font-sans"
+                className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-[13px] text-white/85 font-sans"
               >
                 {pill.icon}
                 {pill.label}
@@ -233,7 +233,7 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
 
             <blockquote className="border-l-4 border-[#FFB347] pl-5 py-2 text-xs italic font-serif text-white/95 bg-white/5 rounded-r-2xl">
               "We didn't build Sri Dwar to replace physical holy temple visits, but to bridge the spatial divide for elderly parents, sick individuals, and global NRIs — and to provide sustainable, transparent financial conduits for traditional priests, local flower vendors, and indigenous cows."
-              <span className="block mt-1 font-sans text-[10px] font-bold text-[#5EEAD4] not-italic uppercase font-mono">— Founder Kunu Rana</span>
+              <span className="block mt-1 font-sans text-[12px] font-bold text-[#5EEAD4] not-italic uppercase font-mono">— Founder Kunu Rana</span>
             </blockquote>
 
             <p className="text-sm text-white/80 leading-relaxed font-sans">
@@ -256,7 +256,7 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
               {/* Divine Overlay Accent */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10">
-                <p className="text-[10px] text-[#FFB347] font-mono uppercase tracking-widest font-bold">Divine Core</p>
+                <p className="text-[12px] text-[#FFB347] font-mono uppercase tracking-widest font-bold">Divine Core</p>
                 <p className="text-xs text-white/95 font-serif font-semibold">Bridging Global Devotees with Ancient Traditions</p>
               </div>
             </div>

@@ -894,7 +894,7 @@ export default function AuthDashboard({
                     <button
                       type="button"
                       onClick={() => { setShowForgotPassword(false); setForgotPasswordError(""); }}
-                      className="w-full text-center text-[10px] text-white/50 hover:text-white/80 underline cursor-pointer"
+                      className="w-full text-center text-[12px] text-white/50 hover:text-white/80 underline cursor-pointer"
                     >
                       Back to log in
                     </button>
@@ -1018,7 +1018,7 @@ export default function AuthDashboard({
                   <button
                     type="button"
                     onClick={() => { setShowForgotPassword(true); setAuthErrorMessage(""); setForgotPasswordEmail(userEmailField); }}
-                    className="mt-1.5 text-[10px] text-[#5EEAD4] hover:text-[#14B8A6] underline cursor-pointer"
+                    className="mt-1.5 text-[12px] text-[#5EEAD4] hover:text-[#14B8A6] underline cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -1060,7 +1060,7 @@ export default function AuthDashboard({
                 )}
               </button>
 
-              <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-[#5EEAD4] bg-white/5 py-1.5 rounded-lg border border-white/10">
+              <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-[#5EEAD4] bg-white/5 py-1.5 rounded-lg border border-white/10">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4]" />
                 <span>Powered by Sri Dwar Technology</span>
               </div>
@@ -1100,7 +1100,7 @@ export default function AuthDashboard({
                   </select>
                 </div>
 
-                <div className="sanskrit-divider text-[10px]">or</div>
+                <div className="sanskrit-divider text-[12px]">or</div>
 
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-white/80 mb-1">Mention your own preferred Puja Mandap</label>
@@ -1155,7 +1155,7 @@ export default function AuthDashboard({
                   />
                 </div>
 
-                <div className="flex items-start space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
+                <div className="flex items-start space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared with you on WhatsApp & Email within 3 working days of your divine contribution.</span>
                 </div>
@@ -1221,39 +1221,39 @@ export default function AuthDashboard({
                 {/* Card Header — brand logo centered at top, like a corporate ID crest */}
                 <div className="relative flex flex-col items-center border-b border-white/10 pb-2 mb-2.5">
                   <SriDwarLogo variant="colored" iconSize="sm" className="mx-auto justify-center" showTagline={false} />
-                  <span className="mt-1.5 text-[9px] font-bold tracking-[0.2em] uppercase text-[#FFB347]/80">
+                  <span className="mt-1.5 text-[11px] font-bold tracking-[0.2em] uppercase text-[#FFB347]/80">
                     Dharmic Identity Card
                   </span>
                 </div>
 
                 {/* Shradhalu Name */}
                 <div className="relative mb-3 text-left">
-                  <span className="text-[9px] text-white/60 block uppercase">Shradhalu Name</span>
+                  <span className="text-[11px] text-white/60 block uppercase">Shradhalu Name</span>
                   <span className="font-serif font-black text-base text-[#FFB347] truncate block">{userProfile.name}</span>
                 </div>
 
                 {/* Card Main Info layout */}
                 <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2.5 text-xs font-mono mb-2.5 text-left">
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Dharmic ID</span>
+                    <span className="text-[11px] text-white/60 block uppercase">Dharmic ID</span>
                     <span className="font-bold block">SDM-23491-IN2</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Membership Tier</span>
+                    <span className="text-[11px] text-white/60 block uppercase">Membership Tier</span>
                     <span className="font-bold text-white block truncate">Lifetime Shradhalu</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Gotra / Lineage</span>
+                    <span className="text-[11px] text-white/60 block uppercase">Gotra / Lineage</span>
                     <span className="font-bold text-white block truncate">{userGotra}</span>
                   </div>
                   <div>
-                    <span className="text-[9px] text-white/60 block uppercase">Sign / Rashi</span>
+                    <span className="text-[11px] text-white/60 block uppercase">Sign / Rashi</span>
                     <span className="font-bold block truncate">{userRashi}</span>
                   </div>
                 </div>
 
                 {/* Card footer Bar — with real Sri Dwar QR code for verification */}
-                <div className="relative flex items-center gap-2.5 text-[8px] font-mono bg-[#021816]/60 p-2 rounded-xl mt-2.5">
+                <div className="relative flex items-center gap-2.5 text-[10px] font-mono bg-[#021816]/60 p-2 rounded-xl mt-2.5">
                   <div className="flex-1 flex flex-col gap-1 min-w-0">
                     <div className="flex justify-between items-center">
                       <span>Registered: June 2026</span>
@@ -1296,10 +1296,10 @@ export default function AuthDashboard({
                           >
                             <div className="absolute right-4 top-4 text-2xl">🐚</div>
                             <h4 className="font-serif text-sm font-bold text-white">{item.pujaName}</h4>
-                            <span className="text-[10px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
+                            <span className="text-[12px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
                             <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
                               <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
-                              <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase animate-pulse">
+                              <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase animate-pulse">
                                 Sankalpa Scheduled
                               </span>
                             </div>
@@ -1332,16 +1332,16 @@ export default function AuthDashboard({
                           id={`synced-activity-${rec.id}`}
                           className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
                         >
-                          <span className="text-[9px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
+                          <span className="text-[11px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
                             {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
                           </span>
                           <h4 className="font-serif text-sm font-bold text-white pr-4">{rec.itemName}</h4>
-                          <span className="text-[10px] text-white/50 font-mono font-medium block">
+                          <span className="text-[12px] text-white/50 font-mono font-medium block">
                             Ref: {rec.refId} | {new Date(rec.createdAt).toLocaleDateString()}
                           </span>
                           <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
                             <span className="font-bold text-[#FFB347]">₹{rec.amount}{rec.paymentMethod ? ` · ${rec.paymentMethod}` : ""}</span>
-                            <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase border ${badge.cls}`}>
+                            <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase border ${badge.cls}`}>
                               {badge.label}
                             </span>
                           </div>
@@ -1371,7 +1371,7 @@ export default function AuthDashboard({
                         className="bg-[#092320] border border-white/10 px-4 py-3 rounded-2xl text-left flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
-                          <span className="text-[10px] text-[#5EEAD4] font-mono uppercase tracking-wider block">
+                          <span className="text-[12px] text-[#5EEAD4] font-mono uppercase tracking-wider block">
                             {FORM_TYPE_LABELS[sub.formType] || sub.formType}
                           </span>
                           <span className="text-xs text-white/70 block truncate">
@@ -1436,14 +1436,14 @@ export default function AuthDashboard({
                 </div>
 
                 {postLoginContributionSuccess && (
-                  <div className="bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 p-2.5 rounded-xl text-[10px] text-center font-bold">
+                  <div className="bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 p-2.5 rounded-xl text-[12px] text-center font-bold">
                     ✓ Your support has been recorded! It now appears under "All Account Activity" — our team will confirm it shortly.
                   </div>
                 )}
 
                 {!showPostLoginContribute ? (
                   <>
-                    <p className="text-[10px] text-white/70 leading-relaxed font-sans">
+                    <p className="text-[12px] text-white/70 leading-relaxed font-sans">
                       One Divine Contribution. Countless Blessings. Be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas Through Sri Dwar. Together, let's build trust, serve devotees, and strengthen our sacred heritage. Your valuable divine contribution empowers our culture, community service, and our mission to make every act of devotion meaningful and transparent.
                     </p>
                     <button
@@ -1458,7 +1458,7 @@ export default function AuthDashboard({
                 ) : (
                   <div className="space-y-3.5 animate-fadeIn">
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 mb-1">Choose a temple from our network</label>
+                      <label className="block text-[12px] font-bold text-white/80 mb-1">Choose a temple from our network</label>
                       <select
                         id="profile-contribute-temple-select"
                         value={selectedTempleId}
@@ -1478,7 +1478,7 @@ export default function AuthDashboard({
                       </select>
                     </div>
 
-                    <div className="sanskrit-divider text-[10px]">or</div>
+                    <div className="sanskrit-divider text-[12px]">or</div>
 
                     <div className="space-y-2">
                       <input
@@ -1495,7 +1495,7 @@ export default function AuthDashboard({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-white/80 mb-1">Support Amount (₹)</label>
+                      <label className="block text-[12px] font-bold text-white/80 mb-1">Support Amount (₹)</label>
                       <div className="grid grid-cols-3 gap-2 mb-2">
                         {[51, 101, 251].map((amt) => (
                           <button
@@ -1548,30 +1548,30 @@ export default function AuthDashboard({
 
                 {/* How your support is used — 5-point impact summary */}
                 <div className="border-t border-white/5 pt-3 space-y-2.5">
-                  <p className="text-[10px] text-white/60 italic leading-relaxed">
+                  <p className="text-[12px] text-white/60 italic leading-relaxed">
                     Don't just offer your devotion — see it come alive.
                   </p>
-                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
                     <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
                     <span>Every booking, seva, order, and divine contribution you make directly supports your chosen temple or local puja mandal.</span>
                   </div>
-                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
                     <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
                     <span>Your generosity funds Annadanam — free sacred meals served to devotees.</span>
                   </div>
-                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
                     <Armchair className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
                     <span>It also funds seating facilities, a shed, waiting halls, and comfort for devotees visiting the pilgrimage sites.</span>
                   </div>
-                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
                     <Hammer className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
                     <span>Your offering supports maintenance and other sacred initiatives.</span>
                   </div>
-                  <div className="flex items-start gap-2 text-[10px] text-white/50 font-mono leading-relaxed">
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
                     <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
                     <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
                   </div>
-                  <p className="text-[10px] text-[#FFB347] italic leading-relaxed pt-1">
+                  <p className="text-[12px] text-[#FFB347] italic leading-relaxed pt-1">
                     Every offering becomes a blessing. Every blessing creates a difference.
                   </p>
                 </div>
@@ -1592,7 +1592,7 @@ export default function AuthDashboard({
                 <form onSubmit={handleSaveProfile} className="space-y-3.5">
                   {/* Phone number */}
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
                       Mobile / WhatsApp Number
                     </label>
                     <input
@@ -1607,7 +1607,7 @@ export default function AuthDashboard({
 
                   {/* Gotra lineage */}
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
                       Gotra Ancestry *
                     </label>
                     <input
@@ -1623,7 +1623,7 @@ export default function AuthDashboard({
 
                   {/* Moon Sign Rashi */}
                   <div>
-                    <label className="block text-[10px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
                       Vedic Astro Rashi (Moon Sign)
                     </label>
                     <select
@@ -1649,7 +1649,7 @@ export default function AuthDashboard({
 
                   {/* Family Members Sub-section */}
                   <div className="border-t border-white/5 pt-3.5 space-y-2">
-                    <span className="block text-[10px] font-bold text-white/85 uppercase tracking-wide text-left">
+                    <span className="block text-[12px] font-bold text-white/85 uppercase tracking-wide text-left">
                       Family Members (Chanting Sankalpa)
                     </span>
 
@@ -1658,10 +1658,10 @@ export default function AuthDashboard({
                         {familyMembers.map((member, index) => (
                           <div 
                             key={index} 
-                            className="flex items-center justify-between text-[11px] bg-[#021816] px-3 py-1.5 rounded-lg border border-white/5"
+                            className="flex items-center justify-between text-[13px] bg-[#021816] px-3 py-1.5 rounded-lg border border-white/5"
                           >
                             <span className="text-white font-medium truncate max-w-[120px] text-left">{member.name}</span>
-                            <span className="text-[#FFB347] font-sans text-[10px] px-1.5 py-0.5 bg-white/5 rounded border border-white/5">{member.relation}</span>
+                            <span className="text-[#FFB347] font-sans text-[12px] px-1.5 py-0.5 bg-white/5 rounded border border-white/5">{member.relation}</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveFamilyMember(index)}
@@ -1674,7 +1674,7 @@ export default function AuthDashboard({
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[10px] text-white/40 italic text-left text-left">
+                      <p className="text-[12px] text-white/40 italic text-left text-left">
                         No family members registered yet.
                       </p>
                     )}
@@ -1688,7 +1688,7 @@ export default function AuthDashboard({
                           placeholder="Member Name"
                           value={newMemberName}
                           onChange={(e) => setNewMemberName(e.target.value)}
-                          className="w-full text-[10px] px-2 py-1.5 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none"
+                          className="w-full text-[12px] px-2 py-1.5 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none"
                         />
                       </div>
                       <div className="col-span-4">
@@ -1696,7 +1696,7 @@ export default function AuthDashboard({
                           id="profile-family-new-relation"
                           value={newMemberRelation}
                           onChange={(e) => setNewMemberRelation(e.target.value)}
-                          className="w-full text-[10px] px-1.5 py-1.5 rounded-lg border border-white/10 bg-[#021816] text-[#5EEAD4] focus:outline-none cursor-pointer"
+                          className="w-full text-[12px] px-1.5 py-1.5 rounded-lg border border-white/10 bg-[#021816] text-[#5EEAD4] focus:outline-none cursor-pointer"
                         >
                           <option value="Spouse">Spouse</option>
                           <option value="Son">Son</option>
@@ -1724,14 +1724,14 @@ export default function AuthDashboard({
                     <button
                       id="save-sacred-profile-btn"
                       type="submit"
-                      className="w-full bg-[#0F766E] hover:bg-[#14B8A6] text-white font-bold text-[10px] uppercase tracking-widest py-2.5 px-4 rounded-xl shadow transition-transform active:scale-95 flex items-center justify-center space-x-1.5 cursor-pointer border-none"
+                      className="w-full bg-[#0F766E] hover:bg-[#14B8A6] text-white font-bold text-[12px] uppercase tracking-widest py-2.5 px-4 rounded-xl shadow transition-transform active:scale-95 flex items-center justify-center space-x-1.5 cursor-pointer border-none"
                     >
                       <Save className="w-3.5 h-3.5 text-[#FFB347]" />
                       <span>Save Sacred Profile</span>
                     </button>
 
                     {saveProfileSuccess && (
-                      <div className="mt-2 bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 p-2 rounded-xl text-[10px] text-center font-bold animate-pulse">
+                      <div className="mt-2 bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 p-2 rounded-xl text-[12px] text-center font-bold animate-pulse">
                         ✓ Sacred Profile & Gotra Lineage Saved!
                       </div>
                     )}
@@ -1770,7 +1770,7 @@ export default function AuthDashboard({
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Divine Contribution Portal</h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 leading-snug break-words">
+                  <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5 leading-snug break-words">
                     Temple Redevelopment Divine Contribution
                   </p>
                 </div>
@@ -1797,7 +1797,7 @@ export default function AuthDashboard({
                 </span>
               </div>
 
-              <p className="text-[11px] text-white/60 leading-relaxed">
+              <p className="text-[13px] text-white/60 leading-relaxed">
                 🙏 Please confirm your details so our pandits can register this divine contribution Sankalpa in your name and Gotra.
               </p>
 
@@ -1851,10 +1851,10 @@ export default function AuthDashboard({
                   placeholder="e.g. For the health and prosperity of my family..."
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35 resize-none"
                 />
-                <p className="text-[10px] text-white/30 mt-1 font-mono">Recited by the pandit during Sankalpa</p>
+                <p className="text-[12px] text-white/30 mt-1 font-mono">Recited by the pandit during Sankalpa</p>
               </div>
 
-              <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[10px] text-emerald-300 font-mono">
+              <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[12px] text-emerald-300 font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                 <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be sent on WhatsApp & Email within 3 working days. 🙏</span>
               </div>

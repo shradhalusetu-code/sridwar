@@ -432,10 +432,10 @@ export default function SacredIcon({ type, className = "", size = "md" }: Sacred
       className={`relative rounded-3xl overflow-hidden bg-gradient-to-b ${data.bgGradient} flex flex-col justify-between items-center p-6 border border-white/10 text-center shadow-lg hover:border-[#5EEAD4]/30 transition-all duration-300 ${dimensions} ${className}`}
     >
       {/* Decorative starry / light sparkles stream overlay */}
-      <div className="absolute top-2 left-2 text-[9px] text-[#FFB347] opacity-25 font-mono select-none">卐</div>
-      <div className="absolute top-2 right-2 text-[9px] text-[#FFB347] opacity-25 font-mono select-none">ॐ</div>
-      <div className="absolute bottom-2 left-2 text-[9px] text-white/10 font-mono select-none">ॐ</div>
-      <div className="absolute bottom-2 right-2 text-[9px] text-white/10 font-mono select-none">卐</div>
+      <div className="absolute top-2 left-2 text-[11px] text-[#FFB347] opacity-25 font-mono select-none">卐</div>
+      <div className="absolute top-2 right-2 text-[11px] text-[#FFB347] opacity-25 font-mono select-none">ॐ</div>
+      <div className="absolute bottom-2 left-2 text-[11px] text-white/10 font-mono select-none">ॐ</div>
+      <div className="absolute bottom-2 right-2 text-[11px] text-white/10 font-mono select-none">卐</div>
 
       {/* Embedded SVG graphics representation */}
       <div className="w-full h-32 flex items-center justify-center relative mb-4">
@@ -452,7 +452,7 @@ export default function SacredIcon({ type, className = "", size = "md" }: Sacred
         </svg>
 
         {/* Central dynamic displaying symbol as a stamp */}
-        <div className="absolute bottom-0 bg-[#021816]/90 border border-white/10 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest text-[#FFB347] font-extrabold uppercase shadow-sm">
+        <div className="absolute bottom-0 bg-[#021816]/90 border border-white/10 px-3 py-1 rounded-full text-[12px] font-mono tracking-widest text-[#FFB347] font-extrabold uppercase shadow-sm">
           {data.symbol}
         </div>
       </div>
@@ -462,7 +462,7 @@ export default function SacredIcon({ type, className = "", size = "md" }: Sacred
         <h4 className="font-serif text-sm font-black tracking-wider text-white uppercase truncate">
           {data.title}
         </h4>
-        <p className="text-[10px] font-mono tracking-widest text-white/60 uppercase truncate">
+        <p className="text-[12px] font-mono tracking-widest text-white/60 uppercase truncate">
           {data.sub}
         </p>
       </div>

@@ -196,20 +196,20 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
               className="w-full h-full object-cover select-none filter brightness-90"
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
-              <span className="text-[9px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
+              <span className="text-[11px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
                 {seva.templeAssociation}
               </span>
             </div>
             {/* Discount badge on image */}
             {isDiscountPromoVisible("seva") && (
-              <div className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide">
+              <div className="absolute top-2 right-2 bg-red-500 text-white text-[11px] font-black px-2 py-0.5 rounded-full tracking-wide">
                 {DISCOUNT_TAG}
               </div>
             )}
           </div>
         ) : (
           <div className="w-full h-20 rounded-2xl mb-4 border border-white/5 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-between px-4">
-            <span className="text-[9px] font-mono font-bold text-teal-300 uppercase tracking-wider">{seva.templeAssociation}</span>
+            <span className="text-[11px] font-mono font-bold text-teal-300 uppercase tracking-wider">{seva.templeAssociation}</span>
             <div className="p-2 rounded-xl bg-white/5 border border-white/10">{renderSevaIcon(seva.id)}</div>
           </div>
         )}
@@ -220,20 +220,20 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
             <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">
               {renderSevaIcon(seva.id)}
             </div>
-            <span className="text-[10px] uppercase font-mono tracking-wider text-white/50">Active Seva</span>
+            <span className="text-[12px] uppercase font-mono tracking-wider text-white/50">Active Seva</span>
           </div>
           <div className="flex flex-col items-end">
             {original && (
-              <span className="text-[9px] line-through text-white/35 font-mono">₹{original.toLocaleString("en-IN")}</span>
+              <span className="text-[11px] line-through text-white/35 font-mono">₹{original.toLocaleString("en-IN")}</span>
             )}
             <span className="text-sm font-extrabold text-[#FFB347] font-serif">₹{display.toLocaleString("en-IN")}</span>
           </div>
         </div>
 
-        <h4 className="text-base font-serif font-bold text-white mb-1">{seva.name}</h4>
-        <p className="text-[11px] text-white/70 min-h-[44px] leading-relaxed mb-4">{seva.significance}</p>
+        <h4 className="text-lg font-serif font-bold text-white mb-1">{seva.name}</h4>
+        <p className="text-[13px] text-white/70 min-h-[44px] leading-relaxed mb-4">{seva.significance}</p>
 
-        <div className="text-[10px] text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-4">
+        <div className="text-[12px] text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-4">
           <strong className="text-[#FFB347]">Impact:</strong> {seva.impactStat}
         </div>
       </div>
@@ -401,7 +401,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-serif text-xl font-bold text-white">Seva Offerings</h3>
-            <span className="text-[10px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full">
+            <span className="text-[12px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full">
               All Sevas Start at ₹100
             </span>
           </div>
@@ -450,7 +450,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-serif text-lg font-bold text-white">Counselling & Guidance</h3>
                 </div>
-                <p className="text-[11px] text-white/60 leading-relaxed mt-1.5 max-w-xl">
+                <p className="text-[13px] text-white/60 leading-relaxed mt-1.5 max-w-xl">
                   Confidential, wellbeing-oriented guidance for individuals, students, couples, families,
                   professionals & seniors — from experienced Pandits and Dharmic experts, offered in good faith as
                   personal and spiritual guidance, never as medical, psychiatric, or legal advice, and with no
@@ -488,7 +488,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-xl font-bold text-white">Sponsorship Services</h3>
             {isDiscountPromoVisible("seva") && (
-              <span className="text-[10px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
+              <span className="text-[12px] font-mono text-red-300 uppercase tracking-wide bg-red-500/10 border border-red-400/20 px-2.5 py-1 rounded-full">
                 {DISCOUNT_TAG} All Sevas
               </span>
             )}
@@ -532,14 +532,14 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                   <Sparkles className="w-4 h-4 text-[#FFB347]" />
                   <div>
                     <span className="text-sm font-bold text-white font-serif">More Sacred Sevas</span>
-                    <span className="block text-[10px] text-white/50 font-mono mt-0.5">
+                    <span className="block text-[12px] text-white/50 font-mono mt-0.5">
                       {hiddenFeaturedSevas.length + hiddenExtraSevas.length} additional offerings{isDiscountPromoVisible("seva") ? ` — all ${DISCOUNT_TAG.toLowerCase()}` : ""}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   {isDiscountPromoVisible("seva") && (
-                    <span className="text-[9px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
+                    <span className="text-[11px] font-mono text-red-300 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-400/20 hidden sm:inline">
                       {DISCOUNT_TAG}
                     </span>
                   )}
@@ -570,7 +570,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-[10px] text-white/35 font-mono mt-8 leading-relaxed max-w-2xl mx-auto">
+        <p className="text-center text-[12px] text-white/35 font-mono mt-8 leading-relaxed max-w-2xl mx-auto">
           Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple schedule, festival rush, priest availability, and temple rituals.
         </p>
       </div>

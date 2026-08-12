@@ -938,10 +938,10 @@ export default function App() {
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Legal & Compliance</h4>
               <ul className="space-y-2 text-xs text-white/60">
                 <li className="font-bold text-white">Shradhalu Private Ltd</li>
-                <li className="font-mono text-[10px] text-[#FFB347]">CIN: U62099OD2026PTC054237</li>
+                <li className="font-mono text-[12px] text-[#FFB347]">CIN: U62099OD2026PTC054237</li>
                 <li>Secured Payments: Sri Dwar UPI/Payment Gateway</li>
                 <li>Database: Sri Dwar secured records</li>
-                <li className="flex items-start space-x-2 text-[11px] text-white/55 leading-relaxed pt-1">
+                <li className="flex items-start space-x-2 text-[13px] text-white/55 leading-relaxed pt-1">
                   <MapPin className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0 mt-0.5" />
                   <span>Ground Floor, Sobra, Maa Biraja Khetra, Jajpur, Odisha, 755019</span>
                 </li>
@@ -1033,7 +1033,7 @@ export default function App() {
               {/* Disclaimer — relocated here from the brand column so it sits
                   directly beneath Social Linkages. */}
               <div className="mt-auto pt-5">
-                <p className="text-[10px] text-white/40 leading-relaxed italic border-t border-white/5 pt-3">
+                <p className="text-[12px] text-white/40 leading-relaxed italic border-t border-white/5 pt-3">
                   Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
                 </p>
               </div>
@@ -1044,22 +1044,22 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
               <div className="space-y-2 text-left lg:pr-6">
-                <p className="text-[10px] font-mono font-bold text-white/30 uppercase tracking-widest">
+                <p className="text-[12px] font-mono font-bold text-white/30 uppercase tracking-widest">
                   Government of India Initiatives
                 </p>
-                <p className="text-[11px] text-white/55 leading-relaxed">
+                <p className="text-[13px] text-white/55 leading-relaxed">
                   Recognized by <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">Digital India</strong>, and <strong className="text-white/75">FSSAI</strong>.
                 </p>
-                <p className="text-[11px] text-white/55 leading-relaxed">
+                <p className="text-[13px] text-white/55 leading-relaxed">
                   We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">GeM Registration</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
                 </p>
               </div>
               <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
                 <div className="flex items-center space-x-2">
                   <span className="text-base">📱</span>
-                  <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Now on Android</span>
+                  <span className="text-[12px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Now on Android</span>
                 </div>
-                <p className="text-[10px] text-white/50 leading-relaxed">
+                <p className="text-[12px] text-white/50 leading-relaxed">
                   Live darshans, one-tap puja booking, daily prayers, and personalised guidance. Available now on Android, with iOS on the way.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -1080,8 +1080,8 @@ export default function App() {
                       </svg>
                     </div>
                     <div>
-                      <span className="block text-[7px] text-[#5EEAD4]/80 uppercase tracking-widest font-mono">Download on</span>
-                      <span className="block text-[11px] font-bold text-white">Google Play</span>
+                      <span className="block text-[9px] text-[#5EEAD4]/80 uppercase tracking-widest font-mono">Download on</span>
+                      <span className="block text-[13px] font-bold text-white">Google Play</span>
                     </div>
                   </a>
                   <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
@@ -1091,8 +1091,8 @@ export default function App() {
                       </svg>
                     </div>
                     <div>
-                      <span className="block text-[7px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
-                      <span className="block text-[11px] font-bold text-white">App Store</span>
+                      <span className="block text-[9px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                      <span className="block text-[13px] font-bold text-white">App Store</span>
                     </div>
                   </div>
                 </div>
@@ -1122,25 +1122,25 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => { gaLegalDocOpen(key); setActiveLegalDoc(key); }}
-                    className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4] cursor-pointer bg-transparent border-none p-0"
+                    className="text-[13px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4] cursor-pointer bg-transparent border-none p-0"
                   >
                     {label}
                   </button>
-                  {i < arr.length - 1 && <span className="mx-2 text-white/20 text-[10px] select-none">·</span>}
+                  {i < arr.length - 1 && <span className="mx-2 text-white/20 text-[12px] select-none">·</span>}
                 </span>
               ))}
               <span className="flex items-center">
-                <span className="mx-2 text-white/20 text-[10px] select-none">·</span>
+                <span className="mx-2 text-white/20 text-[12px] select-none">·</span>
                 <a
                   href="/privacy-policy"
-                  className="text-[11px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4]"
+                  className="text-[13px] text-white/45 hover:text-[#5EEAD4] transition-colors underline underline-offset-2 decoration-white/15 hover:decoration-[#5EEAD4]"
                 >
                   Full Legal Documents
                 </a>
               </span>
             </div>
           </div>
-          <div className="pt-4 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[10px] text-white/40 font-mono gap-2">
+          <div className="pt-4 border-t border-white/5 text-center flex flex-col sm:flex-row justify-between items-center text-[12px] text-white/40 font-mono gap-2">
             <p>{t.copyright}</p>
             <p>Sri Dwar © {new Date().getFullYear()} · All Blessings Secured 🙏</p>
           </div>
@@ -1187,7 +1187,7 @@ export default function App() {
           }}
             style={{
               color: currentPage === tab.id ? '#FFB347' : 'rgba(255,255,255,0.5)',
-              background: 'none', border: 'none', fontSize: '10px',
+              background: 'none', border: 'none', fontSize: '12px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
               cursor: 'pointer', padding: '4px 8px'
             }}>
@@ -1229,7 +1229,7 @@ export default function App() {
                 <Heart className="w-5 h-5 text-[#FFB347] fill-[#FFB347] animate-pulse" />
                 <div className="text-left">
                   <h3 className="font-serif text-base font-bold text-white">Divine Seva Sponsorship</h3>
-                  <p className="text-[10px] font-mono text-[#FFB347] uppercase">Fostering Ancient Ritual Care</p>
+                  <p className="text-[12px] font-mono text-[#FFB347] uppercase">Fostering Ancient Ritual Care</p>
                 </div>
               </div>
               <button 
@@ -1267,12 +1267,12 @@ export default function App() {
                       <span className="text-xl">{item.symbol}</span>
                       <div className="text-left">
                         <span className="block font-bold text-white">{item.name}</span>
-                        <span className="block text-[10px] text-white/50">Perform on your Gotra Sankalpa</span>
+                        <span className="block text-[12px] text-white/50">Perform on your Gotra Sankalpa</span>
                       </div>
                     </div>
                     <div className="text-right">
                       {isDiscountPromoVisible("seva") && (
-                        <span className="block text-[9px] text-white/35 line-through font-mono">₹{item.price}</span>
+                        <span className="block text-[11px] text-white/35 line-through font-mono">₹{item.price}</span>
                       )}
                       <span className="text-xs font-black font-serif text-[#FFB347]">₹{getDiscountedPrice(item.price)}</span>
                     </div>
@@ -1280,7 +1280,7 @@ export default function App() {
                 ))}
               </div>
 
-              <p className="text-[9px] text-[#5EEAD4] font-mono text-center pt-2">
+              <p className="text-[11px] text-[#5EEAD4] font-mono text-center pt-2">
                 All divine contributions are written securely under Shradhalu Private Limited records.
               </p>
             </div>
@@ -1340,7 +1340,7 @@ export default function App() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-left">
                 <div>
                   <h5 className="font-bold text-[#5EEAD4]">GPS Coordinates:</h5>
-                  <p className="text-white/70 font-sans font-mono text-[11px]">
+                  <p className="text-white/70 font-sans font-mono text-[13px]">
                     {Math.abs(activeExploreTemple.coordinates.lat).toFixed(4)}° {activeExploreTemple.coordinates.lat >= 0 ? "N" : "S"}, {Math.abs(activeExploreTemple.coordinates.lng).toFixed(4)}° {activeExploreTemple.coordinates.lng >= 0 ? "E" : "W"}
                   </p>
                 </div>
@@ -1436,11 +1436,11 @@ export default function App() {
                           <span className="block font-bold text-white truncate">{item.product.name}</span>
                           {isDiscountPromoVisible("bazaar") ? (
                             <span className="flex items-center space-x-1.5 mt-0.5">
-                              <span className="text-[9px] text-white/35 line-through font-mono">₹{item.product.price}</span>
-                              <span className="text-[10px] text-[#FFB347] font-bold font-serif">₹{getDiscountedPrice(item.product.price)} INR</span>
+                              <span className="text-[11px] text-white/35 line-through font-mono">₹{item.product.price}</span>
+                              <span className="text-[12px] text-[#FFB347] font-bold font-serif">₹{getDiscountedPrice(item.product.price)} INR</span>
                             </span>
                           ) : (
-                            <span className="block text-[10px] text-[#FFB347] font-bold font-serif mt-0.5">₹{getDiscountedPrice(item.product.price)} INR</span>
+                            <span className="block text-[12px] text-[#FFB347] font-bold font-serif mt-0.5">₹{getDiscountedPrice(item.product.price)} INR</span>
                           )}
                         </div>
                       </div>
@@ -1488,12 +1488,12 @@ export default function App() {
                 <div>
                   <span className="font-bold text-white/50 uppercase tracking-widest font-mono text-xs">Basket sum:</span>
                   {isDiscountPromoVisible("bazaar") && (
-                    <span className="block text-[9px] font-mono text-[#FFB347]">🎉 {DISCOUNT_TAG}</span>
+                    <span className="block text-[11px] font-mono text-[#FFB347]">🎉 {DISCOUNT_TAG}</span>
                   )}
                 </div>
                 <div className="text-right">
                   {isDiscountPromoVisible("bazaar") && (
-                    <span className="block text-[10px] text-white/35 line-through font-mono">
+                    <span className="block text-[12px] text-white/35 line-through font-mono">
                       ₹{cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)} INR
                     </span>
                   )}
@@ -1503,7 +1503,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="text-[10px] text-white/70 bg-[#021816]/60 p-3 rounded-2xl border border-white/10 text-left">
+              <div className="text-[12px] text-white/70 bg-[#021816]/60 p-3 rounded-2xl border border-white/10 text-left">
                 ⭐ Consecrated Prasad is lovingly hand-packed inside biological protective tubes and wrapped alongside holy threads and divine bindi powder.
               </div>
 
@@ -1557,7 +1557,7 @@ export default function App() {
         const DocSection = ({ title, children }: { title: string; children: ReactNode }) => (
           <div className="space-y-2 pb-5 border-b border-white/8 last:border-0 last:pb-0">
             <h4 className="text-sm font-bold text-[#FFB347] font-serif">{title}</h4>
-            <div className="text-[13px] text-white/72 leading-relaxed">{children}</div>
+            <div className="text-[15px] text-white/72 leading-relaxed">{children}</div>
           </div>
         );
 
@@ -1568,8 +1568,8 @@ export default function App() {
             title: "Privacy Policy",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">This Privacy Policy ("Policy") explains how Shradhalu Private Limited, operating under the brand Sri Dwar ("Sri Dwar," "Company," "we," "our," or "us"), collects, uses, stores, shares, and protects your personal information when you access or use our website, mobile applications, APIs, customer support channels, social media pages, or any services offered by Sri Dwar (collectively, the "Platform").</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">By accessing or using the Platform, you acknowledge that you have read and understood this Privacy Policy and consent to the processing of your personal data as described herein, subject to applicable law.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">This Privacy Policy ("Policy") explains how Shradhalu Private Limited, operating under the brand Sri Dwar ("Sri Dwar," "Company," "we," "our," or "us"), collects, uses, stores, shares, and protects your personal information when you access or use our website, mobile applications, APIs, customer support channels, social media pages, or any services offered by Sri Dwar (collectively, the "Platform").</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">By accessing or using the Platform, you acknowledge that you have read and understood this Privacy Policy and consent to the processing of your personal data as described herein, subject to applicable law.</p>
                 <DocSection title="1. Scope">
                   <p className="mb-2 last:mb-0">This Policy applies to all users, including visitors, registered users, devotees, donors, customers, temples, priests, trusts, partners, vendors, and any other persons interacting with the Platform.</p>
                   <p className="mb-2 last:mb-0">This Policy should be read together with our Terms & Conditions, Legal Disclaimer, Refund & Cancellation Policy, and other applicable policies.</p>
@@ -1786,7 +1786,7 @@ export default function App() {
             title: "Cookie Policy",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">This Cookie Policy explains how Shradhalu Private Limited, operating as Sri Dwar, uses cookies and similar technologies on our website, mobile applications, and digital platforms.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">This Cookie Policy explains how Shradhalu Private Limited, operating as Sri Dwar, uses cookies and similar technologies on our website, mobile applications, and digital platforms.</p>
                 <DocSection title="1. What Are Cookies?">
                   <p className="mb-2 last:mb-0">Cookies are small text files stored on your device when you visit our Platform. They help improve website functionality, remember preferences, analyze usage, and enhance security.</p>
                 </DocSection>
@@ -1852,10 +1852,10 @@ Where permitted by law, we may use cookies to:</p>
             title: "Terms of Use",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">These Terms and Conditions ("Terms") constitute a legally binding agreement between Shradhalu Private Limited, a company incorporated under the provisions of the Companies Act, 2013, having its registered office in India, operating under the brand name Sri Dwar ("Sri Dwar", "Shradhalu", "Company", "Platform", "we", "our", or "us"), and every individual, organization, institution, temple, priest, trust, partner, donor, visitor, customer, subscriber, volunteer, or other entity ("User", "you", or "your") accessing or using any service provided through our website, mobile applications, APIs, communication channels, social media platforms, partner platforms, or any other digital or physical medium operated by or on behalf of Sri Dwar.</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">These Terms govern your access to and use of all products, services, features, content, bookings, communications, transactions, divine contributions, digital offerings, and interactions made available by Sri Dwar.</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">By accessing, browsing, registering, placing a booking, making a divine contribution, subscribing to communications, or otherwise using any part of the Platform, you acknowledge that you have carefully read, understood, and agreed to be legally bound by these Terms, together with our Privacy Policy, Refund & Cancellation Policy, Legal Disclaimer, Cookie Policy (if applicable), and any additional policies or guidelines published by Sri Dwar from time to time.</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">If you do not agree to these Terms, you must immediately discontinue use of the Platform.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">These Terms and Conditions ("Terms") constitute a legally binding agreement between Shradhalu Private Limited, a company incorporated under the provisions of the Companies Act, 2013, having its registered office in India, operating under the brand name Sri Dwar ("Sri Dwar", "Shradhalu", "Company", "Platform", "we", "our", or "us"), and every individual, organization, institution, temple, priest, trust, partner, donor, visitor, customer, subscriber, volunteer, or other entity ("User", "you", or "your") accessing or using any service provided through our website, mobile applications, APIs, communication channels, social media platforms, partner platforms, or any other digital or physical medium operated by or on behalf of Sri Dwar.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">These Terms govern your access to and use of all products, services, features, content, bookings, communications, transactions, divine contributions, digital offerings, and interactions made available by Sri Dwar.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">By accessing, browsing, registering, placing a booking, making a divine contribution, subscribing to communications, or otherwise using any part of the Platform, you acknowledge that you have carefully read, understood, and agreed to be legally bound by these Terms, together with our Privacy Policy, Refund & Cancellation Policy, Legal Disclaimer, Cookie Policy (if applicable), and any additional policies or guidelines published by Sri Dwar from time to time.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">If you do not agree to these Terms, you must immediately discontinue use of the Platform.</p>
                 <DocSection title="1. DEFINITIONS">
                   <p className="mb-2 last:mb-0">For the purposes of these Terms, unless the context otherwise requires, the following expressions shall have the meanings assigned below.</p>
                   <p className="mb-2 last:mb-0">"Platform" means all websites, mobile applications, APIs, portals, software, communication channels, digital products, social media accounts, and other services owned, licensed, operated, or managed by Shradhalu Private Limited under the brand name Sri Dwar.</p>
@@ -2718,8 +2718,8 @@ Where permitted by law, we may use cookies to:</p>
             title: "Refund Policy",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">This Refund & Cancellation Policy ("Policy") forms an integral part of the Terms & Conditions governing the use of Sri Dwar, operated by Shradhalu Private Limited ("Sri Dwar," "we," "our," or "us").</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">By booking any service, making any payment, or using the Platform, you acknowledge that you have read, understood, and agreed to this Policy.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">This Refund & Cancellation Policy ("Policy") forms an integral part of the Terms & Conditions governing the use of Sri Dwar, operated by Shradhalu Private Limited ("Sri Dwar," "we," "our," or "us").</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">By booking any service, making any payment, or using the Platform, you acknowledge that you have read, understood, and agreed to this Policy.</p>
                 <DocSection title="1. Purpose">
                   <p className="mb-2 last:mb-0">Sri Dwar provides a technology platform facilitating religious, spiritual, devotional, charitable, pilgrimage, and related services through temples, priests, trusts, charitable institutions, logistics providers, and other independent partners.</p>
                   <p className="mb-2 last:mb-0">Many of these services involve advance arrangements, reservations, divine contributions, temple scheduling, procurement of ritual materials, priest allocation, travel coordination, and other time-sensitive preparations. Accordingly, refunds and cancellations depend upon the nature of the service and the stage at which cancellation occurs.</p>
@@ -2974,8 +2974,8 @@ Where permitted by law, we may use cookies to:</p>
             title: "Legal Disclaimer",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">This Legal Disclaimer governs the use of the Sri Dwar platform, including its website, mobile applications, services, communications, and all offerings provided by Shradhalu Private Limited ("Sri Dwar", "we", "our", or "us").</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">By accessing or using our platform, you acknowledge that you have read, understood, and agreed to this Disclaimer together with our Terms & Conditions and Privacy Policy.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">This Legal Disclaimer governs the use of the Sri Dwar platform, including its website, mobile applications, services, communications, and all offerings provided by Shradhalu Private Limited ("Sri Dwar", "we", "our", or "us").</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">By accessing or using our platform, you acknowledge that you have read, understood, and agreed to this Disclaimer together with our Terms & Conditions and Privacy Policy.</p>
                 <DocSection title="1. Platform Nature">
                   <p className="mb-2 last:mb-0">Sri Dwar is a technology platform that facilitates devotees in discovering, requesting, coordinating, and booking religious, spiritual, devotional, charitable, and temple-related services.</p>
                   <p className="mb-2 last:mb-0">Except where expressly stated otherwise, Sri Dwar does not own, manage, control, supervise, employ, or operate any temple, religious institution, trust, priest, astrologer, guru, monk, service provider, volunteer, charitable organization, gaushala, or pilgrimage destination.</p>
@@ -3167,7 +3167,7 @@ Where permitted by law, we may use cookies to:</p>
             title: "Grievance Redressal",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">Sri Dwar is committed to resolving user concerns fairly, transparently, and promptly.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">Sri Dwar is committed to resolving user concerns fairly, transparently, and promptly.</p>
                 <DocSection title="1. Scope">
                   <p className="mb-2 last:mb-0">This Policy applies to grievances relating to:</p>
                   <ul className="list-disc list-inside space-y-1 mb-2 ml-1">
@@ -3232,7 +3232,7 @@ Where permitted by law, we may use cookies to:</p>
             title: "Community Guidelines",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">Sri Dwar aims to provide a respectful, inclusive, and spiritually enriching environment for devotees, temples, priests, partners, and visitors.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">Sri Dwar aims to provide a respectful, inclusive, and spiritually enriching environment for devotees, temples, priests, partners, and visitors.</p>
                 <DocSection title="1. Respect">
                   <p className="mb-2 last:mb-0">Users shall treat everyone with dignity and respect regardless of religion, caste, gender, nationality, language, or background.</p>
                 </DocSection>
@@ -3303,7 +3303,7 @@ Where permitted by law, we may use cookies to:</p>
             title: "Content & IP Policy",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">All content available on Sri Dwar is protected under applicable intellectual property laws.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">All content available on Sri Dwar is protected under applicable intellectual property laws.</p>
                 <DocSection title="1. Ownership">
                   <p className="mb-2 last:mb-0">Unless otherwise stated, all rights in:</p>
                   <ul className="list-disc list-inside space-y-1 mb-2 ml-1">
@@ -3367,7 +3367,7 @@ Where permitted by law, we may use cookies to:</p>
                         height={113}
                         className="w-32 h-[86px] sm:w-40 sm:h-[108px] rounded-lg border border-white/10 bg-[#051F1A] object-contain"
                       />
-                      <span className="block text-[10px] text-white/45 mt-1.5 text-center">DPIIT / Startup India</span>
+                      <span className="block text-[12px] text-white/45 mt-1.5 text-center">DPIIT / Startup India</span>
                     </a>
                     <a
                       href={fssaiCertificate}
@@ -3384,7 +3384,7 @@ Where permitted by law, we may use cookies to:</p>
                         height={118}
                         className="w-32 h-[90px] sm:w-40 sm:h-[112px] rounded-lg border border-white/10 bg-[#051F1A] object-contain"
                       />
-                      <span className="block text-[10px] text-white/45 mt-1.5 text-center">FSSAI Registration</span>
+                      <span className="block text-[12px] text-white/45 mt-1.5 text-center">FSSAI Registration</span>
                     </a>
                   </div>
                 </DocSection>
@@ -3396,7 +3396,7 @@ Where permitted by law, we may use cookies to:</p>
             title: "Divine Contribution & Charity Policy",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">Sri Dwar facilitates divine contributions to temples, trusts, gaushalas, annadanam programmes, charitable organizations, and other approved religious or social initiatives.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">Sri Dwar facilitates divine contributions to temples, trusts, gaushalas, annadanam programmes, charitable organizations, and other approved religious or social initiatives.</p>
                 <DocSection title="1. Nature of Divine Contributions">
                   <p className="mb-2 last:mb-0">Unless expressly stated otherwise, Sri Dwar acts as a technology platform facilitating divine contributions and does not ordinarily own or manage the recipient institutions.</p>
                 </DocSection>
@@ -3448,8 +3448,8 @@ Where permitted by law, we may use cookies to:</p>
             title: "Partner Agreement",
             content: (
               <>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">This Partner, Temple & Priest Agreement ("Agreement") is entered into between Shradhalu Private Limited, operating under the brand name Sri Dwar ("Sri Dwar", "Company", "we", "our", or "us"), and the individual, temple, trust, priest, astrologer, gaushala, charitable institution, organization, vendor, or other service provider ("Partner", "Temple", "Priest", "Service Provider", or "you") registering, listing, or providing services through the Sri Dwar Platform.</p>
-                <p className="text-[13px] text-white/60 italic leading-relaxed mb-4">By registering, accepting bookings, or providing services through Sri Dwar, you agree to be legally bound by this Agreement.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">This Partner, Temple & Priest Agreement ("Agreement") is entered into between Shradhalu Private Limited, operating under the brand name Sri Dwar ("Sri Dwar", "Company", "we", "our", or "us"), and the individual, temple, trust, priest, astrologer, gaushala, charitable institution, organization, vendor, or other service provider ("Partner", "Temple", "Priest", "Service Provider", or "you") registering, listing, or providing services through the Sri Dwar Platform.</p>
+                <p className="text-[15px] text-white/60 italic leading-relaxed mb-4">By registering, accepting bookings, or providing services through Sri Dwar, you agree to be legally bound by this Agreement.</p>
                 <DocSection title="1. Purpose">
                   <p className="mb-2 last:mb-0">Sri Dwar is a technology platform that enables devotees to discover, book, and access religious, spiritual, charitable, pilgrimage, and associated services.</p>
                   <p className="mb-2 last:mb-0">This Agreement governs the relationship between Sri Dwar and its independent Partners.</p>
@@ -3751,7 +3751,7 @@ Where permitted by law, we may use cookies to:</p>
             title: "Refer, Earn & Grow with Dharma — Program Terms",
             content: (
               <>
-                <p className="mb-2 last:mb-0 text-[13px] text-white/60 italic leading-relaxed">These Refer, Earn & Grow with Dharma Program Terms ("Referral Terms") govern participation by devotees, priests, pujaris, temples, Dharmic experts, and spiritual organizations ("Participants") in Sri Dwar's referral, affiliate, cashback, and subscription program (the "Program"), operated by Shradhalu Private Limited. By generating a Dharmic ID referral link, sharing it, or accruing any cashback, you agree to be bound by these Referral Terms together with the Privacy Policy, Terms of Use, and Legal Disclaimer.</p>
+                <p className="mb-2 last:mb-0 text-[15px] text-white/60 italic leading-relaxed">These Refer, Earn & Grow with Dharma Program Terms ("Referral Terms") govern participation by devotees, priests, pujaris, temples, Dharmic experts, and spiritual organizations ("Participants") in Sri Dwar's referral, affiliate, cashback, and subscription program (the "Program"), operated by Shradhalu Private Limited. By generating a Dharmic ID referral link, sharing it, or accruing any cashback, you agree to be bound by these Referral Terms together with the Privacy Policy, Terms of Use, and Legal Disclaimer.</p>
                 <DocSection title="1. Nature of the Program">
                   <p className="mb-2 last:mb-0">The Program is a promotional incentive offered at Sri Dwar's sole discretion. It is not an investment scheme, deposit scheme, chit fund, multi-level-marketing (MLM), money-circulation, or pyramid structure, and no Participant earns solely for enrolling other Participants — cashback arises only from genuine, paid, completed bookings by a referred devotee, never for recruiting new paying participants into the Program itself.</p>
                   <p className="mb-2 last:mb-0">Participation does not create any employment, agency, partnership, or franchise relationship with Sri Dwar.</p>
@@ -3849,7 +3849,7 @@ Where permitted by law, we may use cookies to:</p>
                   </div>
                   <div className="text-left">
                     <h3 className="font-serif text-base font-bold text-white">{doc.title}</h3>
-                    <p className="text-[10px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5">
+                    <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider mt-0.5">
                       Shradhalu Private Limited · Sri Dwar
                     </p>
                   </div>
@@ -3887,7 +3887,7 @@ Where permitted by law, we may use cookies to:</p>
                     key={key}
                     type="button"
                     onClick={() => setActiveLegalDoc(key)}
-                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
+                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold border transition-all cursor-pointer ${
                       activeLegalDoc === key
                         ? "bg-[#FFB347]/15 border-[#FFB347]/40 text-[#FFB347]"
                         : "bg-white/5 border-white/10 text-white/45 hover:text-white/70 hover:border-white/20"
@@ -3901,7 +3901,7 @@ Where permitted by law, we may use cookies to:</p>
               <div className="px-6 pt-4 pb-2">
                 <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/8 rounded-full px-3 py-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#5EEAD4] animate-pulse shrink-0" />
-                  <span className="text-[10px] font-mono text-white/40">
+                  <span className="text-[12px] font-mono text-white/40">
                     Last updated: July 2026 · Shradhalu Private Limited
                   </span>
                 </div>
@@ -3913,7 +3913,7 @@ Where permitted by law, we may use cookies to:</p>
               </div>
               {/* ── Footer row ── */}
               <div className="shrink-0 border-t border-white/10 px-6 py-4 flex items-center justify-between bg-[#021816]/60">
-                <p className="text-[10px] font-mono text-white/30">
+                <p className="text-[12px] font-mono text-white/30">
                   © {new Date().getFullYear()} Shradhalu Private Limited. All rights reserved.
                 </p>
                 <button

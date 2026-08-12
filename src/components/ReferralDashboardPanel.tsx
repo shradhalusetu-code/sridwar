@@ -137,11 +137,11 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         <div className="bg-[#021816] border border-[#FFB347]/30 rounded-2xl p-3.5 space-y-2.5">
           <div className="flex items-start gap-2">
             <Lock className="w-3.5 h-3.5 text-[#FFB347] mt-0.5 shrink-0" />
-            <p className="text-[11px] text-white/70 leading-relaxed">
+            <p className="text-[13px] text-white/70 leading-relaxed">
               Accept the Program Terms to activate your referral link and start earning cashback.
             </p>
           </div>
-          <label className="flex items-start gap-2 text-[10px] text-white/60 cursor-pointer">
+          <label className="flex items-start gap-2 text-[12px] text-white/60 cursor-pointer">
             <input
               id="referral-terms-accept-checkbox"
               type="checkbox"
@@ -160,7 +160,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
             id="referral-terms-accept-btn"
             onClick={handleAccept}
             disabled={!acceptChecked || accepting}
-            className="w-full text-center text-[11px] font-bold px-3 py-2 rounded-full bg-[#FFB347] text-[#021816] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="w-full text-center text-[13px] font-bold px-3 py-2 rounded-full bg-[#FFB347] text-[#021816] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             {accepting ? "Activating…" : "Accept & Activate My Referral Link"}
           </button>
@@ -169,9 +169,9 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
 
       {/* Referral link */}
       <div className={termsAccepted ? "" : "opacity-40 pointer-events-none select-none"}>
-        <span className="text-[9px] text-white/50 uppercase tracking-wider block mb-1">Your Dharmic ID Referral Link</span>
+        <span className="text-[11px] text-white/50 uppercase tracking-wider block mb-1">Your Dharmic ID Referral Link</span>
         <div className="flex items-center gap-2 bg-[#021816] border border-white/10 rounded-xl px-3 py-2">
-          <span className="text-[11px] font-mono text-[#5EEAD4] truncate flex-1">{referralLink || "Generating…"}</span>
+          <span className="text-[13px] font-mono text-[#5EEAD4] truncate flex-1">{referralLink || "Generating…"}</span>
           <button onClick={handleCopy} className="text-white/60 hover:text-white shrink-0" aria-label="Copy referral link">
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
@@ -186,22 +186,22 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
           <Users className="w-3.5 h-3.5 text-[#5EEAD4] mx-auto mb-1" />
           <span className="block text-base font-serif font-black text-white">{referrals.length}</span>
-          <span className="block text-[9px] text-white/45">Total Referrals</span>
+          <span className="block text-[11px] text-white/45">Total Referrals</span>
         </div>
         <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
           <TrendingUp className="w-3.5 h-3.5 text-[#5EEAD4] mx-auto mb-1" />
           <span className="block text-base font-serif font-black text-white">{activeReferrals}</span>
-          <span className="block text-[9px] text-white/45">Active</span>
+          <span className="block text-[11px] text-white/45">Active</span>
         </div>
         <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
           <Wallet className="w-3.5 h-3.5 text-[#FFB347] mx-auto mb-1" />
           <span className="block text-base font-serif font-black text-[#FFB347]">₹{(profile?.lifetimeCommission ?? 0).toLocaleString("en-IN")}</span>
-          <span className="block text-[9px] text-white/45">Total Cashback Earned</span>
+          <span className="block text-[11px] text-white/45">Total Cashback Earned</span>
         </div>
         <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
           <Gift className="w-3.5 h-3.5 text-[#FFB347] mx-auto mb-1" />
           <span className="block text-base font-serif font-black text-[#FFB347]">₹{(profile?.ledgerBalance ?? 0).toLocaleString("en-IN")}</span>
-          <span className="block text-[9px] text-white/45">Available Balance</span>
+          <span className="block text-[11px] text-white/45">Available Balance</span>
         </div>
       </div>
 
@@ -210,7 +210,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         {COMMISSION_STRUCTURE.map((c) => (
           <div key={c.bookingLabel} className="bg-[#021816] border border-white/5 rounded-lg p-2 text-center">
             <span className="block text-sm font-serif font-black text-[#FFB347]">{c.rate}%</span>
-            <span className="block text-[8px] text-white/45 uppercase">{c.bookingLabel}</span>
+            <span className="block text-[10px] text-white/45 uppercase">{c.bookingLabel}</span>
           </div>
         ))}
       </div>
@@ -218,19 +218,19 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
       {/* Subscription status */}
       <div className="bg-[#021816] border border-white/10 rounded-2xl p-3.5">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">Subscription Status</span>
+          <span className="text-[12px] font-bold text-white/70 uppercase tracking-wider">Subscription Status</span>
         </div>
         {profile?.subscriptionTier && profile.subscriptionTier !== "none" ? (
           <div className="flex items-center gap-2 flex-wrap">
             <BadgeCheck className="w-4 h-4 text-[#FFB347]" />
             <span className="text-xs font-bold text-white">{currentTierDef?.name ?? profile.subscriptionTier} Plan</span>
             {currentCategoryLabel && (
-              <span className="text-[9px] font-mono text-white/40 bg-white/5 px-1.5 py-0.5 rounded-full">{currentCategoryLabel}</span>
+              <span className="text-[11px] font-mono text-white/40 bg-white/5 px-1.5 py-0.5 rounded-full">{currentCategoryLabel}</span>
             )}
-            {currentTierRateLabel && <span className="text-[10px] text-white/50">· {currentTierRateLabel}</span>}
+            {currentTierRateLabel && <span className="text-[12px] text-white/50">· {currentTierRateLabel}</span>}
           </div>
         ) : (
-          <p className="text-[10px] text-white/50">
+          <p className="text-[12px] text-white/50">
             No active plan yet — you're on standard <span className="font-black text-[#FFB347]">3%</span> / <span className="font-black text-[#FFB347]">2%</span> / <span className="font-black text-[#FFB347]">1%</span> cashback rates.
             Visit the homepage "Refer, Earn & Grow with Dharma" section to join a free Devotee Circle (unlocks automatically as your own bookings and community divine contributions grow), or set up a paid service-listing plan if you're a Pujari, Mandal, Yoga Guru, Dharmic Expert, or Seva Provider.
           </p>
@@ -242,9 +242,9 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4]" />
-            <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">KYC Status</span>
+            <span className="text-[12px] font-bold text-white/70 uppercase tracking-wider">KYC Status</span>
           </div>
-          <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase ${
+          <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border font-bold uppercase ${
             profile?.kycStatus === "verified" ? "border-emerald-500/30 text-emerald-300 bg-emerald-950/40"
             : kycRequired ? "border-amber-400/30 text-amber-300 bg-amber-950/30"
             : "border-white/10 text-white/40 bg-white/5"
@@ -252,41 +252,41 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
             {profile?.kycStatus === "verified" ? "Verified" : kycRequired ? "Required" : "Not Yet Required"}
           </span>
         </div>
-        <p className="text-[10px] text-white/45">
+        <p className="text-[12px] text-white/45">
           KYC becomes mandatory once your accumulated cashback crosses ₹{REFERRAL_KYC_THRESHOLD.toLocaleString("en-IN")}. Minimum payout balance is ₹{REFERRAL_PAYOUT_THRESHOLD.toLocaleString("en-IN")}.
         </p>
         <button
           onClick={handleRequestPayout}
           disabled={!canRequestPayout || requestingPayout}
-          className="w-full text-center text-[11px] font-bold px-3 py-2 rounded-full border border-[#FFB347]/40 text-[#FFB347] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#FFB347] hover:text-[#021816] transition-all"
+          className="w-full text-center text-[13px] font-bold px-3 py-2 rounded-full border border-[#FFB347]/40 text-[#FFB347] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#FFB347] hover:text-[#021816] transition-all"
         >
           {requestingPayout ? "Requesting…" : `Request Payout of ₹${(profile?.ledgerBalance ?? 0).toLocaleString("en-IN")}`}
         </button>
-        {payoutMessage && <p className="text-[10px] text-[#5EEAD4] text-center">{payoutMessage}</p>}
+        {payoutMessage && <p className="text-[12px] text-[#5EEAD4] text-center">{payoutMessage}</p>}
       </div>
 
       {/* Referral list */}
       <div>
-        <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider block mb-2">My Referrals</span>
+        <span className="text-[12px] font-bold text-white/70 uppercase tracking-wider block mb-2">My Referrals</span>
         {referrals.length > 0 ? (
           <div className="space-y-2">
             {referrals.map((r) => (
               <div key={r.id} className="bg-[#021816] border border-white/5 rounded-xl p-3 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <span className="text-xs font-bold text-white block truncate">{r.referredName || "Devotee"}</span>
-                  <span className="text-[10px] text-white/45 block truncate">
+                  <span className="text-[12px] text-white/45 block truncate">
                     {r.contactConsent ? (r.referredEmail || r.referredPhone || "Contact shared") : "Contact hidden — awaiting their consent"}
                   </span>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-[10px] font-bold text-[#FFB347] block">{r.bookingCount} booking{r.bookingCount === 1 ? "" : "s"}</span>
-                  <span className="text-[9px] text-white/40 capitalize">{r.status}</span>
+                  <span className="text-[12px] font-bold text-[#FFB347] block">{r.bookingCount} booking{r.bookingCount === 1 ? "" : "s"}</span>
+                  <span className="text-[11px] text-white/40 capitalize">{r.status}</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[10px] text-white/40 italic">
+          <p className="text-[12px] text-white/40 italic">
             No referrals yet — share your link above. Once someone books using it, they'll appear here with their booking history and your cashback, linked to your Dharmic ID.
           </p>
         )}
@@ -295,10 +295,10 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
       {/* Payout history */}
       {payouts.length > 0 && (
         <div>
-          <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider block mb-2">Payout History</span>
+          <span className="text-[12px] font-bold text-white/70 uppercase tracking-wider block mb-2">Payout History</span>
           <div className="space-y-1.5">
             {payouts.map((p) => (
-              <div key={p.id} className="flex items-center justify-between text-[10px] bg-[#021816] border border-white/5 rounded-lg px-3 py-2">
+              <div key={p.id} className="flex items-center justify-between text-[12px] bg-[#021816] border border-white/5 rounded-lg px-3 py-2">
                 <span className="text-white/60">{new Date(p.requestedAt).toLocaleDateString()}</span>
                 <span className="text-[#FFB347] font-bold">₹{p.amount.toLocaleString("en-IN")}</span>
                 <span className="text-white/40 capitalize">{p.status}</span>
@@ -310,7 +310,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
 
       <button
         onClick={() => onOpenLegalDoc?.("referral")}
-        className="w-full flex items-center justify-center gap-1 text-[10px] text-white/40 hover:text-[#FFB347] pt-1"
+        className="w-full flex items-center justify-center gap-1 text-[12px] text-white/40 hover:text-[#FFB347] pt-1"
       >
         View full Refer & Earn Program Terms <ChevronRight className="w-3 h-3" />
       </button>

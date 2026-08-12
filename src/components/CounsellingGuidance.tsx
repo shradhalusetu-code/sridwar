@@ -523,7 +523,7 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
           className="w-full h-full object-contain"
           loading="lazy"
         />
-        <span className="absolute top-2.5 right-2.5 text-[9px] font-mono font-bold text-white/80 uppercase tracking-wide bg-black/40 backdrop-blur-sm border border-white/15 rounded-full px-2 py-1">
+        <span className="absolute top-2.5 right-2.5 text-[11px] font-mono font-bold text-white/80 uppercase tracking-wide bg-black/40 backdrop-blur-sm border border-white/15 rounded-full px-2 py-1">
           {service.forWhom}
         </span>
       </div>
@@ -537,14 +537,14 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
         </div>
 
         <h3 className="font-serif text-base font-bold text-white leading-snug">{service.title}</h3>
-        <p className="text-[11px] font-semibold mt-1" style={{ color: service.color }}>{service.tagline}</p>
-        <p className="text-[11px] text-white/60 leading-relaxed mt-2">{service.description}</p>
+        <p className="text-[13px] font-semibold mt-1" style={{ color: service.color }}>{service.tagline}</p>
+        <p className="text-[13px] text-white/60 leading-relaxed mt-2">{service.description}</p>
 
         <div className="mt-3 pt-3 border-t border-white/8">
-          <span className="text-[9px] font-mono font-bold text-white/35 uppercase tracking-wide">A session may help you think through</span>
+          <span className="text-[11px] font-mono font-bold text-white/35 uppercase tracking-wide">A session may help you think through</span>
           <ul className="mt-1.5 space-y-1">
             {service.mayHelpWith.map((point) => (
-              <li key={point} className="text-[10.5px] text-white/65 leading-snug flex gap-1.5">
+              <li key={point} className="text-[13px] text-white/65 leading-snug flex gap-1.5">
                 <Check className="w-3 h-3 shrink-0 mt-0.5" style={{ color: service.color }} />
                 <span>{point}</span>
               </li>
@@ -556,38 +556,38 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
             See the disclaimer blocks on this page: complexity can mean more
             sessions or a longer timeframe than shown here. */}
         <div className="mt-3 pt-3 border-t border-white/8 flex-1">
-          <span className="text-[9px] font-mono font-bold text-white/35 uppercase tracking-wide">Typical support plan</span>
+          <span className="text-[11px] font-mono font-bold text-white/35 uppercase tracking-wide">Typical support plan</span>
           <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
             <div className="flex items-start gap-1.5">
               <Repeat className="w-3 h-3 shrink-0 mt-0.5 text-white/40" />
               <div>
-                <div className="text-[10px] text-white/75 font-semibold leading-snug">{service.sessionPlan.sessions}</div>
-                <div className="text-[9px] text-white/40 leading-snug">Recommended sessions</div>
+                <div className="text-[12px] text-white/75 font-semibold leading-snug">{service.sessionPlan.sessions}</div>
+                <div className="text-[11px] text-white/40 leading-snug">Recommended sessions</div>
               </div>
             </div>
             <div className="flex items-start gap-1.5">
               <Clock className="w-3 h-3 shrink-0 mt-0.5 text-white/40" />
               <div>
-                <div className="text-[10px] text-white/75 font-semibold leading-snug">{service.sessionPlan.duration}</div>
-                <div className="text-[9px] text-white/40 leading-snug">Session duration</div>
+                <div className="text-[12px] text-white/75 font-semibold leading-snug">{service.sessionPlan.duration}</div>
+                <div className="text-[11px] text-white/40 leading-snug">Session duration</div>
               </div>
             </div>
             <div className="flex items-start gap-1.5">
               <CalendarClock className="w-3 h-3 shrink-0 mt-0.5 text-white/40" />
               <div>
-                <div className="text-[10px] text-white/75 font-semibold leading-snug">{service.sessionPlan.frequency}</div>
-                <div className="text-[9px] text-white/40 leading-snug">Frequency</div>
+                <div className="text-[12px] text-white/75 font-semibold leading-snug">{service.sessionPlan.frequency}</div>
+                <div className="text-[11px] text-white/40 leading-snug">Frequency</div>
               </div>
             </div>
             <div className="flex items-start gap-1.5">
               <Hourglass className="w-3 h-3 shrink-0 mt-0.5 text-white/40" />
               <div>
-                <div className="text-[10px] text-white/75 font-semibold leading-snug">{service.sessionPlan.timeframe}</div>
-                <div className="text-[9px] text-white/40 leading-snug">Overall timeframe</div>
+                <div className="text-[12px] text-white/75 font-semibold leading-snug">{service.sessionPlan.timeframe}</div>
+                <div className="text-[11px] text-white/40 leading-snug">Overall timeframe</div>
               </div>
             </div>
           </div>
-          <p className="text-[9.5px] text-white/35 leading-snug mt-2 italic">
+          <p className="text-[11px] text-white/35 leading-snug mt-2 italic">
             General starting point only — more complex or layered situations may need longer support.
           </p>
         </div>
@@ -605,8 +605,8 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
             <UserCheck className="w-3.5 h-3.5" />
           </span>
           <span className="flex-1 min-w-0">
-            <span className="block text-[9px] font-mono font-bold text-white/40 uppercase tracking-wide">Choose Your Counselor</span>
-            <span className="block text-[11px] font-semibold text-white truncate">
+            <span className="block text-[11px] font-mono font-bold text-white/40 uppercase tracking-wide">Choose Your Counselor</span>
+            <span className="block text-[13px] font-semibold text-white truncate">
               {selectedCounselor ? selectedCounselor.name : "Any available expert"}
             </span>
           </span>
@@ -739,7 +739,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               page, so it is intentionally NOT repeated here — this section
               opens straight with the page title, per its own tag line
               instead of a duplicate logo. */}
-          <span className="inline-block text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest mb-3">
+          <span className="inline-block text-[12px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest mb-3">
             A Sri Dwar Guidance Service
           </span>
 
@@ -761,7 +761,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                 key={w.label}
                 type="button"
                 onClick={() => scrollToChip(w.serviceId)}
-                className="text-[10px] font-semibold text-white/70 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 hover:bg-[#5EEAD4]/10 transition-colors"
+                className="text-[12px] font-semibold text-white/70 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 hover:text-[#5EEAD4] hover:border-[#5EEAD4]/40 hover:bg-[#5EEAD4]/10 transition-colors"
               >
                 {w.label}
               </button>
@@ -795,7 +795,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           <button
             type="button"
             onClick={() => scrollToSection("full-disclaimer")}
-            className="inline-flex items-center gap-1.5 text-[10.5px] text-white/45 hover:text-[#FFB347] underline underline-offset-2 mt-5 transition-colors"
+            className="inline-flex items-center gap-1.5 text-[13px] text-white/45 hover:text-[#FFB347] underline underline-offset-2 mt-5 transition-colors"
           >
             <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> This is spiritual & personal guidance, not medical or clinical treatment — see full disclaimer below
           </button>
@@ -805,11 +805,11 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
           {HOW_IT_WORKS.map((step, i) => (
             <div key={step.title} className="bg-[#092320] border border-white/10 rounded-2xl p-4">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#5EEAD4]/15 border border-[#5EEAD4]/30 text-[#5EEAD4] text-[10px] font-black mb-2.5">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#5EEAD4]/15 border border-[#5EEAD4]/30 text-[#5EEAD4] text-[12px] font-black mb-2.5">
                 {i + 1}
               </span>
               <h3 className="text-xs font-bold text-white mb-1">{step.title}</h3>
-              <p className="text-[10.5px] text-white/55 leading-relaxed">{step.desc}</p>
+              <p className="text-[13px] text-white/55 leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
@@ -817,9 +817,9 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
         {/* ── 10 Guidance Areas ────────────────────────────────────────── */}
         <div id="guidance-services" className="scroll-mt-24 mb-12">
           <div className="text-center max-w-xl mx-auto mb-6">
-            <span className="text-[10px] font-mono font-bold text-[#FFB347]/80 uppercase tracking-widest">10 Guidance Areas</span>
+            <span className="text-[12px] font-mono font-bold text-[#FFB347]/80 uppercase tracking-widest">10 Guidance Areas</span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white mt-1.5">What Would You Like Help With?</h2>
-            <p className="text-[11px] text-white/50 mt-2">
+            <p className="text-[13px] text-white/50 mt-2">
               Not sure which fits? "Everyday Advice & Expert Consultation" is a good place to start — a
               Dharmic expert will help point you the right way.
             </p>
@@ -875,11 +875,11 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
         {/* ── Pricing / session formats ────────────────────────────────── */}
         <div id="guidance-pricing" className="scroll-mt-24 mb-12">
           <div className="text-center max-w-xl mx-auto mb-6">
-            <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Simple, Affordable Pricing</span>
+            <span className="text-[12px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Simple, Affordable Pricing</span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white mt-1.5">
               Your Session, Your Pricing, You Decide What to Pay.
             </h2>
-            <p className="text-[11px] text-white/50 mt-2 max-w-lg mx-auto">
+            <p className="text-[13px] text-white/50 mt-2 max-w-lg mx-auto">
               Pick the format that fits your situation — a quick call, a standard session, a family/couple
               session, or a custom multi-hour plan — the same transparent pricing applies across all 10 guidance
               areas, kept deliberately low so cost is never the reason someone doesn't reach out.
@@ -895,25 +895,25 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                 }`}
               >
                 {format.highlight && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFB347] text-[#021816] text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#FFB347] text-[#021816] text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
                     Most Booked
                   </span>
                 )}
                 {format.isCustom && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#5EEAD4] text-[#021816] text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#5EEAD4] text-[#021816] text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
                     Pay By The Hour
                   </span>
                 )}
                 <div className="flex items-center gap-1.5 text-white/50 mb-2">
                   <Clock className="w-3.5 h-3.5" />
-                  <span className="text-[10px] font-mono uppercase tracking-wide">{format.duration}</span>
+                  <span className="text-[12px] font-mono uppercase tracking-wide">{format.duration}</span>
                 </div>
                 <h3 className="font-serif text-base font-bold text-white">{format.name}</h3>
                 <span className="text-2xl font-serif font-black text-[#FFB347] mt-1">
                   {format.isCustom && <span className="text-xs font-sans font-bold text-white/40 mr-1">From</span>}
                   ₹{format.price.toLocaleString("en-IN")}{format.isCustom && <span className="text-xs font-sans font-bold text-white/40"> / hour</span>}
                 </span>
-                <p className="text-[11px] text-white/55 leading-relaxed mt-2">{format.bestFor}</p>
+                <p className="text-[13px] text-white/55 leading-relaxed mt-2">{format.bestFor}</p>
                 {/* Every card now carries a `note` line (not just Custom
                     previously), so all four cards hold an equal depth of
                     information and no card is left looking emptier than
@@ -921,7 +921,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                     tallest card. flex-1 keeps the button pinned to the
                     same baseline across all four regardless of how long
                     each card's text runs. */}
-                <p className="text-[10px] text-white/40 leading-relaxed mt-1.5 italic flex-1">{format.note}</p>
+                <p className="text-[12px] text-white/40 leading-relaxed mt-1.5 italic flex-1">{format.note}</p>
                 {/* Identical style, dimensions, spacing, and click
                     behaviour on all four cards — only the label text
                     differs (Custom books a quote instead of a fixed
@@ -938,7 +938,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-white/35 text-center mt-4 italic">
+          <p className="text-[12px] text-white/35 text-center mt-4 italic">
             Prices shown are per session (or starting from ₹199/hour for the Custom Guidance Plan, based on the
             guidance area selected) and may vary slightly by expert availability and language. No hidden fees.
           </p>
@@ -978,7 +978,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                   {f.icon}
                 </div>
                 <h4 className="text-xs font-bold text-white mb-1">{f.title}</h4>
-                <p className="text-[10.5px] text-white/55 leading-relaxed">{f.desc}</p>
+                <p className="text-[13px] text-white/55 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -990,7 +990,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             <ShieldCheck className="w-5 h-5 text-[#FFB347]" />
             <h2 className="font-serif text-base font-bold text-white">Important Disclaimer</h2>
           </div>
-          <div className="space-y-2 text-[11px] text-white/60 leading-relaxed">
+          <div className="space-y-2 text-[13px] text-white/60 leading-relaxed">
             <p>
               Counselling & Guidance sessions on Sri Dwar are offered in good faith by experienced Pandits and
               Dharmic experts as informational, spiritual, and personal guidance. They are intended to help you
@@ -1030,7 +1030,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           <div className="mt-4 pt-4 border-t border-white/8 flex flex-wrap items-center gap-x-4 gap-y-2">
             <button
               onClick={() => onNavigate("contact")}
-              className="text-[#FFB347] font-bold underline underline-offset-2 hover:text-white text-[11px] flex items-center gap-1"
+              className="text-[#FFB347] font-bold underline underline-offset-2 hover:text-white text-[13px] flex items-center gap-1"
             >
               Have questions first? Contact us <ChevronRight className="w-3 h-3" />
             </button>
@@ -1092,7 +1092,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-xs font-bold text-white">Any available expert</span>
-                  <span className="block text-[10px] text-white/50">Sri Dwar will assign a suitable counselor</span>
+                  <span className="block text-[12px] text-white/50">Sri Dwar will assign a suitable counselor</span>
                 </span>
                 {!selectedCounselorId && <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />}
               </button>
@@ -1113,12 +1113,12 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                     </span>
                     <span className="flex-1 min-w-0">
                       <span className="block text-xs font-bold text-white truncate">{c.name}</span>
-                      <span className="block text-[10px] text-white/50 truncate">{c.expertise} · {c.location}</span>
+                      <span className="block text-[12px] text-white/50 truncate">{c.expertise} · {c.location}</span>
                       <span className="flex items-center gap-2 mt-0.5">
-                        <span className="inline-flex items-center gap-0.5 text-[9px] text-white/40">
+                        <span className="inline-flex items-center gap-0.5 text-[11px] text-white/40">
                           <Star className="w-2.5 h-2.5" /> {c.yearsExperience} yrs
                         </span>
-                        <span className="inline-flex items-center gap-0.5 text-[9px] text-white/40 truncate">
+                        <span className="inline-flex items-center gap-0.5 text-[11px] text-white/40 truncate">
                           <Languages className="w-2.5 h-2.5 shrink-0" /> {c.languages.join(", ")}
                         </span>
                       </span>

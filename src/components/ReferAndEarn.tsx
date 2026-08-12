@@ -73,7 +73,7 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
               <span className="absolute top-2 right-3 text-3xl font-serif font-black text-white/5">{i + 1}</span>
               <step.icon className="w-5 h-5 text-[#5EEAD4] mb-2" />
               <h3 className="font-serif text-sm font-bold text-white mb-1">{step.title}</h3>
-              <p className="text-[11px] text-white/60 leading-snug">{step.desc}</p>
+              <p className="text-[13px] text-white/60 leading-snug">{step.desc}</p>
             </div>
           ))}
         </div>

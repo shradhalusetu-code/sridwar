@@ -182,7 +182,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 </div>
                 <div>
                   <span className="block text-xs font-bold text-emerald-400">Sri Dwar WhatsApp Helpline</span>
-                  <span className="block text-[10px] text-white/50">Click to chat with Devotee Support instantly</span>
+                  <span className="block text-[12px] text-white/50">Click to chat with Devotee Support instantly</span>
                 </div>
               </a>
 
@@ -191,7 +191,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 <Mail className="w-5 h-5 text-[#5EEAD4] shrink-0 shadow-sm" />
                 <div>
                   <span className="block text-xs font-bold text-white">Email support desk</span>
-                  <a href="mailto:puja@sridwar.com" className="block text-[11px] text-white/50 hover:text-[#5EEAD4] transition-colors">puja@sridwar.com</a>
+                  <a href="mailto:puja@sridwar.com" className="block text-[13px] text-white/50 hover:text-[#5EEAD4] transition-colors">puja@sridwar.com</a>
                 </div>
               </div>
 
@@ -200,7 +200,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 <Clock className="w-5 h-5 text-[#FFB347] shrink-0 shadow-sm" />
                 <div>
                   <span className="block text-xs font-bold text-white">Operating hours</span>
-                  <span className="block text-[11px] text-white/50">04:00 AM – 11:00 PM IST (Daily)</span>
+                  <span className="block text-[13px] text-white/50">04:00 AM – 11:00 PM IST (Daily)</span>
                 </div>
               </div>
 
@@ -219,13 +219,13 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 />
                 <div>
                   <span className="block text-xs font-bold text-white">Scan to connect</span>
-                  <span className="block text-[11px] text-white/50">Sri Dwar QR code — open on your phone camera</span>
+                  <span className="block text-[13px] text-white/50">Sri Dwar QR code — open on your phone camera</span>
                 </div>
               </div>
             </div>
 
             {/* License branding */}
-            <div className="text-[10px] text-white/40 font-mono">
+            <div className="text-[12px] text-white/40 font-mono">
               Sri Dwar is a proprietary technology of Shradhalu Private Limited.<br />
               All corporate letters should be addressed to our registered corporate office.
             </div>
@@ -279,7 +279,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                   />
                 </div>
 
-                <div className="flex items-start space-x-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2 rounded-xl text-[10px] text-emerald-300 font-mono">
+                <div className="flex items-start space-x-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2 rounded-xl text-[12px] text-emerald-300 font-mono">
                   <ShieldCheck className="w-3 h-3 shrink-0 mt-0.5" />
                   <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared within 3-7 working days on your WhatsApp & Email. 🙏</span>
                 </div>
@@ -380,7 +380,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 </div>
 
                 {/* Sri Dwar Technology sync status panel */}
-                <div className="flex items-center space-x-2 text-[10px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
                   <span>Powered by Sri Dwar Technology</span>
                 </div>
@@ -414,7 +414,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
 
                 <div className="space-y-1">
                   <h4 className="font-serif text-xl font-bold text-[#5EEAD4]">Inquiry Successfully Synced!</h4>
-                  <p className="text-[10px] text-white/40 font-mono">Reference Ticket: {refId}</p>
+                  <p className="text-[12px] text-white/40 font-mono">Reference Ticket: {refId}</p>
                 </div>
 
                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs leading-relaxed text-white/80">
@@ -422,7 +422,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 </div>
 
                 {/* Spreadsheet confirm */}
-                <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
+                <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Automated Real-Time synchronization completed</span>
                 </div>

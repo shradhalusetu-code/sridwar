@@ -19,7 +19,7 @@ export default function IndiaTempleMap() {
 
       {/* Section Header */}
       <div className="text-center mb-6">
-        <span className="text-[10px] font-mono text-[#FFB347]/80 uppercase tracking-widest">Sacred Geography</span>
+        <span className="text-[12px] font-mono text-[#FFB347]/80 uppercase tracking-widest">Sacred Geography</span>
         <h3 className="font-serif text-xl font-black text-white mt-1">India's Divine Temple Network</h3>
       </div>
 

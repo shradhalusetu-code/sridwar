@@ -122,7 +122,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   </span>
                   <div className="truncate">
                     <span className="block font-bold truncate text-white text-xs">{selectedTemple.name}</span>
-                    <span className="block text-[10px] text-white/55 truncate">
+                    <span className="block text-[12px] text-white/55 truncate">
                       {selectedTemple.city}, {selectedTemple.state}
                     </span>
                   </div>
@@ -159,7 +159,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                             </span>
                             <div className="truncate">
                               <span className="block font-bold truncate text-white">{templeObj.name}</span>
-                              <span className="block text-[10px] text-white/55 truncate">
+                              <span className="block text-[12px] text-white/55 truncate">
                                 {templeObj.city}, {templeObj.state}
                               </span>
                             </div>
@@ -198,7 +198,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                       </span>
                       <div className="truncate">
                         <span className="block font-bold truncate text-white">{templeObj.name}</span>
-                        <span className="block text-[10px] text-white/55 truncate">
+                        <span className="block text-[12px] text-white/55 truncate">
                           {templeObj.city}, {templeObj.state}
                         </span>
                       </div>
@@ -235,13 +235,13 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                 </div>
 
                 {/* State Tag */}
-                <div className="absolute bottom-4 left-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
+                <div className="absolute bottom-4 left-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white text-[12px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
                   <MapPin className="w-3 h-3 text-[#FFB347]" />
                   <span>{selectedTemple.state}, India</span>
                 </div>
 
                 {/* GPS Coordinates Tag */}
-                <div className="absolute bottom-4 right-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white/90 text-[9px] font-mono font-semibold px-2.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
+                <div className="absolute bottom-4 right-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white/90 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
                   <Navigation className="w-3 h-3 text-[#5EEAD4]" />
                   <span>
                     {formatCoordinate(selectedTemple.coordinates.lat, "lat")}, {formatCoordinate(selectedTemple.coordinates.lng, "lng")}
@@ -277,21 +277,21 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   <div className="space-y-2 text-left">
                     <span className="block text-xs font-bold text-white/80">Aarti timings:</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <div className="flex items-start space-x-1.5 text-[11px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
+                      <div className="flex items-start space-x-1.5 text-[13px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
                         <Sunrise className="w-3.5 h-3.5 text-[#FFB347] flex-shrink-0 mt-0.5" />
                         <div>
                           <span className="block font-bold text-white/85">Morning</span>
                           <span className="block text-white/65">{selectedTemple.aartiTimings.morning}</span>
                         </div>
                       </div>
-                      <div className="flex items-start space-x-1.5 text-[11px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
+                      <div className="flex items-start space-x-1.5 text-[13px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
                         <Sun className="w-3.5 h-3.5 text-[#FFB347] flex-shrink-0 mt-0.5" />
                         <div>
                           <span className="block font-bold text-white/85">Afternoon</span>
                           <span className="block text-white/65">{selectedTemple.aartiTimings.afternoon}</span>
                         </div>
                       </div>
-                      <div className="flex items-start space-x-1.5 text-[11px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
+                      <div className="flex items-start space-x-1.5 text-[13px] text-white/75 bg-white/5 border border-white/10 rounded-lg px-2.5 py-2">
                         <Sunset className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
                         <div>
                           <span className="block font-bold text-white/85">Evening</span>
@@ -308,7 +308,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                       {selectedTemple.rituals.map((ritual, idx) => (
                         <span
                           key={idx}
-                          className="bg-white/5 text-white/80 text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-white/15"
+                          className="bg-white/5 text-white/80 text-[12px] font-semibold px-2.5 py-1 rounded-lg border border-white/15"
                         >
                           {ritual}
                         </span>
@@ -323,7 +323,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                       {selectedTemple.sampleOfferings.map((offering, idx) => (
                         <span
                           key={idx}
-                          className="bg-[#FFB347]/10 text-[#FFB347] text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-[#FFB347]/25"
+                          className="bg-[#FFB347]/10 text-[#FFB347] text-[12px] font-semibold px-2.5 py-1 rounded-lg border border-[#FFB347]/25"
                         >
                           {offering}
                         </span>
@@ -423,7 +423,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   <h4 className="font-serif text-sm font-bold text-white mt-2 mb-1.5 text-left">
                     {step.title}
                   </h4>
-                  <p className="text-[11px] text-white/60 leading-relaxed font-sans text-left">
+                  <p className="text-[13px] text-white/60 leading-relaxed font-sans text-left">
                     {step.desc}
                   </p>
                 </div>

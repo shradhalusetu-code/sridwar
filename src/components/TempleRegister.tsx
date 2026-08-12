@@ -402,7 +402,7 @@ interface DevoteeForm {
 
 function SectionBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center space-x-1.5 bg-[#FFB347]/10 border border-[#FFB347]/25 rounded-full px-3 py-1 text-[10px] font-mono font-bold text-[#FFB347] uppercase tracking-widest">
+    <span className="inline-flex items-center space-x-1.5 bg-[#FFB347]/10 border border-[#FFB347]/25 rounded-full px-3 py-1 text-[12px] font-mono font-bold text-[#FFB347] uppercase tracking-widest">
       <Sparkles className="w-2.5 h-2.5" />
       <span>{label}</span>
     </span>
@@ -411,7 +411,7 @@ function SectionBadge({ label }: { label: string }) {
 
 function FieldError({ msg }: { msg: string | null }) {
   if (!msg) return null;
-  return <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1"><X className="w-3 h-3" />{msg}</p>;
+  return <p className="text-[13px] text-red-400 mt-1 flex items-center gap-1"><X className="w-3 h-3" />{msg}</p>;
 }
 
 function InputField({
@@ -791,7 +791,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />
           <div className="space-y-0.5">
             <p className="text-xs font-semibold text-[#5EEAD4]">Your Sacred Profile is saved!</p>
-            <p className="text-[11px] text-white/50">
+            <p className="text-[13px] text-white/50">
               <strong className="text-white/70">{form.name}</strong>, you can now optionally make a divine contribution.
             </p>
           </div>
@@ -807,7 +807,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
             <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[#FFB347]">Your divine contribution helps preserve our heritage, temples, and Sridwar's mission:</p>
-              <p className="text-[11px] text-white/55 leading-relaxed">
+              <p className="text-[13px] text-white/55 leading-relaxed">
                 Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
                 <br />A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification.
               </p>
@@ -861,7 +861,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           </button>
         </div>
 
-        <p className="text-center text-[10px] text-white/25 font-mono">
+        <p className="text-center text-[12px] text-white/25 font-mono">
           Divine Contributions are voluntary and non-refundable · Powered by Sridwar Technology
         </p>
       </div>
@@ -904,7 +904,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5" /> Spiritual Details
           </h3>
-          <p className="text-[11px] text-white/40">All fields are optional.</p>
+          <p className="text-[13px] text-white/40">All fields are optional.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
@@ -946,7 +946,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
             <h3 className="text-sm font-bold text-[#5EEAD4] uppercase tracking-wider font-mono flex items-center gap-2">
               <Star className="w-3.5 h-3.5" /> I Am Interested In
             </h3>
-            <p className="text-[11px] text-white/40">Select all that apply.</p>
+            <p className="text-[13px] text-white/40">Select all that apply.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {DEVOTEE_INTERESTS.map(({ val, emoji, label }) => (
@@ -1019,7 +1019,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
             { icon: "🕉", label: "Trusted priests" },
             { icon: "🌍", label: "Worldwide service" },
           ].map(f => (
-            <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
+            <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[13px] text-white/50">
               <span>{f.icon}</span><span>{f.label}</span>
             </span>
           ))}
@@ -1320,8 +1320,8 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">🪔</span>
             <span className="min-w-0">
-              <p className="text-[11px] font-bold text-[#FFB347] leading-snug truncate">Register Local Pujari / Pandit</p>
-              <p className="text-[9px] text-white/40 truncate">Tap to fill the form</p>
+              <p className="text-[13px] font-bold text-[#FFB347] leading-snug truncate">Register Local Pujari / Pandit</p>
+              <p className="text-[11px] text-white/40 truncate">Tap to fill the form</p>
             </span>
           </button>
 
@@ -1332,8 +1332,8 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">🧘</span>
             <span className="min-w-0">
-              <p className="text-[11px] font-bold text-[#5EEAD4] leading-snug truncate">Register Guru / Sant / Sadhu</p>
-              <p className="text-[9px] text-white/40 truncate">Tap to fill the form</p>
+              <p className="text-[13px] font-bold text-[#5EEAD4] leading-snug truncate">Register Guru / Sant / Sadhu</p>
+              <p className="text-[11px] text-white/40 truncate">Tap to fill the form</p>
             </span>
           </button>
 
@@ -1344,8 +1344,8 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">📿</span>
             <span className="min-w-0">
-              <p className="text-[11px] font-bold text-white/70 leading-snug truncate">Register Dharmic Expert</p>
-              <p className="text-[9px] text-white/40 truncate">Jyotish, Vastu, Scholar…</p>
+              <p className="text-[13px] font-bold text-white/70 leading-snug truncate">Register Dharmic Expert</p>
+              <p className="text-[11px] text-white/40 truncate">Jyotish, Vastu, Scholar…</p>
             </span>
           </button>
 
@@ -1356,8 +1356,8 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">🙏</span>
             <span className="min-w-0">
-              <p className="text-[11px] font-bold text-[#FFB347] leading-snug truncate">Register as Devotee</p>
-              <p className="text-[9px] text-white/40 truncate">Pujas, prasad, darshan &amp; more</p>
+              <p className="text-[13px] font-bold text-[#FFB347] leading-snug truncate">Register as Devotee</p>
+              <p className="text-[11px] text-white/40 truncate">Pujas, prasad, darshan &amp; more</p>
             </span>
           </button>
         </div>
@@ -1392,7 +1392,7 @@ function DharmicExpertSection() {
 
         {/* Message preview */}
         <div className="bg-white/4 border border-white/10 rounded-2xl px-4 py-3 space-y-2">
-          <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Message Preview</p>
+          <p className="text-[12px] font-mono text-white/40 uppercase tracking-widest">Message Preview</p>
           <p className="text-xs text-white/60 leading-relaxed">
             Namaste {sendLinkName || "[Recipient]"}, please use this Sridwar Technology registration link to submit details of your local Pujari, Pandit, Guru, Sant, Sadhu, Purohit, Seer, or other dharmic expert so devotees can discover and connect with them.
             <br /><span className="text-[#5EEAD4] break-all">{buildShareUrl("dharmic-expert-register", "send_link_flow")}</span>
@@ -1424,7 +1424,7 @@ function DharmicExpertSection() {
           </div>
         )}
 
-        <p className="text-center text-[10px] text-white/25 font-mono">
+        <p className="text-center text-[12px] text-white/25 font-mono">
           Powered by Sridwar Technology
         </p>
       </div>
@@ -1527,7 +1527,7 @@ function DharmicExpertSection() {
             <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[#FFB347]">Your divine contribution helps preserve our heritage, temples, and Sridwar's mission:</p>
-              <p className="text-[11px] text-white/55 leading-relaxed">
+              <p className="text-[13px] text-white/55 leading-relaxed">
                 Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services — including this dharmic directory of local pujaris, pandits, gurus, sants, sadhus, purohits, and seers.
                 <br />A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification.
               </p>
@@ -1598,7 +1598,7 @@ function DharmicExpertSection() {
           </button>
         </div>
 
-        <p className="text-center text-[10px] text-white/25 font-mono">
+        <p className="text-center text-[12px] text-white/25 font-mono">
           Divine Contributions are voluntary and non-refundable · Powered by Sridwar Technology
         </p>
       </div>
@@ -1644,7 +1644,7 @@ function DharmicExpertSection() {
             <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
               <BookOpen className="w-3.5 h-3.5" /> Puja, Seva &amp; Dharmic Services Offered
             </h3>
-            <p className="text-[11px] text-white/40">Select all that apply.</p>
+            <p className="text-[13px] text-white/40">Select all that apply.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {PUJA_SERVICES.map(s => (
@@ -1663,7 +1663,7 @@ function DharmicExpertSection() {
             <h3 className="text-sm font-bold text-[#5EEAD4] uppercase tracking-wider font-mono flex items-center gap-2">
               <Star className="w-3.5 h-3.5" /> Skills &amp; Areas of Expertise
             </h3>
-            <p className="text-[11px] text-white/40">Select all areas of expertise.</p>
+            <p className="text-[13px] text-white/40">Select all areas of expertise.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {EXPERTISE_AREAS.map(e => (
@@ -1939,12 +1939,12 @@ function DharmicExpertSection() {
           </p>
         )}
         {basicSubmitted && (
-          <p className="text-center text-[11px] text-[#5EEAD4]/70 font-mono flex items-center justify-center gap-1.5">
+          <p className="text-center text-[13px] text-[#5EEAD4]/70 font-mono flex items-center justify-center gap-1.5">
             <Check className="w-3.5 h-3.5" />Basic details saved — you can now add Puja &amp; Seva details.
           </p>
         )}
 
-        <p className="text-center text-[10px] text-white/30 font-mono">
+        <p className="text-center text-[12px] text-white/30 font-mono">
           Securely managed by Sridwar Technology · Listings are reviewed before publishing
         </p>
 
@@ -2485,7 +2485,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 <Check className="w-4 h-4 text-[#5EEAD4] shrink-0" />
                 <div className="space-y-0.5">
                   <p className="text-xs font-semibold text-[#5EEAD4]">Temple details saved!</p>
-                  <p className="text-[11px] text-white/50">
+                  <p className="text-[13px] text-white/50">
                     <strong className="text-white/70">{templeReg.templeName}</strong> has been submitted. You can now optionally make a divine contribution.
                   </p>
                 </div>
@@ -2496,14 +2496,14 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                   <h3 className="text-sm font-bold text-[#FFB347] uppercase tracking-wider font-mono flex items-center gap-2">
                     <Gift className="w-3.5 h-3.5" /> Optional Divine Contribution
                   </h3>
-                  <p className="text-[11px] text-white/40 leading-relaxed">
+                  <p className="text-[13px] text-white/40 leading-relaxed">
                     Support your temple's renovation, annadanam, or seva activities. This step is entirely optional — tap "Skip" to finish.
                   </p>
                 </div>
 
                 <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
                   <Heart className="w-3.5 h-3.5 text-[#FFB347] shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-white/55 leading-relaxed">
+                  <p className="text-[13px] text-white/55 leading-relaxed">
                     If you contribute, your payment will be forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>, helping preserve our heritage, temples, and Sridwar's mission to connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
                     A specific puja will be performed in your name at <strong className="text-white/80">{templeReg.templeName}</strong>, and <strong className="text-white/80">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/80">3 working days</strong> after payment verification.
                   </p>
@@ -2573,7 +2573,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                   <span>Skip Divine Contribution — Finish Registration</span>
                 </button>
 
-                <p className="text-center text-[10px] text-white/25 font-mono">
+                <p className="text-center text-[12px] text-white/25 font-mono">
                   Divine Contributions are voluntary and non-refundable · Powered by Sridwar Technology
                 </p>
               </div>
@@ -2699,7 +2699,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 )}
               </button>
 
-              <p className="text-center text-[10px] text-white/30 font-mono">
+              <p className="text-center text-[12px] text-white/30 font-mono">
                 Securely managed by Sridwar Technology · An Initiative by Sridwar Technology
               </p>
 
@@ -2764,20 +2764,20 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
           <div className="glass-panel rounded-3xl p-6 border border-[#FFB347]/20 space-y-4 glow-gold">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold text-[#FFB347]/70 uppercase tracking-widest">Your Dharmic ID</span>
-              <span className="text-[9px] font-mono text-white/30">Sri Dwar · Sridwar Technology</span>
+              <span className="text-[12px] font-mono font-bold text-[#FFB347]/70 uppercase tracking-widest">Your Dharmic ID</span>
+              <span className="text-[11px] font-mono text-white/30">Sri Dwar · Sridwar Technology</span>
             </div>
             <div className="bg-[#021816]/60 rounded-2xl px-5 py-4 border border-[#FFB347]/15 text-center">
               <p className="text-2xl font-mono font-bold text-[#FFB347] tracking-widest">{dharmicId}</p>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs text-white/60">
-              <div><span className="text-white/30 block text-[10px] uppercase">Name</span>{devotee.name}</div>
-              <div><span className="text-white/30 block text-[10px] uppercase">Phone</span>{devotee.phone}</div>
-              <div className="col-span-2"><span className="text-white/30 block text-[10px] uppercase">Temple / Committee</span>
+              <div><span className="text-white/30 block text-[12px] uppercase">Name</span>{devotee.name}</div>
+              <div><span className="text-white/30 block text-[12px] uppercase">Phone</span>{devotee.phone}</div>
+              <div className="col-span-2"><span className="text-white/30 block text-[12px] uppercase">Temple / Committee</span>
                 <span className="text-[#5EEAD4]">{selectedTemple}</span>
               </div>
               {devotee.puja && (
-                <div className="col-span-2"><span className="text-white/30 block text-[10px] uppercase">Puja / Seva</span>{devotee.puja}</div>
+                <div className="col-span-2"><span className="text-white/30 block text-[12px] uppercase">Puja / Seva</span>{devotee.puja}</div>
               )}
             </div>
             <div className="flex gap-2">
@@ -2811,11 +2811,11 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           )}
 
           <div className="glass-panel rounded-2xl p-4 border border-white/8 space-y-2">
-            <p className="text-[11px] text-white/50 leading-relaxed">
+            <p className="text-[13px] text-white/50 leading-relaxed">
               🔔 Your details and Dharmic ID have been securely synced by Sridwar Technology.
               Our team will reach out for any puja/seva coordination within 24 hours on WhatsApp.
             </p>
-            <p className="text-[10px] font-mono text-white/30 mt-2">An Initiative by Sridwar Technology</p>
+            <p className="text-[12px] font-mono text-white/30 mt-2">An Initiative by Sridwar Technology</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -2872,7 +2872,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <div className="space-y-1 text-left">
                 <p className="text-xs font-semibold text-[#FFB347]">Your divine contribution will be forwarded to:</p>
                 <p className="text-sm font-bold text-white leading-snug">{selectedTemple.split("—")[0].trim()}</p>
-                <p className="text-[11px] text-white/50 leading-relaxed">
+                <p className="text-[13px] text-white/50 leading-relaxed">
                   A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared with you on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification and temple / puja committee management response.
                 </p>
               </div>
@@ -2936,7 +2936,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             </button>
           </div>
 
-          <p className="text-center text-[10px] text-white/25 font-mono">
+          <p className="text-center text-[12px] text-white/25 font-mono">
             Divine Contributions are voluntary and non-refundable · An Initiative by Sridwar Technology
           </p>
         </div>
@@ -3026,7 +3026,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <ChevronRight className="w-4 h-4" /><span>Continue to Divine Contribution</span>
             </button>
 
-            <p className="text-center text-[10px] text-white/30 font-mono">
+            <p className="text-center text-[12px] text-white/30 font-mono">
               An Initiative by Sridwar Technology · Your data is securely managed.
             </p>
           </div>
@@ -3146,7 +3146,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                           <MapPin className="w-3.5 h-3.5 text-[#FFB347]/60 mt-0.5 shrink-0" />
                           <div>
                             <p className="text-sm text-white font-medium leading-snug">{t.name}</p>
-                            <p className="text-[11px] text-white/40">{t.city}, {t.state}</p>
+                            <p className="text-[13px] text-white/40">{t.city}, {t.state}</p>
                           </div>
                           {selectedTemple === t.name && <Check className="w-4 h-4 text-[#5EEAD4] ml-auto shrink-0" />}
                         </button>
@@ -3158,7 +3158,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                         <Plus className="w-4 h-4 text-[#FFB347] shrink-0" />
                         <div>
                           <p className="text-sm text-[#FFB347] font-semibold">Register a New Temple / Puja Committee</p>
-                          <p className="text-[11px] text-white/40">Can't find yours? List it on Sri Dwar for free</p>
+                          <p className="text-[13px] text-white/40">Can't find yours? List it on Sri Dwar for free</p>
                         </div>
                       </button>
                     </>
@@ -3170,7 +3170,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                       <Plus className="w-4 h-4 text-[#FFB347] shrink-0" />
                       <div>
                         <p className="text-sm text-[#FFB347] font-semibold">Register "{searchQuery}"</p>
-                        <p className="text-[11px] text-white/40">Submit this temple / puja committee for listing on Sri Dwar</p>
+                        <p className="text-[13px] text-white/40">Submit this temple / puja committee for listing on Sri Dwar</p>
                       </div>
                     </button>
                   ) : (
@@ -3187,7 +3187,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 <Check className="w-4 h-4 text-[#FFB347] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[#FFB347] truncate">{selectedTemple}</p>
-                  {isNewTemple && <p className="text-[11px] text-white/40">New — will be submitted for listing</p>}
+                  {isNewTemple && <p className="text-[13px] text-white/40">New — will be submitted for listing</p>}
                 </div>
                 <button onClick={() => { setSelectedTemple(""); setSearchQuery(""); }} className="text-white/30 hover:text-white/60 cursor-pointer transition-colors shrink-0">
                   <X className="w-4 h-4" />
@@ -3220,7 +3220,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 { icon: "🔒", label: "Securely managed by Sridwar Technology" },
                 { icon: "🪪", label: "Dharmic ID" },
               ].map(f => (
-                <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
+                <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[13px] text-white/50">
                   <span>{f.icon}</span><span>{f.label}</span>
                 </span>
               ))}
@@ -3229,7 +3229,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             <div className="border-t border-white/8 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold text-white/50 mb-0.5">Temple / Authority Registration Link</p>
-                <p className="text-[11px] text-white/30 font-mono">Share this with your temple management for direct access</p>
+                <p className="text-[13px] text-white/30 font-mono">Share this with your temple management for direct access</p>
               </div>
               <ShareLinkButton
                 page="temple-register"
@@ -3309,11 +3309,11 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             {/* Expert type chips */}
             <div className="flex flex-wrap gap-2">
               {["Pujari", "Pandit", "Guru", "Sant", "Sadhu", "Purohit", "Acharya", "Jyotish", "Vastu Expert", "Sanskrit Teacher"].map(tag => (
-                <span key={tag} className="bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-full px-3 py-1 text-[11px] text-[#5EEAD4]/80 font-medium">
+                <span key={tag} className="bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-full px-3 py-1 text-[13px] text-[#5EEAD4]/80 font-medium">
                   {tag}
                 </span>
               ))}
-              <span className="bg-white/4 border border-white/10 rounded-full px-3 py-1 text-[11px] text-white/40 font-medium">& more…</span>
+              <span className="bg-white/4 border border-white/10 rounded-full px-3 py-1 text-[13px] text-white/40 font-medium">& more…</span>
             </div>
 
             {/* Trust bar */}
@@ -3324,7 +3324,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 { icon: "✅", label: "Reviewed before listing" },
                 { icon: "📲", label: "Discoverable by devotees" },
               ].map(f => (
-                <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[11px] text-white/50">
+                <span key={f.label} className="flex items-center space-x-1.5 bg-white/4 border border-white/8 rounded-full px-3 py-1 text-[13px] text-white/50">
                   <span>{f.icon}</span><span>{f.label}</span>
                 </span>
               ))}
@@ -3337,7 +3337,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             <div className="border-t border-white/8 pt-4 space-y-3">
               <div>
                 <p className="text-xs font-semibold text-white/50 mb-0.5">Dharmic Expert &amp; Devotee Registration Link</p>
-                <p className="text-[11px] text-white/30 font-mono">Share with pujaris, pandits, gurus, dharmic experts, or devotees</p>
+                <p className="text-[13px] text-white/30 font-mono">Share with pujaris, pandits, gurus, dharmic experts, or devotees</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <ShareLinkButton
