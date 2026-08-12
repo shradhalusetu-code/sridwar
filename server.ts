@@ -679,7 +679,21 @@ for (const slug of STATIC_LEGAL_PAGES) {
   });
 }
 
-// 4. Mount Vite middleware in development, serve static client in production
+// 4. Branded short link: sridwar.com/app -> Play Store listing.
+//
+// A 302 (temporary) redirect is used deliberately instead of 301: the
+// destination is a marketing link that may later gain campaign params
+// (referrer tags) or point at a landing page first. 301 would let browsers
+// and crawlers cache the redirect permanently, making that change harder
+// to roll out. Update PLAY_STORE_URL below if the package ID ever changes.
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.shradhalu.sridwar";
+
+app.get("/app", (req, res) => {
+  res.redirect(302, PLAY_STORE_URL);
+});
+
+// 5. Mount Vite middleware in development, serve static client in production
 //
 // NOTE on routing design (intentional, do not "fix" with express.static's
 // `extensions` option): /puja, /seva, /bazaar, /darshan are CLIENT-SIDE
