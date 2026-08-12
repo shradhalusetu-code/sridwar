@@ -168,6 +168,11 @@ export function gaAIAssistantOpen(): void {
   gaEvent("ai_assistant_open");
 }
 
+/** Play Store / App Store download link clicked */
+export function gaAppDownloadClick(store: "play_store" | "app_store", source: string): void {
+  gaEvent("app_download_click", { store, source });
+}
+
 /** Puja / product category filter changed */
 export function gaCategoryFilter(category: string, section: string): void {
   gaEvent("category_filter", { category, section });

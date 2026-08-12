@@ -8,8 +8,11 @@ import { Menu, X, ShoppingBasket, Globe, Share2, Calendar, User, Eye, Compass, L
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
-import { gaNavClick, gaShare } from "../utils/analytics";
+import { gaNavClick, gaShare, gaAppDownloadClick } from "../utils/analytics";
 import { getShareUrl } from "../utils/shareUrl";
+
+// Live Play Store listing for the Sri Dwar Android app.
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.shradhalu.sridwar";
 
 interface NavbarProps {
   currentLanguage: Language;
@@ -28,6 +31,12 @@ interface NavbarProps {
   // bottom tab bar — can also close it when the devotee taps a tab.
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
+  // When true, the Navbar is rendering inside the Capacitor Android app
+  // itself — the "Get the App" Play Store button is hidden in that case
+  // since a devotee already using the app doesn't need to be sent back to
+  // its own store listing. Optional + defaults to false so this is a
+  // non-breaking addition for any other place Navbar is rendered.
+  isAndroidApp?: boolean;
 }
 
 export default function Navbar({
@@ -43,7 +52,8 @@ export default function Navbar({
   userProfileName,
   onLogout,
   isMobileMenuOpen,
-  setIsMobileMenuOpen
+  setIsMobileMenuOpen,
+  isAndroidApp = false
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
@@ -304,6 +314,26 @@ export default function Navbar({
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
                   <span>Counselling</span>
                 </button>
+                {!isAndroidApp && (
+                  <a
+                    id="nav-play-store"
+                    href={PLAY_STORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => gaAppDownloadClick("play_store", "navbar")}
+                    className="hidden xl:flex bg-white/5 hover:bg-white/10 text-white text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-white/15 hover:border-[#5EEAD4]/40 transition-all duration-300 items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap"
+                    aria-label="Get Sri Dwar on Google Play"
+                    title="Get Sri Dwar on Google Play"
+                  >
+                    <svg viewBox="0 0 24 24" width="15" height="15" className="shrink-0">
+                      <path fill="#4285F4" d="M4,3.6 L12.8,8.2 L9.9,11.2 Z" />
+                      <path fill="#EA4335" d="M12.8,8.2 L20,12 L9.9,11.2 Z" />
+                      <path fill="#FBBC04" d="M20,12 L12.8,15.8 L9.9,11.2 Z" />
+                      <path fill="#34A853" d="M12.8,15.8 L4,20.4 L9.9,11.2 Z" />
+                    </svg>
+                    <span>Get the App</span>
+                  </a>
+                )}
                 <button
                   id="nav-add-temple"
                   onClick={() => {
@@ -440,6 +470,28 @@ export default function Navbar({
                   <Compass className="w-4 h-4 text-[#C7D2FE]" />
                   <span>Counselling</span>
                 </button>
+
+                {!isAndroidApp && (
+                  <a
+                    id="mobile-play-store-btn"
+                    href={PLAY_STORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      gaAppDownloadClick("play_store", "mobile_nav");
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 transition-all"
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" className="shrink-0">
+                      <path fill="#4285F4" d="M4,3.6 L12.8,8.2 L9.9,11.2 Z" />
+                      <path fill="#EA4335" d="M12.8,8.2 L20,12 L9.9,11.2 Z" />
+                      <path fill="#FBBC04" d="M20,12 L12.8,15.8 L9.9,11.2 Z" />
+                      <path fill="#34A853" d="M12.8,15.8 L4,20.4 L9.9,11.2 Z" />
+                    </svg>
+                    <span>Get the App on Google Play</span>
+                  </a>
+                )}
 
                 <button
                   id="mobile-add-temple-btn"

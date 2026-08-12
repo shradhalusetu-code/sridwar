@@ -56,7 +56,7 @@ import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "./util
 import {
   gaPageView, gaBookNowOpen, gaBookingComplete, gaCartCheckout, gaCartPurchase,
   gaSevaSelect, gaAddToCart, gaNavClick, gaSocialClick, gaWhatsAppClick,
-  gaLegalDocOpen, gaTempleExplore,
+  gaLegalDocOpen, gaTempleExplore, gaAppDownloadClick,
 } from "./utils/analytics";
 import {
   ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
@@ -596,6 +596,7 @@ export default function App() {
         onLogout={handleLogout}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
+        isAndroidApp={isAndroidApp}
       />
 
       {/* 2. DYNAMIC PAGES VIEW */}
@@ -1056,13 +1057,20 @@ export default function App() {
               <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
                 <div className="flex items-center space-x-2">
                   <span className="text-base">📱</span>
-                  <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Coming Soon</span>
+                  <span className="text-[10px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Now on Android</span>
                 </div>
                 <p className="text-[10px] text-white/50 leading-relaxed">
-                  Live darshans, one-tap puja booking, daily prayers, and personalised guidance — on Android and iOS.
+                  Live darshans, one-tap puja booking, daily prayers, and personalised guidance. Available now on Android, with iOS on the way.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.shradhalu.sridwar"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => gaAppDownloadClick("play_store", "footer")}
+                    aria-label="Get Sri Dwar on Google Play"
+                    className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 hover:bg-[#0F241F] rounded-xl px-3.5 py-2.5 min-w-[150px] transition-all cursor-pointer"
+                  >
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white/8 border border-white/10">
                       <svg viewBox="0 0 24 24" width="19" height="19">
                         <path fill="#4285F4" d="M4,3.6 L12.8,8.2 L9.9,11.2 Z" />
@@ -1072,10 +1080,10 @@ export default function App() {
                       </svg>
                     </div>
                     <div>
-                      <span className="block text-[7px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                      <span className="block text-[7px] text-[#5EEAD4]/80 uppercase tracking-widest font-mono">Download on</span>
                       <span className="block text-[11px] font-bold text-white">Google Play</span>
                     </div>
-                  </div>
+                  </a>
                   <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#1C1C1E]">
                       <svg viewBox="0 0 24 24" width="19" height="19" fill="white">

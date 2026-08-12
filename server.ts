@@ -517,6 +517,128 @@ app.post("/api/account/delete", async (req, res) => {
   }
 });
 
+// 2c. Admin: certificate & booking-confirmation PDF generation.
+//
+// Wraps certificateService.ts (a separate drop-in file already in this
+// project root) behind two header-secret-protected admin actions:
+//   - mark-completed-and-send: the "one-click send" that replaces the fully
+//     manual handcraft process. Marks a booking's service as actually
+//     performed (completion_status / performed_at — never the same thing
+//     as payment) and immediately generates + emails the final certificate.
+//   - send-booking-confirmation: generates/(re)sends the Payment-Confirmed
+//     Booking PDF for a booking whose payment_status is already 'confirmed'.
+//
+// SAFETY — why this cannot take the rest of the site down:
+//   - certificateService.ts, and its pdf-lib/@supabase dependency, is
+//     imported DYNAMICALLY, inside each handler — not at the top of this
+//     file. If pdf-lib isn't installed yet, or a Supabase env var is
+//     missing, only these two admin calls fail with a clear JSON error;
+//     server startup and every existing route are unaffected.
+//   - Both routes require the CERTIFICATE_ADMIN_SECRET env var to match an
+//     x-admin-secret header. If that env var isn't set, both routes refuse
+//     every request outright (fail closed, not open).
+//   - Nothing else in the app calls either route yet — no existing
+//     booking, payment, or email flow is touched, so nothing changes for
+//     a devotee using the site today until you (the admin) call one of
+//     these yourself.
+function requireCertAdminSecret(req: express.Request, res: express.Response): boolean {
+  const configured = process.env.CERTIFICATE_ADMIN_SECRET;
+  const provided = req.headers["x-admin-secret"];
+  if (!configured || provided !== configured) {
+    res.status(401).json({ error: "Unauthorized." });
+    return false;
+  }
+  return true;
+}
+
+const markCompletedSchema = z.object({
+  refId: z.string().min(1, "refId is required"),
+  // Optional — if the certificate is being sent for a rite performed in the
+  // past (e.g. catching up on a backlog), pass the real performed date.
+  // Defaults to "now" only when omitted.
+  performedAt: z.string().datetime().optional(),
+});
+
+app.post(
+  "/api/admin/certificates/mark-completed-and-send",
+  validateBody(markCompletedSchema),
+  async (req, res) => {
+    if (!requireCertAdminSecret(req, res)) return;
+
+    const { refId, performedAt } = req.body;
+    const supabaseAdmin = getSupabaseAdminClient();
+    if (!supabaseAdmin) {
+      res.status(500).json({
+        error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).",
+      });
+      return;
+    }
+
+    try {
+      // Step 1 — mark the service as actually performed. This is the ONLY
+      // place completion_status/performed_at ever get set; payment
+      // confirmation never touches these columns.
+      const { error: updateError } = await supabaseAdmin
+        .from("activities")
+        .update({
+          completion_status: "completed",
+          performed_at: performedAt || new Date().toISOString(),
+        } as never)
+        .eq("ref_id", refId);
+
+      if (updateError) {
+        appendAuditLog("certificate_mark_completed_failed", { refId, reason: updateError.message });
+        res.status(500).json({ error: `Could not mark booking as completed: ${updateError.message}` });
+        return;
+      }
+      appendAuditLog("certificate_mark_completed", { refId, performedAt: performedAt || new Date().toISOString() });
+
+      // Step 2 — generate + email the certificate. Dynamically imported so
+      // a missing pdf-lib install, or a schema that hasn't been migrated
+      // yet, can only ever fail THIS request, never the server itself.
+      const { generateCertificatePdf } = await import("./certificateService");
+      const result = await generateCertificatePdf(refId);
+
+      appendAuditLog("certificate_generated", { refId, status: result.status, emailStatus: result.emailStatus });
+      res.json(result);
+    } catch (err: any) {
+      const code = err?.code || "error";
+      appendAuditLog("certificate_generation_failed", { refId, code, message: err?.message });
+      res.status(code === "not_completed" || code === "payment_not_confirmed" ? 400 : 500).json({
+        error: err?.message || "Certificate generation failed.",
+        code,
+      });
+    }
+  }
+);
+
+const sendBookingConfirmationSchema = z.object({
+  refId: z.string().min(1, "refId is required"),
+});
+
+app.post(
+  "/api/admin/certificates/send-booking-confirmation",
+  validateBody(sendBookingConfirmationSchema),
+  async (req, res) => {
+    if (!requireCertAdminSecret(req, res)) return;
+
+    const { refId } = req.body;
+    try {
+      const { generateBookingConfirmationPdf } = await import("./certificateService");
+      const result = await generateBookingConfirmationPdf(refId);
+      appendAuditLog("booking_confirmation_generated", { refId, status: result.status, emailStatus: result.emailStatus });
+      res.json(result);
+    } catch (err: any) {
+      const code = err?.code || "error";
+      appendAuditLog("booking_confirmation_generation_failed", { refId, code, message: err?.message });
+      res.status(code === "payment_not_confirmed" ? 400 : 500).json({
+        error: err?.message || "Booking confirmation generation failed.",
+        code,
+      });
+    }
+  }
+);
+
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
 // Community Guidelines, Cookie Policy, About, Contact, Account Deletion).
