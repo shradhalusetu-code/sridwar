@@ -145,7 +145,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
       id="contact-us-section"
       className="py-24 bg-[#021816] text-left text-white"
       style={{
-        paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)`,
+        paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)`,
         paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 6rem)`,
       }}
     >

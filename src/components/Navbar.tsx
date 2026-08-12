@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Menu, X, ShoppingBasket, Globe, Share2, Calendar, User, Eye, Compass, Landmark, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
+import { Menu, X, ShoppingBasket, Globe, Share2, Calendar, User, Eye, Compass, Landmark, HeartHandshake, Linkedin, Instagram, Youtube, Twitter, MessageCircle, Facebook, Mail } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { CartItem } from "../types";
 import SriDwarLogo from "./SriDwarLogo";
@@ -283,6 +283,17 @@ export default function Navbar({
               {/* Action CTA Buttons */}
               <div className="flex items-center space-x-2.5">
                 <button
+                  id="nav-sponsor"
+                  onClick={() => {
+                    gaNavClick("sponsor", "navbar");
+                    onOpenSevaModal();
+                  }}
+                  className="hidden xl:flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1.5 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
+                >
+                  <HeartHandshake className="w-3.5 h-3.5 text-[#FCD34D]" />
+                  <span>Sponsor</span>
+                </button>
+                <button
                   id="nav-counselling"
                   onClick={() => {
                     gaNavClick("counselling", "navbar");
@@ -404,6 +415,19 @@ export default function Navbar({
 
               {/* Floating menu buttons inside drawer */}
               <div className="mt-6 flex flex-col space-y-3">
+                <button
+                  id="mobile-sponsor-btn"
+                  onClick={() => {
+                    gaNavClick("sponsor", "mobile_nav");
+                    onOpenSevaModal();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl flex items-center justify-center space-x-2 border border-[#FCD34D]/40 shadow-[0_0_12px_rgba(234,88,12,0.35)] hover:scale-[1.02] transition-all"
+                >
+                  <HeartHandshake className="w-4 h-4 text-[#FCD34D]" />
+                  <span>Sponsor</span>
+                </button>
+
                 <button
                   id="mobile-counselling-btn"
                   onClick={() => {

@@ -719,7 +719,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
     <section
       className="pb-16 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen"
       style={{
-        paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)",
+        paddingTop: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)",
         paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)",
       }}
     >

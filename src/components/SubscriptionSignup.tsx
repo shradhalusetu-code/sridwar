@@ -277,6 +277,10 @@ export default function SubscriptionSignup({
   const handlePaymentConfirmed = async (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     setShowPayment(false);
     await finalizeSubscription(details);
+    // Same confirmation popup as the Bhog/Bazaar (Sankalpa Portal) and Puja
+    // Sankalp Portal flows — no fixed timeline/deadline, just an open-ended
+    // "confirmation soon".
+    alert(`🙏 Jai Jagannath! Your ${categoryLabel} — ${tier.name} contribution has been registered. Our pandit team will send you a confirmation soon. Ref: ${refId}`);
     setStep(3);
   };
 

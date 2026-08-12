@@ -349,6 +349,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       paymentMethod: details.method,
       paymentStatus: "pending_verification",
     });
+    // Same confirmation popup as the Bhog/Bazaar (Sankalpa Portal) flow —
+    // no fixed timeline/deadline, just an open-ended "confirmation soon".
+    alert(`🙏 Jai Jagannath! Your ${pujaName} has been registered. Our pandit team will send you a confirmation soon. Ref: ${refId}`);
     onSuccess({ pujaName, sankalpaName: devoteeName, price: details.amount, refId });
   };
 

@@ -395,35 +395,8 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           <span>Your seva is performed with devotion and recorded digitally. After completion, you will receive a digital certificate/evidence for your seva.</span>
         </div>
 
-        {/* ── Sponsor — moved here from the header nav CTA. Opens the same
-             quick "Divine Seva Sponsorship" picker modal the header button
-             used to, just relocated to sit directly below the Seva Hub
-             heading/intro instead of living in the navbar. ──────────────── */}
-        {/* Enlarged, devotional treatment: a saffron/gold gradient (matching
-            the Aarti flame palette used elsewhere) with a soft pulsing halo
-            behind it, plus a stronger hover/active response for clear touch
-            feedback on the Android app. The halo uses Tailwind's built-in
-            animate-pulse rather than a custom keyframe, and the button
-            keeps the same id, onClick, and centered layout, so nothing
-            about its behavior or surrounding spacing changes. */}
-        <div className="flex justify-center mb-8">
-          <div className="relative inline-block">
-            <span
-              aria-hidden="true"
-              className="absolute -inset-2.5 rounded-full bg-gradient-to-r from-[#9F1239] via-[#DC2626] to-[#F59E0B] opacity-50 blur-xl animate-pulse pointer-events-none"
-            />
-            <button
-              type="button"
-              id="seva-page-sponsor-btn"
-              onClick={() => onOpenSevaModal?.()}
-              className="relative bg-gradient-to-r from-[#9F1239] via-[#DC2626] to-[#EA580C] hover:from-[#BE123C] hover:via-[#EF4444] hover:to-[#F59E0B] text-white text-sm sm:text-base font-extrabold uppercase tracking-widest px-10 sm:px-14 py-4 sm:py-5 rounded-full border-2 border-[#FCD34D]/70 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center space-x-3 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:shadow-[0_0_34px_rgba(245,158,11,0.75)]"
-            >
-              <HeartHandshake className="w-5 h-5 sm:w-6 sm:h-6 text-[#FCD34D] shrink-0" />
-              <span>Sponsor</span>
-            </button>
-          </div>
-        </div>
-
+        {/* Sponsor CTA lives in the header navbar now (see Navbar.tsx),
+            next to Counselling and Add Temple, instead of down here. */}
         {/* Seva Offerings — tiered from ₹100 upward */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">

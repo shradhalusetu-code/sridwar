@@ -404,7 +404,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
       });
     }
     const msg = selectedItem?.isService
-      ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a WhatsApp confirmation within 2 hours. Ref: ${refId}`
+      ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a confirmation soon. Ref: ${refId}`
       : `🙏 Order received! Once your payment is verified, our team will confirm it and ship your ${selectedItem?.name} within 3–5 working days. Ref: ${refId}`;
     alert(msg);
     // Reset form fields
