@@ -176,7 +176,7 @@ export default function Navbar({
                 extra room from a wide viewport now collects between the logo
                 and the nav group, which reads as a natural, balanced header
                 instead of stray whitespace next to the language button. */}
-            <div className="hidden min-[1700px]:flex items-center space-x-3 xl:space-x-5 flex-1 justify-end pr-3 xl:pr-4" id="desktop-menu">
+            <div className="hidden lg:flex items-center space-x-3 xl:space-x-5 flex-1 min-w-0 justify-end overflow-x-auto no-scrollbar pr-3 xl:pr-4" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -197,7 +197,7 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden min-[1700px]:flex items-center space-x-2 xl:space-x-3 shrink-0">
+            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 shrink-0">
               {/* Preference & Account Utilities Capsule */}
               <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
@@ -298,10 +298,12 @@ export default function Navbar({
                     gaNavClick("sponsor", "navbar");
                     onOpenSevaModal();
                   }}
-                  className="flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
+                  aria-label="Sponsor"
+                  title="Sponsor"
+                  className="flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[13px] font-bold uppercase tracking-wide px-2.5 xl:px-3 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
                 >
                   <HeartHandshake className="w-3.5 h-3.5 text-[#FCD34D]" />
-                  <span>Sponsor</span>
+                  <span className="hidden xl:inline">Sponsor</span>
                 </button>
                 <button
                   id="nav-counselling"
@@ -309,10 +311,12 @@ export default function Navbar({
                     gaNavClick("counselling", "navbar");
                     onNavigate("counselling");
                   }}
-                  className="flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
+                  aria-label="Counselling"
+                  title="Counselling"
+                  className="flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[13px] font-bold uppercase tracking-wide px-2.5 xl:px-3 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
                 >
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
-                  <span>Counselling</span>
+                  <span className="hidden xl:inline">Counselling</span>
                 </button>
                 {!isAndroidApp && (
                   <a
@@ -331,7 +335,7 @@ export default function Navbar({
                       <path fill="#FBBC04" d="M20,12 L12.8,15.8 L9.9,11.2 Z" />
                       <path fill="#34A853" d="M12.8,15.8 L4,20.4 L9.9,11.2 Z" />
                     </svg>
-                    <span>Get the App</span>
+                    <span className="hidden xl:inline">Get the App</span>
                   </a>
                 )}
                 <button
@@ -340,16 +344,18 @@ export default function Navbar({
                     gaNavClick("add-temple", "navbar");
                     onNavigate("add-temple");
                   }}
-                  className="bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 flex items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(190,18,60,0.35)] hover:shadow-[0_0_16px_rgba(225,29,72,0.55)]"
+                  aria-label="Add Temple"
+                  title="Add Temple"
+                  className="bg-gradient-to-r from-[#9F1239] to-[#BE123C] hover:from-[#BE123C] hover:to-[#E11D48] text-white text-[13px] font-bold uppercase tracking-wide px-2.5 xl:px-3 py-2 rounded-full border border-[#FDA4AF]/40 transition-all duration-300 flex items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(190,18,60,0.35)] hover:shadow-[0_0_16px_rgba(225,29,72,0.55)]"
                 >
                   <Landmark className="w-3.5 h-3.5 text-[#FDA4AF]" />
-                  <span>Add Temple</span>
+                  <span className="hidden xl:inline">Add Temple</span>
                 </button>
               </div>
             </div>
 
             {/* Mobile Hamburger Trigger */}
-            <div className="min-[1700px]:hidden flex items-center space-x-3">
+            <div className="lg:hidden flex items-center space-x-3">
               {/* Cart Mobile */}
               <button
                 id="mobile-cart-trigger"

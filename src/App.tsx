@@ -1198,7 +1198,7 @@ export default function App() {
       </nav>}
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
       <Suspense fallback={null}>
-        <AIAssistant currentLanguage={currentLanguage} />
+        <AIAssistant currentLanguage={currentLanguage} isAndroidApp={isAndroidApp} />
       </Suspense>
 
       {/* 5. MULTI-STEP SANKALPA BOOKING WIZARD OVERLAY */}

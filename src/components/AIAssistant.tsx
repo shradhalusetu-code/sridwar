@@ -9,6 +9,24 @@ import { gaAIAssistantOpen } from "../utils/analytics";
 
 interface AIAssistantProps {
   currentLanguage: string;
+  /**
+   * ✅ FIX — floating "Consult AI Guide" button was hidden behind the
+   * Android app's fixed bottom tab bar.
+   * index.css had a `body.capacitor-android #ai-assistant-fab` rule meant
+   * to lift this button above the tab bar, but the button's real id is
+   * `ai-floating-trigger` — the selector never matched anything, AND even
+   * a matching selector couldn't have won: the button also carries an
+   * inline `style={{ bottom: ... }}`, which always overrides a class/id
+   * rule regardless of specificity. So on Android this button sat at only
+   * 1.5rem + safe-area from the bottom — fully underneath the ~78px-tall
+   * fixed tab bar (z-index 100, opaque background), which is higher than
+   * this button's z-40. It wasn't just partly covered, the whole button
+   * was behind the tab bar. Passing isAndroidApp (App.tsx already
+   * computes this for every other fixed-bottom element) lets this
+   * component lift itself clear of the tab bar the same way the footer
+   * and CookieConsent already do — see the inline style below.
+   */
+  isAndroidApp?: boolean;
 }
 
 // ─── Margadarshak AI — local preset knowledge base ───────────────────────────
@@ -155,7 +173,7 @@ function findBestAnswer(userText: string): string {
   return "Hari Om! 🙏 My guidance is currently limited to Sri Dwar's devotional services — Puja booking, Seva sponsorship, Live Darshan, Prasad delivery, Vedic astrology, and temple/priest registration. Could you try asking a related devotional question? For anything else, our Devotee Care team on the Contact Us page would love to help.";
 }
 
-export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
+export default function AIAssistant({ currentLanguage, isAndroidApp = false }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: "user" | "model"; text: string }>>([
     { role: "model", text: "Hari Om! 🙏 Welcome to Sri Dwar. I am your 'Dharmic Margadarshak' AI assistant. Ask me questions about Puja bookings, Seva sponsorship, Live Darshan, Prasad delivery, Vedic astrology, or the foundational vision of Kunu Rana!" }
@@ -187,7 +205,11 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
         id="ai-floating-trigger"
         onClick={() => { if (!isOpen) gaAIAssistantOpen(); setIsOpen(!isOpen); }}
         className="fixed bottom-6 right-6 z-40 bg-[#092320]/95 backdrop-blur border border-white/20 text-[#5EEAD4] p-4 rounded-full shadow-2xl hover:bg-neutral-900 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center cursor-pointer group"
-        style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }}
+        style={
+          isAndroidApp
+            ? { bottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 96px)" }
+            : { bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }
+        }
         title="Consult AI Margadarshak Guide"
       >
         <Sparkles className="w-5 h-5 text-[#FFB347] animate-pulse group-hover:rotate-12 transition-transform" />
@@ -200,7 +222,9 @@ export default function AIAssistant({ currentLanguage }: AIAssistantProps) {
           id="ai-chat-panel"
           className="fixed bottom-24 right-6 z-40 w-92 max-w-[calc(100vw-32px)] bg-[#092320]/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl flex flex-col justify-between overflow-hidden animate-slideUp text-left text-xs text-white"
           style={{
-            bottom: "calc(6rem + env(safe-area-inset-bottom, 0px))",
+            bottom: isAndroidApp
+              ? "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 168px)"
+              : "calc(6rem + env(safe-area-inset-bottom, 0px))",
             maxHeight: "calc(100vh - 7rem - var(--safe-area-inset-top, env(safe-area-inset-top, 24px)))",
           }}
         >

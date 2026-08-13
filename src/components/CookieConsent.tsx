@@ -39,10 +39,38 @@
  *    shipped).
  *  - Fully self-contained: safe to drop into App.tsx with no other wiring
  *    beyond the <CookieConsent /> tag and this file's import.
+ *
+ * ✅ FIX — Accept/Decline hidden behind fixed UI (Android app bottom tab
+ * bar, in some cases the system gesture-nav bar):
+ * This banner and App.tsx's Android-only bottom tab bar (`isAndroidApp &&
+ * <nav>...`) are BOTH `position: fixed` at `bottom: 0`. This banner used a
+ * higher z-index (300 vs the tab bar's 100), so it always painted ON TOP —
+ * it was never literally invisible — but visually it sat flush against the
+ * very bottom edge of the screen, directly overlapping "Home / Puja / Seva
+ * / Shop / Profile", covering the last ~5-8px of those tap targets and
+ * making the whole banister feel jammed into the tab bar with no
+ * breathing room, which read as "broken" the same way TempleRegister's
+ * footer did before its own Android padding fix. The website (no tab bar)
+ * was never affected — its only fixed bottom-edge risk is the phone's own
+ * system nav bar / home-indicator, which `env(safe-area-inset-bottom)`
+ * already clears.
+ * Fix: same pattern already used by the footer and tab bar in App.tsx —
+ * on Android, lift this banner clear ABOVE the tab bar's real rendered
+ * height (~76px: 8px top padding + 22px icon + 4px gap + ~14px label +
+ * 20px bottom padding, plus the safe-area inset) instead of sharing its
+ * bottom edge. Off Android, behaviour is unchanged.
  */
 
 import { useEffect, useState } from "react";
 import { ShieldCheck, X } from "lucide-react";
+
+// Mirrors the exact check App.tsx uses to decide whether to render its
+// Android-only fixed bottom tab bar (main.tsx adds this class before React
+// ever mounts, so reading it once here at module scope is safe and always
+// in sync with that decision — no UA-sniffing fallback, deliberately, so
+// this only activates when that specific tab bar actually exists).
+const isSriDwarAndroidApp = (): boolean =>
+  typeof document !== "undefined" && document.body.classList.contains("capacitor-android");
 
 const CONSENT_KEY = "sridwar_cookie_consent";
 // Guards the one-time migration below — deliberately a SEPARATE key from
@@ -59,6 +87,7 @@ declare global {
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
+  const isAndroidApp = isSriDwarAndroidApp();
 
   useEffect(() => {
     try {
@@ -131,8 +160,19 @@ export default function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[300] p-3 sm:p-4 animate-fadeIn"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+      className="fixed left-0 right-0 z-[300] p-3 sm:p-4 animate-fadeIn"
+      style={
+        isAndroidApp
+          ? {
+              // Clears the fixed Android tab bar entirely instead of
+              // sharing its bottom edge — see the FIX note above.
+              bottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 76px)",
+            }
+          : {
+              bottom: 0,
+              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+            }
+      }
       role="dialog"
       aria-live="polite"
       aria-label="Cookie and tracking consent"

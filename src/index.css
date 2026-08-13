@@ -244,14 +244,14 @@ body.capacitor-android #dharma-portal-section {
 }
 
 /* ─── AI Assistant floating button: clear Android nav bar ──────────────── */
-/* FIX: var(--safe-area-inset-bottom) first, env() as fallback — same
-   Android WebView bug as the tab bar and footer above. */
-body.capacitor-android #ai-assistant-fab {
-  bottom: calc(1.5rem + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
-}
-body.capacitor-android #ai-chat-panel {
-  bottom: calc(6rem + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
-}
+/* REMOVED — this rule targeted #ai-assistant-fab, but the button's real id
+   is #ai-floating-trigger (AIAssistant.tsx), so this selector never
+   matched anything. It also could not have worked even with the right id:
+   the button carries its own inline `style={{ bottom: ... }}`, and an
+   inline style always wins over a class/id rule. The actual fix is now in
+   AIAssistant.tsx itself — it takes an `isAndroidApp` prop (App.tsx
+   already computes this) and sets its own `bottom` offset high enough to
+   clear the fixed tab bar, the same pattern the footer already uses. */
 
 /* ─── Mobile drawer: account for status bar ─────────────────────────────── */
 /* FIX: var(--safe-area-inset-top) first, env() as fallback — same
