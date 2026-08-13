@@ -187,6 +187,37 @@ function showConfirmationToast(message: string): void {
   }
 }
 
+// ─── Preload pdf-lib the moment this module is first evaluated ─────────────
+// ✅ ROOT-CAUSE FIX — "Download Confirmation" going completely silent:
+// buildConfirmationPdfBytes() used to call `await import("pdf-lib")` for the
+// FIRST time only once the devotee actually tapped the button. On a first
+// visit that chunk has never been fetched, so that await could take a real,
+// visible amount of time (a network round-trip on a phone, sometimes 500ms+).
+// That delay sits BEFORE downloadConfirmationMessage() ever reaches
+// navigator.share() below — and the Web Share API only works while it's
+// still inside the click's "user activation" window. Once that window
+// expires mid-await, nav.share() throws (not an AbortError, so it fell
+// through silently) and the code moved on to the classic <a download> path —
+// which, per the note below, ALSO does nothing inside the Capacitor Android
+// WebView. Net effect for exactly the devotee this whole fix was written
+// for (first-time visitor, on the Android app): both real download paths
+// could fail back-to-back, so this async gap was undermining the very fix
+// meant to solve it.
+// Fix: kick off the pdf-lib import as a background side effect the instant
+// this module loads (i.e. as soon as the success screen's component chunk
+// is imported — well before the devotee reaches the "Download Confirmation"
+// button, let alone taps it), and reuse that same in-flight/resolved
+// promise here. By click time the module is normally already cached, so
+// building the PDF is just fast, synchronous-ish CPU work and
+// navigator.share() gets called close enough to the tap to keep its user
+// activation intact.
+let pdfLibPromise: Promise<typeof import("pdf-lib")> | null = null;
+function warmPdfLib() {
+  if (!pdfLibPromise) pdfLibPromise = import("pdf-lib");
+  return pdfLibPromise;
+}
+if (typeof window !== "undefined") warmPdfLib();
+
 // ─── Confirmation PDF (client-side receipt — NOT the priest-issued certificate) ─
 // Reuses the same brand palette as Config.gs / certificateService.ts so the
 // receipt looks consistent with every other Sri Dwar document, but this is
@@ -194,7 +225,7 @@ function showConfirmationToast(message: string): void {
 // priest signature, no ritual-specific claims — because none of those are
 // true of this document.
 async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise<Uint8Array> {
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const { PDFDocument, StandardFonts, rgb } = await warmPdfLib();
 
   const darkGreen = rgb(0x0c / 255, 0x2b / 255, 0x26 / 255);
   const saffron = rgb(0xe8 / 255, 0xa3 / 255, 0x3d / 255);
