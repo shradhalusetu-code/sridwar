@@ -158,7 +158,7 @@ export default function Navbar({
             : "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1.75rem)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
+        <div className="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-3 lg:gap-4">
             {/* Left: Brand Identity */}
             <div
@@ -176,7 +176,7 @@ export default function Navbar({
                 extra room from a wide viewport now collects between the logo
                 and the nav group, which reads as a natural, balanced header
                 instead of stray whitespace next to the language button. */}
-            <div className="hidden lg:flex items-center space-x-3 xl:space-x-5 flex-1 justify-end pr-3 xl:pr-4" id="desktop-menu">
+            <div className="hidden min-[1700px]:flex items-center space-x-3 xl:space-x-5 flex-1 justify-end pr-3 xl:pr-4" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -197,7 +197,7 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 shrink-0">
+            <div className="hidden min-[1700px]:flex items-center space-x-2 xl:space-x-3 shrink-0">
               {/* Preference & Account Utilities Capsule */}
               <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
@@ -298,7 +298,7 @@ export default function Navbar({
                     gaNavClick("sponsor", "navbar");
                     onOpenSevaModal();
                   }}
-                  className="hidden xl:flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
+                  className="flex bg-gradient-to-r from-[#B45309] to-[#EA580C] hover:from-[#D97706] hover:to-[#F97316] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#FCD34D]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(234,88,12,0.35)] hover:shadow-[0_0_16px_rgba(249,115,22,0.55)]"
                 >
                   <HeartHandshake className="w-3.5 h-3.5 text-[#FCD34D]" />
                   <span>Sponsor</span>
@@ -309,7 +309,7 @@ export default function Navbar({
                     gaNavClick("counselling", "navbar");
                     onNavigate("counselling");
                   }}
-                  className="hidden xl:flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
+                  className="flex bg-gradient-to-r from-[#3730A3] to-[#4C1D95] hover:from-[#4338CA] hover:to-[#5B21B6] text-white text-[13px] font-bold uppercase tracking-wide px-3 py-2 rounded-full border border-[#A5B4FC]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap shadow-[0_0_10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_16px_rgba(129,140,248,0.55)]"
                 >
                   <Compass className="w-3.5 h-3.5 text-[#C7D2FE]" />
                   <span>Counselling</span>
@@ -321,7 +321,7 @@ export default function Navbar({
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => gaAppDownloadClick("play_store", "navbar")}
-                    className="hidden xl:flex bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold uppercase tracking-wide px-2.5 py-2 rounded-full border border-white/15 hover:border-[#5EEAD4]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap"
+                    className="flex bg-white/5 hover:bg-white/10 text-white text-[13px] font-bold uppercase tracking-wide px-2.5 py-2 rounded-full border border-white/15 hover:border-[#5EEAD4]/40 transition-all duration-300 items-center space-x-1 hover:scale-105 h-9 outline-none cursor-pointer whitespace-nowrap"
                     aria-label="Get Sri Dwar on Google Play"
                     title="Get Sri Dwar on Google Play"
                   >
@@ -349,7 +349,7 @@ export default function Navbar({
             </div>
 
             {/* Mobile Hamburger Trigger */}
-            <div className="lg:hidden flex items-center space-x-3">
+            <div className="min-[1700px]:hidden flex items-center space-x-3">
               {/* Cart Mobile */}
               <button
                 id="mobile-cart-trigger"
