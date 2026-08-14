@@ -61,6 +61,9 @@
 
 // @ts-ignore — same pattern as SriDwarLogo.tsx; Vite resolves this to a URL string.
 import sriDwarLogoPng from "../assets/images/sridwar-logo.png";
+// Same Android-app detection already used by the "Share this page" flow —
+// see the note above downloadConfirmationMessage() for why this matters here.
+import { isNativeAndroidApp } from "./shareUrl";
 
 export type DevotionalServiceCategory =
   | "darshan_certificate"
@@ -402,6 +405,49 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
  * reliable method first and always ending with a visible signal — never
  * silently doing nothing. Safe to call without awaiting from an onClick
  * handler, same as before.
+ *
+ * ✅ ROOT-CAUSE FIX — "Your Sacred Confirmation is downloading" toast shown
+ * inside the Android app, but nothing ever appears in Downloads/Files:
+ * The old tier 2 ("classic" Blob + <a download> click) reported success
+ * unconditionally the instant a.click() ran — but that success signal was
+ * never actually verified. Inside Android's WebView (which is what the
+ * Capacitor app's server.url mode runs on), a `blob:` URL is only a handle
+ * to bytes sitting in the WebView's own in-memory JS heap. It was never
+ * requested over the network, so Android's native download handler — the
+ * thing that would normally catch a tap and hand the file to the system
+ * Download Manager — never sees it at all. This is a documented, OS-level
+ * WebView limitation (confirmed across multiple independent Capacitor/
+ * Android engineering write-ups as of 2025-2026), not something introduced
+ * by this file or fixable with JavaScript alone: WebView has no built-in
+ * mechanism for reading bytes out of a blob: URL and no PDF renderer to
+ * fall back to either. The DOM click genuinely fires, a.click() genuinely
+ * "succeeds" as a JS call — there's just nobody on the native side
+ * listening, so the toast was lying by omission.
+ * Fix: tier 2 is now skipped entirely inside the Android app (detected via
+ * the same isNativeAndroidApp() check the "Share this page" flow already
+ * uses), so a devotee there never sees a "downloading" message for
+ * something that silently did nothing. It still runs unchanged on the
+ * website and any ordinary mobile/desktop browser tab, where it has always
+ * worked and continues to.
+ * In its place, Android now gets an extra real tier: if the device's
+ * WebView supports file-sharing (`navigator.share` with files) that's
+ * still tried first, same as before, and now sticks around as the
+ * headline path since it IS a genuine, working native API call, not a
+ * blob-download workaround. If that specific device's WebView only
+ * supports plain text/link sharing (no files — this varies by Android
+ * WebView version/OEM), the devotee still gets a real native share sheet
+ * with their confirmation text and reference ID, rather than jumping
+ * straight past it to clipboard-only.
+ * Clipboard copy remains the final, always-works fallback — a real
+ * browser API, not a native file write, so it's unaffected by this
+ * WebView limitation either way.
+ * NOTE: a fully reliable "Save PDF to Downloads" experience on every
+ * Android device — matching what tier 2 already does correctly on the
+ * website — requires the official @capacitor/filesystem (and ideally
+ * @capacitor/share) plugin. That is genuinely native code, so adding it
+ * means a new AAB build and Play Store re-upload; it can't be delivered
+ * through a website-only deploy the way this fix is. Flagging that as a
+ * follow-up, not bundling it into this fix.
  */
 export async function downloadConfirmationMessage(input: DevotionalMessageInput): Promise<void> {
   const text = getDevotionalConfirmationText(input);
@@ -420,13 +466,18 @@ export async function downloadConfirmationMessage(input: DevotionalMessageInput)
     filename = `${filenameBase}.txt`;
   }
 
-  // 1) Native share sheet — most reliable inside the Capacitor Android app,
-  //    where a blob <a download> click is silently unsupported.
   const nav = typeof navigator !== "undefined" ? (navigator as Navigator & {
     share?: (data: ShareData) => Promise<void>;
     canShare?: (data: ShareData) => boolean;
   }) : undefined;
 
+  const insideAndroidApp = isNativeAndroidApp();
+
+  // 1) Native share sheet with the actual PDF/text file attached — the
+  //    only method proven to genuinely save/hand off a file inside the
+  //    Capacitor Android app. Unchanged on web, where it's also the best
+  //    first attempt (hands off to Drive, Files, WhatsApp, Gmail, etc).
+  let fileShareSupported = false;
   if (nav?.share) {
     try {
       const file = new File([fileBlob], filename, { type: fileBlob.type });
@@ -435,7 +486,8 @@ export async function downloadConfirmationMessage(input: DevotionalMessageInput)
         title: "Sri Dwar Confirmation",
         text: `Sri Dwar confirmation — Reference ${input.refId}`,
       };
-      if (!nav.canShare || nav.canShare(shareData)) {
+      fileShareSupported = !nav.canShare || nav.canShare(shareData);
+      if (fileShareSupported) {
         await nav.share(shareData);
         showConfirmationToast("🙏 Your Sacred Confirmation is ready to save or share.");
         return;
@@ -446,25 +498,49 @@ export async function downloadConfirmationMessage(input: DevotionalMessageInput)
     }
   }
 
-  // 2) Classic browser download — the original, working method on desktop
-  //    and most mobile browser tabs.
-  try {
-    const url = URL.createObjectURL(fileBlob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-    showConfirmationToast("🙏 Your Sacred Confirmation is downloading.");
-    return;
-  } catch {
-    // fall through to the last resort
+  // 2) Classic Blob + <a download> — the original, working method on
+  //    desktop and ordinary mobile browser tabs. Deliberately SKIPPED
+  //    inside the Android app (see the fix note above): it cannot succeed
+  //    there, and running it would just reproduce the misleading
+  //    "downloading" toast for a file that never actually saves.
+  if (!insideAndroidApp) {
+    try {
+      const url = URL.createObjectURL(fileBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      showConfirmationToast("🙏 Your Sacred Confirmation is downloading.");
+      return;
+    } catch {
+      // fall through to the last resort
+    }
+  } else if (nav?.share && !fileShareSupported) {
+    // This Android WebView's Web Share implementation doesn't support
+    // files, but plain text/link sharing is a much older, more widely
+    // supported part of the same API and is very often still available.
+    // Try it before dropping all the way to clipboard-only, so the
+    // devotee still gets a real native share action where possible.
+    try {
+      await nav.share({
+        title: "Sri Dwar Confirmation",
+        text: `${text}\n`,
+      });
+      showConfirmationToast("🙏 Your Sacred Confirmation was shared.");
+      return;
+    } catch (err: any) {
+      if (err?.name === "AbortError") return; // devotee cancelled — not a failure
+      // fall through to clipboard
+    }
   }
 
   // 3) Last resort — copy to clipboard so the devotee always gets
-  //    something, with a visible confirmation instead of silence.
+  //    something, with a visible confirmation instead of silence. This is
+  //    a real Clipboard API call (not a native file write), so it works
+  //    the same inside the Android app as it does on the website.
   try {
     await navigator.clipboard.writeText(text);
     showConfirmationToast("🙏 Copied your Sacred Confirmation to the clipboard.");
