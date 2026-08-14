@@ -176,27 +176,53 @@ export default function Navbar({
                 extra room from a wide viewport now collects between the logo
                 and the nav group, which reads as a natural, balanced header
                 instead of stray whitespace next to the language button. */}
-            {/* FIX (tablet landscape header bug): this row used to switch on at
-                the "lg" breakpoint (1024px). On 10–12" tablets in landscape
-                (roughly 1024–1279px wide), the combined width of all 8 nav
-                labels + the language/cart/account capsule + the
-                Sponsor/Counselling/Add Temple buttons is wider than the
-                available space, and with justify-end the flex box packed
-                items against the RIGHT edge of its overflowing content box —
-                so the LEFT side (Home, part of Seva) sat scrolled out of
-                view with no visible scrollbar. The actual fix is just the
-                breakpoint: raising the switch-over point from lg (1024px) to
-                xl (1280px) here and on the two matching toggles below means
-                tablets in that cramped 1024–1279px range now get the
-                already-working mobile hamburger menu instead of the packed
-                row, so this row never has to overflow for that device class.
+            {/* FIX (tablet-in-app header bug, take 3): the previous two
+                attempts both tried to solve this with ONE width breakpoint
+                shared by both the Capacitor Android app and the public
+                website — first "lg" (1024px), then "xl" (1280px), then
+                "min-[1800px]". Any single width threshold is the wrong
+                tool here, because the two surfaces have opposite needs:
+                the app is only ever viewed on a phone or tablet (so it
+                should ALWAYS use the compact hamburger menu, regardless of
+                width or orientation — nobody needs 8 nav labels + 3 CTA
+                buttons crammed into an app), while the marketing website is
+                viewed on real desktop/laptop browsers where devotees expect
+                to see the full nav row, and a lot of those browsers sit
+                well under 1800px of CSS width (e.g. any laptop with 125%+
+                OS display scaling), so that threshold made the website look
+                broken/"hamburger-only" even on an ordinary laptop — not
+                what a fix should trade away.
+                The actual fix: branch on `isAndroidApp` instead of (only)
+                on width.
+                  - isAndroidApp === true  → this row (and the matching CTA
+                    row + hamburger trigger below) is unconditionally
+                    `hidden` / `flex`. The desktop row can never render
+                    inside the app, on any tablet, in any orientation — so
+                    it can never be the thing that's overflowing/clipped
+                    there. This is what actually fixes the original tablet
+                    bug, permanently, with no width math involved.
+                  - isAndroidApp === false (the public website) → back to
+                    the original `lg` (1024px) breakpoint, which is safe
+                    again now that it only ever has to serve real browser
+                    windows. It was never really the breakpoint's fault:
+                    the paired classes below it (space-x-3 → xl:space-x-5,
+                    hidden → xl:inline on the CTA button labels) were
+                    already designed to compact this row — tight gaps and
+                    icon-only buttons from 1024–1279px, full spacing and
+                    labels from 1280px up. That tiering only stopped
+                    working when a later fix moved the outer show/hide
+                    threshold up without moving those inner ones with it.
                 justify-end is kept exactly as it was before — that's the
                 intentional design (nav sitting close to the right-hand
-                controls, extra space collecting next to the logo instead of
-                before the controls) and reverting it away from justify-end
-                was a regression, not a fix; don't change it again without
-                re-checking against 1280px-and-up widths first. */}
-            <div className="hidden xl:flex items-center space-x-3 xl:space-x-5 flex-1 min-w-0 justify-end overflow-x-auto no-scrollbar pr-3 xl:pr-4" id="desktop-menu">
+                controls) — don't change it. If the website row is ever
+                reported as clipped again, the fix is to compact it further
+                (smaller gaps, icon-only buttons over a wider range) or
+                raise ONLY the website's `lg`, never by reintroducing a
+                single breakpoint that also gates the app. */}
+            <div
+              className={`${isAndroidApp ? "hidden" : "hidden lg:flex"} items-center space-x-3 xl:space-x-5 flex-1 min-w-0 justify-end overflow-x-auto no-scrollbar pr-3 xl:pr-4`}
+              id="desktop-menu"
+            >
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -217,7 +243,7 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden xl:flex items-center space-x-2 xl:space-x-3 shrink-0">
+            <div className={`${isAndroidApp ? "hidden" : "hidden lg:flex"} items-center space-x-2 xl:space-x-3 shrink-0`}>
               {/* Preference & Account Utilities Capsule */}
               <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
@@ -375,7 +401,7 @@ export default function Navbar({
             </div>
 
             {/* Mobile Hamburger Trigger */}
-            <div className="xl:hidden flex items-center space-x-3">
+            <div className={isAndroidApp ? "flex items-center space-x-3" : "lg:hidden flex items-center space-x-3"}>
               {/* Cart Mobile */}
               <button
                 id="mobile-cart-trigger"
