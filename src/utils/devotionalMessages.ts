@@ -59,6 +59,9 @@
  * ============================================================
  */
 
+// @ts-ignore — same pattern as SriDwarLogo.tsx; Vite resolves this to a URL string.
+import sriDwarLogoPng from "../assets/images/sridwar-logo.png";
+
 export type DevotionalServiceCategory =
   | "darshan_certificate"
   | "puja_seva"
@@ -118,6 +121,35 @@ const BLESSING_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
     "Like a diya lit with pure intention, your membership welcome letter is being prepared with sacred blessings and will be delivered to you within 3–7 working days — straight to your email or WhatsApp.",
   support_contribution:
     "Like a diya lit with pure intention, your acknowledgement is being handcrafted with sacred blessings and will be delivered to you within 3–7 working days — straight to your email or WhatsApp.",
+};
+
+// ─── Service-specific PDF disclaimers ───────────────────────────────────────
+// One line per category, placed at the bottom of the confirmation PDF above
+// the footer band. Each is specific to what that PDF actually is (a request/
+// payment receipt — never the priest-issued certificate) and to that
+// service's real nature. Deliberately no medical/legal/guaranteed-outcome
+// language anywhere, per compliance requirements — counselling_guidance and
+// holistic_wellness explicitly disclaim being a substitute for professional
+// medical/psychiatric/legal care rather than implying any such claim.
+const DISCLAIMER_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
+  darshan_certificate:
+    "This document confirms your request only — it is not the Darshan Certificate itself. The certificate is prepared separately by our priests and delivered once the darshan/puja process is complete; timing may vary with temple schedule and priest availability.",
+  puja_seva:
+    "This document confirms your Sankalpa and payment only — it is not proof that the ritual has been performed. Your Sankalpa Certificate of performance is issued separately once the puja/seva is carried out as per temple process, priest availability, and temple schedule.",
+  counselling_guidance:
+    "This document confirms your request only. Counselling & Guidance sessions offer spiritual and emotional support and are not a substitute for professional medical, psychiatric, or legal advice. No specific outcome or exact session timing is guaranteed.",
+  holistic_wellness:
+    "This document confirms your enrollment only. These are guided yogic/wellness practices, not medical treatment — please consult a qualified physician for any health condition before or during participation.",
+  seva_offering:
+    "This document confirms your Seva Sankalp and payment only — it is not proof that the seva has been performed. Your Seva Certificate of performance is issued separately once the seva is carried out as per temple process, priest availability, and temple schedule.",
+  temple_contribution:
+    "This document confirms your contribution only. A separate acknowledgement letter is issued by our team; processing time may vary with volume and temple schedule.",
+  bazaar_order:
+    "This document confirms your order only — it is not a dispatch or delivery guarantee. Dispatch timing may vary with item availability, packing, and courier schedules.",
+  subscription:
+    "This document confirms your membership contribution only. Your welcome letter and any associated benefits are sent separately.",
+  support_contribution:
+    "This document confirms your offering only. A separate acknowledgement is sent by our team; no specific outcome is implied or guaranteed.",
 };
 
 /** Structured pieces, for screens that render the message with their own styling (e.g. Hero.tsx's card layout). */
@@ -218,6 +250,22 @@ function warmPdfLib() {
 }
 if (typeof window !== "undefined") warmPdfLib();
 
+// Same eager-warm reasoning as pdf-lib above, applied to the logo image:
+// fetching+decoding it must NOT happen for the first time inside the
+// devotee's click handler, or it reintroduces the exact user-activation
+// race the pdf-lib preload above was written to avoid. `sriDwarLogoPng` is
+// a same-origin bundled asset (see SriDwarLogo.tsx), so this fetch never
+// touches the network after the first page load and never hits a CORS
+// issue the way fetching Config.gs's Google Drive-hosted logoUrl would.
+let logoBytesPromise: Promise<ArrayBuffer> | null = null;
+function warmLogoBytes() {
+  if (!logoBytesPromise) {
+    logoBytesPromise = fetch(sriDwarLogoPng).then((r) => r.arrayBuffer());
+  }
+  return logoBytesPromise;
+}
+if (typeof window !== "undefined") warmLogoBytes();
+
 // ─── Confirmation PDF (client-side receipt — NOT the priest-issued certificate) ─
 // Reuses the same brand palette as Config.gs / certificateService.ts so the
 // receipt looks consistent with every other Sri Dwar document, but this is
@@ -232,27 +280,60 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   const textMuted = rgb(0x6b / 255, 0x7a / 255, 0x76 / 255);
   const ink = rgb(0x17 / 255, 0x30 / 255, 0x2e / 255);
   const white = rgb(1, 1, 1);
+  const cream = rgb(0xfb / 255, 0xf6 / 255, 0xec / 255); // matches Config.gs BRAND.cream
 
   const doc = await PDFDocument.create();
   const page = doc.addPage([595.28, 841.89]); // A4
   const { width } = page.getSize();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
   const margin = 56;
   const maxWidth = width - margin * 2;
+  const headerTop = 841.89;
 
-  // Header band
-  page.drawRectangle({ x: 0, y: 792, width, height: 50, color: darkGreen });
-  page.drawText("Sri Dwar", { x: margin, y: 810, size: 20, font: bold, color: white });
-  page.drawText("Connect. Contribute. Preserve.", {
-    x: margin,
-    y: 796,
-    size: 8,
-    font,
-    color: rgb(0xaf / 255, 0xf8 / 255, 0xec / 255),
-  });
+  // Header — the real logo asset (see SriDwarLogo.tsx) is a navy/gold mark
+  // on a TRANSPARENT background, designed for light surfaces. It would be
+  // unreadable stamped onto the dark green band the old text-only header
+  // used, so the header is now cream/white with the logo sitting on it,
+  // and a thin saffron rule marks the boundary — same accent-line language
+  // the page already uses under "Sacred Confirmation" below.
+  const headerHeight = 70;
+  page.drawRectangle({ x: 0, y: headerTop - headerHeight, width, height: headerHeight, color: cream });
+  page.drawRectangle({ x: 0, y: headerTop - headerHeight, width, height: 3, color: saffron });
 
-  let y = 750;
+  // Falls back to the old dark-green text wordmark if the logo fetch/embed
+  // ever fails, so a network hiccup can't break the whole PDF — the devotee
+  // still gets a valid confirmation either way.
+  let logoDrawn = false;
+  try {
+    const logoBytes = await warmLogoBytes();
+    const logoImage = await doc.embedPng(logoBytes);
+    const logoDisplayHeight = 36;
+    const logoDisplayWidth = (logoImage.width / logoImage.height) * logoDisplayHeight;
+    page.drawImage(logoImage, {
+      x: margin,
+      y: headerTop - headerHeight / 2 - logoDisplayHeight / 2,
+      width: logoDisplayWidth,
+      height: logoDisplayHeight,
+    });
+    logoDrawn = true;
+  } catch {
+    // fall through
+  }
+
+  if (!logoDrawn) {
+    page.drawText("Sri Dwar", { x: margin, y: headerTop - 30, size: 20, font: bold, color: darkGreen });
+    page.drawText("Connect. Contribute. Preserve.", {
+      x: margin,
+      y: headerTop - 46,
+      size: 8,
+      font,
+      color: textMuted,
+    });
+  }
+
+  let y = headerTop - headerHeight - 26;
   page.drawText("Sacred Confirmation", { x: margin, y, size: 18, font: bold, color: darkGreen });
   y -= 22;
   page.drawRectangle({ x: margin, y, width: 40, height: 2, color: saffron });
@@ -293,6 +374,15 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   drawParagraph(blessing, 11, 16, font, textMuted);
   y -= 16;
   drawParagraph("Om Namah Shivaya. May Lord Jagannath bless your home.", 11, 16, bold, darkGreen);
+
+  // Service-specific disclaimer — placed just above the footer band, small
+  // and italic so it's clearly legible but doesn't compete visually with
+  // the devotional message above it.
+  y -= 20;
+  page.drawRectangle({ x: margin, y: y + 14, width: maxWidth, height: 0.75, color: textMuted });
+  y -= 4;
+  const disclaimer = DISCLAIMER_BY_CATEGORY[input.category];
+  drawParagraph(disclaimer, 8, 11, italic, textMuted);
 
   // Footer
   page.drawRectangle({ x: 0, y: 0, width, height: 50, color: darkGreen });
