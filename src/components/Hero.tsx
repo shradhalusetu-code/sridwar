@@ -237,28 +237,115 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       <div className="absolute top-1/3 right-10 w-32 h-32 bg-teal-mid/10 rounded-full filter blur-2xl animate-pulse delay-700" />
 
       {/* Hero Central Content */}
-      <div id="hero-main-container" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex items-center z-10 pt-0">
-        <div className="w-full flex justify-center text-center">
-          
-          {/* Headline and Copy (Centered layout) */}
-          <div className={`flex flex-col items-center max-w-4xl mx-auto text-center ${isAndroidApp ? "space-y-6" : "space-y-3"}`}>
-            
-            {/* Headline — single line on Android APK; split tagline on website */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-white leading-tight text-center">
+      <div id="hero-main-container" className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex items-center z-10 pt-0">
+        {/* Video + Headline layout: headline/copy first (both in the DOM and
+            visually) so the temple background and the message are what a
+            visitor sees first — the video is a smaller supporting element,
+            not the dominant one. Stacked (text above video) on mobile;
+            text-left / video-right from md up. Vertically centered
+            (items-center) so the text block sits in the visual middle of
+            the tall 9:16 video next to it — this is intentional now that
+            the headline is a shorter, smaller three-line block (it was
+            top-aligned earlier specifically to fix the old, much larger
+            two-line headline overpowering the row when centered; the
+            smaller size no longer has that problem, and centered reads
+            better next to a tall media block, matching the pattern most
+            hero-with-video sections use). */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_300px] items-center gap-8 md:gap-12 lg:gap-16">
+
+          {/* Headline and Copy — spacing below is now set explicitly on each
+              piece (h1 top margin, the line-group gap inside h1, and the
+              p's top margin) instead of the previous flex "space-y-*" on
+              this wrapper. space-y applies one uniform gap between every
+              child via a ">*+*" selector, which is higher-specificity than
+              a plain margin-top utility on the child itself — so it was
+              overriding any per-line spacing tweak. Removing it here is
+              what makes the three distinct gaps below actually take
+              effect. */}
+          <div className="flex flex-col items-center md:items-start max-w-4xl mx-auto md:mx-0 text-center md:text-left">
+
+            {/* Headline — single line on Android APK; split tagline on website.
+                Sized down from the site's original hero scale (was
+                text-4xl/5xl/6xl) since this headline is now three lines
+                instead of one or two — at the old size, three lines of
+                serif type would dominate the section and crowd the video
+                next to it. This size keeps it the clear focal point of the
+                text column without overpowering the layout.
+                Spacing: mt-3/mt-4 above the whole block gives it room to
+                breathe below the video's top edge instead of sitting flush
+                against it; the mt-3/mt-4 on the second line creates the
+                gap between the Sanskrit line and the English two-line
+                group; the two English lines stay flush against each other
+                (no gap) since they read as one continuous thought.
+                Devanagari note: the site's serif heading font (Lora) doesn't
+                include Devanagari glyphs, so "पत्रं पुष्पं फलं तोयं" renders
+                in the browser's default fallback font rather than Lora —
+                still fully legible, just not the same serif style as the
+                English lines beside it. Flagging this now in case you want
+                a Devanagari-supporting font added later; nothing to fix for
+                this change to work correctly today. */}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-tight text-white leading-snug text-center md:text-left mt-3 sm:mt-4">
               {isAndroidApp ? (
                 t.tagline
               ) : (
                 <>
-                  <span className="block">Faith Beyond Distance.</span>
-                  <span className="block text-[#FFB347] mt-1">Blessings Beyond Borders.</span>
+                  <span className="block">पत्रं पुष्पं फलं तोयं</span>
+                  <span className="block mt-3 sm:mt-4">A Leaf, A Flower, Reaches the Divine.</span>
+                  <span className="block text-[#FFB347]">Faith needs no distance to be heard.</span>
                 </>
               )}
             </h1>
 
-            {/* Sub-headline */}
-            <p className="text-sm sm:text-base text-white/85 font-sans font-normal leading-relaxed max-w-2xl text-center mx-auto">
-              Experience sacred rituals, divine temple offerings, and personalized pujas from the most revered temples of India — performed in your name and Gotra with live streaming coordinates.
+            {/* Sub-headline — mt-6/7/8 gives a clearly healthier gap from
+                the headline than the previous space-y-3 (12px) default,
+                roughly matching the breathing room brands like this use
+                between a multi-line headline and its supporting copy, and
+                keeps the whole text block's total height in proportion
+                with the video column beside it rather than reading as two
+                cramped blocks stacked on top of each other. */}
+            <p className={`text-sm sm:text-base text-white/85 font-sans font-normal leading-relaxed max-w-2xl text-center md:text-left mx-auto md:mx-0 ${isAndroidApp ? "mt-6" : "mt-6 sm:mt-7 lg:mt-8"}`}>
+              Every sacred fire lit in your name, every mantra chanted for your family, every Sankalpa spoken with your Gotra — these are not transactions. They are threads that keep you tied to the temple your ancestors once walked toward. We simply help you hold that thread, from wherever you are.
             </p>
+          </div>
+
+          {/* Sri Dwar YouTube Short — sits to the RIGHT of the headline on
+              md+ screens so the temple background stays visible behind and
+              around the text (previously the video sat on the left, right
+              where the headline began, blocking the most visible part of
+              the background). Kept smaller on mobile (220px) than before
+              (280–300px) so it reads as a supporting element below the
+              message rather than covering most of the hero's visible
+              height on small screens. Vertical 9:16 frame to match the
+              Shorts format instead of letterboxing it. */}
+          <div className="w-full flex justify-center md:justify-end">
+            <div className="w-full max-w-[220px] sm:max-w-[240px] md:max-w-none aspect-[9/16] rounded-3xl overflow-hidden border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.45)] bg-black/40 shrink-0">
+              <iframe
+                className="w-full h-full"
+                // FIX ("Error 153: Video player configuration error"): YouTube
+                // requires a real Referer/Origin header to serve the embedded
+                // player config. That header goes missing (triggering this
+                // exact error) when: (a) the page's Referrer-Policy is
+                // "no-referrer"/"same-origin", or gets stripped by a
+                // strict security header, a privacy extension, or an ad
+                // blocker, or (b) it's requested from an origin YouTube
+                // can't verify (this is also commonly seen on
+                // http://localhost during local dev for the same reason).
+                // referrerPolicy="strict-origin-when-cross-origin" makes the
+                // browser always send that header, and youtube-nocookie.com
+                // is Google's privacy-enhanced embed domain, which is also
+                // less likely to be blocked by ad blockers/extensions than
+                // www.youtube.com. If this ever still shows Error 153 only
+                // on localhost, that's expected (YouTube can be stricter
+                // about unrecognized local origins) — verify on the real
+                // sridwar.com deployment before assuming it's still broken.
+                src="https://www.youtube-nocookie.com/embed/o29uNx4lg0M"
+                title="Sri Dwar — A Leaf, A Flower, Reaches the Divine"
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
           </div>
 
         </div>

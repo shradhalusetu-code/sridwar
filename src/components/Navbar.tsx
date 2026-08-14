@@ -176,7 +176,27 @@ export default function Navbar({
                 extra room from a wide viewport now collects between the logo
                 and the nav group, which reads as a natural, balanced header
                 instead of stray whitespace next to the language button. */}
-            <div className="hidden lg:flex items-center space-x-3 xl:space-x-5 flex-1 min-w-0 justify-end overflow-x-auto no-scrollbar pr-3 xl:pr-4" id="desktop-menu">
+            {/* FIX (tablet landscape header bug): this row used to switch on at
+                the "lg" breakpoint (1024px). On 10–12" tablets in landscape
+                (roughly 1024–1279px wide), the combined width of all 8 nav
+                labels + the language/cart/account capsule + the
+                Sponsor/Counselling/Add Temple buttons is wider than the
+                available space, and with justify-end the flex box packed
+                items against the RIGHT edge of its overflowing content box —
+                so the LEFT side (Home, part of Seva) sat scrolled out of
+                view with no visible scrollbar. The actual fix is just the
+                breakpoint: raising the switch-over point from lg (1024px) to
+                xl (1280px) here and on the two matching toggles below means
+                tablets in that cramped 1024–1279px range now get the
+                already-working mobile hamburger menu instead of the packed
+                row, so this row never has to overflow for that device class.
+                justify-end is kept exactly as it was before — that's the
+                intentional design (nav sitting close to the right-hand
+                controls, extra space collecting next to the logo instead of
+                before the controls) and reverting it away from justify-end
+                was a regression, not a fix; don't change it again without
+                re-checking against 1280px-and-up widths first. */}
+            <div className="hidden xl:flex items-center space-x-3 xl:space-x-5 flex-1 min-w-0 justify-end overflow-x-auto no-scrollbar pr-3 xl:pr-4" id="desktop-menu">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -197,7 +217,7 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className="hidden lg:flex items-center space-x-2 xl:space-x-3 shrink-0">
+            <div className="hidden xl:flex items-center space-x-2 xl:space-x-3 shrink-0">
               {/* Preference & Account Utilities Capsule */}
               <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
@@ -355,7 +375,7 @@ export default function Navbar({
             </div>
 
             {/* Mobile Hamburger Trigger */}
-            <div className="lg:hidden flex items-center space-x-3">
+            <div className="xl:hidden flex items-center space-x-3">
               {/* Cart Mobile */}
               <button
                 id="mobile-cart-trigger"
