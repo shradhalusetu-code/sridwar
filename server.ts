@@ -639,6 +639,114 @@ app.post(
   }
 );
 
+// 2d. Automatic trigger for booking-confirmation invoices — Supabase Database
+// Webhook target.
+//
+// WHY THIS EXISTS: nothing in the codebase ever called
+// generateBookingConfirmationPdf() automatically before this. The only path
+// in was the manual admin route above (send-booking-confirmation), meaning
+// every invoice+email had to be fired by hand. This route lets a Supabase
+// Database Webhook (configured once, in the Supabase dashboard — no code
+// there) call it automatically the instant you mark a row's payment_status
+// as 'confirmed' in the Supabase table editor, which is the real moment
+// your manual UPI-verification process ends.
+//
+// SAFETY:
+//   - Separate secret (SUPABASE_WEBHOOK_SECRET) from CERTIFICATE_ADMIN_SECRET
+//     — a leaked Supabase webhook URL can never be used to hit your other
+//     admin routes, and vice versa.
+//   - Fails closed: missing/wrong secret -> 401, same pattern as every other
+//     admin/webhook route in this file.
+//   - Only acts when record.payment_status === 'confirmed'. Supabase fires
+//     this webhook on EVERY update to a row (not just payment_status
+//     changes) — e.g. editing an unrelated column on an already-confirmed
+//     booking would also trigger a call here. That's harmless: (a) if
+//     old_record.payment_status was ALREADY 'confirmed', this handler skips
+//     without calling the pipeline at all (see the transition check below);
+//     (b) even if it did call through, certificateService.ts's own
+//     idempotency claim (see Webhook.gs / certificate_idempotency table)
+//     guarantees at most one PDF and one email per ref_id, ever.
+//   - Dynamically imported, exactly like the two admin routes above — a
+//     missing pdf-lib install or unmigrated schema can only fail this one
+//     request, never the server itself.
+function requireSupabaseWebhookSecret(req: express.Request, res: express.Response): boolean {
+  const configured = process.env.SUPABASE_WEBHOOK_SECRET;
+  const provided = req.headers["x-supabase-webhook-secret"];
+  if (!configured || provided !== configured) {
+    res.status(401).json({ error: "Unauthorized." });
+    return false;
+  }
+  return true;
+}
+
+// Supabase Database Webhooks POST a fixed payload shape — not something we
+// control the field names of, so this schema matches Supabase's own format
+// (https://supabase.com/docs/guides/database/webhooks) rather than our
+// usual { refId } convention.
+const supabaseActivityWebhookSchema = z.object({
+  type: z.enum(["INSERT", "UPDATE", "DELETE"]),
+  table: z.string(),
+  record: z
+    .object({
+      ref_id: z.string().min(1),
+      payment_status: z.string(),
+    })
+    .passthrough(),
+  old_record: z
+    .object({
+      payment_status: z.string().optional(),
+    })
+    .passthrough()
+    .nullable()
+    .optional(),
+});
+
+app.post(
+  "/api/webhooks/supabase/activities-updated",
+  validateBody(supabaseActivityWebhookSchema),
+  async (req, res) => {
+    if (!requireSupabaseWebhookSecret(req, res)) return;
+
+    const { table, record, old_record } = req.body;
+    if (table !== "activities") {
+      res.json({ ok: true, skipped: "not the activities table" });
+      return;
+    }
+    if (record.payment_status !== "confirmed") {
+      res.json({ ok: true, skipped: "payment_status is not confirmed" });
+      return;
+    }
+    if (old_record?.payment_status === "confirmed") {
+      // Already was confirmed before this update — this webhook fired for
+      // an unrelated column change on an already-processed booking. No need
+      // to even call the pipeline (idempotency would no-op it anyway, but
+      // skipping here avoids the extra DB round-trip on every such edit).
+      res.json({ ok: true, skipped: "payment_status was already confirmed" });
+      return;
+    }
+
+    const refId = record.ref_id;
+    try {
+      const { generateBookingConfirmationPdf } = await import("./certificateService");
+      const result = await generateBookingConfirmationPdf(refId);
+      appendAuditLog("auto_invoice_generated_via_webhook", { refId, status: result.status, emailStatus: result.emailStatus });
+      res.json({ ok: true, ...result });
+    } catch (err: any) {
+      const code = err?.code || "error";
+      appendAuditLog("auto_invoice_generation_failed_via_webhook", { refId, code, message: err?.message });
+      // 200 even on a business-logic rejection (e.g. payment_not_confirmed,
+      // which shouldn't happen given the check above, but re-verified
+      // server-side same as always) so Supabase doesn't endlessly retry a
+      // request that will never succeed. Only a genuine server error (500)
+      // should make Supabase retry.
+      res.status(code === "payment_not_confirmed" ? 200 : 500).json({
+        error: err?.message || "Automatic invoice generation failed.",
+        code,
+      });
+    }
+  }
+);
+
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
 // Community Guidelines, Cookie Policy, About, Contact, Account Deletion).

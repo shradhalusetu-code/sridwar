@@ -22,10 +22,11 @@
 import { useState, FormEvent } from "react";
 import {
   Landmark, Users, MapPin, Send, Check, ShieldCheck, RefreshCw, Flag,
-  Building2, Megaphone, Award, Info, ChevronRight, ClipboardList, Calendar,
+  Building2, Megaphone, Award, Info, ChevronRight, ClipboardList, Calendar, Download,
 } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { validateName, validateEmail, validatePhone, validateOptionalPhone, validateTextMinLength, firstError } from "../utils/formValidation";
 import { gaTempleIssueFormStart, gaTempleIssueSubmit, gaTempleIssueContribution } from "../utils/analytics";
 import OptimizedImage from "./OptimizedImage";
@@ -735,6 +736,23 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Automated real-time synchronization completed</span>
                 </div>
+                {contributionDone && (
+                  <button
+                    id="download-confirmation-btn"
+                    type="button"
+                    onClick={() =>
+                      downloadConfirmationMessage({
+                        category: "temple_contribution",
+                        serviceName: `Temple Preservation Contribution — ${itemName || "General"}`,
+                        devoteeName: name,
+                        refId,
+                      })
+                    }
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-xs transition-all tracking-wide uppercase cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download Confirmation
+                  </button>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"

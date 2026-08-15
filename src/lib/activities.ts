@@ -108,15 +108,31 @@ export async function recordFormSubmission(input: RecordFormSubmissionInput): Pr
 }
 
 /**
- * Records one confirmed (or pending-verification) activity against the
- * currently logged-in devotee. Call this ALONGSIDE existing
- * syncToGoogleForm(...) calls, never instead of them. Safe to call for
- * guests (not logged in) — it just no-ops.
+ * Records one confirmed (or pending-verification) activity, for a logged-in
+ * devotee OR a guest. Call this ALONGSIDE existing syncToGoogleForm(...)
+ * calls, never instead of them.
+ *
+ * ✅ ROOT-CAUSE FIX (2026-08-15): this used to silently no-op for guests
+ * ("nothing to attach this to yet"), which meant NO activities row was ever
+ * created for a guest checkout — and certificateService.ts's entire
+ * invoice/certificate pipeline starts by reading this exact row by ref_id.
+ * Net effect: guest bookings could never get an automatic invoice, PDF, or
+ * confirmation email, no matter what else got fixed downstream. Guests are
+ * common on a public devotional site, so this was blocking the fix for a
+ * large share of real bookings, not an edge case.
+ * Now matches the same guest-safe pattern recordFormSubmission() already
+ * uses above (user_id nullable, insert always attempted). Requires a
+ * matching Supabase migration — see the SQL block in this file's own
+ * accompanying delivery notes — to make user_id nullable and allow a guest
+ * insert under Row Level Security. Until that SQL is run, guest inserts will
+ * still fail (RLS rejects them) and this function logs the error and
+ * returns, exactly as it already does for any other insert failure below —
+ * so this change cannot make anything worse than the previous silent no-op,
+ * only fix it once the matching SQL has been applied.
  */
 export async function recordActivity(input: RecordActivityInput): Promise<void> {
   try {
-    const userId = await getCurrentUserId();
-    if (!userId) return; // guest checkout — nothing to attach this to yet
+    const userId = await getCurrentUserId(); // null for guests — now allowed through, not returned early
 
     const { error } = await supabase.from("activities").insert({
       user_id: userId,

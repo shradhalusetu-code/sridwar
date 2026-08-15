@@ -860,7 +860,17 @@ export default function App() {
       </main>
       <footer
         id="corporate-footer"
-        className="bg-[#021816] text-white pt-10 pb-6 border-t border-white/10 text-left relative z-10"
+        // ✅ ENGAGEMENT FIX (Cricinfo mobile-UX study): pb-[132px] md:pb-6
+        // reserves room for the tab bar on any narrow (<768px) viewport —
+        // previously this spacing only existed inside the Android app
+        // (isAndroidApp inline style below). Now that the same tab bar also
+        // renders on the mobile WEBSITE (see the <nav> further down), the
+        // website footer needs the same breathing room there, while
+        // staying exactly pb-6 on tablet/desktop where the bar is hidden.
+        // The isAndroidApp inline style below still wins on the app itself
+        // (inline style always overrides className), so app spacing is
+        // completely unchanged.
+        className="bg-[#021816] text-white pt-10 pb-[132px] md:pb-6 border-t border-white/10 text-left relative z-10"
         style={isAndroidApp ? {
           // The fixed bottom tab bar (below) overlays whatever sits at the
           // end of the page — without this, the footer's own bottom row
@@ -1147,7 +1157,24 @@ export default function App() {
 
         </div>
       </footer>
-      {isAndroidApp && <nav style={{
+      {/*
+        ✅ ENGAGEMENT FIX (Cricinfo mobile-UX study, 2026-08-14): this tab
+        bar already existed and already worked well — it was just limited
+        to `isAndroidApp` only. Cricinfo's persistent bottom nav is one of
+        its strongest mobile-retention patterns (Home/Matches/Series/
+        Videos/News always one tap away, no scrolling back up). The exact
+        same value applies to a devotee browsing sridwar.com in mobile
+        Chrome — Puja/Seva/Shop/Profile should be just as reachable there
+        as they are in the app.
+        Rather than duplicate this block, it now always renders, and
+        `md:hidden` hides it at tablet/desktop widths (>=768px) — those
+        already have the full Navbar and don't need a bottom bar. On the
+        Android app itself nothing changes: the app's viewport is always
+        below that breakpoint, `isAndroidApp` is passed through unchanged
+        for the className branch below, and every existing safe-area /
+        padding calculation is untouched.
+      */}
+      <nav className={isAndroidApp ? undefined : "md:hidden"} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: '#021816',
         borderTop: '1px solid rgba(255,255,255,0.1)',
@@ -1195,7 +1222,7 @@ export default function App() {
             {tab.label}
           </button>
         ))}
-      </nav>}
+      </nav>
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
       <Suspense fallback={null}>
         <AIAssistant currentLanguage={currentLanguage} isAndroidApp={isAndroidApp} />

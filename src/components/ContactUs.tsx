@@ -4,9 +4,10 @@
  */
 
 import { useState, FormEvent } from "react";
-import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight } from "lucide-react";
+import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight, Download } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
@@ -426,6 +427,23 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Automated Real-Time synchronization completed</span>
                 </div>
+
+                {donationAmount ? (
+                  <button
+                    id="download-confirmation-btn"
+                    onClick={() =>
+                      downloadConfirmationMessage({
+                        category: "support_contribution",
+                        serviceName: `Divine Contribution — ${queryType}`,
+                        devoteeName: name,
+                        refId,
+                      })
+                    }
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-xs transition-all tracking-wide uppercase cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download Confirmation
+                  </button>
+                ) : null}
 
                 <button
                   id="contact-button-reset"

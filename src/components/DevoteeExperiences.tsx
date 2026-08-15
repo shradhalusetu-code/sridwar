@@ -20,6 +20,7 @@ import {
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { validateName, validateTextMinLength } from "../utils/formValidation";
 
@@ -411,6 +412,16 @@ export default function DevoteeExperiences() {
       refId: testimonyRefId,
       paymentMethod: details.method,
       paymentStatus: "pending_verification",
+    });
+    // No dedicated success screen in this flow (testimony posts straight to
+    // the public wall) — so the confirmation PDF is delivered directly here
+    // instead of behind a button, same underlying function BookNowWizard
+    // uses, which already shows its own toast/share-sheet on completion.
+    downloadConfirmationMessage({
+      category: "temple_contribution",
+      serviceName: `Testimonial Thank-You Divine Contribution — ${newService}`,
+      devoteeName: newName,
+      refId: testimonyRefId,
     });
   };
 

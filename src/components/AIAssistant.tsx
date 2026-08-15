@@ -204,11 +204,24 @@ export default function AIAssistant({ currentLanguage, isAndroidApp = false }: A
       <button
         id="ai-floating-trigger"
         onClick={() => { if (!isOpen) gaAIAssistantOpen(); setIsOpen(!isOpen); }}
-        className="fixed bottom-6 right-6 z-40 bg-[#092320]/95 backdrop-blur border border-white/20 text-[#5EEAD4] p-4 rounded-full shadow-2xl hover:bg-neutral-900 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center cursor-pointer group"
+        // ✅ ENGAGEMENT FIX (Cricinfo mobile-UX study, 2026-08-14): the
+        // bottom tab bar in App.tsx now also renders on the mobile
+        // WEBSITE (previously Android-app only), so this button needs the
+        // same "clear the tab bar" offset there too, not just in the app.
+        // isAndroidApp keeps its exact original inline-style calc
+        // (unchanged — inline style always wins over className). The web
+        // case now uses responsive classes instead of a single fixed
+        // value: bottom-24-ish while the tab bar is visible (<768px,
+        // matching its md:hidden breakpoint), reverting to the original
+        // 1.5rem at md+ where the tab bar is hidden and none of this
+        // applies.
+        className={`fixed right-6 z-40 bg-[#092320]/95 backdrop-blur border border-white/20 text-[#5EEAD4] p-4 rounded-full shadow-2xl hover:bg-neutral-900 focus:outline-none transition-transform hover:scale-110 flex items-center justify-center cursor-pointer group${
+          isAndroidApp ? "" : " bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] md:bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))]"
+        }`}
         style={
           isAndroidApp
             ? { bottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 96px)" }
-            : { bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }
+            : undefined
         }
         title="Consult AI Margadarshak Guide"
       >
@@ -220,11 +233,15 @@ export default function AIAssistant({ currentLanguage, isAndroidApp = false }: A
       {isOpen && (
         <div
           id="ai-chat-panel"
-          className="fixed bottom-24 right-6 z-40 w-92 max-w-[calc(100vw-32px)] bg-[#092320]/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl flex flex-col justify-between overflow-hidden animate-slideUp text-left text-xs text-white"
+          // Same fix as the trigger button above: extra clearance for the
+          // tab bar is needed on mobile web now too, not just the app.
+          className={`fixed right-6 z-40 w-92 max-w-[calc(100vw-32px)] bg-[#092320]/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl flex flex-col justify-between overflow-hidden animate-slideUp text-left text-xs text-white${
+            isAndroidApp ? "" : " bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:bottom-[calc(6rem+env(safe-area-inset-bottom,0px))]"
+          }`}
           style={{
             bottom: isAndroidApp
               ? "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 168px)"
-              : "calc(6rem + env(safe-area-inset-bottom, 0px))",
+              : undefined,
             maxHeight: "calc(100vh - 7rem - var(--safe-area-inset-top, env(safe-area-inset-top, 24px)))",
           }}
         >

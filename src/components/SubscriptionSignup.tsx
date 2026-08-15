@@ -27,10 +27,11 @@
  */
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ChevronRight, Check, ShieldCheck, MapPin, Sparkles } from "lucide-react";
+import { ChevronRight, Check, ShieldCheck, MapPin, Sparkles, Download } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { activateSubscriptionTier, type SubscriptionTierId } from "../lib/referrals";
 import { isDevoteeTier, type PlanCategoryId, type DevoteeReferralTier, type ProviderCategoryTier } from "../data/referralProgram";
@@ -463,6 +464,19 @@ export default function SubscriptionSignup({
                   <p className="text-[12px] text-white/40 font-mono">
                     Our team confirms and activates every plan within 2 hours via WhatsApp & Email. 🙏
                   </p>
+                  <button
+                    id="download-confirmation-btn"
+                    onClick={() =>
+                      downloadConfirmationMessage({
+                        category: "subscription",
+                        serviceName: `${tier.name} (${categoryLabel})`,
+                        devoteeName: name,
+                        refId,
+                      })
+                    }
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-xs transition-all tracking-wide uppercase cursor-pointer">
+                    <Download className="w-4 h-4" /> Download Confirmation
+                  </button>
                   <button onClick={handleClose}
                     className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">
                     🙏 Close

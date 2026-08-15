@@ -114,7 +114,7 @@
  * conflict with anything already installed):
  *   "pdf-lib": "^1.17.1"
  *
- * WHERE FIELDS COME FROM (autofill allowlist — exactly five fields, no more)
+ * WHERE FIELDS COME FROM (autofill allowlist)
  * ----------------------------------------------------------------------------
  *   devoteeName        <- form_submissions.name for the matching ref_id
  *                          (falls back to "Devotee" — never blocks on a
@@ -125,8 +125,23 @@
  *   date                <- performed_at (certificates) or created_at (booking
  *                          confirmations) — always the real one, never "today"
  *   referenceId         <- activities.ref_id
- * Every other field on the row (amount, phone, email address text itself,
- * payment_method, etc.) is deliberately never merged into the PDF.
+ *   amount / paymentMethod (2026-08-15 addition, invoice only) <- activities.amount
+ *                          / activities.payment_method — ONLY read for the
+ *                          "booking_confirmation" (invoice) template, and only
+ *                          after guard() has already re-verified
+ *                          payment_status === 'confirmed' server-side. Never
+ *                          read for the "puja"/"seva"/"darshan" certificate
+ *                          templates — those still follow the original
+ *                          five-field allowlist above, unchanged.
+ *   taxAmount / discountAmount / platformFee (invoice only, OPTIONAL) <-
+ *                          activities.metadata->>'tax_amount' /
+ *                          'discount_amount' / 'platform_fee', each a plain
+ *                          number of rupees. Omitted from the printed invoice
+ *                          entirely (not printed as "₹0") when not present in
+ *                          metadata — nothing is fabricated. Add these keys to
+ *                          a booking's metadata JSON yourself if/when you
+ *                          start charging tax or platform fees; until then the
+ *                          invoice total is simply the booking amount.
  */
 
 import { PDFDocument, StandardFonts, rgb, degrees, PDFFont, PDFPage, RGB } from "pdf-lib";
@@ -183,6 +198,8 @@ interface ActivityRow {
   ref_id: string;
   activity_type: string;
   item_name: string;
+  amount: number;
+  payment_method: string | null;
   payment_status: "pending_verification" | "confirmed" | "failed";
   completion_status: "not_performed" | "completed";
   performed_at: string | null;
@@ -201,6 +218,16 @@ export interface MergedFields {
   deityOrTempleName?: string;
   date: string; // pre-formatted, human-readable
   referenceId: string;
+  // ── Invoice-only fields (populated for kind === "booking_confirmation";
+  //    left undefined for the "puja"/"seva"/"darshan" certificate templates,
+  //    which never read them — see renderCertificatePdf) ──────────────────
+  invoiceNumber?: string;
+  amount?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  platformFee?: number;
+  totalAmount?: number;
+  paymentMethodLabel?: string;
 }
 
 export class CertificateError extends Error {
@@ -300,6 +327,27 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 }
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  upi: "UPI",
+  gpay: "Google Pay (UPI)",
+  phonepe: "PhonePe (UPI)",
+  paytm: "Paytm (UPI)",
+  bank_transfer: "Bank Transfer",
+};
+
+function formatRupees(n: number): string {
+  // ⚠️ Deliberately "Rs." not "₹" — pdf-lib's StandardFonts (WinAnsi
+  // encoding) CANNOT encode the ₹ glyph (U+20B9) and throws at render time
+  // if you try (verified: crashes every single invoice generation). Embedding
+  // a custom Unicode font just for this one glyph is real added complexity/
+  // file size for a cosmetic difference, so the PDF prints "Rs." — the HTML
+  // email version below is unaffected and still shows the real ₹ symbol,
+  // since email rendering has no such font-encoding limitation.
+  // en-IN gives the correct Indian digit grouping (1,23,456), matching how
+  // every UPI app already displays amounts to your devotees.
+  return `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function mergeFields(
   activity: ActivityRow,
   submission: FormSubmissionRow | null,
@@ -313,12 +361,41 @@ function mergeFields(
     (activity.metadata?.["deity_or_temple"] as string | undefined) ??
     (activity.metadata?.["temple_name"] as string | undefined) ??
     undefined;
-  return {
+
+  const base: MergedFields = {
     devoteeName: (submission?.name ?? "").trim() || "Devotee",
     serviceName: activity.item_name?.trim() || "Sacred Offering",
     deityOrTempleName: deity?.trim() || undefined,
     date: formatDate(dateSource),
     referenceId: activity.ref_id,
+  };
+
+  if (eventType !== "booking_confirmed") return base; // certificates: unchanged, 5-field allowlist only
+
+  // ── Invoice fields — only ever populated here, only for booking_confirmed,
+  //    only after the payment_status === 'confirmed' guard has already run. ──
+  const amount = typeof activity.amount === "number" ? activity.amount : 0;
+  const taxAmount = typeof activity.metadata?.["tax_amount"] === "number" ? (activity.metadata["tax_amount"] as number) : undefined;
+  const discountAmount =
+    typeof activity.metadata?.["discount_amount"] === "number" ? (activity.metadata["discount_amount"] as number) : undefined;
+  const platformFee =
+    typeof activity.metadata?.["platform_fee"] === "number" ? (activity.metadata["platform_fee"] as number) : undefined;
+  const totalAmount = amount + (taxAmount ?? 0) + (platformFee ?? 0) - (discountAmount ?? 0);
+
+  const methodKey = (activity.payment_method ?? "").trim().toLowerCase();
+  const paymentMethodLabel = methodKey
+    ? PAYMENT_METHOD_LABELS[methodKey] ?? (activity.payment_method as string)
+    : "UPI"; // your only payment method today — a safe, honest default when the field is blank
+
+  return {
+    ...base,
+    invoiceNumber: `INV-${activity.ref_id}`,
+    amount,
+    taxAmount,
+    discountAmount,
+    platformFee,
+    totalAmount,
+    paymentMethodLabel,
   };
 }
 
@@ -429,6 +506,144 @@ async function renderCertificatePdf(kind: TemplateKind, fields: MergedFields): P
   return doc.save();
 }
 
+// ═══════════════════════════ INVOICE (payment-confirmed) ════════════════════
+// Itemized, A4 portrait, table-style layout — structurally the same idea as
+// an Amazon/Flipkart order invoice (seller block, invoice #, bill-to,
+// line-item table, subtotal → total, payment status stamp, terms footer),
+// adapted to Sri Dwar's own brand palette. Used ONLY for kind ===
+// "booking_confirmation" — i.e. only ever reached after runPipeline's guard
+// has already re-verified payment_status === 'confirmed' server-side. The
+// puja/seva/darshan certificate templates never call this function.
+async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const page = doc.addPage([595.28, 841.89]); // A4 portrait
+  const { width, height } = page.getSize();
+  const sans = await doc.embedFont(StandardFonts.Helvetica);
+  const sansBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const margin = 48;
+  const contentWidth = width - margin * 2;
+  let y = height - margin;
+
+  const text = (
+    t: string,
+    x: number,
+    yy: number,
+    opts: { size?: number; font?: PDFFont; color?: RGB; align?: "left" | "right" } = {}
+  ) => {
+    const size = opts.size ?? 10;
+    const font = opts.font ?? sans;
+    const color = opts.color ?? BRAND.darkGreen;
+    const drawX = opts.align === "right" ? x - font.widthOfTextAtSize(t, size) : x;
+    page.drawText(t, { x: drawX, y: yy, size, font, color });
+  };
+  const rule = (yy: number, color: RGB = BRAND.gold, thickness = 0.75) =>
+    page.drawRectangle({ x: margin, y: yy, width: contentWidth, height: thickness, color });
+
+  // ── Header band: brand + document title ──────────────────────────────────
+  page.drawRectangle({ x: 0, y: height - 96, width, height: 96, color: BRAND.darkGreen });
+  text(BRAND.name.toUpperCase(), margin, height - 42, { size: 20, font: sansBold, color: BRAND.white });
+  text(BRAND.tagline, margin, height - 60, { size: 9, font: sans, color: BRAND.gold });
+  text("PAYMENT CONFIRMATION / INVOICE", width - margin, height - 42, {
+    size: 13,
+    font: sansBold,
+    color: BRAND.white,
+    align: "right",
+  });
+  text("Shradhalu Private Limited", width - margin, height - 60, { size: 9, font: sans, color: BRAND.gold, align: "right" });
+  text("Jajpur Road, Odisha, India", width - margin, height - 73, { size: 9, font: sans, color: BRAND.gold, align: "right" });
+  y = height - 96 - 32;
+
+  // ── Invoice meta + Bill To, two columns ──────────────────────────────────
+  text("BILL TO", margin, y, { size: 8, font: sansBold, color: BRAND.textMuted });
+  text("INVOICE DETAILS", width / 2 + 10, y, { size: 8, font: sansBold, color: BRAND.textMuted });
+  y -= 16;
+  text(fields.devoteeName, margin, y, { size: 12, font: sansBold });
+  text(`Invoice #: ${fields.invoiceNumber}`, width / 2 + 10, y, { size: 10, font: sans });
+  y -= 15;
+  text(`Reference: ${fields.referenceId}`, width / 2 + 10, y, { size: 10, font: sans });
+  y -= 15;
+  text(`Date: ${fields.date}`, width / 2 + 10, y, { size: 10, font: sans });
+  y -= 28;
+  rule(y);
+  y -= 24;
+
+  // ── Line-item table ───────────────────────────────────────────────────────
+  const col2 = width - margin - 110; // amount column, right-aligned
+  text("DESCRIPTION", margin, y, { size: 8, font: sansBold, color: BRAND.textMuted });
+  text("AMOUNT", width - margin, y, { size: 8, font: sansBold, color: BRAND.textMuted, align: "right" });
+  y -= 10;
+  rule(y);
+  y -= 20;
+
+  const serviceLine = fields.deityOrTempleName ? `${fields.serviceName} — ${fields.deityOrTempleName}` : fields.serviceName;
+  text(serviceLine, margin, y, { size: 11, font: sans });
+  text(formatRupees(fields.amount ?? 0), width - margin, y, { size: 11, font: sans, align: "right" });
+  y -= 26;
+  rule(y, BRAND.textMuted, 0.5);
+  y -= 22;
+
+  // ── Totals block, right-aligned ──────────────────────────────────────────
+  const totalsRow = (label: string, value: string, opts: { bold?: boolean; color?: RGB } = {}) => {
+    text(label, col2 - 90, y, { size: 10, font: opts.bold ? sansBold : sans, color: opts.color ?? BRAND.darkGreen });
+    text(value, width - margin, y, { size: 10, font: opts.bold ? sansBold : sans, color: opts.color ?? BRAND.darkGreen, align: "right" });
+    y -= 16;
+  };
+  totalsRow("Subtotal", formatRupees(fields.amount ?? 0));
+  if (typeof fields.taxAmount === "number") totalsRow("Tax", formatRupees(fields.taxAmount));
+  if (typeof fields.platformFee === "number") totalsRow("Platform / convenience fee", formatRupees(fields.platformFee));
+  if (typeof fields.discountAmount === "number") totalsRow("Discount", `- ${formatRupees(fields.discountAmount)}`);
+  y -= 4;
+  rule(y);
+  y -= 20;
+  text("TOTAL PAID", col2 - 90, y, { size: 13, font: sansBold, color: BRAND.darkGreen });
+  text(formatRupees(fields.totalAmount ?? fields.amount ?? 0), width - margin, y, {
+    size: 13,
+    font: sansBold,
+    color: BRAND.darkGreen,
+    align: "right",
+  });
+  y -= 34;
+
+  // ── Payment method + status stamp ────────────────────────────────────────
+  text(`Payment Method: ${fields.paymentMethodLabel ?? "UPI"}`, margin, y, { size: 10, font: sans });
+  const stampLabel = "PAYMENT CONFIRMED";
+  const stampFontSize = 8.5;
+  const stampTextWidth = sansBold.widthOfTextAtSize(stampLabel, stampFontSize);
+  const stampBoxWidth = stampTextWidth + 20; // 10px padding each side
+  page.drawRectangle({ x: width - margin - stampBoxWidth, y: y - 6, width: stampBoxWidth, height: 22, color: rgb(0.09, 0.42, 0.24) });
+  text(stampLabel, width - margin - 10, y, { size: stampFontSize, font: sansBold, color: BRAND.white, align: "right" });
+  y -= 40;
+
+  // ── Footer: disclaimer / terms ────────────────────────────────────────────
+  rule(y);
+  y -= 16;
+  const disclaimer =
+    "Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple " +
+    "schedule, festival rush, priest availability, and temple rituals. This document confirms receipt of payment as " +
+    "recorded above and serves as your official proof of booking/payment. For queries, contact puja@sridwar.com.";
+  const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
+  const words = disclaimer.split(" ");
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (italic.widthOfTextAtSize(candidate, 8) > contentWidth) {
+      text(line, margin, y, { size: 8, font: italic, color: BRAND.textMuted });
+      y -= 11;
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) {
+    text(line, margin, y, { size: 8, font: italic, color: BRAND.textMuted });
+    y -= 11;
+  }
+  y -= 10;
+  text("Shradhalu Private Limited · sridwar.com · puja@sridwar.com", margin, y, { size: 8, font: sans, color: BRAND.textMuted });
+
+  return doc.save();
+}
+
 // ═══════════════════════════════ EMAIL PAYLOAD ══════════════════════════════
 // Actual delivery reuses the same pattern already in production (Config.gs /
 // EmailSender.gs) — this just builds the payload; sending is one fetch() to
@@ -441,6 +656,15 @@ interface CertificateEmailPayload {
   bodyHtml: string;
   attachmentBase64: string;
   attachmentFilename: string;
+  // ─── Added for Webhook.gs (Apps Script) ────────────────────────────────
+  // Webhook.gs requires refId + emailType on every request: refId feeds the
+  // SAME dedupe log every other email in the project uses (so a retry can
+  // never double-send), and emailType must be one of the two values in its
+  // allow-list. These are deliberately namespaced with a "webhook_invoice_"
+  // prefix so they can never collide with the Sheets-driven flow's own
+  // "certificate_ready" / "booking" emailType values in that shared log.
+  refId: string;
+  emailType: "webhook_invoice_booking_confirmed" | "webhook_invoice_certificate_ready";
 }
 
 function buildEmailPayload(
@@ -452,7 +676,7 @@ function buildEmailPayload(
 ): CertificateEmailPayload {
   const subject =
     eventType === "booking_confirmed"
-      ? `Sri Dwar — Booking Confirmed (${fields.referenceId})`
+      ? `Sri Dwar — Payment Confirmed & Invoice (${fields.referenceId})`
       : `Sri Dwar — Your ${TEMPLATE_TITLES[kind]} is Ready`;
 
   const bodyHtml = `
@@ -461,10 +685,19 @@ function buildEmailPayload(
       <p>Dear ${fields.devoteeName},</p>
       <p>${
         eventType === "booking_confirmed"
-          ? `Your booking for <strong>${fields.serviceName}</strong> has been confirmed. The attached PDF is your booking confirmation.`
+          ? `Your payment for <strong>${fields.serviceName}</strong> has been received and confirmed. The attached PDF is your official invoice and payment confirmation — please keep it as proof of your booking.`
           : `Your <strong>${TEMPLATE_TITLES[kind]}</strong> for <strong>${fields.serviceName}</strong> is attached, performed on ${fields.date}.`
       }</p>
-      <p style="color:#6b7a76;font-size:13px;">Reference: ${fields.referenceId}<br/>Sri Dwar — Connect. Contribute. Preserve.</p>
+      ${
+        eventType === "booking_confirmed" && typeof fields.totalAmount === "number"
+          ? `<p style="font-size:15px;"><strong>Amount Paid: ₹${fields.totalAmount.toLocaleString("en-IN", {
+              minimumFractionDigits: 2,
+            })}</strong> via ${fields.paymentMethodLabel ?? "UPI"}</p>`
+          : ""
+      }
+      <p style="color:#6b7a76;font-size:13px;">Reference: ${fields.referenceId}${
+    fields.invoiceNumber ? ` · Invoice: ${fields.invoiceNumber}` : ""
+  }<br/>Sri Dwar — Connect. Contribute. Preserve.</p>
     </div>`;
 
   return {
@@ -473,19 +706,32 @@ function buildEmailPayload(
     bodyHtml,
     attachmentBase64: Buffer.from(pdfBytes).toString("base64"),
     attachmentFilename: `${fields.referenceId}-${kind}.pdf`,
+    refId: fields.referenceId,
+    emailType: eventType === "booking_confirmed" ? "webhook_invoice_booking_confirmed" : "webhook_invoice_certificate_ready",
   };
 }
 
 async function dispatchEmail(payload: CertificateEmailPayload): Promise<"sent" | "skipped"> {
   const webhookUrl = process.env.GAS_EMAIL_WEBHOOK_URL;
+  const webhookSecret = process.env.EMAIL_WEBHOOK_SECRET;
   if (!webhookUrl) return "skipped"; // deliberate — see file header
+  if (!webhookSecret) {
+    // Fail loudly, not silently: a missing secret is a config mistake, not
+    // an intentional "email disabled" state like a missing webhookUrl is.
+    throw new CertificateError(
+      "GAS_EMAIL_WEBHOOK_URL is set but EMAIL_WEBHOOK_SECRET is not — Webhook.gs will reject every request without it.",
+      "config_missing"
+    );
+  }
   const res = await fetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, secret: webhookSecret }),
   });
   if (!res.ok) throw new CertificateError(`Email webhook responded ${res.status}`, "email_error");
-  return "sent";
+  const json = (await res.json()) as { ok: boolean; sent?: boolean; error?: string };
+  if (!json.ok) throw new CertificateError(`Email webhook rejected the request: ${json.error}`, "email_error");
+  return json.sent ? "sent" : "skipped"; // "skipped" here means Webhook.gs's own dedupe/quota logic held it back
 }
 
 // ═══════════════════════════════ ENTRY POINTS ═══════════════════════════════
@@ -518,7 +764,7 @@ async function runPipeline(
     const fields = mergeFields(activity, submission, eventType);
     const kind = selectTemplate(activity.activity_type, eventType);
 
-    const pdfBytes = await renderCertificatePdf(kind, fields);
+    const pdfBytes = kind === "booking_confirmation" ? await renderInvoicePdf(fields) : await renderCertificatePdf(kind, fields);
     await port.audit(refId, eventType, "pdf_generated", { kind });
 
     const path = `${refId}/${eventType}.pdf`;
@@ -688,6 +934,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-001",
       activity_type: "puja",
       item_name: "Rudrabhishek Puja",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "confirmed",
       completion_status: "not_performed",
       performed_at: null,
@@ -707,6 +955,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-002",
       activity_type: "seva",
       item_name: "Annadanam Seva",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "pending_verification",
       completion_status: "not_performed",
       performed_at: null,
@@ -730,6 +980,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-003",
       activity_type: "darshan_certificate",
       item_name: "Live Darshan",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "failed",
       completion_status: "not_performed",
       performed_at: null,
@@ -752,6 +1004,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-004",
       activity_type: "puja",
       item_name: "Ganapati Homam",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "confirmed",
       completion_status: "not_performed",
       performed_at: null,
@@ -773,6 +1027,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-005",
       activity_type: "seva",
       item_name: "Gau Seva",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "confirmed",
       completion_status: "not_performed",
       performed_at: null,
@@ -792,6 +1048,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-006",
       activity_type: "puja",
       item_name: "Satyanarayan Puja",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "confirmed",
       completion_status: "not_performed",
       performed_at: null,
@@ -820,6 +1078,8 @@ async function runCertificateSelfTests() {
         ref_id: refId,
         activity_type: activityType,
         item_name: "Test Service",
+        amount: 501,
+        payment_method: "upi",
         payment_status: "confirmed",
         completion_status: "completed",
         performed_at: new Date().toISOString(),
@@ -839,6 +1099,8 @@ async function runCertificateSelfTests() {
       ref_id: "SDP-008",
       activity_type: "contribution",
       item_name: "Temple Redevelopment",
+      amount: 501,
+      payment_method: "upi",
       payment_status: "confirmed",
       completion_status: "completed",
       performed_at: new Date().toISOString(),
@@ -869,6 +1131,59 @@ async function runCertificateSelfTests() {
     check("TEST 9: attachment filename includes reference id", payload.attachmentFilename.includes("SDP-009"));
   }
 
+  // TEST 10 — invoice: amount/total/payment method are correctly merged and
+  //           printed; tax/discount/platformFee are OMITTED (not zeroed) when
+  //           absent from metadata, and INCLUDED when present.
+  {
+    const { port, activities, submissions } = makeFakePort();
+    activities.set("SDP-010", {
+      ref_id: "SDP-010",
+      activity_type: "puja",
+      item_name: "Rudrabhishek Puja",
+      amount: 1100,
+      payment_method: "upi",
+      payment_status: "confirmed",
+      completion_status: "not_performed",
+      performed_at: null,
+      created_at: new Date().toISOString(),
+      metadata: { deity_or_temple: "Lord Shiva" },
+    });
+    submissions.set("SDP-010", { name: "Meera Nair", email: "meera@example.com" });
+    const result = await generateBookingConfirmationPdf("SDP-010", port);
+    check("TEST 10a: invoice generates for confirmed payment", result.status === "generated");
+
+    // No tax/discount/platformFee in metadata -> mergeFields must OMIT them,
+    // not silently print ₹0 — checked directly against the merge output.
+    const activity010 = activities.get("SDP-010")!;
+    const fields010 = mergeFields(activity010, submissions.get("SDP-010")!, "booking_confirmed");
+    check("TEST 10b: amount merged correctly", fields010.amount === 1100);
+    check("TEST 10c: totalAmount = amount when no tax/fee/discount", fields010.totalAmount === 1100);
+    check("TEST 10d: taxAmount omitted (not fabricated as 0)", fields010.taxAmount === undefined);
+    check("TEST 10e: invoiceNumber derived from ref_id", fields010.invoiceNumber === "INV-SDP-010");
+    check("TEST 10f: UPI payment method label", fields010.paymentMethodLabel === "UPI");
+
+    // With tax + platform fee + discount present in metadata -> total reflects all three.
+    const activityWithCharges: ActivityRow = {
+      ...activity010,
+      ref_id: "SDP-010b",
+      metadata: { tax_amount: 50, platform_fee: 20, discount_amount: 100 },
+    };
+    const fieldsWithCharges = mergeFields(activityWithCharges, submissions.get("SDP-010")!, "booking_confirmed");
+    check("TEST 10g: total = amount + tax + platformFee - discount", fieldsWithCharges.totalAmount === 1100 + 50 + 20 - 100);
+
+    // Certificates must NEVER carry invoice fields, even though they share MergedFields.
+    const certFields = mergeFields(
+      { ...activity010, performed_at: new Date().toISOString() },
+      submissions.get("SDP-010")!,
+      "certificate_ready"
+    );
+    check("TEST 10h: certificate merge has no invoiceNumber", certFields.invoiceNumber === undefined);
+    check("TEST 10i: certificate merge has no amount", certFields.amount === undefined);
+
+    const pdfBytes = await renderInvoicePdf(fields010);
+    check("TEST 10j: invoice PDF renders non-trivial bytes", pdfBytes.length > 800);
+  }
+
   console.log(`\n${passed} passed, ${failed} failed.`);
   if (failed > 0) process.exitCode = 1;
 }
@@ -877,3 +1192,4 @@ async function runCertificateSelfTests() {
 if (process.argv.includes("--selftest")) {
   runCertificateSelfTests();
 }
+

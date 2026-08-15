@@ -15,6 +15,7 @@ import {
 import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
@@ -407,6 +408,17 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
       ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a confirmation soon. Ref: ${refId}`
       : `🙏 Order received! Once your payment is verified, our team will confirm it and ship your ${selectedItem?.name} within 3–5 working days. Ref: ${refId}`;
     alert(msg);
+    // No dedicated success screen in this flow (falls straight back to the
+    // bazaar grid after the alert) — deliver the confirmation PDF directly,
+    // same underlying function BookNowWizard's button uses.
+    if (selectedItem) {
+      downloadConfirmationMessage({
+        category: selectedItem.isService ? "seva_offering" : "bazaar_order",
+        serviceName: selectedItem.name,
+        devoteeName: devoteeName.trim(),
+        refId,
+      });
+    }
     // Reset form fields
     setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");
     setDevoteeGotra(""); setDevoteeRashi("Mesh (Aries)");
