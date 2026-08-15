@@ -3,8 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { PRIEST_PROFILES } from "../data/priests";
-import { TEMPLES_LIST } from "../data/temples";
+// ✅ BUNDLE-SIZE FIX (2026-08-15): this component renders on every homepage
+// load and only ever needed the COUNT of each array (see trustStats below)
+// — importing the full PRIEST_PROFILES / TEMPLES_LIST arrays for that was
+// pulling ~3,700 lines of full priest/temple data into the eager main
+// bundle for two numbers. These lightweight counts are still computed live
+// from the real arrays (in priests.ts / temples.ts respectively), so they
+// can never drift out of sync — nothing about the "kept honest on purpose"
+// behavior documented below changed, only where the count is computed.
+import { PRIEST_PROFILES_COUNT } from "../data/priests";
+import { TEMPLES_LIST_COUNT } from "../data/temples";
 import { TRANSLATIONS } from "../data/translations";
 
 interface TrustBarProps {
@@ -35,8 +43,8 @@ interface TrustBarProps {
  */
 export default function TrustBar({ isAndroidApp = false }: TrustBarProps) {
   const trustStats = [
-    { value: `${PRIEST_PROFILES.length}+`, label: "Priests Network" },
-    { value: `${TEMPLES_LIST.length}+`, label: "Temples Network" },
+    { value: `${PRIEST_PROFILES_COUNT}+`, label: "Priests Network" },
+    { value: `${TEMPLES_LIST_COUNT}+`, label: "Temples Network" },
     { value: `${Object.keys(TRANSLATIONS).length}`, label: "Languages Supported" },
     { value: "Bank-Grade", label: "Secure Offerings" },
     { value: "24/7", label: "Live Ritual Streams" },

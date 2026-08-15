@@ -58,7 +58,15 @@ const config: CapacitorConfig = {
     // this is defensive (most Supabase calls are background API requests,
     // which are unaffected by this setting either way) rather than
     // strictly required.
-    allowNavigation: ['sridwar.com', '*.sridwar.com', '*.supabase.co'],
+    //
+    // ✅ VIDEO-IN-APP FIX (added alongside Hero.tsx's app-only tap-to-play
+    // video change): the Hero section's video now opens as a real YouTube
+    // link (https://www.youtube.com/watch?v=...) when tapped inside the
+    // Android app, instead of trying to play an unreliable embedded
+    // iframe player. These two domains are what let that link actually
+    // open instead of the WebView silently refusing to navigate to it.
+    // Nothing else about this list changed.
+    allowNavigation: ['sridwar.com', '*.sridwar.com', '*.supabase.co', 'www.youtube.com', 'youtube.com'],
   },
 
   plugins: {

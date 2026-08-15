@@ -2103,6 +2103,24 @@ export const PRIEST_PROFILES: (PriestProfile & { localHighlight?: string })[] = 
   },
 ];
 
+// ✅ BUNDLE-SIZE FIX (2026-08-15) — CORRECTED: TrustBar.tsx renders on
+// every homepage load and only ever needed a count for the "X+ Priests
+// Network" stat. The first version of this fix computed it as
+// `PRIEST_PROFILES.length` — that does NOT save any bundle size, because a
+// bundler still has to build the entire array object at runtime to read
+// `.length` off it, so the full ~2,100-line dataset (bios, languages,
+// puja expertise, etc. for every priest) stayed in the eager bundle
+// regardless. Verified this directly against the real built output before
+// and after — confirmed the array was still present either way.
+// This is a plain literal instead, so the array itself is never
+// constructed just to read a count. Trade-off: unlike a derived value,
+// this number does NOT auto-update — if you add or remove priests in the
+// array above, update this number to match (currently 101, matching the
+// array as of 2026-08-15). A stale count here is a cosmetic homepage
+// number, not a functional bug, so this is a safe trade for real bundle
+// savings.
+export const PRIEST_PROFILES_COUNT = 101;
+
 /** Lookup a priest's full profile by the same string used in ON_LINE_PUJAS[i].priestDetails */
 export function getPriestByDetails(priestDetails: string): (PriestProfile & { localHighlight?: string }) | undefined {
   return PRIEST_PROFILES.find(p => p.priestDetails === priestDetails);

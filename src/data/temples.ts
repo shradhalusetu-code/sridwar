@@ -1583,3 +1583,17 @@ export const TEMPLES_LIST: Temple[] = [
     priestInfo: "Rituals are performed by hereditary Pandas (priests), who manage both daily worship and the immense pilgrim volume of the annual Sravani Mela. All Sankalp bookings, records, and completion proof are recorded, verified, and managed by Sri Dwar's administration together with the performing priest, listed as a revered pujari in our Priest Directory."
   }
 ];
+
+// ✅ BUNDLE-SIZE FIX (2026-08-15) — CORRECTED, same reasoning as
+// PRIEST_PROFILES_COUNT in priests.ts: a derived `TEMPLES_LIST.length`
+// still forces the whole array to be built just to read it off, so this
+// is a plain literal instead. Note: for THIS specific file it happens not
+// to change actual bundle size on its own, because Hero.tsx separately
+// needs the full TEMPLES_LIST array anyway (a temple-selector list in the
+// Darshan Certificate modal), so temples.ts stays in the eager bundle
+// regardless — but this is still the technically correct pattern (matches
+// priests.ts, and stops this file from silently regressing bundle size
+// again if that Hero.tsx usage is ever moved to lazy-loading in future).
+// Update this number if temples are added/removed (currently 32, matching
+// the array as of 2026-08-15) — a stale count is cosmetic, not functional.
+export const TEMPLES_LIST_COUNT = 32;

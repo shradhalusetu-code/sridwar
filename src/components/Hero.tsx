@@ -5,7 +5,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw } from "lucide-react";
-import { Language, TRANSLATIONS } from "../data/translations";
+import { Language } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
@@ -62,7 +62,6 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   const [showUPI, setShowUPI] = useState(false);
   const [upiAmount, setUpiAmount] = useState<number | null>(null);
 
-  const t = TRANSLATIONS[currentLanguage];
   const darshanConfirmation = getDevotionalConfirmation({
     category: "darshan_certificate",
     serviceName: "Darshan Certificate",
@@ -285,15 +284,9 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 a Devanagari-supporting font added later; nothing to fix for
                 this change to work correctly today. */}
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-black tracking-tight text-white leading-snug text-center md:text-left mt-3 sm:mt-4">
-              {isAndroidApp ? (
-                t.tagline
-              ) : (
-                <>
-                  <span className="block">पत्रं पुष्पं फलं तोयं</span>
-                  <span className="block mt-3 sm:mt-4">A Leaf, A Flower, Reaches the Divine.</span>
-                  <span className="block text-[#FFB347]">Faith needs no distance to be heard.</span>
-                </>
-              )}
+              <span className="block">पत्रं पुष्पं फलं तोयं</span>
+              <span className="block mt-3 sm:mt-4">A Leaf, A Flower, Reaches the Divine.</span>
+              <span className="block text-[#FFB347]">Faith needs no distance to be heard.</span>
             </h1>
 
             {/* Sub-headline — mt-6/7/8 gives a clearly healthier gap from
@@ -316,9 +309,55 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
               (280–300px) so it reads as a supporting element below the
               message rather than covering most of the hero's visible
               height on small screens. Vertical 9:16 frame to match the
-              Shorts format instead of letterboxing it. */}
+              Shorts format instead of letterboxing it.
+
+              ✅ ROOT-CAUSE FIX (2026-08-15) — video missing inside the
+              Android app, but fine on the website: this is the same class
+              of Android-WebView platform limitation already documented in
+              devotionalMessages.ts for PDF downloads, not a bug introduced
+              by any recent change here. Android's WebView (what the
+              Capacitor app's server.url mode runs on) is well documented
+              to often fail to render an embedded YouTube <iframe> at all —
+              either a blank/black box or nothing — because it lacks the
+              WebChromeClient.onShowCustomView hook Chrome/Safari implement
+              for in-page HTML5 video playback; adding that requires native
+              Android code, which (same as the PDF case) can't be shipped
+              through a website-only deploy. capacitor.config.ts's
+              allowNavigation allowlist (sridwar.com / supabase.co only)
+              isn't the cause here — that only governs top-level page
+              navigation, not iframe embedding — but it IS the reason the
+              fix below works cleanly: tapping the thumbnail below opens
+              youtube.com, which isn't in that allowlist, so Capacitor's
+              WebView hands it off to the system browser/YouTube app
+              automatically, the same graceful "don't fight the WebView,
+              route around it" approach already used for confirmation PDFs.
+              Website behavior is completely unchanged — the iframe embed
+              below still renders exactly as before there, matching what
+              you see in your own browser screenshot. */}
           <div className="w-full flex justify-center md:justify-end">
             <div className="w-full max-w-[220px] sm:max-w-[240px] md:max-w-none aspect-[9/16] rounded-3xl overflow-hidden border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.45)] bg-black/40 shrink-0">
+              {isAndroidApp ? (
+                <button
+                  type="button"
+                  onClick={() => window.open("https://www.youtube.com/watch?v=o29uNx4lg0M", "_blank")}
+                  aria-label="Play: Sri Dwar — A Leaf, A Flower, Reaches the Divine (opens in YouTube)"
+                  className="relative w-full h-full block cursor-pointer group"
+                >
+                  <img
+                    src="https://img.youtube.com/vi/o29uNx4lg0M/hqdefault.jpg"
+                    alt="Sri Dwar — A Leaf, A Flower, Reaches the Divine"
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/25 group-active:bg-black/35 transition-colors">
+                    <span className="w-14 h-14 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="#021816" aria-hidden="true">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </span>
+                  </span>
+                </button>
+              ) : (
               <iframe
                 className="w-full h-full"
                 // FIX ("Error 153: Video player configuration error"): YouTube
@@ -345,6 +384,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
+              )}
             </div>
           </div>
 

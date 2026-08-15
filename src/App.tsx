@@ -15,7 +15,6 @@ import TrustBar from "./components/TrustBar";
 import DevoteeExperiences from "./components/DevoteeExperiences";
 import SriDwarLogo from "./components/SriDwarLogo";
 import OptimizedImage from "./components/OptimizedImage";
-import TempleRegister from "./components/TempleRegister";
 
 // Loaded on demand only when the visitor actually navigates to that page or
 // opens that modal — keeps the initial bundle small without changing any
@@ -39,6 +38,14 @@ const UPIPaymentModal = lazy(() => import("./components/UPIPaymentModal"));
 const OfferPopup = lazy(() => import("./components/OfferPopup"));
 const ReferralPlans = lazy(() => import("./components/ReferralPlans"));
 const CounsellingGuidance = lazy(() => import("./components/CounsellingGuidance"));
+// ✅ BUNDLE-SIZE FIX (2026-08-15): TempleRegister is a full registration
+// form/page (Add Temple / Temple Register), never part of the initial
+// homepage paint — this is the exact file vite.config.ts's own comment
+// already called out as one of the two biggest bundle-size contributors.
+// Moving it to the same lazy-loaded pattern already used for every page
+// below keeps it out of the eager main bundle entirely; it now loads only
+// when a devotee actually navigates to "temple-register" or "add-temple".
+const TempleRegister = lazy(() => import("./components/TempleRegister"));
 import dpiitCertificate from "./assets/images/DPIIT_Certificate.jpg";
 import dpiitCertificateWebp from "./assets/images/DPIIT_Certificate.webp";
 import fssaiCertificate from "./assets/images/FSSAI_Certificate.jpg";
@@ -798,19 +805,23 @@ export default function App() {
 
         {currentPage === "temple-register" && (
           <div className="animate-fadeIn">
-            <TempleRegister standaloneTempleReg onNavigate={handleNavigate} />
+            <Suspense fallback={pageLoadingFallback}>
+              <TempleRegister standaloneTempleReg onNavigate={handleNavigate} />
+            </Suspense>
           </div>
         )}
 
         {currentPage === "add-temple" && (
           <div className="animate-fadeIn">
-            <TempleRegister
-              onNavigate={handleNavigate}
-              onOpenBookNow={() => {
-                setWizardDefaults({ pujaName: "Sarvajanik Veda Shanti Puja", price: 550 });
-                setIsBookNowOpen(true);
-              }}
-            />
+            <Suspense fallback={pageLoadingFallback}>
+              <TempleRegister
+                onNavigate={handleNavigate}
+                onOpenBookNow={() => {
+                  setWizardDefaults({ pujaName: "Sarvajanik Veda Shanti Puja", price: 550 });
+                  setIsBookNowOpen(true);
+                }}
+              />
+            </Suspense>
           </div>
         )}
 
@@ -860,17 +871,11 @@ export default function App() {
       </main>
       <footer
         id="corporate-footer"
-        // ✅ ENGAGEMENT FIX (Cricinfo mobile-UX study): pb-[132px] md:pb-6
-        // reserves room for the tab bar on any narrow (<768px) viewport —
-        // previously this spacing only existed inside the Android app
-        // (isAndroidApp inline style below). Now that the same tab bar also
-        // renders on the mobile WEBSITE (see the <nav> further down), the
-        // website footer needs the same breathing room there, while
-        // staying exactly pb-6 on tablet/desktop where the bar is hidden.
-        // The isAndroidApp inline style below still wins on the app itself
-        // (inline style always overrides className), so app spacing is
-        // completely unchanged.
-        className="bg-[#021816] text-white pt-10 pb-[132px] md:pb-6 border-t border-white/10 text-left relative z-10"
+        // The fixed bottom tab bar only ever renders inside the Android app
+        // (isAndroidApp), never on the website — so the extra bottom
+        // clearance below is app-only too. Website footer stays plain pb-6
+        // at every width.
+        className="bg-[#021816] text-white pt-10 pb-6 border-t border-white/10 text-left relative z-10"
         style={isAndroidApp ? {
           // The fixed bottom tab bar (below) overlays whatever sits at the
           // end of the page — without this, the footer's own bottom row
@@ -1158,23 +1163,12 @@ export default function App() {
         </div>
       </footer>
       {/*
-        ✅ ENGAGEMENT FIX (Cricinfo mobile-UX study, 2026-08-14): this tab
-        bar already existed and already worked well — it was just limited
-        to `isAndroidApp` only. Cricinfo's persistent bottom nav is one of
-        its strongest mobile-retention patterns (Home/Matches/Series/
-        Videos/News always one tap away, no scrolling back up). The exact
-        same value applies to a devotee browsing sridwar.com in mobile
-        Chrome — Puja/Seva/Shop/Profile should be just as reachable there
-        as they are in the app.
-        Rather than duplicate this block, it now always renders, and
-        `md:hidden` hides it at tablet/desktop widths (>=768px) — those
-        already have the full Navbar and don't need a bottom bar. On the
-        Android app itself nothing changes: the app's viewport is always
-        below that breakpoint, `isAndroidApp` is passed through unchanged
-        for the className branch below, and every existing safe-area /
-        padding calculation is untouched.
+        This tab bar is for the native Android app ONLY. The website has
+        its own full Navbar (top) at every viewport width, including
+        mobile — it must never also show this bottom app tab bar. Keep
+        this gated strictly behind isAndroidApp.
       */}
-      <nav className={isAndroidApp ? undefined : "md:hidden"} style={{
+      {isAndroidApp && <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: '#021816',
         borderTop: '1px solid rgba(255,255,255,0.1)',
@@ -1222,7 +1216,7 @@ export default function App() {
             {tab.label}
           </button>
         ))}
-      </nav>
+      </nav>}
       {/* 4. AI-POWERED SIDEBAR CHAT HELPER (Margadarshak) */}
       <Suspense fallback={null}>
         <AIAssistant currentLanguage={currentLanguage} isAndroidApp={isAndroidApp} />
