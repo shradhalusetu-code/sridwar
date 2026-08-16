@@ -135,11 +135,19 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Receive a consecrated Prasad certificate and visual video capturing the cooked Mahaprasad being distributed lovingly to sadhus and devotees.",
     impactStat: "Over 15,000+ meals cooked daily by temple cooks.",
     donationTiers: [
-      { amount: 2000, label: "Feed 10 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 10 visiting sadhus." },
-      { amount: 2700, label: "Feed 35 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
-      { amount: 6750, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service in your name, including direct videos." }
+      // ₹100/person/meal — same rate SEVA_OFFERINGS' Annadan uses at ₹1,100
+      // (11 people) and ₹2,100 (21 people). Amounts unchanged from before;
+      // only the beneficiary counts were corrected to match that rate.
+      { amount: 2000, label: "Feed 20 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 20 visiting sadhus." },
+      { amount: 2700, label: "Feed 27 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
+      { amount: 6750, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service — roughly 67 meals across the day — in your name, including direct videos." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/Annadanam Seva.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Annadanam Seva.jpg",
+    includes: ["Freshly cooked, temple-blessed meals for the number of people/sadhus sponsored", "Distribution at temple premises or a registered kitchen", "Photo/video evidence of the meal service where available"],
+    devoteeReceives: ["Digital seva certificate in your name", "Photo/video evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    coverageLabel: "Feeds 20 Sadhus, one meal — ₹100 per person, same rate used across every Annadan tier on SriDwar",
+    priestKeywords: ["wealth", "health", "ancestral", "festival"],
   },
   {
     id: "seva-cow",
@@ -149,11 +157,21 @@ export const FEATURED_SEVAS: Seva[] = [
     blessingExplanation: "Fosters home peace, prosperity, and dissolves ancestors' karmic blockages. You will receive pictures with your name Sankalpa displayed at the Gaushala.",
     impactStat: "350+ native cows nurtured in green sanctuaries.",
     donationTiers: [
-      { amount: 2000, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 5 cows." },
+      // ₹100/cow — matches SEVA_OFFERINGS' Gau Seva rate (₹100=1 cow,
+      // ₹1,100=11 cows). Amount unchanged; count corrected from 5 to 20.
+      { amount: 2000, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 20 cows." },
+      // Monthly adoption and shed-building are not a per-cow linear rate
+      // (ongoing care / capital contribution), so left as-is — not
+      // comparable to the one-time per-cow feeding rate above.
       { amount: 3000, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
       { amount: 7500, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/Gau Seva.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Gau Seva.jpg",
+    includes: ["Fresh fodder, jaggery & roti for the cows sponsored", "Seva performed at a registered Gaushala", "Photo evidence of the feeding"],
+    devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    coverageLabel: "Feeds 20 cows for one day — ₹100 per cow, same rate used across every Gau Seva tier on SriDwar",
+    priestKeywords: ["wealth", "health", "festival", "ancestral"],
   },
   {
     id: "seva-diya",
@@ -167,7 +185,12 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 1650, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
       { amount: 3300, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/Diya Lighting.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Diya Lighting.jpg",
+    includes: ["A continuously-fed diya (mustard/cow ghee) lit on your behalf for the sponsored duration", "Diya seva performed during temple Aarti", "Photo evidence of the lit diya"],
+    devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    coverageLabel: "1 continuous diya, lit and fed for 3 days on your behalf",
+    priestKeywords: ["protection", "festival", "health"],
   },
   {
     id: "seva-gurukul",
@@ -181,7 +204,12 @@ export const FEATURED_SEVAS: Seva[] = [
       { amount: 7500, label: "Gurukul Child Sponsor", description: "Covers complete food, stay, and education for a student for 3 months." },
       { amount: 18000, label: "Patron of Ancient Wisdom", description: "Sponsor high-speed digitizer setups to record ancient leaf scrolls." }
     ],
-    imageUrl: import.meta.env.BASE_URL + "images/Vedic Education.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/Vedic Education.jpg",
+    includes: ["Sanskrit manuscripts, notebooks, and sacred thread/dress support as per tier chosen", "Contribution routed to the supported Gurukul", "Acknowledgement shared after the contribution is recorded"],
+    devoteeReceives: ["Digital contribution certificate in your name", "Acknowledgement shared after processing", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & acknowledgement shared within 3-7 working days.",
+    coverageLabel: "Sanskrit manuscripts, notebooks, sacred thread & dress for one Vedic student",
+    priestKeywords: ["wealth", "festival", "ancestral"],
   }
 ];
 
@@ -1701,6 +1729,93 @@ export const ON_LINE_PUJAS: Puja[] = [
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
+  },
+
+  // ───────────────────────────────────────────────────────────────
+  // NEW OFFERINGS — Mahaprasad Distribution, Tulsi Vivah Seva,
+  // Navagraha Shanti Homa, Akhand Ramayan Path, Gomata Puja & Feeding.
+  // Each placed at a real, already-featured Odisha temple (Odisha-first
+  // per the platform's locality hierarchy) and paired with a real priest
+  // already listed at that temple in data/priests.ts, matched by their
+  // existing priestDetails string so "View Profile" resolves correctly.
+  // Same field pattern as every other ON_LINE_PUJAS entry — no new data
+  // model, no new component. Rudrabhishek Puja already exists per-temple
+  // above and needed no changes.
+  // ───────────────────────────────────────────────────────────────
+  {
+    id: "puri-jagannath-puja-4",
+    name: "Mahaprasad Distribution Seva",
+    category: "festivals",
+    templeName: "Jagannath Temple — Puri",
+    deityName: "Lord Jagannath",
+    benefits: "Sponsor the distribution of sacred Mahaprasad — cooked in the temple's Rosaghara kitchen and offered to the Lord — to devotees and pilgrims at the temple, in your name and Gotra.",
+    priestDetails: "Pandit Jayant Panda — 28 years of experience",
+    videoAvailable: true,
+    prasadIncluded: true,
+    price: 799,
+    imageUrl: getTempleImage("puri-jagannath"),
+    duration: "20 minutes",
+    materialsIncluded: ["Mahaprasad (rice, dal, vegetable preparations)", "Tulsi leaves", "Kotha Bhoga rice", "Sandalwood paste"]
+  },
+  {
+    id: "kantilo-nilamadhab-puja-4",
+    name: "Tulsi Vivah Seva",
+    category: "marriage",
+    templeName: "Nilamadhab Temple — Kantilo",
+    deityName: "Lord Nilamadhab (Vishnu)",
+    benefits: "The sacred ceremonial wedding of Tulsi Devi to Lord Vishnu, performed in your name and Gotra — traditionally sought for a harmonious married life, family wellbeing, and removal of marital obstacles.",
+    priestDetails: "Pandit Yashpal Pujari — 32 years of experience",
+    videoAvailable: true,
+    prasadIncluded: true,
+    price: 1899,
+    imageUrl: getTempleImage("kantilo-nilamadhab"),
+    duration: "40 minutes",
+    materialsIncluded: ["Tulsi plant", "Sugarcane stalks", "Wedding mandap decoration", "Fresh flowers", "Sandalwood paste"]
+  },
+  {
+    id: "bhadrak-akhandaalamani-puja-4",
+    name: "Navagraha Shanti Homa",
+    category: "graha_shanti",
+    templeName: "Akhandaalamani Temple — Bhadrak",
+    deityName: "Lord Akhandalamani (Shiva)",
+    benefits: "A dedicated fire ritual (Homa) at the temple's Navagraha shrine, offered in your name and Gotra to pacify all nine planetary influences and restore balance across your horoscope.",
+    priestDetails: "Pandit Naresh Jagadev — 29 years of experience",
+    videoAvailable: true,
+    prasadIncluded: true,
+    price: 3499,
+    imageUrl: getTempleImage("bhadrak-akhandaalamani"),
+    duration: "50 minutes",
+    materialsIncluded: ["Navagraha Samidha (sacred wood)", "Nine-grain offering", "Ghee", "Vibhuti (sacred ash)", "Sesame oil"]
+  },
+  {
+    id: "kendrapara-baladevjew-puja-4",
+    name: "Akhand Ramayan Path",
+    category: "festivals",
+    templeName: "Baladevjew Temple — Kendrapara",
+    deityName: "Lord Baladevjew (Balaram — elder brother of Lord Jagannath)",
+    benefits: "A continuous, unbroken recitation of the Ramayana performed on your behalf and dedicated in your name and Gotra — sought for family harmony, removal of obstacles, and divine grace across generations.",
+    priestDetails: "Pandit Aditya Mohapatra — 31 years of experience",
+    videoAvailable: true,
+    prasadIncluded: true,
+    price: 5499,
+    imageUrl: getTempleImage("kendrapara-baladevjew"),
+    duration: "Multi-day recitation (as per temple schedule)",
+    materialsIncluded: ["Ramayana text recitation", "Akhand Deep (unbroken lamp)", "Fresh flowers", "Tulsi leaves"]
+  },
+  {
+    id: "puri-jagannath-puja-5",
+    name: "Gomata Puja & Feeding",
+    category: "wealth",
+    templeName: "Jagannath Temple — Puri",
+    deityName: "Lord Jagannath",
+    benefits: "Worship of Gomata alongside fresh fodder and feeding for cows sponsored in your name and Gotra — a seva believed to please all 33 crore deities residing within Gau Mata and bring prosperity to your home.",
+    priestDetails: "Pandit Chandan Dash — 17 years of experience",
+    videoAvailable: true,
+    prasadIncluded: false,
+    price: 599,
+    imageUrl: getTempleImage("puri-jagannath"),
+    duration: "15 minutes",
+    materialsIncluded: ["Fresh fodder, jaggery & roti for the cows sponsored", "Gomata Aarti", "Fresh flowers"]
   }
 ];
 

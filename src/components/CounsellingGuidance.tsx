@@ -505,6 +505,15 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
   selectedCounselor: GuidanceCounselor | null;
   onChooseCounselor: () => void;
 }) {
+  // ─── Compact-by-default card (mobile/tablet) — Stage 6 ────────────────
+  // Same progressive-disclosure pattern used across Seva/Bazaar/Puja/Plans/
+  // Founder cards: on phone/tablet, only image + title + tagline + short
+  // description + one key detail show up front. The full "may help with"
+  // list, the 4-stat session plan grid, and the counselor picker sit
+  // behind a tap. Desktop (lg+) always renders the full card, unchanged.
+  const [expanded, setExpanded] = useState<boolean>(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
+  );
   return (
     <div
       id={service.id}
@@ -540,6 +549,21 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
         <p className="text-[13px] font-semibold mt-1" style={{ color: service.color }}>{service.tagline}</p>
         <p className="text-[13px] text-white/60 leading-relaxed mt-2">{service.description}</p>
 
+        {/* Collapsed summary — phone/tablet only, before expansion */}
+        {!expanded && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-expanded={expanded}
+            className="lg:hidden mt-3 flex items-center gap-1 text-[12px] font-bold uppercase tracking-wide"
+            style={{ color: service.color }}
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+            <span>What's included · View details</span>
+          </button>
+        )}
+
+        <div className={`${expanded ? "flex" : "hidden"} lg:flex flex-col flex-1`}>
         <div className="mt-3 pt-3 border-t border-white/8">
           <span className="text-[11px] font-mono font-bold text-white/35 uppercase tracking-wide">A session may help you think through</span>
           <ul className="mt-1.5 space-y-1">
@@ -622,6 +646,17 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
         >
           Explore Guidance <ArrowRight className="w-3.5 h-3.5" />
         </button>
+
+        {/* Collapse back — phone/tablet only */}
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          aria-expanded={expanded}
+          className="lg:hidden self-center flex items-center gap-1 text-[12px] font-semibold text-white/45 hover:text-white/70 mt-2"
+        >
+          Show less
+        </button>
+        </div>
       </div>
     </div>
   );

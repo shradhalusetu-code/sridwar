@@ -711,10 +711,41 @@ function buildEmailPayload(
   };
 }
 
-async function dispatchEmail(payload: CertificateEmailPayload): Promise<"sent" | "skipped"> {
+interface DispatchEmailResult {
+  status: "sent" | "skipped";
+  /**
+   * ✅ DIAGNOSTIC FIX (2026-08-16): previously this function returned a bare
+   * "skipped" string for THREE completely different situations —
+   *   1. GAS_EMAIL_WEBHOOK_URL not set on this server at all (email sending
+   *      fully disabled, on purpose, per the original "wire trigger later"
+   *      scope note at the top of this file)
+   *   2. Webhook.gs itself declining to send (its own dedupe log already
+   *      shows this refId+emailType as sent, an invalid-looking recipient
+   *      address, or the daily quota being exhausted)
+   *   3. (previously) no distinction at all in certificate_audit_log —
+   *      every "email_skipped" row looked identical, so there was no way
+   *      to tell "email sending isn't even configured yet" apart from
+   *      "email sending is configured and is deliberately holding back."
+   * This made the single most common real-world failure — a booking's PDF
+   * generates fine, the row shows "generated" in every log, and yet the
+   * devotee never receives anything — genuinely impossible to diagnose
+   * from the audit log alone. `reason` is now carried through into
+   * certificate_audit_log's `detail` column (see runPipeline below) so the
+   * exact cause is visible without guessing.
+   */
+  reason?: string;
+}
+
+async function dispatchEmail(payload: CertificateEmailPayload): Promise<DispatchEmailResult> {
   const webhookUrl = process.env.GAS_EMAIL_WEBHOOK_URL;
   const webhookSecret = process.env.EMAIL_WEBHOOK_SECRET;
-  if (!webhookUrl) return "skipped"; // deliberate — see file header
+  if (!webhookUrl) {
+    // deliberate — see file header — but now labeled, not silent.
+    return {
+      status: "skipped",
+      reason: "GAS_EMAIL_WEBHOOK_URL is not set on this server. No email was even attempted. Set it, on Render, to your Apps Script Web App's /exec URL (see Webhook.gs setup steps).",
+    };
+  }
   if (!webhookSecret) {
     // Fail loudly, not silently: a missing secret is a config mistake, not
     // an intentional "email disabled" state like a missing webhookUrl is.
@@ -731,7 +762,13 @@ async function dispatchEmail(payload: CertificateEmailPayload): Promise<"sent" |
   if (!res.ok) throw new CertificateError(`Email webhook responded ${res.status}`, "email_error");
   const json = (await res.json()) as { ok: boolean; sent?: boolean; error?: string };
   if (!json.ok) throw new CertificateError(`Email webhook rejected the request: ${json.error}`, "email_error");
-  return json.sent ? "sent" : "skipped"; // "skipped" here means Webhook.gs's own dedupe/quota logic held it back
+  if (json.sent) return { status: "sent" };
+  // Webhook.gs's own dedupe/quota/validity logic held it back — see
+  // sendBrandedEmail_() in EmailSender.gs for the exact possible causes.
+  return {
+    status: "skipped",
+    reason: "Webhook.gs received the request and returned ok, but did not actually send (its own dedupe log, invalid-looking email address, or daily quota). Check Email_Send_Log / Email_Errors in the tracking spreadsheet for this refId.",
+  };
 }
 
 // ═══════════════════════════════ ENTRY POINTS ═══════════════════════════════
@@ -775,8 +812,12 @@ async function runPipeline(
     if (toEmail) {
       const payload = buildEmailPayload(eventType, kind, fields, toEmail, pdfBytes);
       try {
-        emailStatus = await dispatchEmail(payload);
-        await port.audit(refId, eventType, emailStatus === "sent" ? "email_sent" : "email_skipped", { toEmail });
+        const dispatchResult = await dispatchEmail(payload);
+        emailStatus = dispatchResult.status;
+        await port.audit(refId, eventType, emailStatus === "sent" ? "email_sent" : "email_skipped", {
+          toEmail,
+          ...(dispatchResult.reason ? { reason: dispatchResult.reason } : {}),
+        });
       } catch (err) {
         await port.audit(refId, eventType, "email_failed", { error: (err as Error).message });
         // PDF generation still counts as success even if email delivery fails —

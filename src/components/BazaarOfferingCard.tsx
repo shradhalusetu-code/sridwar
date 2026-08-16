@@ -14,7 +14,7 @@ import { useState, useMemo } from "react";
 import {
   ShoppingBag, Flame, Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
 } from "lucide-react";
-import { BazaarProduct, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
+import { BazaarProduct, BazaarPriceOption, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import { SEVA_OCCASIONS } from "../data/sevaOfferings";
@@ -30,6 +30,25 @@ import { validatePincode } from "../utils/formValidation";
 // Dhoop, Prasad & Blessed Items) is a physical item shipped to the
 // devotee, so occasion/temple do not apply there.
 const isBhogOffering = (product: BazaarProduct) => product.category === "Bhog Offerings";
+
+// ✅ PRICE/CONTENT SYNC FIX: previously every Devotional Shopping card
+// showed one fixed description/includes no matter which amount tier was
+// selected (e.g. Puja Kits said the same thing whether you picked the
+// ₹100 Mini Kit or the ₹2,100 Premium Vedic Kit). This resolves the
+// priceOption that actually matches whatever amount is presently selected
+// — including a validly-entered custom amount — so the card always shows
+// content for an amount AT OR BELOW what was chosen, never implying a
+// bigger/fuller item than what's actually being paid for.
+function resolveActiveBazaarOption(options: BazaarPriceOption[], amount: number): BazaarPriceOption | undefined {
+  const numericOptions = options
+    .filter((o): o is BazaarPriceOption & { value: number } => typeof o.value === "number")
+    .sort((a, b) => a.value - b.value);
+  let match: BazaarPriceOption | undefined = numericOptions[0];
+  for (const opt of numericOptions) {
+    if (amount >= opt.value) match = opt; else break;
+  }
+  return match;
+}
 
 interface BazaarOfferingCardProps {
   product: BazaarProduct;
@@ -85,6 +104,21 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   const selectedOption = product.priceOptions.find((p) => String(p.value) === selected);
   const customAmountNumber = parseInt(customAmount, 10);
   const customAmountValid = !isCustomSelected || (!isNaN(customAmountNumber) && customAmountNumber >= 100);
+
+  // Amount actually reflected in the card's description/includes below —
+  // falls back to the first numeric tier only while a custom amount is
+  // selected but not yet validly typed in. Quantity is a separate
+  // multiplier on the final price and doesn't change which tier's content
+  // is shown — the tier describes one unit, same as its price does.
+  const activeTierAmount = isCustomSelected
+    ? (customAmountValid && customAmountNumber ? customAmountNumber : Number(firstNumericOption?.value ?? 100))
+    : (typeof selectedOption?.value === "number" ? selectedOption.value : Number(firstNumericOption?.value ?? 100));
+  const activeOption = resolveActiveBazaarOption(product.priceOptions, activeTierAmount);
+  const activeDescription = activeOption?.description ?? product.description;
+  const activeIncludes = activeOption?.extraInclude ? [...product.includes, activeOption.extraInclude] : product.includes;
+  // ✅ CONTRIBUTION-BENEFITS UPDATE: "You will receive" previously stayed
+  // fixed no matter which amount tier was selected. Mirrors activeIncludes.
+  const activeReceives = activeOption?.extraReceive ? [...product.devoteeReceives, activeOption.extraReceive] : product.devoteeReceives;
 
   const unitPrice = isCustomSelected ? customAmountNumber : (selectedOption?.value as number);
   const finalAmount = (isNaN(unitPrice) ? 0 : unitPrice) * quantity;
@@ -194,7 +228,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           ))}
         </div>
 
-        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{product.description}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{activeDescription}</p>
 
         {justAdded && (
           <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
@@ -222,7 +256,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
             <div className="space-y-1.5 mb-3">
               <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This includes</span>
               <ul className="space-y-1">
-                {product.includes.map((item, i) => (
+                {activeIncludes.map((item, i) => (
                   <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                     <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
                   </li>
@@ -233,7 +267,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
             <div className="space-y-1.5 mb-4">
               <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
               <ul className="space-y-1">
-                {product.devoteeReceives.map((item, i) => (
+                {activeReceives.map((item, i) => (
                   <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                     <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
                   </li>

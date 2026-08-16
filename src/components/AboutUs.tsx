@@ -61,6 +61,16 @@ const FOUNDERS: Founder[] = [
 
 function FounderCard({ founder }: { founder: Founder }) {
   const [imgFailed, setImgFailed] = useState(false);
+  // ─── Compact-by-default card (mobile/tablet) — Stage 5 ──────────────────
+  // Same progressive-disclosure pattern as SevaOfferingCard.tsx /
+  // BazaarOfferingCard.tsx: on phone/tablet, only the photo, name and title
+  // (already a short one-line role, not new copy) show up front. The full
+  // bio, achievement pills, and LinkedIn CTA sit behind a tap. Desktop
+  // (lg+) renders the full card unconditionally via lg:flex, exactly as
+  // before — nothing changes there.
+  const [expanded, setExpanded] = useState<boolean>(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
+  );
 
   return (
     <div className="relative rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#092320] via-[#092320] to-[#021816] p-6 sm:p-8 shadow-2xl overflow-hidden h-full">
@@ -73,8 +83,9 @@ function FounderCard({ founder }: { founder: Founder }) {
       </span>
 
       <div className="relative flex flex-col items-center text-center gap-5">
-        {/* Photo + Halo */}
-        <div className="relative w-72 h-72 sm:w-80 sm:h-80 shrink-0">
+        {/* Photo + Halo — compact on phone/tablet until expanded, full size
+            on desktop always (lg:w-80 lg:h-80 override). */}
+        <div className={`relative shrink-0 transition-all ${expanded ? "w-72 h-72 sm:w-80 sm:h-80" : "w-28 h-28"} lg:w-80 lg:h-80`}>
           {/* Rotating dotted halo, evokes a japamala (prayer bead) ring */}
           <svg
             aria-hidden="true"
@@ -129,12 +140,12 @@ function FounderCard({ founder }: { founder: Founder }) {
             </p>
           </div>
 
-          <p className="text-sm text-white/80 leading-relaxed font-sans">
+          <p className={`text-sm text-white/80 leading-relaxed font-sans ${expanded ? "block" : "hidden"} lg:block`}>
             {founder.bio}
           </p>
 
           {/* Key detail pills */}
-          <div className="flex flex-wrap justify-center gap-2 pt-1">
+          <div className={`flex-wrap justify-center gap-2 pt-1 ${expanded ? "flex" : "hidden"} lg:flex`}>
             {founder.pills.map((pill, i) => (
               <span
                 key={i}
@@ -147,7 +158,7 @@ function FounderCard({ founder }: { founder: Founder }) {
           </div>
 
           {/* CTA */}
-          <div className="pt-2">
+          <div className={`pt-2 ${expanded ? "block" : "hidden"} lg:block`}>
             <a
               href={founder.linkedin}
               target="_blank"
@@ -159,6 +170,18 @@ function FounderCard({ founder }: { founder: Founder }) {
               <ArrowUpRight className="w-3.5 h-3.5 shrink-0" strokeWidth={2.75} />
             </a>
           </div>
+
+          {/* Expand / collapse toggle — phone/tablet only; desktop always
+              shows the full card so this never renders there. */}
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="lg:hidden inline-flex items-center gap-1 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-1"
+          >
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : "rotate-0"}`} />
+            <span>{expanded ? "Show less" : `More about ${founder.name.split(" ")[0]}`}</span>
+          </button>
         </div>
       </div>
     </div>

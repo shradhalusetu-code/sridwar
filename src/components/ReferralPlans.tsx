@@ -44,6 +44,19 @@ interface PlanTierCardProps {
 function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: PlanTierCardProps) {
   const isFree = tier.monthlyPrice === 0;
   const priceLabel = billing === "monthly" ? tier.monthlyPriceLabel : tier.annualPriceLabel;
+  // ─── Compact-by-default card (mobile/tablet) — Stage 5 ──────────────────
+  // Same progressive-disclosure pattern as SevaOfferingCard.tsx /
+  // BazaarOfferingCard.tsx / AboutUs.tsx's FounderCard: name → primary
+  // benefit → price → one key highlight → "Explore" up front on phone/
+  // tablet; the full feature list, bonus perks, and the real signup/CTA
+  // button sit behind a tap. Desktop (lg+) always renders the full card,
+  // exactly as before.
+  const [expanded, setExpanded] = useState<boolean>(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
+  );
+  // Single "key highlight" line for the collapsed view — the same first
+  // fact already used in the full feature list below, never new copy.
+  const keyHighlight = isDevoteeTier(tier) ? tier.referralCapacity : tier.servicesIncluded;
 
   // Locked tiers are still listed by name, with a real preview of what's
   // included — so devotees and providers can see the full 5-tier ladder
@@ -103,11 +116,47 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       {!isFree && billing === "annual" && (
         <span className="text-[11px] text-[#5EEAD4] font-semibold">{tier.annualSavingsLabel}</span>
       )}
+      {/* ✅ CONTRIBUTION-BENEFITS UPDATE: annual plans previously only showed
+          a "days free" discount label — no explanation of what extra VALUE
+          (beyond the discount) an annual subscriber gets over a monthly
+          one. Shown only for provider tiers that define annualExtraBenefit
+          (currently the 5-Tier Pujari Service Paths) so the monthly vs.
+          annual choice is obviously and meaningfully different, not just a
+          price discount. */}
+      {!isFree && billing === "annual" && !isDevoteeTier(tier) && tier.annualExtraBenefit && (
+        <p className="text-[11px] text-white/45 leading-snug mt-1 mb-1.5 border-l-2 border-[#5EEAD4]/40 pl-2">
+          <span className="text-[#5EEAD4] font-semibold">Annual-only: </span>{tier.annualExtraBenefit}
+        </p>
+      )}
       {isDevoteeTier(tier) && (
         <span className="text-2xl font-serif font-black text-[#FFB347] mt-1.5">{tier.cashbackRatePercent}% Cashback</span>
       )}
       <p className="text-[12px] text-white/50 mt-1 mb-3 leading-snug">{tier.tagline}</p>
 
+      {/* Collapsed summary — phone/tablet only, before expansion */}
+      {!expanded && (
+        <div className="lg:hidden">
+          <div className="flex gap-1.5 text-[12px] text-white/70 mb-3">
+            <Check className="w-3 h-3 text-[#5EEAD4] shrink-0 mt-0.5" /><span>{keyHighlight}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-expanded={expanded}
+            className={`w-full text-center text-[13px] font-bold px-3 py-2 rounded-full transition-all ${
+              isFree
+                ? "bg-[#5EEAD4] text-[#021816] border border-[#5EEAD4] hover:opacity-90"
+                : "border border-[#FFB347]/40 text-[#FFB347] hover:bg-[#FFB347] hover:text-[#021816]"
+            }`}
+          >
+            Explore
+          </button>
+        </div>
+      )}
+
+      {/* Full feature list, bonus perks & real signup CTA — always visible
+          on desktop (lg:block), shown on phone/tablet only once expanded. */}
+      <div className={`${expanded ? "block" : "hidden"} lg:block`}>
       <div className="space-y-1.5 text-[12px] text-white/70 flex-1">
         {isDevoteeTier(tier) ? (
           <>
@@ -153,6 +202,17 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       >
         {tier.ctaLabel}
       </button>
+
+      {/* Collapse back — phone/tablet only */}
+      <button
+        type="button"
+        onClick={() => setExpanded(false)}
+        aria-expanded={expanded}
+        className="lg:hidden w-full text-center text-[12px] font-semibold text-white/45 hover:text-white/70 mt-2 pt-1"
+      >
+        Show less
+      </button>
+      </div>
     </div>
   );
 }

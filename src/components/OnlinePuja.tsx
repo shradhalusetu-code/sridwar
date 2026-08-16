@@ -34,17 +34,50 @@ interface SimplePujaPriceOption {
   label: string;
 }
 
-// Reference tier system (₹100 → ₹2,100+) shared by every Simple Puja card's
-// amount selector — mirrors the tier system used across Structured Seva
-// Offerings so pricing language stays consistent site-wide.
-const SIMPLE_PUJA_TIERS: SimplePujaPriceOption[] = [
-  { value: 100, label: "Simple Offering" },
-  { value: 250, label: "Enhanced Offering" },
-  { value: 500, label: "Special Offering" },
-  { value: 1100, label: "Premium Devotional Seva" },
-  { value: 2100, label: "Maha Seva / Major Offering" },
-  { value: "custom", label: "Custom Amount" },
-];
+// The five numeric tiers every Simple Puja's amount selector is built from
+// (₹100 → ₹2,100+), same amounts used across Structured Seva Offerings so
+// pricing stays consistent site-wide. Each puja supplies its OWN label per
+// tier (via buildSimplePujaTierOptions below) so the dropdown text reads as
+// specific to that puja rather than a generic shared label.
+const SIMPLE_PUJA_TIER_AMOUNTS = [100, 250, 500, 1100, 2100] as const;
+type SimplePujaTierKey = "100" | "250" | "500" | "1100" | "2100";
+
+/** Builds one puja's dropdownOptions from 5 puja-specific tier labels (in
+ *  ₹100 → ₹2,100 order) plus the shared "Custom Amount" entry. */
+function buildSimplePujaTierOptions(labels: readonly [string, string, string, string, string]): SimplePujaPriceOption[] {
+  return [
+    ...SIMPLE_PUJA_TIER_AMOUNTS.map((value, i) => ({ value, label: labels[i] })),
+    { value: "custom" as const, label: "Custom Amount" },
+  ];
+}
+
+// ✅ PRICE/CONTENT SYNC FIX: previously every Simple Puja card showed one
+// fixed duration + description no matter which amount was selected (e.g.
+// Basic Sankalp Puja always said "2 minutes" even when ₹2,100 was chosen).
+// Each puja now defines tier-specific content for all 5 amount tiers —
+// duration, description, and an additional "includes" line — so picking a
+// higher tier visibly reflects a deeper, longer Sankalp instead of just a
+// bigger number next to the same fixed text.
+interface SimplePujaTierContent {
+  duration: string;
+  description: string;
+  /** Appended as one extra bullet under "This puja includes" for this tier.
+   *  Left undefined at the ₹100 tier, where the base `includes` list is the
+   *  whole picture. */
+  extraInclude?: string;
+}
+type SimplePujaTierMap = Record<SimplePujaTierKey, SimplePujaTierContent>;
+
+// Highest-to-lowest so a custom amount (e.g. ₹200, ₹1,800) resolves to the
+// nearest tier AT OR BELOW what was actually entered/selected — the card
+// never implies a deeper Sankalp than the amount paid actually reflects.
+const SIMPLE_PUJA_TIER_KEYS_DESC: SimplePujaTierKey[] = ["2100", "1100", "500", "250", "100"];
+function resolveSimplePujaTierKey(amount: number): SimplePujaTierKey {
+  for (const key of SIMPLE_PUJA_TIER_KEYS_DESC) {
+    if (amount >= Number(key)) return key;
+  }
+  return "100";
+}
 
 interface SimplePujaOffering {
   id: string;
@@ -56,6 +89,11 @@ interface SimplePujaOffering {
   includes: string[];
   devoteeReceives: string[];
   certificateTimeline: string;
+  /** Tier-specific duration/description/extra-include, keyed by amount.
+   *  `offering.duration`/`offering.description` above stay as the ₹100
+   *  baseline (used for the badge/preview state before a card is opened);
+   *  the card itself always renders from here once an amount is selected. */
+  tiers: SimplePujaTierMap;
   dropdownOptions: SimplePujaPriceOption[];
   customAmountEnabled: boolean;
   ctaLabel: string;
@@ -89,11 +127,43 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     ],
     devoteeReceives: [
       "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
-      "Photo evidence and, where available for this offering, a short video/audio clip of the reading.",
+      "Your Puja, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your puja as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the sacred recitation may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.",
       "Certificate issued within 3-7 working days.",
     ],
     certificateTimeline: "Certificate issued within 3-7 working days.",
-    dropdownOptions: [...SIMPLE_PUJA_TIERS],
+    tiers: {
+      "100": {
+        duration: "2 minutes",
+        description: "A short, simple daily Sankalp — your name and gotra are read, and a brief blessing is offered to the deity.",
+      },
+      "250": {
+        duration: "4 minutes",
+        description: "The Sankalp reading is followed by an additional short prayer and Dhoop offering, giving the daily blessing a little more devotional weight.",
+        extraInclude: "An additional short prayer and Dhoop offering are added to the Sankalp.",
+      },
+      "500": {
+        duration: "7 minutes",
+        description: "A fuller Sankalp with Dhoop and a short Aarti, offered with unhurried attention so the daily blessing feels complete rather than brief.",
+        extraInclude: "A short Aarti with Dhoop is included, extending the puja into a fuller ritual.",
+      },
+      "1100": {
+        duration: "10 minutes",
+        description: "The Sankalp is repeated with added focus, and the priest offers an extended personal prayer on your behalf — a Premium Devotional Sankalp for those seeking deeper attention.",
+        extraInclude: "The Sankalp is repeated with added focus, and the priest offers an extended personal prayer.",
+      },
+      "2100": {
+        duration: "15 minutes",
+        description: "A Maha Sankalp — extended chanting, additional offerings, and the priest's fullest attention, suited to devotees seeking a deeper, more elaborate daily blessing.",
+        extraInclude: "Extended chanting and additional offerings are included, with unhurried attention from the priest throughout.",
+      },
+    },
+    dropdownOptions: buildSimplePujaTierOptions([
+      "Simple Sankalp",
+      "Extended Sankalp",
+      "Full Sankalp with Aarti",
+      "Premium Daily Sankalp",
+      "Maha Sankalp",
+    ]),
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
     imageUrl: import.meta.env.BASE_URL + "images/deity_jagannath_1781872890111.jpg",
@@ -103,6 +173,203 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     // getPriestsByKeywords so devotees see a genuinely varied, at-least-20
     // priest list rather than one narrow expertise.
     priestKeywords: ["health", "wealth", "protection", "festival"],
+  },
+  {
+    id: "simple-puja-raksha-sankalp-armed-forces",
+    title: "Veer Raksha Kavach Puja — For Our Armed Forces",
+    price: 100,
+    duration: "5 minutes",
+    category: "Simple Pujas",
+    description: "\"They protect us. Let us pray for their protection.\" A sacred Raksha Kavach Sankalp — a devotional shield of prayer — offered for the safety, strength and safe return of a soldier in the Army, Navy, or Air Force — performed on their behalf by anyone who loves or honours them.",
+    includes: [
+      "Enter the name of the Armed Forces personnel you are praying for — a family member, friend, colleague, veteran, or any soldier you wish to bless.",
+      "Choose who you are praying for: family member, friend, colleague, well-wisher, any Armed Forces personnel, or a collective prayer for all who serve.",
+      "Devotee's (the person performing the puja) name, Gotra and Rashi will be read in the Sankalp.",
+      "Sankalp taken specifically for the personnel's safety, protection, strength, courage and mental peace while on duty.",
+      "Prayer offered for their safe completion of duty and safe return home to their loved ones.",
+      "Optional personal prayer/intention may be added, e.g. \"May [Name] remain protected, strong and safe in every duty, and return home safely.\"",
+      "Only the devotee's own contact details (the person booking) are collected — the security personnel's personal contact information is never requested or shared.",
+      "No confidential posting, unit, deployment, location or schedule details are ever asked for or recorded.",
+      "This is a devotional Sankalp/prayer for blessings and protection — it is not a guarantee of any outcome.",
+    ],
+    devoteeReceives: [
+      "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
+      "Your Puja, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your puja as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the sacred recitation may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.",
+      "Certificate issued within 3-7 working days.",
+    ],
+    certificateTimeline: "Certificate issued within 3-7 working days.",
+    tiers: {
+      "100": {
+        duration: "5 minutes",
+        description: "\"They protect us. Let us pray for their protection.\" A focused Raksha Kavach Sankalp offered for the safety and strength of one soldier.",
+      },
+      "250": {
+        duration: "8 minutes",
+        description: "The protective Sankalp is extended with an additional prayer round and Dhoop offering, strengthening the devotional shield of prayer around them.",
+        extraInclude: "An additional round of protective prayer and Dhoop offering are added to the Kavach Sankalp.",
+      },
+      "500": {
+        duration: "12 minutes",
+        description: "A fuller Raksha Kavach with Dhoop, Diya and an extended Sankalp — offered with complete devotion for their safety, strength and safe return.",
+        extraInclude: "Diya and Dhoop are added alongside an extended Sankalp reading, making this a fuller Kavach.",
+      },
+      "1100": {
+        duration: "18 minutes",
+        description: "The Kavach Sankalp is repeated with added focus and extended chanting — a Premium prayer offered for their protection through every duty.",
+        extraInclude: "The protective Sankalp is repeated with extended chanting and added focus, offered by the priest with deeper attention.",
+      },
+      "2100": {
+        duration: "25 minutes",
+        description: "A Maha Veer Raksha Kavach — the fullest, most extended form of this protective Sankalp, offered with unhurried devotion for their complete safety and wellbeing.",
+        extraInclude: "The fullest form of this Kavach is offered — extended chanting, additional rounds of protective prayer, and the priest's unhurried attention throughout.",
+      },
+    },
+    dropdownOptions: buildSimplePujaTierOptions([
+      "Ekal Raksha Prarthana",
+      "Vistarit Raksha Kavach",
+      "Sampoorna Raksha Kavach",
+      "Premium Veer Kavach",
+      "Maha Veer Raksha Kavach",
+    ]),
+    customAmountEnabled: true,
+    ctaLabel: "Offer Veer Raksha Kavach 🙏",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kashtabhanjan_hanuman_1781874800576.jpg",
+    // Protector-deity Sankalp for a person's safety and strength — matched
+    // to priests specialising in Protection/Graha Shanti, Health &
+    // Longevity, and festival/Aarti ritual conduct, resolved live via
+    // getPriestsByKeywords.
+    priestKeywords: ["protection", "health", "festival"],
+  },
+  {
+    id: "simple-puja-raksha-sankalp-inland-security",
+    title: "Seema Prahari Kavach Puja — For Our Inland Security Forces",
+    price: 100,
+    duration: "5 minutes",
+    category: "Simple Pujas",
+    description: "A sacred Raksha Kavach Sankalp — a devotional shield of prayer for our unseen sentinels — dedicated to the personnel of CRPF, BSF, CISF, ITBP and similar forces who guard our borders, cities and institutions day and night — offered for their safety, wellbeing and strength by those who honour their service.",
+    includes: [
+      "Enter the name of the Inland Security / paramilitary (CAPF) personnel you are praying for.",
+      "Choose who you are praying for: family member, friend, colleague, well-wisher, any security personnel, or a collective prayer for all who guard our borders and institutions.",
+      "Devotee's (the person performing the puja) name, Gotra and Rashi will be read in the Sankalp.",
+      "Sankalp taken specifically for protection from danger and unforeseen harm, good health, and mental peace during difficult or high-risk assignments.",
+      "Prayer offered for their strength, courage and safe return to family after duty.",
+      "Optional personal prayer/intention may be added, e.g. \"May [Name] remain protected, strong and safe in every duty, and return home safely.\"",
+      "Only the devotee's own contact details (the person booking) are collected — the personnel's personal contact information is never requested or shared.",
+      "No confidential posting, unit, deployment, location or schedule details are ever asked for or recorded.",
+      "This is a devotional Sankalp/prayer for blessings and protection — it is not a guarantee of any outcome.",
+    ],
+    devoteeReceives: [
+      "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
+      "Your Puja, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your puja as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the sacred recitation may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.",
+      "Certificate issued within 3-7 working days.",
+    ],
+    certificateTimeline: "Certificate issued within 3-7 working days.",
+    tiers: {
+      "100": {
+        duration: "5 minutes",
+        description: "A focused Raksha Kavach Sankalp — a devotional shield of prayer for one guardian of our borders, cities and institutions.",
+      },
+      "250": {
+        duration: "8 minutes",
+        description: "The protective Sankalp is extended with an additional prayer round and Dhoop offering, strengthening the shield of prayer around them.",
+        extraInclude: "An additional round of protective prayer and Dhoop offering are added to the Kavach Sankalp.",
+      },
+      "500": {
+        duration: "12 minutes",
+        description: "A fuller Suraksha Kavach with Dhoop, Diya and an extended Sankalp — offered with complete devotion for their safety and strength during difficult assignments.",
+        extraInclude: "Diya and Dhoop are added alongside an extended Sankalp reading, making this a fuller Kavach.",
+      },
+      "1100": {
+        duration: "18 minutes",
+        description: "The Kavach Sankalp is repeated with added focus and extended chanting — a Premium prayer offered for their protection through every high-risk assignment.",
+        extraInclude: "The protective Sankalp is repeated with extended chanting and added focus, offered by the priest with deeper attention.",
+      },
+      "2100": {
+        duration: "25 minutes",
+        description: "A Maha Suraksha Kavach — the fullest, most extended form of this protective Sankalp, offered with unhurried devotion for their complete safety and wellbeing.",
+        extraInclude: "The fullest form of this Kavach is offered — extended chanting, additional rounds of protective prayer, and the priest's unhurried attention throughout.",
+      },
+    },
+    dropdownOptions: buildSimplePujaTierOptions([
+      "Ekal Suraksha Prarthana",
+      "Vistarit Suraksha Kavach",
+      "Sampoorna Suraksha Kavach",
+      "Premium Prahari Kavach",
+      "Maha Suraksha Kavach",
+    ]),
+    customAmountEnabled: true,
+    ctaLabel: "Offer Seema Prahari Kavach 🙏",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_tarini_1781872917967.jpg",
+    // Shakti/protector-goddess Sankalp — matched to priests specialising in
+    // Protection/Graha Shanti, Health & Longevity, and ancestral/festival
+    // ritual conduct, resolved live via getPriestsByKeywords.
+    priestKeywords: ["protection", "health", "ancestral"],
+  },
+  {
+    id: "simple-puja-raksha-sankalp-police-firefighters",
+    title: "Samaj Rakshak Kavach Puja — For Police, Firefighters & Protectors of Society",
+    price: 100,
+    duration: "5 minutes",
+    category: "Simple Pujas",
+    description: "A sacred Raksha Kavach Sankalp — a devotional shield of prayer for society's everyday guardians — for the police personnel, firefighters and every protector of society who steps toward danger so others can stay safe — offered for their protection, wellbeing and safe return by a grateful citizen.",
+    includes: [
+      "Enter the name of the police officer, firefighter, or other protector of society you are praying for.",
+      "Choose who you are praying for: family member, friend, colleague, well-wisher, any protector of society, or a collective public prayer.",
+      "Devotee's (the person performing the puja) name, Gotra and Rashi will be read in the Sankalp.",
+      "Sankalp taken specifically for safety and protection while on duty, good health, and strength and mental peace during difficult situations.",
+      "Prayer offered for their safe completion of duty and safe return home to their loved ones.",
+      "Optional personal prayer/intention may be added, e.g. \"May [Name] remain protected, strong and safe in every duty, and return home safely.\"",
+      "Only the devotee's own contact details (the person booking) are collected — the personnel's personal contact information is never requested or shared.",
+      "No confidential posting, deployment, location or shift/schedule details are ever asked for or recorded.",
+      "This is a devotional Sankalp/prayer for blessings and protection — it is not a guarantee of any outcome.",
+    ],
+    devoteeReceives: [
+      "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
+      "Your Puja, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your puja as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the sacred recitation may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.",
+      "Certificate issued within 3-7 working days.",
+    ],
+    certificateTimeline: "Certificate issued within 3-7 working days.",
+    tiers: {
+      "100": {
+        duration: "5 minutes",
+        description: "A focused Raksha Kavach Sankalp — a devotional shield of prayer for one everyday guardian of society.",
+      },
+      "250": {
+        duration: "8 minutes",
+        description: "The protective Sankalp is extended with an additional prayer round and Dhoop offering, strengthening the shield of prayer around them.",
+        extraInclude: "An additional round of protective prayer and Dhoop offering are added to the Kavach Sankalp.",
+      },
+      "500": {
+        duration: "12 minutes",
+        description: "A fuller Rakshak Kavach with Dhoop, Diya and an extended Sankalp — offered with complete devotion for their safety while on duty and safe return home.",
+        extraInclude: "Diya and Dhoop are added alongside an extended Sankalp reading, making this a fuller Kavach.",
+      },
+      "1100": {
+        duration: "18 minutes",
+        description: "The Kavach Sankalp is repeated with added focus and extended chanting — a Premium prayer offered for their protection through every difficult situation.",
+        extraInclude: "The protective Sankalp is repeated with extended chanting and added focus, offered by the priest with deeper attention.",
+      },
+      "2100": {
+        duration: "25 minutes",
+        description: "A Maha Samaj Raksha Kavach — the fullest, most extended form of this protective Sankalp, offered with unhurried devotion for their complete safety and wellbeing.",
+        extraInclude: "The fullest form of this Kavach is offered — extended chanting, additional rounds of protective prayer, and the priest's unhurried attention throughout.",
+      },
+    },
+    dropdownOptions: buildSimplePujaTierOptions([
+      "Ekal Rakshak Prarthana",
+      "Vistarit Rakshak Kavach",
+      "Sampoorna Rakshak Kavach",
+      "Premium Samaj Kavach",
+      "Maha Samaj Raksha Kavach",
+    ]),
+    customAmountEnabled: true,
+    ctaLabel: "Offer Samaj Rakshak Kavach 🙏",
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kalighat_kali_1781874835951.jpg",
+    // Fierce-protector-goddess Sankalp for society's everyday guardians —
+    // matched to priests specialising in Protection/Graha Shanti, Health &
+    // Longevity, and festival/Aarti ritual conduct, resolved live via
+    // getPriestsByKeywords.
+    priestKeywords: ["protection", "health", "festival"],
   },
   {
     id: "simple-puja-mansik-ichha",
@@ -121,11 +388,43 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     ],
     devoteeReceives: [
       "Digital Puja Certificate, approved and signed off by the performing priest, as evidence.",
-      "Photo evidence and, where available for this offering, a short video/audio clip of the reading.",
+      "Your Puja, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your puja as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the sacred recitation may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.",
       "Certificate issued within 3-7 working days.",
     ],
     certificateTimeline: "Certificate issued within 3-7 working days.",
-    dropdownOptions: [...SIMPLE_PUJA_TIERS],
+    tiers: {
+      "100": {
+        duration: "3 minutes",
+        description: "A brief Sankalp where your personal wish is quietly expressed to the deity, with name and gotra read.",
+      },
+      "250": {
+        duration: "5 minutes",
+        description: "Your wish is expressed in a fuller Sankalp, with Dhoop offered alongside — this puja's original, most-chosen form.",
+        extraInclude: "Dhoop is offered alongside the Sankalp as your Mansik Ichha is expressed.",
+      },
+      "500": {
+        duration: "8 minutes",
+        description: "A Special Wish Puja — additional Dhoop and a short Aarti accompany the Sankalp, giving your Mansik Ichha more devotional depth.",
+        extraInclude: "An additional Dhoop offering and a short Aarti accompany the Sankalp.",
+      },
+      "1100": {
+        duration: "12 minutes",
+        description: "The Sankalp is repeated with added focus on your wish, and the priest offers an extended personal prayer — a Premium Wish Fulfilment Puja.",
+        extraInclude: "The Sankalp is repeated with added focus on your personal wish, with an extended prayer from the priest.",
+      },
+      "2100": {
+        duration: "18 minutes",
+        description: "A Maha Ichha Puja — extended chanting and additional offerings accompany the Sankalp, offered with the priest's fullest attention to your personal wish.",
+        extraInclude: "Extended chanting and additional offerings accompany the Sankalp, with the priest's fullest attention to your wish.",
+      },
+    },
+    dropdownOptions: buildSimplePujaTierOptions([
+      "Simple Wish Sankalp",
+      "Enhanced Wish Sankalp",
+      "Special Wish Puja",
+      "Premium Wish Fulfilment Puja",
+      "Maha Ichha Puja",
+    ]),
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
     imageUrl: import.meta.env.BASE_URL + "images/deity_lingaraj_1781872903761.jpg",
@@ -156,11 +455,43 @@ const SIMPLE_PUJAS: SimplePujaOffering[] = [
     ],
     devoteeReceives: [
       "Digital Puja Certificate, approved and signed off by the performing priest — and by the temple, where applicable — as evidence.",
-      "Photo evidence and, where available for this offering, a short video/audio clip of the reading.",
+      "Your Puja, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your puja as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the sacred recitation may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.",
       "Certificate/evidence is typically issued within 3-7 working days, depending on puja complexity and temple confirmation.",
     ],
     certificateTimeline: "Certificate issued within 3-7 working days (longer for multi-day or festival rituals).",
-    dropdownOptions: [...SIMPLE_PUJA_TIERS],
+    tiers: {
+      "100": {
+        duration: "4 minutes",
+        description: "A Simple Bhog & Deep — Sankalp is taken and a Diya is lit; a compact version of the full ritual for a quick, meaningful offering.",
+      },
+      "250": {
+        duration: "6 minutes",
+        description: "Sankalp, Diya and Dhoop are offered together — an Enhanced Bhog & Deep for a fuller daily offering.",
+        extraInclude: "Dhoop is added alongside the Sankalp and Diya for a fuller offering.",
+      },
+      "500": {
+        duration: "10 minutes",
+        description: "The complete Sankalp, Bhog, Diya, camphor and Dhoop offering — this puja's original, most complete form.",
+        extraInclude: "Bhog and camphor are offered alongside the Sankalp, Diya and Dhoop — the puja's complete original form.",
+      },
+      "1100": {
+        duration: "15 minutes",
+        description: "The full Bhog & Deep ritual is extended with an additional prayer round and more unhurried attention — a Premium Bhog & Deep Seva.",
+        extraInclude: "An additional prayer round is added to the full ritual, offered with more unhurried attention.",
+      },
+      "2100": {
+        duration: "22 minutes",
+        description: "A Maha Bhog & Deep Seva — the fullest form of this ritual, with extended chanting, additional Bhog and Diya offerings, and the priest's complete attention.",
+        extraInclude: "Extended chanting and additional Bhog and Diya offerings are included, with the priest's complete attention throughout.",
+      },
+    },
+    dropdownOptions: buildSimplePujaTierOptions([
+      "Simple Bhog & Deep",
+      "Enhanced Bhog & Deep",
+      "Sampoorna Bhog & Deep",
+      "Premium Bhog & Deep Seva",
+      "Maha Bhog & Deep Seva",
+    ]),
     customAmountEnabled: true,
     ctaLabel: "Book Puja",
     imageUrl: import.meta.env.BASE_URL + "images/deity_kashi_vishwanath_1781874522891.jpg",
@@ -234,6 +565,19 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   const selectedOption = offering.dropdownOptions.find((p) => String(p.value) === selected);
   const customAmountNumber = parseInt(customAmount, 10);
   const customAmountValid = !isCustomSelected || (!isNaN(customAmountNumber) && customAmountNumber >= 100);
+
+  // ✅ PRICE/CONTENT SYNC FIX: the amount actually reflected in the card's
+  // duration/description/includes below — resolved from whichever amount is
+  // presently selected (a fixed tier, or a validly-entered custom amount).
+  // Falls back to the puja's own base price only while a custom amount is
+  // selected but not yet validly typed in, so the card never shows content
+  // for an amount that hasn't actually been chosen.
+  const activeAmount = isCustomSelected
+    ? (customAmountValid && customAmountNumber ? customAmountNumber : offering.price)
+    : (typeof selectedOption?.value === "number" ? selectedOption.value : offering.price);
+  const activeTierKey = resolveSimplePujaTierKey(activeAmount);
+  const activeTier = offering.tiers[activeTierKey];
+  const activeIncludes = activeTier.extraInclude ? [...offering.includes, activeTier.extraInclude] : offering.includes;
 
   const handleSubmit = () => {
     if (!isActive) { onActivate(); return; }
@@ -327,7 +671,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
         </div>
 
         <div className="flex items-center gap-3 mb-3 text-[12px] text-white/50 font-mono">
-          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#FFB347]/60" />{offering.duration}</span>
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#FFB347]/60" />{activeTier.duration}</span>
         </div>
 
         {/* Badges */}
@@ -339,7 +683,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           ))}
         </div>
 
-        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{activeTier.description}</p>
 
         {justBooked && (
           <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
@@ -363,7 +707,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
             <div className="space-y-1.5 mb-3">
               <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This puja includes</span>
               <ul className="space-y-1">
-                {offering.includes.map((item, i) => (
+                {activeIncludes.map((item, i) => (
                   <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                     <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
                   </li>
@@ -576,6 +920,45 @@ const CATEGORY_META: Record<string, { label: string; icon: ElementType; dataIds:
 const ACCORDION_ORDER = ["health", "wealth", "protection", "career", "marriage"] as const;
 type AccordionCat = typeof ACCORDION_ORDER[number];
 
+// ─── Locality-first initial display (Health & Longevity, Wealth &
+// Prosperity, Protection & Victory, Career & Business, Family & Marriage) ──
+// Each of these 5 category sections initially shows only 5 pujas — 2 from
+// Odisha, 2 from North India, 1 from West India — with the rest revealed
+// via "Show more". Falls back gracefully (fewer picks) if a region has
+// fewer than that many pujas in a given category; if the category has 5 or
+// fewer pujas total, every puja is already shown and no "Show more" appears.
+const NORTH_INDIA_STATES = ["Uttar Pradesh", "Uttarakhand", "Jammu and Kashmir", "Himachal Pradesh", "Delhi"];
+const WEST_INDIA_STATES = ["Maharashtra", "Gujarat"];
+function getInitialCuratedPujas<T extends { templeName: string; id: string }>(pujas: T[]): T[] {
+  const stateOf = (templeName: string) => TEMPLES_LIST.find(t => t.name === templeName)?.state ?? "";
+  const odisha = pujas.filter(p => stateOf(p.templeName) === "Odisha").slice(0, 2);
+  const north = pujas.filter(p => NORTH_INDIA_STATES.includes(stateOf(p.templeName))).slice(0, 2);
+  const west = pujas.filter(p => WEST_INDIA_STATES.includes(stateOf(p.templeName))).slice(0, 1);
+  const chosenIds = new Set([...odisha, ...north, ...west].map(p => p.id));
+  // Preserve each puja's original relative order among the chosen set.
+  return pujas.filter(p => chosenIds.has(p.id));
+}
+
+// ─── Locality-first full ordering (not just the curated first-5/first-6
+// set above) — Odisha, then Uttar Pradesh, then Uttarakhand, then
+// Maharashtra, then Gujarat, then everything else, in that priority order.
+// Applied once to each category's full puja list (and to "Festivals,
+// Ancestral & Graha Shanti") before the existing curation/slice logic
+// runs, so both the initial curated view AND whatever "Show more" reveals
+// stay locality-first — without changing which pujas are chosen, only the
+// order they're shown in. A stable sort (guaranteed by the JS spec since
+// ES2019, true in every modern browser/WebView this app targets) means
+// pujas within the same state keep their original relative order.
+const STATE_PRIORITY_ORDER = ["Odisha", "Uttar Pradesh", "Uttarakhand", "Maharashtra", "Gujarat"];
+function sortByStatePriority<T extends { templeName: string }>(pujas: T[]): T[] {
+  const stateOf = (templeName: string) => TEMPLES_LIST.find(t => t.name === templeName)?.state ?? "";
+  const rankOf = (templeName: string) => {
+    const idx = STATE_PRIORITY_ORDER.indexOf(stateOf(templeName));
+    return idx === -1 ? STATE_PRIORITY_ORDER.length : idx;
+  };
+  return [...pujas].sort((a, b) => rankOf(a.templeName) - rankOf(b.templeName));
+}
+
 // ── Shared dropdown style ──────────────────────────────────────────────────────
 const SELECT_CLS =
   "appearance-none bg-[#092320] border border-white/15 text-white/90 text-xs font-semibold " +
@@ -586,6 +969,11 @@ const SELECT_CLS =
 function displayDuration(d?: string) {
   return d && d.trim() ? d : "Not specified";
 }
+
+// "Festivals, Ancestral & Graha Shanti" — same show-6-then-"Show more"
+// pattern as the Health/Wealth/Protection/Career/Family accordion sections
+// above, so this category isn't overcrowded on first open.
+const OTHER_CATEGORY_INITIAL_COUNT = 6;
 
 export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initialHighlightId = null, isAndroidApp = false }: OnlinePujaProps) {
   // ── Filter state ─────────────────────────────────────────────────────────────
@@ -672,6 +1060,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
   const togglePujaDetails = (id: string) =>
     setExpandedPujaIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  // Tracks which accordion category sections have had "Show more" tapped —
+  // once true for a category, that section shows every puja instead of the
+  // initial 2 Odisha + 2 North India + 1 West India curated set.
+  const [categoryShowAll, setCategoryShowAll] = useState<Record<string, boolean>>({});
+  const toggleCategoryShowAll = (cat: string) =>
+    setCategoryShowAll(prev => ({ ...prev, [cat]: !prev[cat] }));
+
   const toggleSection = (cat: string) =>
     setOpenSections(prev => {
       const next = !prev[cat];
@@ -713,13 +1108,17 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
         // We surface them in a catch-all by attaching to whichever tab is "all".
       }
     }
+    // Locality-first ordering (Odisha → UP → Uttarakhand → Maharashtra →
+    // Gujarat → other) applied per category, ahead of the existing
+    // curation/slice logic — see sortByStatePriority above.
+    for (const cat of ACCORDION_ORDER) map[cat] = sortByStatePriority(map[cat]);
     return map;
   }, [filteredPujas]);
 
   // Pujas that belong to non-accordion categories (festivals, ancestor, graha_shanti, education)
   const otherPujas = useMemo(() => {
-    return filteredPujas.filter(
-      p => !ACCORDION_ORDER.includes(p.category as AccordionCat)
+    return sortByStatePriority(
+      filteredPujas.filter(p => !ACCORDION_ORDER.includes(p.category as AccordionCat))
     );
   }, [filteredPujas]);
 
@@ -1042,7 +1441,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   }}
                 >
                   <div className="border-t border-white/8 divide-y divide-white/5">
-                    {openedOnce[cat] && pujas.map(puja => {
+                    {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
                       const discountedPrice = getDiscountedPrice(puja.price);
                       return (
                         <div
@@ -1133,27 +1532,35 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
 
                             {/* Complete details toggle — benefits + materials
                                 included, both present in data but not shown
-                                in the compact row above. */}
-                            {(puja.benefits || (puja.materialsIncluded && puja.materialsIncluded.length > 0)) && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
-                                  aria-expanded={!!expandedPujaIds[puja.id]}
-                                  className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
-                                >
-                                  {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                                  <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included"}</span>
-                                </button>
-                                {expandedPujaIds[puja.id] && (
-                                  <div className="space-y-1.5 pt-1">
-                                    {puja.benefits && (
+                                in the compact row above. Expanded content
+                                follows the same consistent structure used
+                                across Simple Pujas / Seva / Bazaar: purpose,
+                                what's included, what the devotee receives,
+                                and a disclaimer. */}
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
+                                aria-expanded={!!expandedPujaIds[puja.id]}
+                                className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
+                              >
+                                {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
+                              </button>
+                              {expandedPujaIds[puja.id] && (
+                                <div className="space-y-2.5 pt-1.5">
+                                  {puja.benefits && (
+                                    <div>
+                                      <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Purpose</span>
                                       <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
                                         <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
                                         <span>{puja.benefits}</span>
                                       </div>
-                                    )}
-                                    {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                                    </div>
+                                  )}
+                                  {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                                    <div>
+                                      <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">This puja includes</span>
                                       <ul className="space-y-1">
                                         {puja.materialsIncluded.map((item, i) => (
                                           <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
@@ -1161,11 +1568,31 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                                           </li>
                                         ))}
                                       </ul>
-                                    )}
+                                    </div>
+                                  )}
+                                  <div>
+                                    <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Devotee receives</span>
+                                    <ul className="space-y-1">
+                                      <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                                        <span>Digital Sankalpa Certificate, signed off by the performing priest, within 3-7 working days of completion.</span>
+                                      </li>
+                                      <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                                        <span>{puja.videoAvailable ? "A blessed photograph of your puja, and — where this temple graciously permits it — a short video glimpse of the sacred recitation." : "A blessed photograph of your puja. As this ancient temple's sacred privacy traditions do not permit recording, your devotion is lovingly acknowledged through a signed priest certificate and the performing priest's own personal video/audio testimony."}</span>
+                                      </li>
+                                      <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                                        <span>{puja.prasadIncluded ? "Prasad shipped to your address." : "Digital e-Patrika / puja summary."}</span>
+                                      </li>
+                                    </ul>
                                   </div>
-                                )}
-                              </>
-                            )}
+                                  <p className="text-[11px] text-white/35 leading-relaxed">
+                                    Temple and priest for this puja are as shown above; your Sankalp details (name, gotra, preferred date, pincode, occasion) are collected next in the Puja Sankalp Portal. Performed with devotion as per temple process — timings may vary with temple schedule, festival rush, and priest availability. A puja is an act of devotion and does not guarantee any specific outcome.
+                                  </p>
+                                </div>
+                              )}
+                            </>
                           </div>
 
                           {/* Right: price + book button */}
@@ -1204,6 +1631,20 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                       );
                     })}
                   </div>
+
+                  {/* "Show more" — only when this category has more pujas than the
+                      initial 2 Odisha + 2 North India + 1 West India curated set. */}
+                  {openedOnce[cat] && !categoryShowAll[cat] && pujas.length > getInitialCuratedPujas(pujas).length && (
+                    <div className="px-6 py-3 border-t border-white/8">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); toggleCategoryShowAll(cat); }}
+                        className="w-full flex items-center justify-center gap-1.5 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide py-1.5"
+                      >
+                        Show {pujas.length - getInitialCuratedPujas(pujas).length} more <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -1244,13 +1685,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
 
               <div
                 style={{
-                  maxHeight: openSections["other"] ? `${otherPujas.length * 400}px` : "0px",
+                  maxHeight: openSections["other"] ? `${(categoryShowAll["other"] ? otherPujas.length : Math.min(otherPujas.length, OTHER_CATEGORY_INITIAL_COUNT)) * 400 + 100}px` : "0px",
                   transition: "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                   overflow: "hidden",
                 }}
               >
                 <div className="border-t border-white/8 divide-y divide-white/5">
-                  {openedOnce["other"] && otherPujas.map(puja => {
+                  {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {
                     const discountedPrice = getDiscountedPrice(puja.price);
                     return (
                       <div
@@ -1328,28 +1769,34 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                             );
                           })()}
 
-                          {/* Complete details toggle — same pattern as the
-                              category rows above. */}
-                          {(puja.benefits || (puja.materialsIncluded && puja.materialsIncluded.length > 0)) && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
-                                aria-expanded={!!expandedPujaIds[puja.id]}
-                                className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
-                              >
-                                {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                                <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included"}</span>
-                              </button>
-                              {expandedPujaIds[puja.id] && (
-                                <div className="space-y-1.5 pt-1">
-                                  {puja.benefits && (
+                          {/* Complete details toggle — same consistent
+                              structure as the category rows above: purpose,
+                              what's included, what the devotee receives,
+                              disclaimer. */}
+                          <>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
+                              aria-expanded={!!expandedPujaIds[puja.id]}
+                              className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
+                            >
+                              {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                              <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
+                            </button>
+                            {expandedPujaIds[puja.id] && (
+                              <div className="space-y-2.5 pt-1.5">
+                                {puja.benefits && (
+                                  <div>
+                                    <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Purpose</span>
                                     <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
                                       <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
                                       <span>{puja.benefits}</span>
                                     </div>
-                                  )}
-                                  {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                                  </div>
+                                )}
+                                {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                                  <div>
+                                    <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">This puja includes</span>
                                     <ul className="space-y-1">
                                       {puja.materialsIncluded.map((item, i) => (
                                         <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
@@ -1357,11 +1804,31 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                                         </li>
                                       ))}
                                     </ul>
-                                  )}
+                                  </div>
+                                )}
+                                <div>
+                                  <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Devotee receives</span>
+                                  <ul className="space-y-1">
+                                    <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                                      <span>Digital Sankalpa Certificate, signed off by the performing priest, within 3-7 working days of completion.</span>
+                                    </li>
+                                    <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                                      <span>{puja.videoAvailable ? "A blessed photograph of your puja, and — where this temple graciously permits it — a short video glimpse of the sacred recitation." : "A blessed photograph of your puja. As this ancient temple's sacred privacy traditions do not permit recording, your devotion is lovingly acknowledged through a signed priest certificate and the performing priest's own personal video/audio testimony."}</span>
+                                    </li>
+                                    <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                                      <span>{puja.prasadIncluded ? "Prasad shipped to your address." : "Digital e-Patrika / puja summary."}</span>
+                                    </li>
+                                  </ul>
                                 </div>
-                              )}
-                            </>
-                          )}
+                                <p className="text-[11px] text-white/35 leading-relaxed">
+                                  Temple and priest for this puja are as shown above; your Sankalp details (name, gotra, preferred date, pincode, occasion) are collected next in the Puja Sankalp Portal. Performed with devotion as per temple process — timings may vary with temple schedule, festival rush, and priest availability. A puja is an act of devotion and does not guarantee any specific outcome.
+                                </p>
+                              </div>
+                            )}
+                          </>
                         </div>
                         <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
                           <div className="text-right">
@@ -1387,10 +1854,32 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     );
                   })}
                 </div>
+
+                {/* "Show more" — only when this category has more pujas than the
+                    initial 6 shown, same pattern as the accordion sections above. */}
+                {openedOnce["other"] && !categoryShowAll["other"] && otherPujas.length > OTHER_CATEGORY_INITIAL_COUNT && (
+                  <div className="px-6 py-3 border-t border-white/8">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleCategoryShowAll("other"); }}
+                      className="w-full flex items-center justify-center gap-1.5 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide py-1.5"
+                    >
+                      Show {otherPujas.length - OTHER_CATEGORY_INITIAL_COUNT} more <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
+
+        {/* Disclaimer — same wording/placement pattern as Simple Pujas,
+            Seva (SEVA_DISCLAIMER) and Bazaar (BAZAAR_DISCLAIMER), so every
+            offering type is consistent about process transparency and
+            makes no outcome guarantees. */}
+        <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl mx-auto text-center">
+          Pujas are performed with devotion as per temple and priest process. Timings may vary depending on temple schedule, festival rush, and priest availability. A puja is an act of devotion and does not guarantee any specific outcome. Wherever a temple permits, we lovingly share a blessed photograph — and where allowed, a short video/audio glimpse — of your puja as a cherished remembrance. At certain ancient and revered temples, sacred privacy traditions may not permit recording; we deeply respect this, and in such cases your devotion is warmly acknowledged through a signed priest certificate and, where permitted, the priest's own personal testimony.
+        </p>
 
       </div>
     </section>

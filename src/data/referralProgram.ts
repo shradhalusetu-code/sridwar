@@ -248,6 +248,15 @@ export interface ProviderCategoryTier {
   annualPrice: number;
   annualPriceLabel: string;
   annualSavingsLabel: string;
+  /**
+   * What the annual plan gives beyond the free days already reflected in
+   * annualSavingsLabel — a genuine capability/priority/support upgrade a
+   * monthly subscriber does NOT get, so the monthly-vs-annual choice is
+   * about more than just a discount. Optional so other provider categories
+   * (Mandal, Yoga Guru, Dharmic Expert, Seva Provider) are unaffected until
+   * they're given the same treatment.
+   */
+  annualExtraBenefit?: string;
   tagline: string;
   servicesIncluded: string;
   feeModel: string;
@@ -275,6 +284,7 @@ export const PUJARI_TIERS: ProviderCategoryTier[] = [
     id: "shishya", categoryId: "pujari", name: "Shishya Path",
     monthlyPrice: 199, monthlyPriceLabel: "₹199/month",
     annualPrice: 2189, annualPriceLabel: "₹2,189/year", annualSavingsLabel: "30 days free",
+    annualExtraBenefit: "Annual Shishyas also get a locked-in rate for the full year (no mid-year price change) and skip 12 separate monthly renewals — one less thing to track while you're building your first listing.",
     tagline: "Take your first steps as a shishya of sacred ritual — bring your puja and seva offerings online and let devotees find you.",
     servicesIncluded: "List puja, griha pravesh, satyanarayan & basic ritual services on your Dharmic ID profile",
     feeModel: "You set your own dakshina/puja fees — no markup beyond your subscription",
@@ -290,6 +300,7 @@ export const PUJARI_TIERS: ProviderCategoryTier[] = [
     id: "purohit", categoryId: "pujari", name: "Purohit Path",
     monthlyPrice: 299, monthlyPriceLabel: "₹299/month",
     annualPrice: 3140, annualPriceLabel: "₹3,140/year", annualSavingsLabel: "45 days free",
+    annualExtraBenefit: "Annual Purohits keep their Verified badge and priority routing active continuously through the full festival calendar — no risk of a lapsed monthly renewal dropping you out of rotation during a high-demand season, plus 45 days free works out to over a month of extra ritual opportunities at no cost.",
     tagline: "Walk the purohit's path with steady purpose — home visits, temple rituals, and muhurat consultations flow to you consistently.",
     servicesIncluded: "Priority routing for home-visit pujas, temple rituals & muhurat consultations",
     feeModel: "Set your own dakshina, plus milestone bonuses on high-value ceremonies",
@@ -305,6 +316,7 @@ export const PUJARI_TIERS: ProviderCategoryTier[] = [
     id: "acharya", categoryId: "pujari", name: "Acharya Path",
     monthlyPrice: 499, monthlyPriceLabel: "₹499/month",
     annualPrice: 4990, annualPriceLabel: "₹4,990/year", annualSavingsLabel: "60 days free",
+    annualExtraBenefit: "Annual Acharyas are prioritised for homepage priest spotlights and early seasonal campaign access over monthly subscribers when slots are limited, and lock in this year's rate before renewal pricing is reviewed — meaningful given weddings and yagnas are booked months ahead.",
     tagline: "Rise as an acharya devotees trust for weddings, yagnas, and full ceremonies — with featured visibility and boosted cashback.",
     servicesIncluded: "Featured listings for weddings, yagnas, havan & multi-day ceremonies",
     feeModel: "Set your own dakshina + 1% cashback boost across all tiers (4% / 3% / 2%)",
@@ -321,6 +333,7 @@ export const PUJARI_TIERS: ProviderCategoryTier[] = [
     id: "mahant", categoryId: "pujari", name: "Mahant Path",
     monthlyPrice: 999, monthlyPriceLabel: "₹999/month",
     annualPrice: 9990, annualPriceLabel: "₹9,990/year", annualSavingsLabel: "60 days free",
+    annualExtraBenefit: "Annual Mahants get their multi-ceremony calendar dashboard and dedicated account manager retained without a monthly re-verification cycle, and custom promotional campaigns are planned across the full year rather than restarted every month — better suited to managing an entire festival season end-to-end.",
     tagline: "Preside over a full festival and wedding season like a mahant leading his tradition — commanding calendar, boosted cashback, dedicated support.",
     servicesIncluded: "Multi-ceremony calendar management across weddings, yagnas & festival duties",
     feeModel: "Set your own dakshina + 2% cashback boost across all tiers (5% / 4% / 3%)",
@@ -336,6 +349,7 @@ export const PUJARI_TIERS: ProviderCategoryTier[] = [
     id: "rajguru", categoryId: "pujari", name: "Rajguru Path",
     monthlyPrice: 1299, monthlyPriceLabel: "₹1,299/month",
     annualPrice: 12990, annualPriceLabel: "₹12,990/year", annualSavingsLabel: "60 days free",
+    annualExtraBenefit: "Annual Rajgurus keep white-glove onboarding, 24x7 support, and custom commercial terms locked for the full year without renegotiation, and are first in line when premium homepage & festival-season visibility slots are allocated — the difference matters most for a lineage managing several disciples' calendars at once.",
     tagline: "Ascend to the standing of a rajguru — unlimited reach for the most sought-after pandits and multi-priest lineages, honoured platform-wide.",
     servicesIncluded: "Unlimited ceremony listings across your entire priest team/lineage",
     feeModel: "Set your own dakshina + 3% cashback boost across all tiers (6% / 5% / 4%)",

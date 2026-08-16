@@ -589,7 +589,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       }`}
                     >
                       <span className="block font-bold text-saffron">₹5 — member</span>
-                      <span className="block text-[12px] text-white/40">Support temple logistics</span>
+                      <span className="block text-[12px] text-white/40">Supports temple logistics · auto-eligible for seasonal campaigns</span>
                     </button>
 
                     <button
@@ -603,9 +603,20 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       }`}
                     >
                       <span className="block font-bold text-[#FFB347]">₹51 — Supporter</span>
-                      <span className="block text-[12px] text-white/40">Help digitize more temples</span>
+                      <span className="block text-[12px] text-white/40">Helps digitize more temples · cashback &amp; milestone rewards begin</span>
                     </button>
                   </div>
+                  {/* ✅ CONTRIBUTION-BENEFITS UPDATE: brief, honest note on what
+                      a ₹100+ contribution (via "Enter custom amount" if shown
+                      elsewhere in this flow, or a higher preset chosen on the
+                      Plans/Donate screens) adds beyond the Supporter tier —
+                      kept short since the two buttons above already carry the
+                      per-tier benefit copy. */}
+                  {membershipTier !== null && membershipTier >= 51 && (
+                    <p className="text-[11px] text-white/35 leading-snug mt-2">
+                      Contributions of ₹100 or more also carry eligibility toward pilgrimage-related opportunities offered periodically to regular devotees — genuine platform benefits, not a guarantee of any outcome.
+                    </p>
+                  )}
                 </div>
 
                 {/* Real-time sync tracker banner representation */}

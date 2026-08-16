@@ -3,12 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight, Check } from "lucide-react";
+import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight, Check, AlertCircle, MapPin } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
-import { SEVA_OFFERINGS } from "../data/sevaOfferings";
+import { SEVA_OFFERINGS, SEVA_DISCLAIMER, SEVA_OCCASIONS } from "../data/sevaOfferings";
+import { getPriestById, getPriestsByKeywords } from "../data/priests";
+import { TEMPLES_LIST } from "../data/temples";
+import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 import SevaOfferingCard from "./SevaOfferingCard";
 import OptimizedImage from "./OptimizedImage";
 import SevaLiveDashboard from "./SevaLiveDashboard";
@@ -79,6 +82,11 @@ const EXTRA_SEVAS = [
     templeAssociation: "Kashi Vishwanath",
     donationTiers: [{ amount: 3300 }],
     imageUrl: import.meta.env.BASE_URL + "images/Rudrabhishek Puja.jpg",
+    includes: ["Panchamrit, Gangajal & bilva leaf abhishek on the Shivalinga", "Vedic Rudra chanting performed by qualified pandits", "Photo/video evidence where available"],
+    devoteeReceives: ["Digital puja certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
+    coverageLabel: "One full Rudrabhishek ritual performed in your name",
+    priestKeywords: ["health", "protection", "festival"],
   },
   {
     id: "seva-mahaprasad",
@@ -88,6 +96,11 @@ const EXTRA_SEVAS = [
     templeAssociation: "Jagannath Puri",
     donationTiers: [{ amount: 3000 }],
     imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
+    includes: ["Temple-blessed Mahaprasad distributed to pilgrims/underprivileged devotees at Jagannath Puri", "Distribution coordinated with temple-approved sevaks", "Photo/video evidence where available"],
+    devoteeReceives: ["Digital sponsorship certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
+    coverageLabel: "Feeds 200+ devotees per sponsorship — a bulk temple distribution, priced separately from individual Annadan meal sponsorship",
+    priestKeywords: ["wealth", "health", "festival"],
   },
   {
     id: "seva-tulsi-vivah",
@@ -97,6 +110,11 @@ const EXTRA_SEVAS = [
     templeAssociation: "Vrindavan Dham",
     donationTiers: [{ amount: 1350 }],
     imageUrl: import.meta.env.BASE_URL + "images/Tulsi Vivah.jpg",
+    includes: ["Tulsi Vivah ceremony performed as per temple ritual process", "Sankalp taken in your name for the family", "Photo/video evidence where available"],
+    devoteeReceives: ["Digital seva certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
+    coverageLabel: "One Tulsi Vivah ceremony performed on behalf of your family",
+    priestKeywords: ["marriage", "family", "festival"],
   },
   {
     id: "seva-navagraha",
@@ -106,6 +124,11 @@ const EXTRA_SEVAS = [
     templeAssociation: "Mahakaleshwar, Ujjain",
     donationTiers: [{ amount: 12000 }],
     imageUrl: import.meta.env.BASE_URL + "images/Navagraha.jpg",
+    includes: ["Navagraha Shanti Homa performed with samidha and herbal offerings for all nine planets", "Performed by Jyotish-trained Acharyas", "Photo/video evidence where available"],
+    devoteeReceives: ["Digital homa certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
+    coverageLabel: "One complete nine-planet Navagraha Homa performed in your name",
+    priestKeywords: ["career", "health", "wealth"],
   },
   {
     id: "seva-akhand-path",
@@ -115,6 +138,11 @@ const EXTRA_SEVAS = [
     templeAssociation: "Ram Janmabhoomi, Ayodhya",
     donationTiers: [{ amount: 12750 }],
     imageUrl: import.meta.env.BASE_URL + "images/Akhand Ramayan.jpg",
+    includes: ["Uninterrupted 24-hour Valmiki Ramayana recitation by a team of trained pandits", "Sankalp taken in your name at the start of the path", "Photo/video evidence where available"],
+    devoteeReceives: ["Digital seva certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
+    coverageLabel: "One full 24-hour Akhand Ramayan Path performed in your name",
+    priestKeywords: ["family", "ancestral", "festival"],
   },
   {
     id: "seva-gomata-puja",
@@ -124,6 +152,11 @@ const EXTRA_SEVAS = [
     templeAssociation: "Mathura Gaushala",
     donationTiers: [{ amount: 2000 }],
     imageUrl: import.meta.env.BASE_URL + "images/Gaushala.jpg",
+    includes: ["Gomata Puja (worship) followed by feeding with tulsi, jaggery and sesame", "Performed at a registered Gaushala", "Photo evidence of the puja and feeding"],
+    devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
+    coverageLabel: "One Gomata Puja plus feeding, performed on your behalf",
+    priestKeywords: ["wealth", "health", "ancestral"],
   },
 ];
 
@@ -171,6 +204,17 @@ interface SevaCardProps {
      *  on every EXTRA_SEVAS entry. Only rendered when present, so nothing is
      *  ever invented for offerings that don't have it. */
     blessingExplanation?: string;
+    /** What this sponsorship includes, shown as a checklist alongside
+     *  devoteeReceives — same pattern as SevaOfferingCard's "This seva
+     *  includes" / "You will receive" lists. */
+    includes?: string[];
+    devoteeReceives?: string[];
+    certificateTimeline?: string;
+    /** One-line "what the charged tier actually covers" stat, e.g. "Feeds
+     *  20 Sadhus, one meal". Shown as "Meal Coverage" for Annadanam,
+     *  "Coverage" for everything else. */
+    coverageLabel?: string;
+    priestKeywords?: string[];
   };
   onSponsor: (name: string, price: number) => void;
   /** Optional — true when this card is the deep-link target arriving from
@@ -195,7 +239,57 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
   // back to exactly today's card, unchanged.
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const otherTiers = seva.donationTiers.filter((t) => t.label && t.description);
-  const hasExpandableDetails = !!seva.blessingExplanation || otherTiers.length > 0;
+  const hasExpandableDetails = !!seva.blessingExplanation || !!seva.includes?.length || !!seva.devoteeReceives?.length || otherTiers.length > 0;
+
+  // ─── Preferred Seva Date / Pincode / Temple / Occasion / Priest ────────
+  // Sponsorship Services previously skipped straight from "Sponsor Seva" to
+  // the Sankalp Portal with only a name + price, unlike the Seva Offerings
+  // cards (SevaOfferingCard.tsx) which collect these first. Same pattern
+  // replicated here: a "Continue" step reveals the fields, then the actual
+  // "Sponsor Seva" submit composes them into the name passed to the Sankalp
+  // Portal — nothing here touches BookNowWizard itself, so no other booking
+  // flow is affected.
+  const [formOpen, setFormOpen] = useState(false);
+  const [occasion, setOccasion] = useState("");
+  const [preferredDate, setPreferredDate] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [selectedTempleId, setSelectedTempleId] = useState("");
+  const [selectedPriestId, setSelectedPriestId] = useState("");
+  const [errors, setErrors] = useState<{ pincode?: string; preferredDate?: string }>({});
+  const priestOptions = useMemo(
+    () => getPriestsByKeywords(seva.priestKeywords || [], 20),
+    [seva.priestKeywords]
+  );
+
+  const handleContinueOrSubmit = () => {
+    if (!formOpen) { setFormOpen(true); return; }
+
+    const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
+    const preferredDateErr = preferredDate ? validateBookingDate(preferredDate) : null;
+    if (pincodeErr || preferredDateErr) {
+      setErrors({ pincode: pincodeErr || undefined, preferredDate: preferredDateErr || undefined });
+      return;
+    }
+    setErrors({});
+
+    const occasionLabel = SEVA_OCCASIONS.find((o) => o.value === occasion)?.label;
+    const chosenPriest = selectedPriestId ? getPriestById(selectedPriestId) : undefined;
+    const chosenTemple = selectedTempleId ? TEMPLES_LIST.find((t) => t.id === selectedTempleId) : undefined;
+
+    const detailParts: string[] = [];
+    if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
+    if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
+    if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
+    detailParts.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
+    detailParts.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any approved priest for this seva"}`);
+
+    const composedName = `${seva.name} — ${detailParts.join(", ")}`;
+    onSponsor(composedName, display);
+
+    setFormOpen(false);
+    setOccasion(""); setPreferredDate(""); setPincode("");
+    setSelectedTempleId(""); setSelectedPriestId("");
+  };
 
   return (
     <div
@@ -251,9 +345,15 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
         <h4 className="text-lg font-serif font-bold text-white mb-1">{seva.name}</h4>
         <p className="text-[13px] text-white/70 min-h-[44px] leading-relaxed mb-4">{seva.significance}</p>
 
-        <div className="text-[12px] text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-4">
+        <div className="text-[12px] text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-2">
           <strong className="text-[#FFB347]">Impact:</strong> {seva.impactStat}
         </div>
+
+        {seva.coverageLabel && (
+          <div className="text-[12px] text-white/70 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-4">
+            <strong className="text-[#5EEAD4]">{seva.id === "seva-annadanam" ? "Meal Coverage" : "Coverage"}:</strong> {seva.coverageLabel}
+          </div>
+        )}
 
         {hasExpandableDetails && (
           <>
@@ -275,6 +375,30 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
                     <span>{seva.blessingExplanation}</span>
                   </div>
                 )}
+                {!!seva.includes?.length && (
+                  <div className="space-y-1.5">
+                    <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">How this is performed</span>
+                    <ul className="space-y-1">
+                      {seva.includes.map((item, i) => (
+                        <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                          <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {!!seva.devoteeReceives?.length && (
+                  <div className="space-y-1.5">
+                    <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">What you receive</span>
+                    <ul className="space-y-1">
+                      {seva.devoteeReceives.map((item, i) => (
+                        <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                          <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {otherTiers.length > 0 && (
                   <div className="space-y-1.5">
                     <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">Ways to contribute</span>
@@ -292,15 +416,119 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
             )}
           </>
         )}
+        {/* Preferred Seva Date / Pincode / Temple Selection / Occasion /
+            Priest-Expert Selection — same fields SevaOfferingCard already
+            collects for Seva Offerings, previously missing here entirely.
+            Only shown once "Continue" is tapped, so the compact card is
+            unchanged until a devotee actually intends to sponsor. */}
+        {formOpen && (
+          <div className="space-y-2.5 mb-4 pt-3 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Preferred Seva Date</label>
+                <input
+                  type="date" value={preferredDate} min={getMinBookableDateISO()}
+                  onChange={(e) => { setPreferredDate(e.target.value); if (errors.preferredDate) setErrors((p) => ({ ...p, preferredDate: undefined })); }}
+                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none ${
+                    errors.preferredDate ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                  }`}
+                />
+                {errors.preferredDate && (
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.preferredDate}</p>
+                )}
+              </div>
+              <div>
+                <label className="flex items-center gap-1 text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">
+                  <MapPin className="w-3 h-3 text-[#FFB347]" /> Pincode
+                </label>
+                <input
+                  type="text" inputMode="numeric" value={pincode}
+                  onChange={(e) => { setPincode(e.target.value.replace(/\D/g, "")); if (errors.pincode) setErrors((p) => ({ ...p, pincode: undefined })); }}
+                  placeholder="6-digit PIN code (optional)"
+                  maxLength={6}
+                  className={`w-full bg-white/5 border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none ${
+                    errors.pincode ? "border-red-400/60 focus:border-red-400" : "border-white/12 focus:border-[#FFB347]/50"
+                  }`}
+                />
+                {errors.pincode && (
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.pincode}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+              <div className="relative">
+                <select
+                  value={selectedTempleId}
+                  onChange={(e) => setSelectedTempleId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any Temple</option>
+                  {[...TEMPLES_LIST].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                    <option key={t.id} value={t.id} className="bg-[#092320] text-white">{t.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
+              <div className="relative">
+                <select
+                  value={occasion} onChange={(e) => setOccasion(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                >
+                  <option value="" className="bg-[#092320]">Select occasion (optional)</option>
+                  {SEVA_OCCASIONS.map((o) => (
+                    <option key={o.value} value={o.value} className="bg-[#092320]">{o.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Priest / Expert Selection</label>
+              <div className="relative">
+                <select
+                  value={selectedPriestId}
+                  onChange={(e) => setSelectedPriestId(e.target.value)}
+                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                >
+                  <option value="" className="bg-[#092320] text-white">Any approved priest for this seva</option>
+                  {priestOptions.map((p) => (
+                    <option key={p.id} value={p.id} className="bg-[#092320] text-white">{p.name} — {p.currentCity}, {p.currentState} ({p.yearsExperience} yrs)</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+              </div>
+              <p className="text-[11px] text-white/40 mt-1">
+                If your chosen Pandit/Priest is unavailable at your preferred time, another approved and equally experienced priest/expert will graciously perform this seva on your behalf.
+              </p>
+            </div>
+            <p className="text-[11px] text-white/40 -mt-1">Your name, gotra, email, phone and Sankalp wish are captured next in the Sankalp Portal.</p>
+          </div>
+        )}
+
+        {seva.certificateTimeline && (
+          <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
+            <span>{seva.certificateTimeline}</span>
+          </div>
+        )}
       </div>
 
       <button
         id={`sponsor-btn-${seva.id}`}
-        onClick={() => onSponsor(seva.name, display)}
+        onClick={handleContinueOrSubmit}
         className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow flex items-center justify-center gap-1.5"
       >
         <Tag className="w-3.5 h-3.5" />
-        {isDiscountPromoVisible("seva") ? `SPONSOR SEVA — ${DISCOUNT_TAG} 🙏` : "SPONSOR SEVA 🙏"}
+        {formOpen
+          ? (isDiscountPromoVisible("seva") ? `SPONSOR SEVA — ${DISCOUNT_TAG} 🙏` : "SPONSOR SEVA 🙏")
+          : "CONTINUE"}
       </button>
     </div>
   );
@@ -472,6 +700,13 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               />
             ))}
           </div>
+
+          {/* Disclaimer — same placement pattern as the Bazaar and Simple
+              Pujas sections, so every offering type is consistent about
+              process transparency and makes no outcome guarantees. */}
+          <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl mx-auto text-center">
+            {SEVA_DISCLAIMER}
+          </p>
         </div>
 
         {/* Live Devotional Dashboard — temporarily disabled, see

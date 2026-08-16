@@ -66,7 +66,7 @@ import {
   gaLegalDocOpen, gaTempleExplore, gaAppDownloadClick,
 } from "./utils/analytics";
 import {
-  ChevronRight, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
+  ChevronRight, ChevronDown, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
   Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin, HeartHandshake
 } from "lucide-react";
 
@@ -83,6 +83,20 @@ export default function App() {
   // Android app's bottom tab bar below — can also close the drawer when the
   // devotee taps a tab, even if they're already on that page.
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ─── Footer — collapsed-by-default expandable sections (mobile/app only) ──
+  // On phone browser and the Android app, the footer previously rendered
+  // every section's full content immediately, adding a lot of scroll depth
+  // below the actual page content. Each footer heading below (Quick
+  // Devotions, Legal & Compliance, Social Linkages, Recognition &
+  // Downloads, Policies) is now a tap-to-expand toggle keyed into this
+  // object; content stays hidden until its heading is tapped. At md+
+  // (desktop website) every section is forced open via the `md:!block`
+  // class applied alongside this state, so the desktop layout is
+  // completely unchanged — this only affects narrow viewports.
+  const [footerOpenSections, setFooterOpenSections] = useState<Record<string, boolean>>({});
+  const toggleFooterSection = (key: string) =>
+    setFooterOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   
   // Cart, Booking wizards
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -905,8 +919,16 @@ export default function App() {
               </p>
             </div>
             <div className="md:col-span-2 flex flex-col">
-              <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Quick Devotions</h4>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-white/60 font-medium">
+              <button
+                type="button"
+                onClick={() => toggleFooterSection("quickDevotions")}
+                aria-expanded={!!footerOpenSections.quickDevotions}
+                className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left md:pointer-events-none md:cursor-default"
+              >
+                <span>Quick Devotions</span>
+                <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.quickDevotions ? "rotate-180" : ""}`} />
+              </button>
+              <div className={`${footerOpenSections.quickDevotions ? "grid" : "hidden"} md:!grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-white/60 font-medium`}>
                 <ul className="space-y-2">
                   <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
                   <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
@@ -950,8 +972,16 @@ export default function App() {
               </div>
             </div>
             <div className="md:col-span-1 flex flex-col">
-              <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Legal & Compliance</h4>
-              <ul className="space-y-2 text-xs text-white/60">
+              <button
+                type="button"
+                onClick={() => toggleFooterSection("legalCompliance")}
+                aria-expanded={!!footerOpenSections.legalCompliance}
+                className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left md:pointer-events-none md:cursor-default"
+              >
+                <span>Legal & Compliance</span>
+                <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.legalCompliance ? "rotate-180" : ""}`} />
+              </button>
+              <ul className={`${footerOpenSections.legalCompliance ? "block" : "hidden"} md:!block space-y-2 text-xs text-white/60`}>
                 <li className="font-bold text-white">Shradhalu Private Ltd</li>
                 <li className="font-mono text-[12px] text-[#FFB347]">CIN: U62099OD2026PTC054237</li>
                 <li>Secured Payments: Sri Dwar UPI/Payment Gateway</li>
@@ -1056,7 +1086,16 @@ export default function App() {
 
           </div>
           <div className="mb-8 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <button
+              type="button"
+              onClick={() => toggleFooterSection("recognitionDownloads")}
+              aria-expanded={!!footerOpenSections.recognitionDownloads}
+              className="w-full flex items-center justify-between text-[12px] font-mono font-bold text-white/60 uppercase tracking-widest text-left md:pointer-events-none md:cursor-default mb-1"
+            >
+              <span>Recognition & App Downloads</span>
+              <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.recognitionDownloads ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`${footerOpenSections.recognitionDownloads ? "grid" : "hidden"} md:!grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8`}>
 
               <div className="space-y-2 text-left lg:pr-6">
                 <p className="text-[12px] font-mono font-bold text-white/30 uppercase tracking-widest">
@@ -1116,7 +1155,16 @@ export default function App() {
             </div>
           </div>
           <div className="pt-6 border-t border-white/8 mb-4">
-            <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
+            <button
+              type="button"
+              onClick={() => toggleFooterSection("policies")}
+              aria-expanded={!!footerOpenSections.policies}
+              className="w-full flex items-center justify-center gap-1.5 text-[12px] font-mono font-bold text-white/45 uppercase tracking-widest text-center md:pointer-events-none md:cursor-default mb-3"
+            >
+              <span>Policies & Legal Documents</span>
+              <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.policies ? "rotate-180" : ""}`} />
+            </button>
+            <div className={`${footerOpenSections.policies ? "flex" : "hidden"} md:!flex flex-wrap items-center justify-center gap-x-1 gap-y-2`}>
               {(
                 [
                   { label: "Privacy Policy",           key: "privacy"    },

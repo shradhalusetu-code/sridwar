@@ -44,6 +44,15 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
               Invite the people in your life to Sri Dwar using your unique Dharmic ID. Every genuine booking they make stays
               linked to you, and earns you cashback up to their 8th successful booking.
             </p>
+            {/* ✅ CONTRIBUTION-BENEFITS UPDATE: the homepage teaser previously
+                only mentioned referral cashback, leaving the direct
+                contribution-benefit ladder (seasonal campaigns, pilgrimage
+                eligibility, milestone rewards) undiscoverable unless a
+                devotee already knew to open the Plans page. One honest,
+                short line here — full detail stays on the Plans page. */}
+            <p className="text-[13px] text-white/50 max-w-2xl">
+              Your own contributions count too — as little as ₹5 makes you eligible for seasonal campaigns, ₹50+ starts earning cashback and milestone progress, and ₹100+ adds eligibility toward pilgrimage-related opportunities.
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
             <button

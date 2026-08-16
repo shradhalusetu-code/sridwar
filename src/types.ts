@@ -43,6 +43,23 @@ export interface Seva {
   impactStat: string;
   donationTiers: { amount: number; label: string; description: string }[];
   imageUrl?: string;
+  // ── Optional fields below (added for Sponsorship Services parity audit) ──
+  // All optional so nothing that already builds a Seva object without them
+  // (e.g. any older data or test fixture) breaks. Mirrors the same
+  // fields SevaOffering already has in data/sevaOfferings.ts.
+  /** What this sponsorship actually includes/covers, shown as a checklist. */
+  includes?: string[];
+  /** What the devotee receives once the seva/sponsorship is performed. */
+  devoteeReceives?: string[];
+  /** e.g. "Certificate & evidence shared within 3-7 working days." */
+  certificateTimeline?: string;
+  /** One-line summary of what the charged tier actually covers, e.g.
+   *  "Feeds 20 Sadhus, one meal" — shown as "Meal Coverage"/"Coverage". */
+  coverageLabel?: string;
+  /** Keywords matched against priests.ts pujaExpertise/adviceAreas to build
+   *  this offering's Priest/Expert Selection dropdown — same pattern used
+   *  by SEVA_OFFERINGS in data/sevaOfferings.ts. */
+  priestKeywords?: string[];
 }
 
 export interface Puja {

@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
-import { Search, Sparkles, MapPin, ChevronDown, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
+import { Search, Sparkles, MapPin, ChevronDown, ChevronUp, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
 
 interface TempleExperienceProps {
@@ -19,6 +19,20 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
   const [selectedTempleId, setSelectedTempleId] = useState(TEMPLES_LIST[0].id);
   const [searchPhrase, setSearchPhrase] = useState("");
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+
+  // ─── Collapse-by-default spotlight card ────────────────────────────────
+  // Initially shows only the deity image, temple name, a short description
+  // (Temple.story — a 1-2 sentence summary already in the data but never
+  // rendered before) and the CTA buttons. Full details (history, Aarti
+  // timings, rituals, sample offerings, priest info) sit behind a single
+  // "View full details" tap, same expand/collapse pattern used across
+  // Online Pujas and Seva Offerings, to cut down scrolling on mobile.
+  // Resets to collapsed whenever a different temple is selected, so
+  // switching shrines doesn't carry over a long expanded panel.
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  useEffect(() => {
+    setDetailsExpanded(false);
+  }, [selectedTempleId]);
 
   const selectedTemple = TEMPLES_LIST.find((t) => t.id === selectedTempleId) || TEMPLES_LIST[0];
 
@@ -265,6 +279,27 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                     <strong className="text-[#5EEAD4]">Presiding Deity:</strong> {selectedTemple.deity}
                   </div>
 
+                  {/* Short description — always visible, collapsed view */}
+                  <p className="text-xs text-white/70 leading-relaxed">
+                    {selectedTemple.story}
+                  </p>
+
+                  {/* Expand toggle — reveals history, Aarti timings, rituals,
+                      sample offerings and priest info below. Kept collapsed
+                      by default so the card opens compact on mobile. */}
+                  <button
+                    type="button"
+                    id={`spotlight-toggle-details-${selectedTemple.id}`}
+                    onClick={() => setDetailsExpanded((v) => !v)}
+                    aria-expanded={detailsExpanded}
+                    className="flex items-center gap-1.5 text-xs font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide transition-colors"
+                  >
+                    {detailsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span>{detailsExpanded ? "Hide full details" : "View full details · History, timings, rituals & priest"}</span>
+                  </button>
+
+                  {detailsExpanded && (
+                    <div className="space-y-4">
                   {/* Holy Pilgrimage Narrative & History */}
                   <div className="space-y-1.5">
                     <span className="block text-xs font-bold text-white/80">Holy Pilgrimage Narrative & History:</span>
@@ -339,9 +374,11 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                       <span className="block text-white/65 leading-relaxed">{selectedTemple.priestInfo}</span>
                     </div>
                   </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Engagement CTAs */}
+                {/* Engagement CTAs — always visible, even in the collapsed view */}
                 <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row gap-3">
                   <button
                     id={`spotlight-book-${selectedTemple.id}`}

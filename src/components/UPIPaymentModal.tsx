@@ -4,8 +4,35 @@
  */
 
 import { useState } from "react";
-import { X, Check, Copy, ShieldCheck, RefreshCw } from "lucide-react";
+import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles } from "lucide-react";
 import { buildUpiQrImageUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
+
+// ─────────────────────────────────────────────────────────────────────────
+// ✅ CONTRIBUTION-BENEFITS UPDATE: this modal is the single shared payment
+// surface for every contribution-structured action on the site (Puja, Seva,
+// Guidance, Wellness, Divine Contributions, and Temple Bazaar/Bhog — see the
+// note on onPaymentConfirmed above), so it's the right single place to
+// honestly explain what a contribution unlocks, at every amount, without
+// repeating this logic in every calling component. Benefits are genuine,
+// non-exaggerated and cumulative — every tier keeps what the tier below it
+// already offers. Never blocks payment and never implies a guaranteed
+// spiritual outcome; only describes real platform-side benefits.
+// ─────────────────────────────────────────────────────────────────────────
+function getContributionBenefits(amount: number): string[] {
+  const benefits: string[] = [];
+  if (amount >= 5) {
+    benefits.push("Auto-eligibility for seasonal campaigns and grand-prize draws run on the platform");
+  }
+  if (amount >= 50) {
+    benefits.push("A small cashback reward credited to your Sri Dwar account on this contribution");
+    benefits.push("Progress recorded toward milestone rewards as your total contributions grow");
+  }
+  if (amount >= 100) {
+    benefits.push("Eligibility toward pilgrimage-related opportunities offered periodically to regular devotees");
+    benefits.push("Priority consideration for milestone rewards at higher contribution levels");
+  }
+  return benefits;
+}
 
 interface UPIPaymentModalProps {
   isOpen: boolean;
@@ -227,6 +254,28 @@ export default function UPIPaymentModal({
               )}
               <span className="block text-[12px] text-white/30 font-mono">Ref: {refId}</span>
             </div>
+
+            {/* ✅ CONTRIBUTION-BENEFITS UPDATE: honest, non-exaggerated,
+                amount-linked benefits — updates live as a custom amount is
+                typed, so the devotee always sees what THIS contribution
+                genuinely unlocks rather than a generic promotional list. */}
+            {getContributionBenefits(Number(effectiveAmount) || 0).length > 0 && (
+              <div className="bg-[#FFB347]/8 border border-[#FFB347]/25 rounded-xl px-3.5 py-3 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#FFB347] uppercase tracking-wide">
+                  <Gift className="w-3.5 h-3.5" /><span>Your contribution also brings you</span>
+                </div>
+                <ul className="space-y-1">
+                  {getContributionBenefits(Number(effectiveAmount) || 0).map((b) => (
+                    <li key={b} className="flex items-start gap-1.5 text-[12px] text-white/70 leading-snug">
+                      <Sparkles className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[10px] text-white/35 leading-snug pt-0.5">
+                  Genuine platform benefits, not a guarantee of any spiritual outcome. Higher contributions unlock more — see Refer & Earn for full details.
+                </p>
+              </div>
+            )}
 
             {/* Dynamic UPI QR Code */}
             <div className="flex flex-col items-center space-y-2">

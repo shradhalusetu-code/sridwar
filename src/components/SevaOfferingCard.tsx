@@ -8,7 +8,7 @@ import {
   Heart, Utensils, Flame, Wind, Flower2, Landmark,
   Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
-import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
+import { SevaOffering, SevaPriceOption, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import OptimizedImage from "./OptimizedImage";
@@ -25,6 +25,24 @@ const renderOfferingIcon = (id: string) => {
     default:                        return <Heart className="w-4 h-4 text-[#FFB347]" />;
   }
 };
+
+// ✅ PRICE/CONTENT SYNC FIX: previously every Seva card showed one fixed
+// description/includes no matter which amount was selected (Gau Seva said
+// the same thing whether you picked "Feed 1 cow" or "Feed 11 cows"). This
+// resolves the priceOption that actually matches whatever amount is
+// presently selected — including a validly-entered custom amount — so the
+// card always shows content for an amount AT OR BELOW what was chosen,
+// never implying a bigger seva than what's actually being paid for.
+function resolveActiveSevaOption(options: SevaPriceOption[], amount: number): SevaPriceOption | undefined {
+  const numericOptions = options
+    .filter((o): o is SevaPriceOption & { value: number } => typeof o.value === "number")
+    .sort((a, b) => a.value - b.value);
+  let match: SevaPriceOption | undefined = numericOptions[0];
+  for (const opt of numericOptions) {
+    if (amount >= opt.value) match = opt; else break;
+  }
+  return match;
+}
 
 interface SevaOfferingCardProps {
   offering: SevaOffering;
@@ -107,6 +125,21 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
   const selectedOption = offering.priceOptions.find((p) => String(p.value) === selected);
   const customAmountNumber = parseInt(customAmount, 10);
   const customAmountValid = !isCustomSelected || (!isNaN(customAmountNumber) && customAmountNumber >= 100);
+
+  // Amount actually reflected in the card's description/includes below —
+  // falls back to the first numeric option only while a custom amount is
+  // selected but not yet validly typed in.
+  const activeAmount = isCustomSelected
+    ? (customAmountValid && customAmountNumber ? customAmountNumber : Number(firstNumericOption?.value ?? 100))
+    : (typeof selectedOption?.value === "number" ? selectedOption.value : Number(firstNumericOption?.value ?? 100));
+  const activeOption = resolveActiveSevaOption(offering.priceOptions, activeAmount);
+  const activeDescription = activeOption?.description ?? offering.description;
+  const activeIncludes = activeOption?.extraInclude ? [...offering.includes, activeOption.extraInclude] : offering.includes;
+  // ✅ CONTRIBUTION-BENEFITS UPDATE: "You will receive" previously stayed
+  // fixed no matter which amount tier was selected, even though certificate
+  // / evidence language should scale with the tier same as includes does.
+  // Mirrors activeIncludes above.
+  const activeReceives = activeOption?.extraReceive ? [...offering.devoteeReceives, activeOption.extraReceive] : offering.devoteeReceives;
 
   const handleSubmit = () => {
     if (!isActive) { onActivate(); return; }
@@ -202,7 +235,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           <div className="flex-1 min-w-0">
             <span className="text-[10px] font-mono font-bold text-teal-300 uppercase tracking-wider">{offering.category}</span>
             <h4 className="text-[15px] font-serif font-bold text-white leading-snug truncate">{offering.title}</h4>
-            <p className="text-[12px] text-white/55 leading-snug line-clamp-1 mt-0.5">{offering.description}</p>
+            <p className="text-[12px] text-white/55 leading-snug line-clamp-1 mt-0.5">{activeDescription}</p>
             {firstNumericOption && (
               <span className="inline-block text-[12px] font-extrabold text-[#FFB347] mt-1">
                 Starts at ₹{firstNumericOption.value.toLocaleString("en-IN")}
@@ -274,7 +307,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           ))}
         </div>
 
-        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{offering.description}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{activeDescription}</p>
 
         {justOffered && (
           <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
@@ -286,7 +319,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         <div className="space-y-1.5 mb-3">
           <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This seva includes</span>
           <ul className="space-y-1">
-            {offering.includes.map((item, i) => (
+            {activeIncludes.map((item, i) => (
               <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                 <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
               </li>
@@ -297,7 +330,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         <div className="space-y-1.5 mb-4">
           <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
           <ul className="space-y-1">
-            {offering.devoteeReceives.map((item, i) => (
+            {activeReceives.map((item, i) => (
               <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                 <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
               </li>

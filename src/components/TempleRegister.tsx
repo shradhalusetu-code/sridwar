@@ -843,6 +843,30 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
             />
           </div>
 
+          {/* ✅ CONTRIBUTION-BENEFITS UPDATE: genuine, non-exaggerated,
+              amount-linked benefits shown as soon as an amount is chosen —
+              updates live with the preset/custom amount, same tiers used
+              across the platform (₹5 seasonal-campaign eligibility, ₹50
+              cashback + milestone progress, ₹100 pilgrimage eligibility). */}
+          {Number(form.donationAmount) >= 5 && (
+            <div className="bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 rounded-2xl px-4 py-3.5 space-y-1.5">
+              <p className="text-xs font-semibold text-[#5EEAD4]">This contribution also brings you</p>
+              <ul className="space-y-1">
+                <li className="text-[13px] text-white/60 leading-snug">✦ Auto-eligibility for seasonal campaigns and grand-prize draws</li>
+                {Number(form.donationAmount) >= 50 && (
+                  <>
+                    <li className="text-[13px] text-white/60 leading-snug">✦ A small cashback reward credited to your Sri Dwar account</li>
+                    <li className="text-[13px] text-white/60 leading-snug">✦ Progress recorded toward milestone rewards</li>
+                  </>
+                )}
+                {Number(form.donationAmount) >= 100 && (
+                  <li className="text-[13px] text-white/60 leading-snug">✦ Eligibility toward pilgrimage-related opportunities offered to regular devotees</li>
+                )}
+              </ul>
+              <p className="text-[11px] text-white/30 leading-snug pt-0.5">Genuine platform benefits — not a guarantee of any spiritual outcome. Higher contributions unlock more.</p>
+            </div>
+          )}
+
           {form.donationAmount && Number(form.donationAmount) >= 1 && (
             <input type="text" value={form.donationNote}
               onChange={e => setF("donationNote", e.target.value)}
