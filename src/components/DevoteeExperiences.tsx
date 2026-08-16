@@ -18,7 +18,7 @@ import {
   Feather
 } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
@@ -439,7 +439,7 @@ export default function DevoteeExperiences() {
     if (storyErr)    { alert(storyErr);    return; }
     // ────────────────────────────────────────────────────────────────────────
 
-    const newRef = "SDT-" + Math.floor(100000 + Math.random() * 900000);
+    const newRef = "SDT-" + randomRefSuffix();
     setTestimonyRefId(newRef);
 
     // ✅ Sync to Google Forms first — ONE row, with the optional thank-you

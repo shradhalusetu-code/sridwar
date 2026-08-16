@@ -12,7 +12,7 @@
 
 import { useState, useMemo } from "react";
 import {
-  ShoppingBag, Flame, Check, ChevronDown, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
+  ShoppingBag, Flame, Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
 } from "lucide-react";
 import { BazaarProduct, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
@@ -56,6 +56,11 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({});
   const [addOnText, setAddOnText] = useState<Record<string, string>>({});
   const [justAdded, setJustAdded] = useState<"offer" | "cart" | null>(null);
+  // ✅ PROGRESSIVE DISCLOSURE: same fix as SevaOfferingCard.tsx — "This
+  // includes" / "You will receive" collapsed by default so a devotee can
+  // scan the Bazaar grid by photo/title/badges/price first, then open a
+  // card for detail. isActive/CTA/booking fields are unaffected.
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   // Delivery PIN code — only relevant for physical (non-service) items, since
   // shipping cost/availability depends on it. Captured inline on the card
   // (same pattern as Simple Pujas) so it's known before checkout even opens.
@@ -202,27 +207,41 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           </div>
         )}
 
-        <div className="space-y-1.5 mb-3">
-          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This includes</span>
-          <ul className="space-y-1">
-            {product.includes.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
-                <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setIsDetailsExpanded((v) => !v); }}
+          aria-expanded={isDetailsExpanded}
+          className="flex items-center gap-1 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide mb-3 -mt-1 transition-colors"
+        >
+          {isDetailsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <span>{isDetailsExpanded ? "Hide details" : "What's included · What you receive"}</span>
+        </button>
 
-        <div className="space-y-1.5 mb-4">
-          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
-          <ul className="space-y-1">
-            {product.devoteeReceives.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
-                <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {isDetailsExpanded && (
+          <>
+            <div className="space-y-1.5 mb-3">
+              <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This includes</span>
+              <ul className="space-y-1">
+                {product.includes.map((item, i) => (
+                  <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                    <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-1.5 mb-4">
+              <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
+              <ul className="space-y-1">
+                {product.devoteeReceives.map((item, i) => (
+                  <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                    <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
 
         {/* Price + Quantity — always visible */}
         <div className="grid grid-cols-2 gap-2 mb-3" onClick={(e) => e.stopPropagation()}>

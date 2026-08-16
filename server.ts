@@ -18,6 +18,24 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// ─── Shared ref-suffix generator (server side) ─────────────────────────────
+// Mirrors src/utils/googleFormSync.ts's randomRefSuffix() on the frontend —
+// same alphabet (uppercase letters + digits, with 0/O/1/I/L removed so a
+// devotee reading a ref off a screen can't misread it), same length. Kept
+// as a small local copy rather than importing googleFormSync.ts directly:
+// that module is written for the browser (fetch with mode: "no-cors" against
+// a Google Forms endpoint) and isn't meant to run in this Node/Express
+// process. This keeps every ref ID generated anywhere in the app — client
+// or server — on one consistent, unambiguous format.
+const REF_SUFFIX_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function randomRefSuffix(length: number = 6): string {
+  let out = "";
+  for (let i = 0; i < length; i++) {
+    out += REF_SUFFIX_ALPHABET[Math.floor(Math.random() * REF_SUFFIX_ALPHABET.length)];
+  }
+  return out;
+}
+
 // ─── Security headers (helmet) ─────────────────────────────────────────────
 //
 // helmet sets a batch of standard security-related HTTP headers. Two of its
@@ -418,7 +436,7 @@ app.post("/api/submit-form", validateBody(submitFormRequestSchema), (req, res) =
   const { formType, formData } = req.body;
   console.log(`[Form Received - ${formType}]:`, JSON.stringify(formData, null, 2));
 
-  const refId = `SD-${Math.floor(100000 + Math.random() * 900000)}`;
+  const refId = `SD-${randomRefSuffix()}`;
 
   // Booking/seva/puja submissions are the closest thing this app has to a
   // "payment-adjacent" event today (actual payment happens client-side via

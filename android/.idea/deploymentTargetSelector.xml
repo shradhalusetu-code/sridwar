@@ -37,7 +37,7 @@
       </SelectionState>
       <SelectionState runConfigName="androidTest">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-08-13T09:44:23.200215100Z">
+        <DropdownSelection timestamp="2026-08-16T06:32:19.199819200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\KUNUR\.android\avd\Sridwar_Tablet.avd" />

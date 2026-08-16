@@ -13,7 +13,7 @@ import {
   ChevronDown, ChevronUp, Flame, BookOpen, Heart
 } from "lucide-react";
 import UPIPaymentModal from "./UPIPaymentModal";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import SriDwarLogo from "./SriDwarLogo";
@@ -252,7 +252,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   const handleBuyNow = (item: BazaarItem, prefillPincode?: string) => {
     gaAddToCart(item.name, item.price, item.id);
     setSelectedItem(item);
-    setRefId((item.isService ? "SDV-" : "SDB-") + Math.floor(100000 + Math.random() * 900000));
+    setRefId((item.isService ? "SDV-" : "SDB-") + randomRefSuffix());
     if (prefillPincode) setDevoteePincode(prefillPincode);
     setShowSankalpa(true);
   };

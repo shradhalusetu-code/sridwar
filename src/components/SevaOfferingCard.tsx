@@ -6,7 +6,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Heart, Utensils, Flame, Wind, Flower2, Landmark,
-  Check, ChevronDown, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
+  Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
 import { SevaOffering, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
@@ -41,6 +41,24 @@ interface SevaOfferingCardProps {
 }
 
 export default function SevaOfferingCard({ offering, isActive, onActivate, onOffer }: SevaOfferingCardProps) {
+  // ─── Compact-by-default card (mobile/tablet) ─────────────────────────
+  // Mobile-first Seva audit (Stage 2): this card used to always render
+  // everything at once — image, badges, full description, "includes" /
+  // "you will receive" lists, price selector, certificate note and CTA —
+  // which made scanning 6 Sevas require a lot of scrolling on phones.
+  // `expanded` now gates all of that behind a compact summary row on
+  // phone/tablet widths. On desktop (lg+) the full card still renders
+  // unconditionally via `lg:block`/`lg:hidden` overrides below, so the
+  // desktop grid is visually and behaviourally unchanged from before.
+  //
+  // Initial value is read once via matchMedia so a desktop pageview never
+  // has to render (or flash) the collapsed summary at all, and a single
+  // tap on a desktop card keeps doing exactly what it always did
+  // (immediately calling onActivate() below) rather than needing an extra
+  // tap to "expand" first.
+  const [expanded, setExpanded] = useState<boolean>(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
+  );
   const firstNumericOption = offering.priceOptions.find((p) => typeof p.value === "number");
   const [selected, setSelected] = useState<string>(firstNumericOption ? String(firstNumericOption.value) : "custom");
   const [customAmount, setCustomAmount] = useState("");
@@ -159,6 +177,52 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         isActive ? "border-[#FFB347]/60 shadow-lg shadow-[#FFB347]/10" : "border-white/10 hover:border-[#5EEAD4]/25 cursor-pointer"
       }`}
     >
+      {/* ── Compact summary row — phone & tablet only, shown while collapsed ──
+          Quick-decision info only: image, title, one-line purpose, starting
+          price, and a "View & Offer" affordance. Everything else (badges,
+          full description, includes/receives lists, price selector, and the
+          booking form fields) lives behind this tap. Desktop never renders
+          this — `expanded` starts true there (see matchMedia above) so this
+          block is simply never mounted on desktop pageviews. */}
+      {!expanded && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+          className="w-full flex items-center gap-3 p-3.5 text-left lg:hidden"
+          aria-expanded={expanded}
+          aria-controls={`seva-offering-details-${offering.id}`}
+        >
+          <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-white/10 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-center">
+            {offering.imageUrl ? (
+              <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+            ) : (
+              renderOfferingIcon(offering.id)
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-[10px] font-mono font-bold text-teal-300 uppercase tracking-wider">{offering.category}</span>
+            <h4 className="text-[15px] font-serif font-bold text-white leading-snug truncate">{offering.title}</h4>
+            <p className="text-[12px] text-white/55 leading-snug line-clamp-1 mt-0.5">{offering.description}</p>
+            {firstNumericOption && (
+              <span className="inline-block text-[12px] font-extrabold text-[#FFB347] mt-1">
+                Starts at ₹{firstNumericOption.value.toLocaleString("en-IN")}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col items-center gap-0.5 shrink-0 text-[#5EEAD4] pl-1">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wide whitespace-nowrap">View & Offer</span>
+            <ChevronDown className="w-4 h-4" />
+          </div>
+        </button>
+      )}
+
+      {/* ── Full card content — always visible on desktop (lg:block),
+          shown on phone/tablet only once expanded. Nothing inside this
+          block was changed: same image banner, badges, description,
+          includes/receives lists, price selector, booking fields, and CTA
+          exactly as before. */}
+      <div id={`seva-offering-details-${offering.id}`} className={`${expanded ? "flex" : "hidden"} lg:flex flex-col flex-1`}>
+
       {/* Image or icon banner — a fixed height (not aspect-ratio) so all six
           Structured Seva Offering cards get an identically-sized header
           regardless of each source photo's original shape. Some seva photos
@@ -185,6 +249,17 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
       )}
 
       <div className="p-5 flex flex-col flex-1">
+        {/* "Show less" — phone & tablet only, re-collapses back to the
+            compact summary row above. Desktop cards stay full-length
+            always, so this never renders there. */}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
+          className="lg:hidden self-end flex items-center gap-1 text-[12px] font-semibold text-[#5EEAD4] mb-2 -mt-1"
+        >
+          Show less <ChevronUp className="w-3.5 h-3.5" />
+        </button>
+
         <div className="flex items-center space-x-2 mb-2">
           <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">{renderOfferingIcon(offering.id)}</div>
           <h4 className="text-lg font-serif font-bold text-white">{offering.title}</h4>
@@ -384,6 +459,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           {renderOfferingIcon(offering.id)}
           {isActive ? offering.ctaLabel.toUpperCase() + " 🙏" : "SELECT THIS SEVA"}
         </button>
+      </div>
       </div>
     </div>
   );

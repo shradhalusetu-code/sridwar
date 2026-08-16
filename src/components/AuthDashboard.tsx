@@ -18,7 +18,7 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
 import ReferralDashboardPanel from "./ReferralDashboardPanel";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
 import {
   recordActivity, fetchProfileExtra, saveProfileExtra,
@@ -630,7 +630,7 @@ export default function AuthDashboard({
   const handleProceedToContributionPayment = () => {
     if (!contributionAmount || contributionAmount <= 0) return;
     gaDonationInitiate(contributionAmount);
-    setContributionRefId("SDC-" + Math.floor(100000 + Math.random() * 900000));
+    setContributionRefId("SDC-" + randomRefSuffix());
     setShowSankalpaForm(true);
   };
 

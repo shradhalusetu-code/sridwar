@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
 import SriDwarLogo from "./SriDwarLogo";
@@ -304,7 +304,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
     isSubmittingRef.current = true;
     setIsSyncingDetails(true);
-    const newRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newRefId = `SDP-${randomRefSuffix()}`;
     setRefId(newRefId);
     try {
       await syncToGoogleForm("puja_booking", buildSyncPayload(newRefId, "Pending — Awaiting Confirmation", price));

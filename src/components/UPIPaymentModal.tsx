@@ -76,6 +76,24 @@ export default function UPIPaymentModal({
   const WHATSAPP_NUMBER = "919777645062";
   const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
 
+  // ✅ FIX (2026-08-16): reconciliation gap. The UPI transaction note (the
+  // "tn" field inside upi://pay...) used to be just bookingName ("Rudrabhishek
+  // Puja", "Sri Dwar Temple Divine Contribution", etc.) — with no ref_id in
+  // it anywhere. Since payment is verified manually against a bank/UPI
+  // statement (see certificateService.ts's own comments on this), the admin
+  // team had no way to match an incoming payment to a specific Supabase
+  // `activities` row except by amount + rough timestamp — unreliable
+  // whenever two devotees pay a similar amount around the same time.
+  // refId is put FIRST, not appended after bookingName, because
+  // buildUpiLink()/buildUpiQrImageUrl() (upiConfig.ts) truncate the note to
+  // 50 characters — a long service name could otherwise push the ref ID
+  // past that limit and drop the one piece of text that actually matters
+  // for reconciliation. This ONLY changes what appears in the UPI app's
+  // note/QR code; the on-screen "Ref: {refId}" line, the WhatsApp message,
+  // and every other use of `bookingName` elsewhere in this file (both
+  // still reference the original, unprefixed value) are unchanged.
+  const upiTransactionNote = `Ref:${refId} - ${bookingName}`;
+
   // "Pay via WhatsApp" is a real payment-intent action, not just an
   // informational link — opening it means the devotee has committed to
   // paying via WhatsApp instead of the QR/UPI button. So it still notifies
@@ -215,7 +233,7 @@ export default function UPIPaymentModal({
               <span className="text-[12px] text-white/50 font-mono uppercase tracking-wider">📱 Scan QR with PhonePe · GPay · Paytm · BHIM</span>
               <div className="bg-white p-3 rounded-2xl shadow-xl border-4 border-[#FFB347]">
                 <img
-                  src={buildUpiQrImageUrl(effectiveAmount, bookingName)}
+                  src={buildUpiQrImageUrl(effectiveAmount, upiTransactionNote)}
                   alt={`UPI QR code to pay ₹${effectiveAmount}`}
                   width={192}
                   height={192}
@@ -225,7 +243,7 @@ export default function UPIPaymentModal({
               </div>
               <p className="text-[13px] text-white/55 text-center leading-relaxed">
                 On a phone you can also{" "}
-                <a href={buildUpiLink(effectiveAmount, bookingName)} className="text-[#5EEAD4] underline font-semibold">
+                <a href={buildUpiLink(effectiveAmount, upiTransactionNote)} className="text-[#5EEAD4] underline font-semibold">
                   tap here to pay directly
                 </a>.
               </p>

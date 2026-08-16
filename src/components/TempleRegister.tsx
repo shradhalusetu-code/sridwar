@@ -24,7 +24,7 @@ import registerDevotteeImg from "../assets/images/Register_devottee.jpg";
 import registerDevotteeImgWebp from "../assets/images/Register_devottee.webp";
 import OptimizedImage from "./OptimizedImage";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
-import { makeSubmissionRef } from "../utils/googleFormSync";
+import { makeSubmissionRef, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
@@ -262,7 +262,7 @@ async function postDevoteeFinalRow(payload: Record<string, string>, refId: strin
 function generateDharmicId(): string {
   const prefix = "SDW";
   const year   = new Date().getFullYear().toString().slice(-2);
-  const rand   = Math.floor(100000 + Math.random() * 900000);
+  const rand   = randomRefSuffix();
   return `${prefix}-${year}-${rand}`;
 }
 
@@ -763,6 +763,12 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
               setBasicSubmitted(false);
               setDonationConfirmed(null);
               setForm({ name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "", selectedInterests: [], message: "", donationAmount: "", donationNote: "" });
+              // Fresh refId for this next registration — without this, a
+              // second devotee registered in the same session would keep
+              // reusing the first devotee's refId (refIdRef is a plain ref,
+              // so it survives across this state reset since the component
+              // itself doesn't unmount here).
+              refIdRef.current = makeSubmissionRef("DEV");
               onBack();
             }}
             className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
@@ -2219,7 +2225,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       alert("Please enter a valid divine contribution amount (minimum ₹1).");
       return;
     }
-    const ref = `SDW-DON-${Math.floor(100000 + Math.random() * 900000)}`;
+    const ref = `SDW-DON-${randomRefSuffix()}`;
     setDonationRefId(ref);
     setShowDonationUpi(true);
   };

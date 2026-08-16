@@ -10,7 +10,7 @@ import { TEMPLES_LIST } from "../data/temples";
 import { SEVA_OCCASIONS } from "../data/sevaOfferings";
 import {
   ShieldAlert, Heart, Briefcase, Award, TrendingUp, Sparkles,
-  CheckCircle2, Video, Clock, ChevronDown, X, UserCircle2,
+  CheckCircle2, Video, Clock, ChevronDown, ChevronUp, X, UserCircle2,
   Flame, ShieldCheck, BadgeCheck, Check, AlertCircle
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
@@ -187,6 +187,11 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   // another card's selection.
   const [selected, setSelected] = useState<string>(() => String(offering.price));
   const [customAmount, setCustomAmount] = useState("");
+  // ✅ PROGRESSIVE DISCLOSURE: same fix as SevaOfferingCard.tsx /
+  // BazaarOfferingCard.tsx — "This puja includes" / "Devotee receives"
+  // collapsed by default so a devotee can scan the Simple Pujas grid by
+  // photo/title/badges/price first, then open a card for detail.
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   // Devotee name / gotra / rashi / wish / contact are intentionally NOT
   // collected on this card anymore — the Puja Sankalp Portal (BookNowWizard)
   // that opens next already asks for every one of those fields exactly
@@ -343,27 +348,41 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           </div>
         )}
 
-        <div className="space-y-1.5 mb-3">
-          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This puja includes</span>
-          <ul className="space-y-1">
-            {offering.includes.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
-                <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setIsDetailsExpanded((v) => !v); }}
+          aria-expanded={isDetailsExpanded}
+          className="flex items-center gap-1 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide mb-3 -mt-1 transition-colors"
+        >
+          {isDetailsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <span>{isDetailsExpanded ? "Hide details" : "What's included · What you receive"}</span>
+        </button>
 
-        <div className="space-y-1.5 mb-4">
-          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">Devotee receives</span>
-          <ul className="space-y-1">
-            {offering.devoteeReceives.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
-                <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {isDetailsExpanded && (
+          <>
+            <div className="space-y-1.5 mb-3">
+              <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This puja includes</span>
+              <ul className="space-y-1">
+                {offering.includes.map((item, i) => (
+                  <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                    <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-1.5 mb-4">
+              <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">Devotee receives</span>
+              <ul className="space-y-1">
+                {offering.devoteeReceives.map((item, i) => (
+                  <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                    <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
 
         {/* Custom Sankalp Amount selector — always visible */}
         <div className="mb-3" onClick={(e) => e.stopPropagation()}>

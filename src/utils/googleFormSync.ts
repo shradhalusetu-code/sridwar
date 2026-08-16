@@ -872,8 +872,34 @@ export async function syncToGoogleForm(
  *   await postFinalRow(formUrl, refId, buildPayload(refId, "Skipped" | `₹${amount}`));
  */
 
+// Uppercase letters + digits — no lookalike-ambiguous characters (0/O, 1/I/L)
+// so a devotee reading this off a screen to type into a WhatsApp message, or
+// a team member reading it off a bank/UPI statement, can't misread it.
+const REF_SUFFIX_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+/**
+ * Shared random suffix for every ref-ID generator in this app (both this
+ * file's makeSubmissionRef, and the flatter PREFIX-XXXXXX generators used
+ * directly in BookNowWizard.tsx, TemplateBazaar.tsx, SubscriptionSignup.tsx,
+ * DevoteeExperiences.tsx, and AuthDashboard.tsx) — one implementation, so
+ * every refId in the app has the exact same uniqueness guarantee instead of
+ * five separate copies of similar-but-not-identical random logic.
+ * length=6 over this 32-character alphabet gives 32^6 ≈ 1.07 billion
+ * possible values (versus the previous 900,000 with digits-only), while
+ * staying compatible with Triggers.gs's existing ref-extraction regex
+ * (`[A-Za-z0-9][A-Za-z0-9_-]{2,}`), which already accepts letters and was
+ * never digits-only to begin with.
+ */
+export function randomRefSuffix(length: number = 6): string {
+  let out = "";
+  for (let i = 0; i < length; i++) {
+    out += REF_SUFFIX_ALPHABET[Math.floor(Math.random() * REF_SUFFIX_ALPHABET.length)];
+  }
+  return out;
+}
+
 export function makeSubmissionRef(prefix: string): string {
-  return `SDR-${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
+  return `SDR-${prefix}-${randomRefSuffix()}`;
 }
 
 // Guards so a given refId's "pending" or "final" row is ever sent only once,

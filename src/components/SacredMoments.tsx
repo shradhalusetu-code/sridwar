@@ -17,7 +17,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { Send } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
 
 // ─── Temporary feature flag ─────────────────────────────────────────────────
@@ -116,11 +116,14 @@ export default function SacredMoments() {
     // which now points at its own dedicated Prasad & Prayer Testimony
     // sheet), so the team can review it, confirm it's from a real devotee,
     // and choose which ones to feature in the Sacred Moments gallery.
+    // Each offering gets its own refId (never reused across messages) so a
+    // specific prayer can be traced back to this exact row if ever needed.
+    const prayerRefId = makeSubmissionRef("PRAY");
     syncToGoogleForm("prayer_wall", {
       name: "Devotee (Prayer Wall)",
       email: "Live Darshan — Prayer Wall",
       phone: "",
-      details: offeredPrayer,
+      details: `${offeredPrayer} [Ref: ${prayerRefId}]`,
       type: "Prayer Wall Offering"
     }).catch((err) => console.error("Prayer Wall sync error:", err));
 

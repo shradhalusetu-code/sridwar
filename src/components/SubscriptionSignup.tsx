@@ -30,7 +30,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronRight, Check, ShieldCheck, MapPin, Sparkles, Download } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
 import UPIPaymentModal from "./UPIPaymentModal";
-import { syncToGoogleForm } from "../utils/googleFormSync";
+import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { activateSubscriptionTier, type SubscriptionTierId } from "../lib/referrals";
@@ -162,7 +162,7 @@ export default function SubscriptionSignup({
 
     isSubmittingRef.current = true;
     setIsSyncingDetails(true);
-    const newRefId = `SDS-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newRefId = `SDS-${randomRefSuffix()}`;
     setRefId(newRefId);
 
     const pendingDetails =
