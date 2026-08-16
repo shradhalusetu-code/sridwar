@@ -661,6 +661,17 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
   // loading on this section.
   const [openedOnce, setOpenedOnce] = useState<Record<string, boolean>>({});
 
+  // ─── Per-puja "complete details" expand (Holy Pujas rows) ────────────────
+  // Each row already shows a compact summary (name, deity, temple, duration,
+  // prasad/video, priest). `benefits` and `materialsIncluded` exist on every
+  // Puja (see types.ts / data/spiritualData.ts) but were never rendered
+  // anywhere — this reveals them behind a tap, same expand/collapse pattern
+  // as SevaOfferingCard.tsx / BazaarOfferingCard.tsx, without touching the
+  // booking button, price, or any existing field.
+  const [expandedPujaIds, setExpandedPujaIds] = useState<Record<string, boolean>>({});
+  const togglePujaDetails = (id: string) =>
+    setExpandedPujaIds((prev) => ({ ...prev, [id]: !prev[id] }));
+
   const toggleSection = (cat: string) =>
     setOpenSections(prev => {
       const next = !prev[cat];
@@ -1119,6 +1130,42 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                                 </div>
                               );
                             })()}
+
+                            {/* Complete details toggle — benefits + materials
+                                included, both present in data but not shown
+                                in the compact row above. */}
+                            {(puja.benefits || (puja.materialsIncluded && puja.materialsIncluded.length > 0)) && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
+                                  aria-expanded={!!expandedPujaIds[puja.id]}
+                                  className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
+                                >
+                                  {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included"}</span>
+                                </button>
+                                {expandedPujaIds[puja.id] && (
+                                  <div className="space-y-1.5 pt-1">
+                                    {puja.benefits && (
+                                      <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
+                                        <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+                                        <span>{puja.benefits}</span>
+                                      </div>
+                                    )}
+                                    {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                                      <ul className="space-y-1">
+                                        {puja.materialsIncluded.map((item, i) => (
+                                          <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                            <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
 
                           {/* Right: price + book button */}
@@ -1280,6 +1327,41 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                               </div>
                             );
                           })()}
+
+                          {/* Complete details toggle — same pattern as the
+                              category rows above. */}
+                          {(puja.benefits || (puja.materialsIncluded && puja.materialsIncluded.length > 0)) && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
+                                aria-expanded={!!expandedPujaIds[puja.id]}
+                                className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
+                              >
+                                {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included"}</span>
+                              </button>
+                              {expandedPujaIds[puja.id] && (
+                                <div className="space-y-1.5 pt-1">
+                                  {puja.benefits && (
+                                    <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
+                                      <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+                                      <span>{puja.benefits}</span>
+                                    </div>
+                                  )}
+                                  {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                                    <ul className="space-y-1">
+                                      {puja.materialsIncluded.map((item, i) => (
+                                        <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
+                                          <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
                         <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
                           <div className="text-right">

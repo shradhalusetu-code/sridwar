@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight } from "lucide-react";
+import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight, Check } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { SEVA_OFFERINGS } from "../data/sevaOfferings";
@@ -164,8 +164,13 @@ interface SevaCardProps {
     significance: string;
     impactStat: string;
     templeAssociation: string;
-    donationTiers: Array<{ amount: number; label?: string }>;
+    donationTiers: Array<{ amount: number; label?: string; description?: string }>;
     imageUrl?: string | null;
+    /** How the seva is actually performed and what the devotee receives as
+     *  evidence — present on FEATURED_SEVAS (data/spiritualData.ts) but not
+     *  on every EXTRA_SEVAS entry. Only rendered when present, so nothing is
+     *  ever invented for offerings that don't have it. */
+    blessingExplanation?: string;
   };
   onSponsor: (name: string, price: number) => void;
   /** Optional — true when this card is the deep-link target arriving from
@@ -178,6 +183,19 @@ interface SevaCardProps {
 function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
   const tier = seva.donationTiers[0];
   const { display, original } = getSevaDiscountedPrice(tier.amount);
+  // ─── Compact-by-default "how it's performed" details ────────────────────
+  // Mirrors the exact expand/collapse pattern already used by
+  // SevaOfferingCard.tsx and BazaarOfferingCard.tsx ("What's included · What
+  // you receive"). significance + impactStat stay visible as the compact
+  // "why this matters" summary; blessingExplanation and the other donation
+  // tier descriptions (both previously collected in data but never
+  // rendered anywhere) sit behind this toggle so the price is visibly
+  // justified without lengthening the default card. Only rendered when the
+  // offering actually has this data — EXTRA_SEVAS entries without it fall
+  // back to exactly today's card, unchanged.
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const otherTiers = seva.donationTiers.filter((t) => t.label && t.description);
+  const hasExpandableDetails = !!seva.blessingExplanation || otherTiers.length > 0;
 
   return (
     <div
@@ -236,6 +254,44 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
         <div className="text-[12px] text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-4">
           <strong className="text-[#FFB347]">Impact:</strong> {seva.impactStat}
         </div>
+
+        {hasExpandableDetails && (
+          <>
+            <button
+              type="button"
+              onClick={() => setDetailsExpanded((v) => !v)}
+              aria-expanded={detailsExpanded}
+              className="flex items-center gap-1 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide mb-3 -mt-1 transition-colors"
+            >
+              {detailsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <span>{detailsExpanded ? "Hide details" : "How this is performed · What you receive"}</span>
+            </button>
+
+            {detailsExpanded && (
+              <div className="space-y-3 mb-4">
+                {seva.blessingExplanation && (
+                  <div className="flex items-start space-x-1.5 text-[13px] text-white/70 bg-white/5 px-3 py-2.5 rounded-xl border border-white/10">
+                    <Check className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+                    <span>{seva.blessingExplanation}</span>
+                  </div>
+                )}
+                {otherTiers.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">Ways to contribute</span>
+                    <ul className="space-y-1.5">
+                      {otherTiers.map((t, i) => (
+                        <li key={i} className="text-[13px] text-white/70">
+                          <span className="font-bold text-[#FFB347]">₹{t.amount.toLocaleString("en-IN")} — {t.label}:</span>{" "}
+                          {t.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <button
