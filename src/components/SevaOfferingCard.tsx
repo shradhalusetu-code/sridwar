@@ -8,10 +8,11 @@ import {
   Heart, Utensils, Flame, Wind, Flower2, Landmark,
   Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
-import { SevaOffering, SevaPriceOption, SEVA_OCCASIONS } from "../data/sevaOfferings";
+import { SevaOffering, SevaPriceOption, SEVA_OCCASIONS, SEVA_DISCLAIMER } from "../data/sevaOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import OptimizedImage from "./OptimizedImage";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 
 const renderOfferingIcon = (id: string) => {
@@ -59,6 +60,17 @@ interface SevaOfferingCardProps {
 }
 
 export default function SevaOfferingCard({ offering, isActive, onActivate, onOffer }: SevaOfferingCardProps) {
+  // ✅ DISCLAIMER PLACEMENT FIX: the acknowledgement checkbox previously
+  // lived once, below the entire Seva Offerings grid — a devotee offering
+  // the 4th card had to scroll away from what they were doing to find it.
+  // It now lives inside each card, right above that card's own CTA, and
+  // gates only that card's submit. "This seva includes" / "You will
+  // receive" are also merged into one collapsed-by-default block here
+  // (same "What's Included · What You Receive" pattern already used by
+  // BazaarOfferingCard) so the card isn't lengthened by adding this.
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   // ─── Compact-by-default card (mobile/tablet) ─────────────────────────
   // Mobile-first Seva audit (Stage 2): this card used to always render
   // everything at once — image, badges, full description, "includes" /
@@ -143,6 +155,11 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
   const handleSubmit = () => {
     if (!isActive) { onActivate(); return; }
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById(`seva-offering-disclaimer-${offering.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (isCustomSelected && !customAmountValid) { alert("Custom seva amount starts from ₹100."); return; }
 
     // Pincode is the only field left on this card — validate its format
@@ -197,6 +214,8 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     setCustomAmount("");
     setSelectedPriestId("");
     setSelectedTempleId("");
+    setDisclaimerChecked(false);
+    setShowDisclaimerError(false);
     setJustOffered(true);
     if (justOfferedTimeoutRef.current) clearTimeout(justOfferedTimeoutRef.current);
     justOfferedTimeoutRef.current = setTimeout(() => setJustOffered(false), 6000);
@@ -236,11 +255,6 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
             <span className="text-[10px] font-mono font-bold text-teal-300 uppercase tracking-wider">{offering.category}</span>
             <h4 className="text-[15px] font-serif font-bold text-white leading-snug truncate">{offering.title}</h4>
             <p className="text-[12px] text-white/55 leading-snug line-clamp-1 mt-0.5">{activeDescription}</p>
-            {firstNumericOption && (
-              <span className="inline-block text-[12px] font-extrabold text-[#FFB347] mt-1">
-                Starts at ₹{firstNumericOption.value.toLocaleString("en-IN")}
-              </span>
-            )}
           </div>
           <div className="flex flex-col items-center gap-0.5 shrink-0 text-[#5EEAD4] pl-1">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wide whitespace-nowrap">View & Offer</span>
@@ -300,7 +314,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
         {/* Badges */}
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {["Starts at ₹100", "Digital Certificate", "Evidence Shared", "Seva in Your Name"].map((b) => (
+          {["Digital Certificate", "Evidence Shared", "Seva in Your Name"].map((b) => (
             <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[11px] text-white/55">
               <BadgeCheck className="w-2.5 h-2.5 text-[#5EEAD4]" /><span>{b}</span>
             </span>
@@ -316,27 +330,41 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           </div>
         )}
 
-        <div className="space-y-1.5 mb-3">
-          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This seva includes</span>
-          <ul className="space-y-1">
-            {activeIncludes.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
-                <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setIsDetailsExpanded((v) => !v); }}
+          aria-expanded={isDetailsExpanded}
+          className="flex items-center gap-1 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide mb-3 -mt-1 transition-colors"
+        >
+          {isDetailsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          <span>{isDetailsExpanded ? "Hide details" : "What's included · What you receive"}</span>
+        </button>
 
-        <div className="space-y-1.5 mb-4">
-          <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
-          <ul className="space-y-1">
-            {activeReceives.map((item, i) => (
-              <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
-                <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {isDetailsExpanded && (
+          <>
+            <div className="space-y-1.5 mb-3">
+              <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">This seva includes</span>
+              <ul className="space-y-1">
+                {activeIncludes.map((item, i) => (
+                  <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                    <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-1.5 mb-4">
+              <span className="block text-[12px] font-bold text-white/60 uppercase tracking-wide">You will receive</span>
+              <ul className="space-y-1">
+                {activeReceives.map((item, i) => (
+                  <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                    <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
 
         {/* Amount / option selector — always visible */}
         <div className="mb-3" onClick={(e) => e.stopPropagation()}>
@@ -482,6 +510,19 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3">
           <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
           <span>{offering.certificateTimeline}</span>
+        </div>
+
+        {/* Contribution disclaimer — lives inside this card, right above its
+            own CTA, so a devotee never has to hunt elsewhere to find it. */}
+        <div id={`seva-offering-disclaimer-${offering.id}`} className="mb-3" onClick={(e) => e.stopPropagation()}>
+          <DisclaimerAcknowledge
+            summary="Sevas are performed with devotion as per temple/Gaushala process — timings can vary and no specific outcome is guaranteed."
+            details={SEVA_DISCLAIMER}
+            checked={disclaimerChecked}
+            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+            checkboxLabel="I understand how this seva is performed and confirm before offering."
+            showRequiredError={showDisclaimerError}
+          />
         </div>
 
         <button

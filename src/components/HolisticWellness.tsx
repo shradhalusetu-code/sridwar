@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import OptimizedImage from "./OptimizedImage";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -405,6 +406,20 @@ function ServiceCard({
   onBook: (title: string, price: number) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  // ✅ DISCLAIMER COVERAGE FIX: same required-checkbox gate SevaOfferingCard.tsx
+  // / BazaarOfferingCard.tsx / OnlinePuja.tsx already use before a "Book Now"
+  // commits — Holistic Wellness previously had none.
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
+
+  const handleBookClick = () => {
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById(`wellness-disclaimer-${service.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    onBook(service.title, getDiscountedPrice(service.price));
+  };
 
   return (
     <div
@@ -499,6 +514,19 @@ function ServiceCard({
         )}
       </div>
 
+      {/* Contribution disclaimer — lives inside this card, right above its
+          own "Book Now", same pattern as SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
+      <div id={`wellness-disclaimer-${service.id}`} className="px-5">
+        <DisclaimerAcknowledge
+          summary="This session is guided wellness practice, not medical treatment — timings can vary and no specific outcome is guaranteed."
+          details="Holistic Wellness sessions on Sri Dwar (yoga, meditation, pranayama, and related practices) are offered as general wellbeing guidance by experienced practitioners. They are not medical, psychiatric, or clinical treatment, do not diagnose or treat any condition, and no specific health outcome is guaranteed. Please consult a qualified doctor before starting any new practice if you have an existing health condition."
+          checked={disclaimerChecked}
+          onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+          checkboxLabel="I understand this is guided wellness practice, not medical treatment, and confirm before booking."
+          showRequiredError={showDisclaimerError}
+        />
+      </div>
+
       {/* Footer */}
       <div className="mt-auto px-5 py-4 border-t border-white/8 flex items-center justify-between">
         <div>
@@ -523,7 +551,7 @@ function ServiceCard({
         </div>
         <button
           type="button"
-          onClick={() => onBook(service.title, getDiscountedPrice(service.price))}
+          onClick={handleBookClick}
           className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer"
           style={{
             background: service.categoryColor,

@@ -3,14 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, lazy, Suspense } from "react";
 import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw } from "lucide-react";
 import { Language } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
-import UPIPaymentModal from "./UPIPaymentModal";
+// ✅ BUNDLE-SIZE FIX: Hero.tsx renders on every visit to the homepage and was
+// previously statically importing UPIPaymentModal, which pulled the whole
+// payment modal (and everything it imports) into the eager main bundle for
+// every visitor — even devotees who never open it. Loaded on demand instead,
+// matching the lazy() pattern already used for every page in App.tsx.
+const UPIPaymentModal = lazy(() => import("./UPIPaymentModal"));
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
@@ -714,15 +719,17 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       )}
 
     {/* UPI Payment Modal for Darshan Certificate divine contribution */}
-    <UPIPaymentModal
-      isOpen={showUPI}
-      onClose={() => setShowUPI(false)}
-      onPaymentConfirmed={handleDarshanPaymentConfirmed}
-      amount={upiAmount}
-      bookingName="Darshan Certificate Divine Contribution"
-      devoteeName={name}
-      refId={refId}
-    />
+    <Suspense fallback={null}>
+      <UPIPaymentModal
+        isOpen={showUPI}
+        onClose={() => setShowUPI(false)}
+        onPaymentConfirmed={handleDarshanPaymentConfirmed}
+        amount={upiAmount}
+        bookingName="Darshan Certificate Divine Contribution"
+        devoteeName={name}
+        refId={refId}
+      />
+    </Suspense>
     </div>
   );
 }

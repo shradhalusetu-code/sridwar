@@ -8,7 +8,7 @@ import { FEATURED_SEVAS } from "../data/spiritualData";
 import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight, Check, AlertCircle, MapPin } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
-import { SEVA_OFFERINGS, SEVA_DISCLAIMER, SEVA_OCCASIONS } from "../data/sevaOfferings";
+import { SEVA_OFFERINGS, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
@@ -689,7 +689,24 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               All Sevas Start at ₹100
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Mobile/app: horizontal snap carousel — all 6 Seva Offerings fit
+              here, so there is no separate "remaining offerings" overflow
+              for this section specifically. Desktop (lg+): unchanged grid. */}
+          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+            <div className="flex gap-4 w-max pb-1">
+              {SEVA_OFFERINGS.map((offering) => (
+                <div key={offering.id} className="snap-start shrink-0 w-[280px]">
+                  <SevaOfferingCard
+                    offering={offering}
+                    isActive={activeOfferingId === offering.id}
+                    onActivate={() => setActiveOfferingId(offering.id)}
+                    onOffer={handleOfferSeva}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SEVA_OFFERINGS.map((offering) => (
               <SevaOfferingCard
                 key={offering.id}
@@ -700,13 +717,6 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               />
             ))}
           </div>
-
-          {/* Disclaimer — same placement pattern as the Bazaar and Simple
-              Pujas sections, so every offering type is consistent about
-              process transparency and makes no outcome guarantees. */}
-          <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl mx-auto text-center">
-            {SEVA_DISCLAIMER}
-          </p>
         </div>
 
         {/* Live Devotional Dashboard — temporarily disabled, see

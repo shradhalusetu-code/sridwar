@@ -163,7 +163,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ctaLabels: { primary: "Offer in Temple", secondary: "Add to Cart" },
     imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
     isService: true,
-    badges: ["Starts at ₹100", "Temple Offering Available", "Digital Confirmation"],
+    badges: ["Temple Offering Available", "Digital Confirmation"],
     // Verified against the live priest directory: union match count 33.
     priestKeywords: ["festival", "health", "wealth"],
   },
@@ -206,7 +206,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ctaLabels: { primary: "Buy Now", secondary: "Add to Cart" },
     imageUrl: import.meta.env.BASE_URL + "images/Home Puja Kit.jpg",
     isService: false,
-    badges: ["Starts at ₹100", "Digital Confirmation"],
+    badges: ["Digital Confirmation"],
     // Verified against the live priest directory: union match count 41.
     priestKeywords: ["festival", "protection", "health"],
   },
@@ -252,7 +252,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ctaLabels: { primary: "Buy Now", secondary: "Add to Cart" },
     imageUrl: import.meta.env.BASE_URL + "images/Rudraksha Mala.jpg",
     isService: false,
-    badges: ["Starts at ₹100", "Bless Before Dispatch", "Digital Confirmation"],
+    badges: ["Bless Before Dispatch", "Digital Confirmation"],
     // Verified against the live priest directory: union match count 41.
     priestKeywords: ["health", "protection", "festival"],
   },
@@ -298,7 +298,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ctaLabels: { primary: "Buy Now", secondary: "Add to Cart" },
     imageUrl: import.meta.env.BASE_URL + "images/Aarti.jpg",
     isService: false,
-    badges: ["Starts at ₹100", "Digital Confirmation"],
+    badges: ["Digital Confirmation"],
     // Verified against the live priest directory: union match count 28.
     priestKeywords: ["festival", "protection"],
   },
@@ -341,7 +341,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ctaLabels: { primary: "Buy Now", secondary: "Add to Cart" },
     imageUrl: import.meta.env.BASE_URL + "images/prasad.jpg",
     isService: false,
-    badges: ["Starts at ₹100", "Digital Confirmation"],
+    badges: ["Digital Confirmation"],
     // Verified against the live priest directory: union match count 33.
     priestKeywords: ["festival", "wealth", "health"],
   },

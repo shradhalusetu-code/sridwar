@@ -9,6 +9,7 @@ import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
 import OptimizedImage from "./OptimizedImage";
@@ -35,6 +36,12 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
   const [donationAmount, setDonationAmount] = useState<number | null>(null);
   const [showDonation, setShowDonation] = useState(false);
   const [showUPI, setShowUPI] = useState(false);
+  // ✅ DISCLAIMER COVERAGE: this message is sent immediately on submit —
+  // before the optional UPI contribution modal ever opens — so it needs
+  // its own acknowledgement rather than relying on the payment modal's,
+  // which this flow may never reach.
+  const [contactDisclaimerChecked, setContactDisclaimerChecked] = useState(false);
+  const [showContactDisclaimerError, setShowContactDisclaimerError] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [refId, setRefId] = useState("");
 
@@ -53,6 +60,11 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
   if (nameErr)  { alert(nameErr);  return; }
   if (emailErr) { alert(emailErr); return; }
   if (phoneErr) { alert(phoneErr); return; }
+  if (!contactDisclaimerChecked) {
+    setShowContactDisclaimerError(true);
+    document.getElementById("contact-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
   // ────────────────────────────────────────────────────────────────────────
 
   setIsSyncing(true);
@@ -384,6 +396,18 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
                   <span>Powered by Sri Dwar Technology</span>
+                </div>
+
+                {/* Required acknowledgement — gates Submit below. */}
+                <div id="contact-disclaimer-acknowledge">
+                  <DisclaimerAcknowledge
+                    summary="Your details are used only to respond to this query and send related updates — not shared beyond what's needed to process it."
+                    details="Sri Dwar retains your name, email, and phone number to respond to this query, coordinate with the relevant temple priest or team where needed, and send you status updates. We do not sell your details or share them beyond what's needed to process this request. Response times vary by query type and season; we aim to respond within 2 working days but this is not a guaranteed turnaround."
+                    checked={contactDisclaimerChecked}
+                    onCheckedChange={(v) => { setContactDisclaimerChecked(v); if (v) setShowContactDisclaimerError(false); }}
+                    checkboxLabel="I understand and agree to the above before sending my message."
+                    showRequiredError={showContactDisclaimerError}
+                  />
                 </div>
 
                 {/* Submit action */}

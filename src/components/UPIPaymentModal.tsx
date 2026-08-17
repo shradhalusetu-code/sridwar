@@ -6,6 +6,8 @@
 import { useState } from "react";
 import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles } from "lucide-react";
 import { buildUpiQrImageUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
+import CollapsibleSection from "./CollapsibleSection";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 
 // ─────────────────────────────────────────────────────────────────────────
 // ✅ CONTRIBUTION-BENEFITS UPDATE: this modal is the single shared payment
@@ -33,6 +35,17 @@ function getContributionBenefits(amount: number): string[] {
   }
   return benefits;
 }
+
+// ✅ CONTRIBUTION-DISCLAIMER SAFETY NET: this modal is the single shared
+// payment surface every contribution-structured flow on the site funnels
+// through — including flows that don't yet have their own card-level
+// disclaimer (Puja, Counselling, Testimony/Prayer Wall contributions,
+// Subscriptions, etc.). Card-level gates (Seva, Bazaar) are the primary,
+// convenient place a devotee ticks this; this is the backstop that makes
+// sure no payment path is ever missing an acknowledgement, no matter which
+// page or form led here.
+const PAYMENT_DISCLAIMER =
+  "This payment is submitted for manual verification — nobody has checked yet that it landed, so your booking is only confirmed once our team verifies it, usually within 2 hours. Sevas, pujas and offerings are performed with devotion as per temple/priest process; timings may vary. Contribution benefits (cashback, milestones, pilgrimage eligibility, campaign entries) are genuine platform benefits linked to real, paid bookings — not a guarantee of any spiritual outcome, and not an investment or money-circulation scheme.";
 
 interface UPIPaymentModalProps {
   isOpen: boolean;
@@ -97,6 +110,12 @@ export default function UPIPaymentModal({
   // landed.
   const [submitted, setSubmitted] = useState(false);
   const [customAmount, setCustomAmount] = useState<number | "">(amount || "");
+  // ✅ CONTRIBUTION-DISCLAIMER SAFETY NET: required before either "I Have
+  // Paid" or "Pay via WhatsApp" can proceed. Resets to unticked each time
+  // the modal opens fresh, same as the rest of this component's local
+  // state (isOpen guard below).
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
 
   if (!isOpen) return null;
 
@@ -130,6 +149,11 @@ export default function UPIPaymentModal({
   const handleWhatsAppPay = () => {
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
       alert("Minimum divine contribution is ₹" + minAmount);
+      return;
+    }
+    if (!disclaimerAccepted) {
+      setShowDisclaimerError(true);
+      document.getElementById("upi-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     const message = encodeURIComponent(
@@ -171,6 +195,11 @@ export default function UPIPaymentModal({
     if (submitted) return; // guard against double-tap before re-render
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
       alert("Minimum divine contribution is ₹" + minAmount);
+      return;
+    }
+    if (!disclaimerAccepted) {
+      setShowDisclaimerError(true);
+      document.getElementById("upi-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     setSubmitted(true);
@@ -258,24 +287,49 @@ export default function UPIPaymentModal({
             {/* ✅ CONTRIBUTION-BENEFITS UPDATE: honest, non-exaggerated,
                 amount-linked benefits — updates live as a custom amount is
                 typed, so the devotee always sees what THIS contribution
-                genuinely unlocks rather than a generic promotional list. */}
+                genuinely unlocks rather than a generic promotional list.
+                Collapsed to one summary line by default (CollapsibleSection)
+                per the "mention it, then let them expand" pattern used for
+                every contribution section site-wide. */}
             {getContributionBenefits(Number(effectiveAmount) || 0).length > 0 && (
-              <div className="bg-[#FFB347]/8 border border-[#FFB347]/25 rounded-xl px-3.5 py-3 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#FFB347] uppercase tracking-wide">
-                  <Gift className="w-3.5 h-3.5" /><span>Your contribution also brings you</span>
-                </div>
-                <ul className="space-y-1">
-                  {getContributionBenefits(Number(effectiveAmount) || 0).map((b) => (
-                    <li key={b} className="flex items-start gap-1.5 text-[12px] text-white/70 leading-snug">
-                      <Sparkles className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-[10px] text-white/35 leading-snug pt-0.5">
-                  Genuine platform benefits, not a guarantee of any spiritual outcome. Higher contributions unlock more — see Refer & Earn for full details.
-                </p>
+              <div className="bg-[#FFB347]/8 border border-[#FFB347]/25 rounded-xl px-3.5 py-3">
+                <CollapsibleSection
+                  defaultExpandedOnDesktop={false}
+                  icon={<Gift className="w-3.5 h-3.5 text-[#FFB347]" />}
+                  title="Your contribution also brings you"
+                  summary={`This ₹${effectiveAmount || 0} contribution unlocks ${getContributionBenefits(Number(effectiveAmount) || 0).length} genuine platform benefit${getContributionBenefits(Number(effectiveAmount) || 0).length > 1 ? "s" : ""} — tap to see them.`}
+                >
+                  <ul className="space-y-1">
+                    {getContributionBenefits(Number(effectiveAmount) || 0).map((b) => (
+                      <li key={b} className="flex items-start gap-1.5 text-[12px] text-white/70 leading-snug">
+                        <Sparkles className="w-3 h-3 text-[#FFB347] shrink-0 mt-0.5" /><span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[10px] text-white/35 leading-snug pt-1.5">
+                    Genuine platform benefits, not a guarantee of any spiritual outcome. Higher contributions unlock more — see Refer & Earn for full details.
+                  </p>
+                </CollapsibleSection>
               </div>
             )}
+
+            {/* Required acknowledgement — gates both "I Have Paid" and "Pay
+                via WhatsApp" below. This is the safety-net checkbox for any
+                flow that reaches payment without its own earlier card-level
+                disclaimer (Puja, Counselling, Testimony contributions,
+                Subscriptions, etc.) — Seva/Bazaar already gate earlier, at
+                their own card, which stays the more convenient place for
+                those two flows specifically. */}
+            <div id="upi-disclaimer-acknowledge">
+              <DisclaimerAcknowledge
+                summary="This payment is submitted for manual verification, not confirmed instantly — read the full terms before proceeding."
+                details={PAYMENT_DISCLAIMER}
+                checked={disclaimerAccepted}
+                onCheckedChange={(v) => { setDisclaimerAccepted(v); if (v) setShowDisclaimerError(false); }}
+                checkboxLabel="I understand and accept the above before completing payment."
+                showRequiredError={showDisclaimerError}
+              />
+            </div>
 
             {/* Dynamic UPI QR Code */}
             <div className="flex flex-col items-center space-y-2">

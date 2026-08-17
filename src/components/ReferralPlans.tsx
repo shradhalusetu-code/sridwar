@@ -18,6 +18,7 @@ import {
 import { fetchReferralList } from "../lib/referrals";
 import { fetchActivities } from "../lib/activities";
 import SubscriptionSignup from "./SubscriptionSignup";
+import CollapsibleSection from "./CollapsibleSection";
 
 const CATEGORY_ICONS = { Users, Flame, Landmark, Sparkles, BookOpen, HeartHandshake } as const;
 
@@ -367,7 +368,28 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
             </p>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {/* Mobile/app: horizontal snap carousel — matches the Seva
+              Offerings / Bazaar Offerings carousel pattern. Desktop (lg+):
+              unchanged 5-column grid. */}
+          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+            <div className="flex gap-3 w-max pb-1">
+              {activeTiers.map((tier, index) => {
+                const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
+                return (
+                  <div key={tier.id} className="snap-start shrink-0 w-[240px]">
+                    <PlanTierCard
+                      tier={tier}
+                      billing={billing}
+                      onSelect={() => setActiveSignup({ tier, billing })}
+                      unlocked={isTierUnlocked(activeCategory, index, qualifiedCount)}
+                      unlockRequirement={tierUnlockRequirementLabel(activeCategory, index)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {activeTiers.map((tier, index) => {
               const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
               return (
@@ -476,12 +498,15 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
           </div>
         </div>
 
-        {/* Trust / Fraud Prevention / Legal strip */}
+        {/* Trust / Fraud Prevention / Legal strip — collapsed by default on
+            phone/tablet (CollapsibleSection), fully expanded on desktop,
+            same as every other long section on this page. */}
         <div className="bg-[#092320] border border-white/10 rounded-3xl p-5 sm:p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />
-            <h2 className="font-serif text-base font-bold text-white">Secure, Fair & Fraud-Protected</h2>
-          </div>
+          <CollapsibleSection
+            icon={<ShieldCheck className="w-5 h-5 text-[#5EEAD4]" />}
+            title="Secure, Fair & Fraud-Protected"
+            summary="One person, one Dharmic ID; cashback only on real, paid bookings; KYC above payout thresholds; consent-gated contact sharing; manual + automated review. Tap to read the full fraud-protection rules and cashback disclaimer."
+          >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 mb-4">
             {FRAUD_PREVENTION_RULES.map((r) => (
               <div key={r.title} className="bg-[#021816] border border-white/5 rounded-xl p-3">
@@ -514,6 +539,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               Legal Disclaimer <ChevronRight className="w-3 h-3" />
             </button>
           </div>
+          </CollapsibleSection>
         </div>
 
         {/* Setu Yatra Challenge — moved here from the homepage Hero, same

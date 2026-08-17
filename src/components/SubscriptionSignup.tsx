@@ -30,6 +30,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronRight, Check, ShieldCheck, MapPin, Sparkles, Download } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
 import UPIPaymentModal from "./UPIPaymentModal";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
@@ -103,6 +104,14 @@ export default function SubscriptionSignup({
   const [expertise, setExpertise] = useState("");
   const [refId, setRefId] = useState("");
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
+  // ✅ DISCLAIMER COVERAGE: this step-1 submit registers the devotee's
+  // details and, for FREE tiers, activates the subscription immediately —
+  // no UPI modal is ever shown on that path. Even the PAID path registers
+  // a "pending" record here before payment. So this needs its own gate
+  // rather than relying on UPIPaymentModal's, which the free path never
+  // reaches.
+  const [signupDisclaimerChecked, setSignupDisclaimerChecked] = useState(false);
+  const [showSignupDisclaimerError, setShowSignupDisclaimerError] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
   const isSubmittingRef = useRef(false);
@@ -157,6 +166,11 @@ export default function SubscriptionSignup({
       !isDevoteeTier(tier) && selectedServices.length === 0 ? "Please select at least one service." : null,
     );
     if (err) { alert(err); return; }
+    if (!signupDisclaimerChecked) {
+      setShowSignupDisclaimerError(true);
+      document.getElementById("signup-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     gaEvent("subscription_details_submit", { category, tier_id: tier.id, billing });
 
@@ -401,6 +415,23 @@ export default function SubscriptionSignup({
                     <textarea rows={3} value={expertise} onChange={(e) => setExpertise(e.target.value)}
                       placeholder={EXPERTISE_PLACEHOLDER[category]}
                       className="w-full text-xs p-3 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white placeholder-white/20 text-left" />
+                  </div>
+
+                  {/* Required acknowledgement — gates Continue below, covers
+                      both the free-tier instant-activation path (no UPI
+                      modal ever shown) and the paid path's step-1 details
+                      registration. */}
+                  <div id="signup-disclaimer-acknowledge">
+                    <DisclaimerAcknowledge
+                      summary={isFree
+                        ? "Free plan activation is subject to review — listing visibility and referral benefits are platform features, not guaranteed income."
+                        : "Your subscription activates once payment is verified — read the full terms before continuing to payment."}
+                      details="Sri Dwar reviews new provider profiles before they go live and may request additional verification. Listing visibility, referral cashback tiers, and campaign eligibility are genuine platform features tied to real activity on the platform — not a guaranteed income, investment, or money-circulation scheme. For paid plans, your subscription is activated once payment is verified by our team, typically within a few hours; the amount and billing cycle shown at the next step apply from that point. Your details are used to list and contact you for this purpose and are not sold to third parties."
+                      checked={signupDisclaimerChecked}
+                      onCheckedChange={(v) => { setSignupDisclaimerChecked(v); if (v) setShowSignupDisclaimerError(false); }}
+                      checkboxLabel="I understand and agree to the above before continuing."
+                      showRequiredError={showSignupDisclaimerError}
+                    />
                   </div>
 
                   <button type="submit" disabled={isSyncingDetails}

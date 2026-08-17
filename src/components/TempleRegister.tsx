@@ -28,6 +28,7 @@ import { makeSubmissionRef, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
 import { getShareOrigin, isNativeAndroidApp } from "../utils/shareUrl";
@@ -547,6 +548,11 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
     selectedInterests: [], message: "", donationAmount: "", donationNote: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // ✅ DISCLAIMER COVERAGE: "Submit and Proceed" below fires the first
+  // (Pending) Google Forms row immediately — before any divine
+  // contribution/payment step is shown — so it needs its own gate.
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
 
   // ── Back-button trap ──────────────────────────────────────────────────
   // This section is always reached from a non-default state of its parent
@@ -626,6 +632,11 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   // it used to lock in "Skipped" before the devotee had even seen the
   // divine contribution options, so a later real payment never showed up correctly. ──
   const handleContinueToDonate = async () => {
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById("devotee-reg-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setSubmitting(true);
     try {
       await postDevoteePendingRow(buildPayload("Pending — Awaiting Decision"), refIdRef.current);
@@ -998,6 +1009,18 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        {/* Required acknowledgement — gates "Submit and Proceed" below. */}
+        <div id="devotee-reg-disclaimer-acknowledge">
+          <DisclaimerAcknowledge
+            summary="Your details are used to register your Dharmic profile and coordinate services you request — a genuine registration, not a guarantee of any specific outcome."
+            details="Sri Dwar retains your name, contact details, and stated interests to register your Dharmic profile, coordinate any pujas/sevas/services you separately book, and send related updates. Any optional divine contribution on the next step is a genuine platform contribution, not a guarantee of any spiritual outcome, investment, or money-circulation scheme. We do not sell your details to third parties."
+            checked={disclaimerChecked}
+            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+            checkboxLabel="I understand and agree to the above before proceeding."
+            showRequiredError={showDisclaimerError}
+          />
+        </div>
+
         <button onClick={handleContinueToDonate} disabled={submitting}
           className="w-full bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] disabled:opacity-60 text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20">
           {submitting ? (
@@ -1078,6 +1101,11 @@ function DharmicExpertSection() {
   const [submitting, setSubmitting] = useState(false);
   const [basicSubmitted, setBasicSubmitted] = useState(false);
   const [basicSyncError, setBasicSyncError] = useState(false);
+  // ✅ DISCLAIMER COVERAGE: "Submit & Continue" below fires the first
+  // (Pending) Google Forms row immediately — before any divine
+  // contribution/payment step is shown — so it needs its own gate.
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
   const [showUpi, setShowUpi] = useState(false);
   const [upiRefId, setUpiRefId] = useState("");
   // Set only when a real divine contribution was paid (not on Skip) — drives
@@ -1225,9 +1253,16 @@ function DharmicExpertSection() {
   // the same Ref ID instead of a brand-new, disconnected entry.
   const handleContinueToServices = async () => {
     if (!validateBasic()) return;
-    // If already submitted basic details once, just navigate (no re-submit)
+    // If already submitted basic details once, just navigate (no re-submit,
+    // no re-check — the disclaimer was already accepted before that first
+    // submit went out).
     if (basicSubmitted) {
       setExpertStep("form-services");
+      return;
+    }
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById("expert-reg-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     setSubmitting(true);
@@ -1938,6 +1973,20 @@ function DharmicExpertSection() {
           </div>
         </div>
 
+        {/* Required acknowledgement — gates "Submit & Continue" below (only
+            on first submit; see basicSubmitted check in
+            handleContinueToServices). */}
+        <div id="expert-reg-disclaimer-acknowledge">
+          <DisclaimerAcknowledge
+            summary="Your details are used to list your profile on Sri Dwar and coordinate services devotees book with you — a genuine registration, not a guarantee of bookings or income."
+            details="Sri Dwar reviews new expert/pujari profiles before they go live and may request additional verification. Being listed does not guarantee any number of bookings or income — it depends on genuine devotee interest in your services. Your details are used to list your profile, coordinate bookings, and send related updates; we do not sell them to third parties. Any optional divine contribution on the next step is a genuine platform contribution, not a guarantee of any spiritual outcome."
+            checked={disclaimerChecked}
+            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+            checkboxLabel="I understand and agree to the above before proceeding."
+            showRequiredError={showDisclaimerError}
+          />
+        </div>
+
         {/* CTA buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <button
@@ -2084,6 +2133,15 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   const [templeRegStep, setTempleRegStep] = useState<"details" | "divine contribution" | "done">("details");
   const [templeRegDonationAmount, setTempleRegDonationAmount] = useState("");
   const [templeRegDonationNote, setTempleRegDonationNote] = useState("");
+  // ✅ DISCLAIMER COVERAGE: handleTempleRegSubmit fires a Pending row
+  // immediately on submit, before any divine-contribution step is shown.
+  const [templeRegDisclaimerChecked, setTempleRegDisclaimerChecked] = useState(false);
+  const [showTempleRegDisclaimerError, setShowTempleRegDisclaimerError] = useState(false);
+  // ✅ DISCLAIMER COVERAGE: handleDevoteeSubmit (search-a-temple → register
+  // as devotee → get Dharmic ID flow, further below) also fires a Pending
+  // row immediately on submit.
+  const [devoteeFlowDisclaimerChecked, setDevoteeFlowDisclaimerChecked] = useState(false);
+  const [showDevoteeFlowDisclaimerError, setShowDevoteeFlowDisclaimerError] = useState(false);
   // Set only when a real divine contribution was paid (not on Skip) — drives
   // the devotional confirmation shown on the "done" success screen below.
   const [templeRegDonationConfirmed, setTempleRegDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
@@ -2170,6 +2228,11 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   // and the Temple/Puja Committee flow (handleTempleRegSubmit) above.
   const handleDevoteeSubmit = async () => {
     if (!validateDevotee()) return;
+    if (!devoteeFlowDisclaimerChecked) {
+      setShowDevoteeFlowDisclaimerError(true);
+      document.getElementById("devotee-flow-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setSubmittingDevotee(true);
     try {
       await submitToForm({
@@ -2279,6 +2342,11 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
     if (templeReg.contactEmail) { const ce = validateEmail(templeReg.contactEmail); if (ce) errs.contactEmail = ce; }
     setTempleRegErrors(errs);
     if (Object.keys(errs).length > 0) return;
+    if (!templeRegDisclaimerChecked) {
+      setShowTempleRegDisclaimerError(true);
+      document.getElementById("temple-reg-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     // Step 1: sync Temple / Committee Details immediately — recorded as
     // "Pending", sharing templeRegRefIdRef so the divine contribution follow-up row
@@ -2717,6 +2785,18 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
               {/* ── Divine Contribution section removed from this step — shown on next card after submit ── */}
 
+              {/* Required acknowledgement — gates the submit button below. */}
+              <div id="temple-reg-disclaimer-acknowledge">
+                <DisclaimerAcknowledge
+                  summary="This registers your temple/committee's details for review and listing — not an automatic or guaranteed listing."
+                  details="Sri Dwar reviews temple and committee registrations before listing them, and may contact the provided contact person to verify details. Listing does not guarantee any specific volume of devotee bookings, contributions, or visibility. Contact details are used to verify and coordinate this registration and are not sold to third parties."
+                  checked={templeRegDisclaimerChecked}
+                  onCheckedChange={(v) => { setTempleRegDisclaimerChecked(v); if (v) setShowTempleRegDisclaimerError(false); }}
+                  checkboxLabel="I understand and agree to the above before submitting."
+                  showRequiredError={showTempleRegDisclaimerError}
+                />
+              </div>
+
               <button
                 onClick={handleTempleRegSubmit}
                 disabled={submittingTempleReg}
@@ -3045,6 +3125,18 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 rows={3}
                 placeholder="Gotra, Rashi, special prayers, or any message for the temple…"
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-[#5EEAD4]/50 transition-all resize-none"
+              />
+            </div>
+
+            {/* Required acknowledgement — gates the submit button below. */}
+            <div id="devotee-flow-disclaimer-acknowledge">
+              <DisclaimerAcknowledge
+                summary="This registers your visit/puja request with the selected temple and generates your Dharmic ID — a genuine registration, not a guarantee of any specific outcome."
+                details="Sri Dwar shares your name, phone, and stated puja/seva request with the selected temple to coordinate your visit or request, and generates a Dharmic ID for your profile. We do not sell your details to third parties. Any optional divine contribution on the next step is a genuine platform contribution, not a guarantee of any spiritual outcome, investment, or money-circulation scheme."
+                checked={devoteeFlowDisclaimerChecked}
+                onCheckedChange={(v) => { setDevoteeFlowDisclaimerChecked(v); if (v) setShowDevoteeFlowDisclaimerError(false); }}
+                checkboxLabel="I understand and agree to the above before submitting."
+                showRequiredError={showDevoteeFlowDisclaimerError}
               />
             </div>
 

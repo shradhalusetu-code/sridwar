@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useRef, useEffect, ElementType } from "react";
-import { ON_LINE_PUJAS } from "../data/spiritualData";
+import { ON_LINE_PUJAS, PUJA_DISCLAIMER } from "../data/spiritualData";
 import { getPriestByDetails, getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import { SEVA_OCCASIONS } from "../data/sevaOfferings";
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import OptimizedImage from "./OptimizedImage";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
@@ -554,6 +555,11 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   const [errors, setErrors] = useState<{ pincode?: string; pujaDate?: string }>({});
   const [justBooked, setJustBooked] = useState(false);
   const justBookedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ✅ DISCLAIMER COVERAGE FIX: same gate SevaOfferingCard.tsx /
+  // BazaarOfferingCard.tsx already require before a devotee can submit —
+  // Simple Pujas previously had no acknowledgement step at all.
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -581,6 +587,11 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
   const handleSubmit = () => {
     if (!isActive) { onActivate(); return; }
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById(`simple-puja-disclaimer-${offering.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (isCustomSelected && !customAmountValid) { alert("Custom sankalp amount starts from ₹100."); return; }
 
     const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
@@ -638,6 +649,8 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     setCustomAmount("");
     setSelectedPriestId("");
     setSelectedTempleId("");
+    setDisclaimerChecked(false);
+    setShowDisclaimerError(false);
     setJustBooked(true);
     if (justBookedTimeoutRef.current) clearTimeout(justBookedTimeoutRef.current);
     justBookedTimeoutRef.current = setTimeout(() => setJustBooked(false), 6000);
@@ -873,6 +886,19 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
         <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3">
           <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
           <span>{offering.certificateTimeline}</span>
+        </div>
+
+        {/* Contribution disclaimer — lives inside this card, right above its
+            own CTA, same pattern as SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
+        <div id={`simple-puja-disclaimer-${offering.id}`} className="mb-3" onClick={(e) => e.stopPropagation()}>
+          <DisclaimerAcknowledge
+            summary="Pujas are performed with devotion as per temple process and priest availability — timings can vary and no specific outcome is guaranteed."
+            details={PUJA_DISCLAIMER}
+            checked={disclaimerChecked}
+            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+            checkboxLabel="I understand how this puja is performed and confirm before booking."
+            showRequiredError={showDisclaimerError}
+          />
         </div>
 
         <button

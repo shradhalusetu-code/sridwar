@@ -6,6 +6,13 @@
 import { Seva, Puja, Product, Mantra, DailyHoroscope } from "../types";
 import { TEMPLES_LIST } from "./temples";
 
+// ✅ DISCLAIMER COVERAGE FIX: Simple Pujas previously had no disclaimer
+// acknowledgement gate before booking, unlike Seva Offerings (SEVA_DISCLAIMER
+// in sevaOfferings.ts) and Bazaar (BAZAAR_DISCLAIMER in bazaarOfferings.ts).
+// Same purpose, worded for a puja/sankalp rather than a seva contribution.
+export const PUJA_DISCLAIMER =
+  "Pujas are performed with devotion as per temple process and priest availability. Timings may vary depending on temple schedule, festival rush, and local logistics. A puja/sankalp is an act of devotion and does not guarantee any specific outcome.";
+
 // Reuses each temple's own already-imported deity image — no external URLs.
 const getTempleImage = (templeId: string): string => {
   const temple = TEMPLES_LIST.find((t) => t.id === templeId);

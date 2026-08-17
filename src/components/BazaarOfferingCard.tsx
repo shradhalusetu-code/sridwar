@@ -14,11 +14,12 @@ import { useState, useMemo } from "react";
 import {
   ShoppingBag, Flame, Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, Gift, MapPin, AlertCircle,
 } from "lucide-react";
-import { BazaarProduct, BazaarPriceOption, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE } from "../data/bazaarOfferings";
+import { BazaarProduct, BazaarPriceOption, BAZAAR_ADDONS, BAZAAR_CUSTOM_AMOUNT_NOTE, BAZAAR_DISCLAIMER } from "../data/bazaarOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import { SEVA_OCCASIONS } from "../data/sevaOfferings";
 import OptimizedImage from "./OptimizedImage";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { validatePincode } from "../utils/formValidation";
 
 // Bhog Offerings is the one Devotional Shopping product actually offered
@@ -80,6 +81,14 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   // scan the Bazaar grid by photo/title/badges/price first, then open a
   // card for detail. isActive/CTA/booking fields are unaffected.
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+  // ✅ DISCLAIMER PLACEMENT FIX: previously the acknowledgement checkbox
+  // lived once, at the bottom of the whole Temple Bazaar Store page — a
+  // devotee filling out any one product card had to scroll all the way
+  // down to find it, then back up to actually tap "Offer in Temple"/"Add
+  // to Cart". It now lives inside this card, right above those buttons,
+  // and gates only this card's own actions.
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
   // Delivery PIN code — only relevant for physical (non-service) items, since
   // shipping cost/availability depends on it. Captured inline on the card
   // (same pattern as Simple Pujas) so it's known before checkout even opens.
@@ -156,10 +165,17 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
     setSelectedPriestId("");
     setOccasion("");
     setSelectedTempleId("");
+    setDisclaimerChecked(false);
+    setShowDisclaimerError(false);
   };
 
   const handlePrimary = () => {
     if (!isActive) { onActivate(); return; }
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById(`bazaar-offering-disclaimer-${product.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (isCustomSelected && !customAmountValid) { alert(BAZAAR_CUSTOM_AMOUNT_NOTE); return; }
     if (!product.isService) {
       const err = validatePincode(pincode);
@@ -173,6 +189,11 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
 
   const handleAddToCart = () => {
     if (!isActive) { onActivate(); return; }
+    if (!disclaimerChecked) {
+      setShowDisclaimerError(true);
+      document.getElementById(`bazaar-offering-disclaimer-${product.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (isCustomSelected && !customAmountValid) { alert(BAZAAR_CUSTOM_AMOUNT_NOTE); return; }
     if (!product.isService) {
       const err = validatePincode(pincode);
@@ -477,7 +498,20 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10 mb-3">
+        <div id={`bazaar-offering-disclaimer-${product.id}`} className="mt-auto" onClick={(e) => e.stopPropagation()}>
+          <DisclaimerAcknowledge
+            summary={product.isService
+              ? "This offering is performed with devotion as per temple process — timings can vary and no specific outcome is guaranteed."
+              : "This item is dispatched with care after payment confirmation — delivery timelines can vary by location."}
+            details={BAZAAR_DISCLAIMER}
+            checked={disclaimerChecked}
+            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+            checkboxLabel="I understand and confirm before proceeding."
+            showRequiredError={showDisclaimerError}
+          />
+        </div>
+
+        <div className="flex items-center justify-between pt-3 border-t border-white/10 mb-3 mt-3">
           <span className="text-[12px] text-white/50">Total</span>
           <span className="text-base font-extrabold text-[#FFB347] font-serif">₹{finalAmount > 0 ? finalAmount.toLocaleString("en-IN") : "—"}</span>
         </div>

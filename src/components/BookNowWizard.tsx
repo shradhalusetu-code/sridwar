@@ -8,6 +8,7 @@ import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from 
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import UPIPaymentModal from "./UPIPaymentModal";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import SriDwarLogo from "./SriDwarLogo";
 import { getDevotionalConfirmation, downloadConfirmationMessage, DevotionalServiceCategory } from "../utils/devotionalMessages";
 import { isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
@@ -174,6 +175,13 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Request Acknowledgement (NOT a completion certificate — see wizard-success-stage below)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
+  // ✅ DISCLAIMER COVERAGE: this is the shared Sankalpa Portal behind Puja,
+  // Counselling & Guidance, and Holistic Wellness — step 1 (this form)
+  // syncs a "Pending" record before the UPI payment step is ever shown, so
+  // it needs its own gate rather than relying solely on UPIPaymentModal's,
+  // which the devotee only reaches after this submit.
+  const [wizardDisclaimerChecked, setWizardDisclaimerChecked] = useState(false);
+  const [showWizardDisclaimerError, setShowWizardDisclaimerError] = useState(false);
 
   const [pujaName, setPujaName] = useState(defaultPujaName || "Graha Shanti Maha Puja");
   const [price, setPrice] = useState(defaultPrice);
@@ -300,6 +308,11 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     if (phoneErr) { alert(phoneErr); return; }
     if (emailErr) { alert(emailErr); return; }
     if (dobErr)   { alert(dobErr);   return; }
+    if (!wizardDisclaimerChecked) {
+      setShowWizardDisclaimerError(true);
+      document.getElementById("wizard-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     gaBookingDetailsSubmit(pujaName, price);
 
     isSubmittingRef.current = true;
@@ -573,6 +586,32 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                   <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10">
                     <Database className="w-3.5 h-3.5 fill-[#5EEAD4]/20 text-[#5EEAD4]" />
                     <span>Powered by Sri Dwar Technology</span>
+                  </div>
+
+                  {/* Required acknowledgement — gates the submit button
+                      below. Summary is category-aware since this same
+                      wizard serves Puja, Counselling, and Wellness. */}
+                  <div id="wizard-disclaimer-acknowledge">
+                    <DisclaimerAcknowledge
+                      summary={
+                        isGuidance
+                          ? "This session is guidance and support, not medical or legal advice, and no specific outcome is guaranteed — read the full terms before continuing."
+                          : isWellness
+                          ? "This enrollment is a wellness/learning offering, not a medical treatment, and no specific outcome is guaranteed — read the full terms before continuing."
+                          : "This puja/seva is performed with devotion as per temple/priest process — timings can vary and no specific outcome is guaranteed."
+                      }
+                      details={
+                        isGuidance
+                          ? "Counselling & Guidance sessions offer supportive listening and general spiritual/life guidance from our team — they are not a substitute for professional medical, psychiatric, or legal advice, and do not diagnose or treat any condition. Your booking is confirmed once payment is verified, typically within 2 hours. Session timing is coordinated after booking and may vary by counsellor availability."
+                          : isWellness
+                          ? "Holistic Wellness enrollments (yoga, Ayurveda-inspired practices, healing sessions) are educational/wellness offerings, not a substitute for professional medical treatment — consult a doctor for any medical condition. Your enrollment is confirmed once payment is verified, typically within 2 hours. Schedule and format are coordinated after enrollment and may vary."
+                          : "This puja/seva is performed by our temple priests as per traditional process; exact timing and specific rituals can vary by temple and priest availability. Your booking is confirmed once payment is verified, typically within 2 hours. A digital certificate/evidence is shared as described for this offering — no specific spiritual outcome is guaranteed."
+                      }
+                      checked={wizardDisclaimerChecked}
+                      onCheckedChange={(v) => { setWizardDisclaimerChecked(v); if (v) setShowWizardDisclaimerError(false); }}
+                      checkboxLabel="I understand and agree to the above before continuing."
+                      showRequiredError={showWizardDisclaimerError}
+                    />
                   </div>
 
                   <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}

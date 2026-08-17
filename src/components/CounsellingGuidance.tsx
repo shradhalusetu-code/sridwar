@@ -33,6 +33,7 @@ import {
   ChevronDown, Tag, UserCheck, X, Star, Languages,
 } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { PRIEST_PROFILES } from "../data/priests";
 
 // Artwork for each of the 10 guidance areas — compressed and converted to
@@ -708,6 +709,14 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
   const hiddenServices = isAndroidApp ? SERVICES.slice(ANDROID_VISIBLE_COUNT) : [];
   const hasHiddenServices = hiddenServices.length > 0;
 
+  // ✅ DISCLAIMER COVERAGE FIX: the Session Pricing cards are the actual
+  // purchase decision point (price shown, "Book This Session" commits) —
+  // previously nothing gated that click. Same per-item checkbox pattern as
+  // TemplateBazaar.tsx's legacy catalogue cards, keyed by format id so each
+  // of the four pricing cards gates only its own booking.
+  const [formatDisclaimerChecked, setFormatDisclaimerChecked] = useState<Record<string, boolean>>({});
+  const [formatDisclaimerError, setFormatDisclaimerError] = useState<Record<string, boolean>>({});
+
   const handleBookService = (title: string) => {
     // Every service card books the Standard Guidance Session by default —
     // the person can choose a different format lower down, or the team can
@@ -720,6 +729,11 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
   };
 
   const handleBookFormat = (format: SessionFormat) => {
+    if (!formatDisclaimerChecked[format.id]) {
+      setFormatDisclaimerError((p) => ({ ...p, [format.id]: true }));
+      document.getElementById(`counselling-format-disclaimer-${format.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     onBookSession(`Counselling & Guidance — ${format.name}`, format.price);
   };
 
@@ -957,6 +971,24 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                     same baseline across all four regardless of how long
                     each card's text runs. */}
                 <p className="text-[12px] text-white/40 leading-relaxed mt-1.5 italic flex-1">{format.note}</p>
+
+                {/* Contribution disclaimer — lives inside this card, right
+                    above its own booking button, same pattern as
+                    SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
+                <div id={`counselling-format-disclaimer-${format.id}`} className="mt-3">
+                  <DisclaimerAcknowledge
+                    summary="Sessions are guidance and support, not medical, psychiatric, legal, or clinical treatment — see the Important Disclaimer below for full details."
+                    details="Counselling & Guidance sessions on Sri Dwar are offered in good faith as informational, spiritual, and personal guidance. They are not medical, psychiatric, legal, or clinical treatment or therapy, do not diagnose or treat any condition, and no specific outcome is guaranteed. Where a matter is clinical, severe, or an emergency, please consult a qualified doctor, licensed mental-health professional, lawyer, or the appropriate emergency service."
+                    checked={!!formatDisclaimerChecked[format.id]}
+                    onCheckedChange={(v) => {
+                      setFormatDisclaimerChecked((p) => ({ ...p, [format.id]: v }));
+                      if (v) setFormatDisclaimerError((p) => ({ ...p, [format.id]: false }));
+                    }}
+                    checkboxLabel="I understand this is guidance, not clinical treatment, and confirm before booking."
+                    showRequiredError={!!formatDisclaimerError[format.id]}
+                  />
+                </div>
+
                 {/* Identical style, dimensions, spacing, and click
                     behaviour on all four cards — only the label text
                     differs (Custom books a quote instead of a fixed

@@ -20,6 +20,7 @@ import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
 import BazaarOfferingCard from "./BazaarOfferingCard";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import OptimizedImage from "./OptimizedImage";
 import { sectionTopPadding } from "../utils/androidSpacing";
 import {
@@ -50,6 +51,12 @@ interface BazaarItem {
   imageUrl: string | null;
   badge?: string;
   includes?: string[];
+  /** What the devotee receives once the order/seva is processed — same
+   *  "You will receive" pattern as the Structured Devotional Shopping
+   *  Offerings / Seva Offerings above, backfilled here so every card in
+   *  this catalogue shows both "What's Included" and "What You Receive"
+   *  instead of includes alone. */
+  receives?: string[];
   isService?: boolean; // true = seva/puja service (no shipping address needed)
 }
 
@@ -65,6 +72,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Kit.jpg",
     badge: "Bestseller",
     includes: ["Dry Prasad 250g", "Temple Certificate", "Blessing Card"],
+    receives: ["Mahaprasad kit shipped to your address", "Temple certificate confirming the prasad's temple origin", "Digital confirmation shared after dispatch"],
   },
   {
     id: "bazaar-puja-kit",
@@ -76,6 +84,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Home Puja Kit.jpg",
     badge: "20% OFF",
     includes: ["Brass Diya", "Incense Sticks (pack of 50)", "Kumkum & Haldi", "Akshat", "Sankalpa Card"],
+    receives: ["Complete puja kit shipped to your address", "Sankalpa card ready for your own puja use", "Digital confirmation shared after dispatch"],
   },
   {
     id: "bazaar-rudraksha",
@@ -87,6 +96,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Rudraksha Mala.jpg",
     badge: "Traditional",
     includes: ["108+1 Beads Mala", "Energisation Certificate", "Velvet Pouch"],
+    receives: ["Rudraksha mala shipped in a protective velvet pouch", "Energisation certificate confirming the Vedic process followed", "Digital confirmation shared after dispatch"],
   },
   {
     id: "bazaar-incense",
@@ -97,6 +107,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     category: "Incense & Aroma",
     imageUrl: import.meta.env.BASE_URL + "images/Incense.jpg",
     includes: ["Sandalwood (20 sticks)", "Mogra (20 sticks)", "Dhoop (10 sticks)"],
+    receives: ["Incense collection shipped to your address", "Three fragrances packed together for daily aarti", "Digital confirmation shared after dispatch"],
   },
   {
     id: "bazaar-gurukul-kit",
@@ -108,6 +119,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Student Kit.jpg",
     badge: "Impact Gift",
     includes: ["Sanskrit Primer", "Devanagari Workbook", "Yajnopavita (Sacred Thread)", "Photo Report from Gurukul"],
+    receives: ["Kit dispatched directly to the registered Gurukul in your name", "Photo report shared once the kit is delivered", "Digital confirmation of your sponsorship"],
   },
   {
     id: "bazaar-maa-idol",
@@ -119,6 +131,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Brass Idol.jpg",
     badge: "Handcrafted",
     includes: ["6-inch Brass Idol", "Energisation Certificate", "Red Velvet Base"],
+    receives: ["Hand-cast brass idol shipped with a red velvet base", "Energisation certificate confirming the process followed before dispatch", "Digital confirmation shared after dispatch"],
   },
 
   // ── Seva / Puja Services (no delivery, isService=true) ─────────────────
@@ -133,6 +146,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     badge: "Live Puja",
     isService: true,
     includes: ["Performed in your Gotra", "Live Photo Proof", "WhatsApp Confirmation", "Digital Certificate"],
+    receives: ["Puja performed in your name and Gotra as per temple process", "Photo proof and digital certificate shared after the puja", "WhatsApp confirmation once completed"],
   },
   {
     id: "bazaar-navagraha",
@@ -145,6 +159,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     badge: "20% OFF",
     isService: true,
     includes: ["Jyotish-trained Acharya", "All Herbal Samidha included", "Video Confirmation", "Digital Certificate"],
+    receives: ["Homa performed by a Jyotish-trained Acharya as per temple process", "Video confirmation and digital certificate shared after completion", "All herbal samidha included in the offering"],
   },
   {
     id: "bazaar-annadanam",
@@ -157,6 +172,7 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     badge: "High Impact",
     isService: true,
     includes: ["Feeds 35+ pilgrims", "Performed at Puri Temple", "Photo Report", "WhatsApp Receipt"],
+    receives: ["Meals sponsored and distributed to 35+ pilgrims at Puri Temple", "Photo report and WhatsApp receipt shared once completed", "Sponsorship acknowledged in your name"],
   },
 ];
 
@@ -186,6 +202,13 @@ interface TemplateBazaarProps {
 export default function TemplateBazaar({ onNavigate, initialHighlightId = null, isAndroidApp = false }: TemplateBazaarProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  // ✅ DISCLAIMER PLACEMENT FIX: the legacy Current Offerings catalogue
+  // cards render inline here (not via BazaarOfferingCard), so each one
+  // gets its own entry in this per-item map rather than one shared
+  // checkbox — same reasoning as the structured Devotional Shopping
+  // Offerings cards, which already gate on their own local state.
+  const [legacyDisclaimerChecked, setLegacyDisclaimerChecked] = useState<Record<string, boolean>>({});
+  const [legacyDisclaimerError, setLegacyDisclaimerError] = useState<Record<string, boolean>>({});
 
   // Sankalpa Portal (step 1) state
   const [showSankalpa, setShowSankalpa] = useState(false);
@@ -469,6 +492,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
           <div className="text-center max-w-2xl mx-auto mb-5">
             <h3 className="font-serif text-xl font-bold text-white">Devotional Shopping Offerings</h3>
             <p className="text-[13px] text-white/60 mt-1.5 leading-relaxed">{BAZAAR_DELIVERY_NOTE}</p>
+            <span className="inline-block text-[12px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full mt-2">
+              All Offerings Start at ₹100
+            </span>
           </div>
 
           {/* New products category filter */}
@@ -488,7 +514,26 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+          {/* Mobile/app: horizontal snap carousel — all 5 key Bazaar
+              offerings fit here, so there's no separate "remaining
+              offerings" overflow for this section. Desktop (lg+): unchanged
+              grid. Same pattern as Seva Offerings (SevaExperience.tsx). */}
+          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-6">
+            <div className="flex gap-4 w-max pb-1">
+              {filteredNewProducts.map((product) => (
+                <div key={product.id} className="snap-start shrink-0 w-[280px]">
+                  <BazaarOfferingCard
+                    product={product}
+                    isActive={activeNewOfferingId === product.id}
+                    onActivate={() => setActiveNewOfferingId(product.id)}
+                    onOffer={handleOfferNewProduct}
+                    onAddToCart={handleAddToNewCart}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
             {filteredNewProducts.map((product) => (
               <BazaarOfferingCard
                 key={product.id}
@@ -603,34 +648,74 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 <h3 className="font-serif font-bold text-white text-sm mb-1">{item.name}</h3>
                 <p className="text-[13px] text-white/60 leading-relaxed mb-3 flex-1">{item.description}</p>
 
-                {/* Includes accordion */}
-                {item.includes && (
+                {/* Includes / Receives accordion — both shown together per
+                    the "What's Included" + "What You Receive" pattern used
+                    by Seva Offerings and Devotional Shopping Offerings. */}
+                {(item.includes || item.receives) && (
                   <div className="mb-3">
                     <button
                       onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
                       className="flex items-center gap-1.5 text-[12px] text-[#5EEAD4] font-mono font-bold"
                     >
                       <Package className="w-3 h-3" />
-                      What's included
+                      What's included · What you receive
                       {expandedItem === item.id
                         ? <ChevronUp className="w-3 h-3" />
                         : <ChevronDown className="w-3 h-3" />}
                     </button>
                     {expandedItem === item.id && (
-                      <ul className="mt-1.5 space-y-0.5">
-                        {item.includes.map((inc, i) => (
-                          <li key={i} className="flex items-center gap-1.5 text-[12px] text-white/60">
-                            <Star className="w-2.5 h-2.5 text-[#FFB347] shrink-0" />
-                            {inc}
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="mt-1.5 space-y-2">
+                        {item.includes && (
+                          <div>
+                            <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-0.5">Includes</span>
+                            <ul className="space-y-0.5">
+                              {item.includes.map((inc, i) => (
+                                <li key={i} className="flex items-center gap-1.5 text-[12px] text-white/60">
+                                  <Star className="w-2.5 h-2.5 text-[#FFB347] shrink-0" />
+                                  {inc}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {item.receives && (
+                          <div>
+                            <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-0.5">You receive</span>
+                            <ul className="space-y-0.5">
+                              {item.receives.map((rec, i) => (
+                                <li key={i} className="flex items-center gap-1.5 text-[12px] text-white/60">
+                                  <Star className="w-2.5 h-2.5 text-[#5EEAD4] shrink-0" />
+                                  {rec}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
 
+                {/* Contribution disclaimer — lives inside this card, right
+                    above its own Buy Now/Book Seva button. */}
+                <div id={`bazaar-legacy-disclaimer-${item.id}`} className="mt-auto pt-3">
+                  <DisclaimerAcknowledge
+                    summary={item.isService
+                      ? "This seva is performed with devotion as per temple process — timings can vary and no specific outcome is guaranteed."
+                      : "This item is dispatched with care after payment confirmation — delivery timelines can vary by location."}
+                    details={BAZAAR_DISCLAIMER}
+                    checked={!!legacyDisclaimerChecked[item.id]}
+                    onCheckedChange={(v) => {
+                      setLegacyDisclaimerChecked((p) => ({ ...p, [item.id]: v }));
+                      if (v) setLegacyDisclaimerError((p) => ({ ...p, [item.id]: false }));
+                    }}
+                    checkboxLabel="I understand and confirm before proceeding."
+                    showRequiredError={!!legacyDisclaimerError[item.id]}
+                  />
+                </div>
+
                 {/* Price + CTA */}
-                <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/10">
+                <div className="flex items-center justify-between pt-3 border-t border-white/10">
                   <div>
                     {SHOW_BAZAAR_DISCOUNT_PROMO && (
                       <span className="block text-[12px] line-through text-white/30 font-mono">₹{item.mrp}</span>
@@ -638,7 +723,14 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                     <span className="text-base font-extrabold text-[#FFB347] font-serif">₹{item.price}</span>
                   </div>
                   <button
-                    onClick={() => handleBuyNow(item)}
+                    onClick={() => {
+                      if (!legacyDisclaimerChecked[item.id]) {
+                        setLegacyDisclaimerError((p) => ({ ...p, [item.id]: true }));
+                        document.getElementById(`bazaar-legacy-disclaimer-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        return;
+                      }
+                      handleBuyNow(item);
+                    }}
                     className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5"
                   >
                     {item.isService
@@ -671,11 +763,6 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         {/* India Temple Map (static image) — shown after Sacred Marketplace per site layout */}
         <div className="mt-12">
           <IndiaTempleMap />
-        </div>
-
-        {/* Disclaimer */}
-        <div className="mt-8 max-w-3xl mx-auto text-center">
-          <p className="text-[12px] text-white/40 leading-relaxed">{BAZAAR_DISCLAIMER}</p>
         </div>
 
       </div>

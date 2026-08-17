@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, lazy, Suspense } from "react";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -18,10 +18,16 @@ import {
   Feather
 } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
-import UPIPaymentModal from "./UPIPaymentModal";
+// ✅ BUNDLE-SIZE FIX: DevoteeExperiences.tsx renders on every visit to the
+// homepage and was previously statically importing UPIPaymentModal, which
+// pulled the whole payment modal into the eager main bundle for every
+// visitor — even devotees who never open it. Loaded on demand instead,
+// matching the lazy() pattern already used for every page in App.tsx.
+const UPIPaymentModal = lazy(() => import("./UPIPaymentModal"));
 import { validateName, validateTextMinLength } from "../utils/formValidation";
 
 interface Testimonial {
@@ -328,6 +334,13 @@ export default function DevoteeExperiences() {
   const [newService, setNewService] = useState("");
   const [newStory, setNewStory] = useState("");
   const [newRating, setNewRating] = useState(5);
+  // ✅ DISCLAIMER COVERAGE: this review/testimony is synced and published
+  // immediately on submit — before the optional UPI contribution modal
+  // ever opens — so it needs its own acknowledgement here rather than
+  // relying on the payment modal's disclaimer, which this flow may never
+  // even reach.
+  const [reviewDisclaimerChecked, setReviewDisclaimerChecked] = useState(false);
+  const [showReviewDisclaimerError, setShowReviewDisclaimerError] = useState(false);
   const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
   const [showUPI, setShowUPI] = useState(false);
   const [testimonyRefId, setTestimonyRefId] = useState("");
@@ -437,6 +450,11 @@ export default function DevoteeExperiences() {
     if (locationErr) { alert(locationErr); return; }
     if (serviceErr)  { alert(serviceErr);  return; }
     if (storyErr)    { alert(storyErr);    return; }
+    if (!reviewDisclaimerChecked) {
+      setShowReviewDisclaimerError(true);
+      document.getElementById("review-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     // ────────────────────────────────────────────────────────────────────────
 
     const newRef = "SDT-" + randomRefSuffix();
@@ -826,10 +844,19 @@ export default function DevoteeExperiences() {
                     />
                   </div>
 
-                  {/* Submission agreement check */}
-                  <div className="flex items-start space-x-2 text-[12px] text-white/60">
-                    <input type="checkbox" required defaultChecked className="mt-0.5" />
-                    <span>I agree Sri Dwar may review this testimony and feature it on this page for other devotees to read.</span>
+                  {/* Submission agreement — collapsed summary + expandable
+                      full text + required checkbox, gates handleSubmitReview
+                      above since this testimony publishes immediately on
+                      submit. */}
+                  <div id="review-disclaimer-acknowledge">
+                    <DisclaimerAcknowledge
+                      summary="Your testimony is published on this page as submitted, in your name/location — Sri Dwar may lightly edit for length or clarity and reserves the right not to publish."
+                      details="By submitting, you confirm this testimony reflects your genuine experience. Sri Dwar may review, lightly edit for length or clarity, or decline to publish any submission, and may feature it on this page and in related devotional content for other devotees to read. No compensation is offered for submitting a testimony. This is a devotee-shared reflection, not a verified claim of any specific spiritual outcome."
+                      checked={reviewDisclaimerChecked}
+                      onCheckedChange={(v) => { setReviewDisclaimerChecked(v); if (v) setShowReviewDisclaimerError(false); }}
+                      checkboxLabel="I confirm this testimony is genuine and agree to the above before submitting."
+                      showRequiredError={showReviewDisclaimerError}
+                    />
                   </div>
 
                   <button
@@ -846,18 +873,20 @@ export default function DevoteeExperiences() {
           </div>
       )}
       {/* Optional UPI divine contribution after testimony */}
-      <UPIPaymentModal
-        isOpen={showUPI}
-        onClose={handleSkipContribution}
-        onPaymentConfirmed={handleContributionConfirmed}
-        amount={null}
-        bookingName="Optional Divine Contribution — Temple Support"
-        devoteeName={newName}
-        refId={testimonyRefId}
-        allowCustomAmount={true}
-        minAmount={5}
-        maxAmount={1000}
-      />
+      <Suspense fallback={null}>
+        <UPIPaymentModal
+          isOpen={showUPI}
+          onClose={handleSkipContribution}
+          onPaymentConfirmed={handleContributionConfirmed}
+          amount={null}
+          bookingName="Optional Divine Contribution — Temple Support"
+          devoteeName={newName}
+          refId={testimonyRefId}
+          allowCustomAmount={true}
+          minAmount={5}
+          maxAmount={1000}
+        />
+      </Suspense>
     </section>
   );
 }
