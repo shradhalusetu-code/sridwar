@@ -12,6 +12,8 @@ import {
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import OptimizedImage from "./OptimizedImage";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
+import MobileCarousel from "./shared/MobileCarousel";
+import { useSingleOpen } from "./shared/useSingleOpen";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -401,11 +403,21 @@ const SERVICES: WellnessService[] = [
 function ServiceCard({
   service,
   onBook,
+  expanded,
+  onToggleExpanded,
 }: {
   service: WellnessService;
   onBook: (title: string, price: number) => void;
+  /** ✅ ACCORDION FIX: "benefits" expand/collapse now lives in the parent's
+   *  shared useSingleOpen() coordinator (keyed by service.id) instead of
+   *  this card's own useState. Previously every card tracked its own
+   *  expanded flag independently, so multiple cards could show "View
+   *  benefits" open at the same time — opening one never closed another.
+   *  With a single shared open-id, opening any card's benefits
+   *  automatically collapses whichever other card was open. */
+  expanded: boolean;
+  onToggleExpanded: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   // ✅ DISCLAIMER COVERAGE FIX: same required-checkbox gate SevaOfferingCard.tsx
   // / BazaarOfferingCard.tsx / OnlinePuja.tsx already use before a "Book Now"
   // commits — Holistic Wellness previously had none.
@@ -491,7 +503,8 @@ function ServiceCard({
         {/* Expand / collapse */}
         <button
           type="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={onToggleExpanded}
+          aria-expanded={expanded}
           className="mt-2 text-[12px] font-semibold transition-colors"
           style={{ color: service.categoryColor }}
         >
@@ -587,6 +600,10 @@ const ANDROID_VISIBLE_COUNT = 4;
 export default function HolisticWellness({ onBookService, isAndroidApp = false }: HolisticWellnessProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [accordionOpen, setAccordionOpen] = useState(false);
+  // ✅ ACCORDION FIX: one shared "which service's benefits are open" value
+  // covering BOTH the always-visible cards and the "Show more" cards below —
+  // see ServiceCard's isOpen/onToggleExpanded prop comment above.
+  const { isOpen: isBenefitsOpen, toggle: toggleBenefits } = useSingleOpen<string>();
 
   const filtered = activeCategory === "all"
     ? SERVICES
@@ -674,11 +691,23 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
         </div>
 
         {/* ── Always-visible cards (first 8) ─────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {visibleCards.map((service) => (
-            <ServiceCard key={service.id} service={service} onBook={handleBook} />
-          ))}
-        </div>
+        {/* Android/phone: horizontal snap carousel. Desktop: unchanged grid.
+            Same reference pattern as Temple Bazaar's top offerings strip. */}
+        <MobileCarousel
+          items={visibleCards}
+          getKey={(service) => service.id}
+          cardWidthClassName="w-[280px]"
+          desktopGridClassName="lg:grid-cols-3"
+          gapClassName="gap-5"
+          renderItem={(service) => (
+            <ServiceCard
+              service={service}
+              onBook={handleBook}
+              expanded={isBenefitsOpen(service.id)}
+              onToggleExpanded={() => toggleBenefits(service.id)}
+            />
+          )}
+        />
 
         {/* ── Accordion: remaining offerings ─────────────────────────── */}
         {hasHidden && (
@@ -725,10 +754,22 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
 
             {/* Accordion body */}
             {accordionOpen && (
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {hiddenCards.map((service) => (
-                  <ServiceCard key={service.id} service={service} onBook={handleBook} />
-                ))}
+              <div className="mt-5">
+                <MobileCarousel
+                  items={hiddenCards}
+                  getKey={(service) => service.id}
+                  cardWidthClassName="w-[280px]"
+                  desktopGridClassName="lg:grid-cols-3"
+                  gapClassName="gap-5"
+                  renderItem={(service) => (
+                    <ServiceCard
+                      service={service}
+                      onBook={handleBook}
+                      expanded={isBenefitsOpen(service.id)}
+                      onToggleExpanded={() => toggleBenefits(service.id)}
+                    />
+                  )}
+                />
               </div>
             )}
           </div>

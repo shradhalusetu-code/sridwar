@@ -269,7 +269,70 @@ export default function SacredResources() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Mobile/app: horizontal snap carousel — all 6 Daily Devotion tool
+            cards fit here, matching the Seva Offerings / Bazaar Offerings /
+            Simple Pujas carousel pattern used elsewhere. Desktop (lg+):
+            unchanged grid. */}
+        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+          <div className="flex gap-5 w-max pb-1">
+            <div className="snap-start shrink-0 w-[260px]">
+              <DropdownGroup
+                label="Mantra"
+                icon={<Sparkles className="w-4 h-4 text-[#5EEAD4]" />}
+                options={MANTRAS}
+                imageUrl={import.meta.env.BASE_URL + "images/Mantra.jpg"}
+                placeholderNote={(s) => `🙏 ${s} selected. Full chanting guide & audio will be available here soon.`}
+              />
+            </div>
+            <div className="snap-start shrink-0 w-[260px]">
+              <DropdownGroup
+                label="Aarti"
+                icon={<Flame className="w-4 h-4 text-[#5EEAD4]" />}
+                options={AARTIS}
+                imageUrl={import.meta.env.BASE_URL + "images/Aarti.jpg"}
+                placeholderNote={(s) => `🙏 ${s} selected. Full lyrics & audio will be available here soon.`}
+              />
+            </div>
+            <div className="snap-start shrink-0 w-[260px]">
+              <DropdownGroup
+                label="Chalisa"
+                icon={<BookOpen className="w-4 h-4 text-[#5EEAD4]" />}
+                options={CHALISAS}
+                imageUrl={import.meta.env.BASE_URL + "images/Chalisa.jpg"}
+                placeholderNote={(s) => `🙏 ${s} selected. Full verses & audio will be available here soon.`}
+              />
+            </div>
+            <div className="snap-start shrink-0 w-[260px]">
+              <DropdownGroup
+                label="Bhajan/Stotram"
+                icon={<Music2 className="w-4 h-4 text-[#5EEAD4]" />}
+                options={STOTRAMS}
+                imageUrl={import.meta.env.BASE_URL + "images/Stotram.jpg"}
+                placeholderNote={(s) => `🙏 ${s} selected. Full lyrics & audio will be available here soon.`}
+              />
+            </div>
+            <div className="snap-start shrink-0 w-[260px]">
+              <DropdownGroup
+                label="Sun Rise & Sun Set Timings"
+                icon={<Sun className="w-4 h-4 text-[#5EEAD4]" />}
+                options={CITIES}
+                imageUrl={import.meta.env.BASE_URL + "images/Sun Rise.jpg"}
+                placeholderNote={(s) => `Sunrise & sunset timings for ${s} will appear here once live astronomy data is connected.`}
+              />
+            </div>
+            <div className="snap-start shrink-0 w-[260px]">
+              <DropdownGroup
+                label="Moon Rise & Moon Set Timings"
+                icon={<Moon className="w-4 h-4 text-[#5EEAD4]" />}
+                options={CITIES}
+                imageUrl={import.meta.env.BASE_URL + "images/Moon Rise.jpg"}
+                placeholderNote={(s) => `Moonrise & moonset timings for ${s} will appear here once live astronomy data is connected.`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <DropdownGroup
             label="Mantra"
             icon={<Sparkles className="w-4 h-4 text-[#5EEAD4]" />}

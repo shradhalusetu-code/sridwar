@@ -38,6 +38,14 @@ export interface BazaarPriceOption {
 export interface BazaarSelectOption {
   value: string;
   label: string;
+  /** ✅ CONTRIBUTION-BENEFITS UPDATE: short, honest note shown live under the
+   *  dropdown once this specific choice is selected — the "content sync"
+   *  requirement extended from price tiers (see BazaarPriceOption above) to
+   *  the Bhog Type / Mala Type / Item Type / Prasad Type dropdowns
+   *  themselves, so picking a type immediately reflects what that type
+   *  actually is/contains, not just the amount tier. Optional so a choice
+   *  without one simply shows no note line. */
+  note?: string;
 }
 
 export interface BazaarOptionGroup {
@@ -144,10 +152,10 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
         id: "bhog-type",
         label: "Bhog Type",
         choices: [
-          { value: "sweet", label: "Sweet Bhog" },
-          { value: "khichdi", label: "Khichdi Bhog" },
-          { value: "fruit", label: "Fruit Bhog" },
-          { value: "mixed", label: "Mixed Bhog" },
+          { value: "sweet", label: "Sweet Bhog", note: "A jaggery or sugar-based sweet preparation, offered as per temple tradition." },
+          { value: "khichdi", label: "Khichdi Bhog", note: "A simple rice-and-lentil khichdi offering, commonly prepared for daily temple bhog." },
+          { value: "fruit", label: "Fruit Bhog", note: "Seasonal fruits offered to the deity — a light, traditional offering." },
+          { value: "mixed", label: "Mixed Bhog", note: "A mixed spread combining sweet, khichdi and fruit items, as available at the temple." },
         ],
       },
     ],
@@ -188,10 +196,10 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
         id: "puja-kit-focus",
         label: "Kit Type",
         choices: [
-          { value: "daily-worship", label: "Daily Worship Kit" },
-          { value: "festival-special", label: "Festival / Special Occasion Kit" },
-          { value: "griha-pravesh", label: "Griha Pravesh / New Home Kit" },
-          { value: "satyanarayan", label: "Satyanarayan Puja Kit" },
+          { value: "daily-worship", label: "Daily Worship Kit", note: "Everyday essentials for regular home puja — roli, chawal, kumkum, haldi and akshat." },
+          { value: "festival-special", label: "Festival / Special Occasion Kit", note: "A fuller kit suited for festival-day worship, including items commonly needed for special pujas." },
+          { value: "griha-pravesh", label: "Griha Pravesh / New Home Kit", note: "Items traditionally used for a new-home Griha Pravesh puja." },
+          { value: "satyanarayan", label: "Satyanarayan Puja Kit", note: "Items traditionally used for a Satyanarayan puja, packed together for convenience." },
         ],
       },
     ],
@@ -231,12 +239,12 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
         id: "mala-type",
         label: "Mala / Bead Type",
         choices: [
-          { value: "tulsi", label: "Tulsi" },
-          { value: "rudraksha", label: "Rudraksha" },
-          { value: "chandan", label: "Chandan" },
-          { value: "sphatik", label: "Sphatik" },
-          { value: "jap-mala", label: "Jap Mala" },
-          { value: "wrist-mala", label: "Wrist Mala" },
+          { value: "tulsi", label: "Tulsi", note: "Tulsi (holy basil) beads — traditionally associated with Vishnu/Krishna worship." },
+          { value: "rudraksha", label: "Rudraksha", note: "Rudraksha seed beads — traditionally associated with Shiva worship." },
+          { value: "chandan", label: "Chandan", note: "Sandalwood (chandan) beads, valued for their fragrance and traditional use in worship." },
+          { value: "sphatik", label: "Sphatik", note: "Clear quartz (sphatik) beads, traditionally used for jap and meditation." },
+          { value: "jap-mala", label: "Jap Mala", note: "A standard 108-bead mala strung for daily jap/mantra counting." },
+          { value: "wrist-mala", label: "Wrist Mala", note: "A compact wrist-worn mala, sized for everyday wear." },
         ],
       },
     ],
@@ -277,13 +285,13 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
         id: "diya-item-type",
         label: "Item Type",
         choices: [
-          { value: "diya", label: "Diya" },
-          { value: "dhoop", label: "Dhoop" },
-          { value: "agarbatti", label: "Agarbatti" },
-          { value: "kapoor", label: "Kapoor" },
-          { value: "cotton-wicks", label: "Cotton Wicks" },
-          { value: "ghee-diya", label: "Ghee Diya" },
-          { value: "oil-diya", label: "Oil Diya" },
+          { value: "diya", label: "Diya", note: "A traditional clay diya for daily aarti." },
+          { value: "dhoop", label: "Dhoop", note: "Dhoop sticks/cones for daily aarti and incense offering." },
+          { value: "agarbatti", label: "Agarbatti", note: "Traditional incense sticks for everyday puja." },
+          { value: "kapoor", label: "Kapoor", note: "Camphor tablets, commonly used for aarti." },
+          { value: "cotton-wicks", label: "Cotton Wicks", note: "Cotton wicks for oil or ghee diyas." },
+          { value: "ghee-diya", label: "Ghee Diya", note: "Diya prepared for use with ghee." },
+          { value: "oil-diya", label: "Oil Diya", note: "Diya prepared for use with oil." },
         ],
       },
     ],
@@ -323,10 +331,10 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
         id: "prasad-type",
         label: "Prasad Type",
         choices: [
-          { value: "sweet-prasad", label: "Sweet Prasad" },
-          { value: "dry-fruit-prasad", label: "Dry Fruit Prasad" },
-          { value: "mixed-prasad", label: "Mixed Prasad" },
-          { value: "temple-special", label: "Temple's Special Prasad" },
+          { value: "sweet-prasad", label: "Sweet Prasad", note: "Traditional sweet prasad items, prepared as per temple process." },
+          { value: "dry-fruit-prasad", label: "Dry Fruit Prasad", note: "A dry-fruit-based prasad selection." },
+          { value: "mixed-prasad", label: "Mixed Prasad", note: "A mixed selection combining sweet and dry-fruit prasad items." },
+          { value: "temple-special", label: "Temple's Special Prasad", note: "The specific temple's signature prasad preparation, where available." },
         ],
       },
     ],

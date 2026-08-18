@@ -20,6 +20,14 @@ interface CollapsibleSectionProps {
    *  progressive-disclosure card on the site (Seva/Bazaar offering cards,
    *  plan tier cards) — only phone/tablet collapses by default. */
   defaultExpandedOnDesktop?: boolean;
+  /** Optional controlled mode — pass both `expanded` and `onToggle` to let
+   *  a parent coordinate several CollapsibleSections as a single-open-at-
+   *  a-time group (see components/shared/useSingleOpen.ts). When either is
+   *  omitted, this component keeps managing its own open/closed state
+   *  exactly as before — every existing call site (ReferralPlans,
+   *  UPIPaymentModal, CounsellingGuidance) keeps working unchanged. */
+  expanded?: boolean;
+  onToggle?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -38,16 +46,25 @@ export default function CollapsibleSection({
   children,
   className = "",
   defaultExpandedOnDesktop = true,
+  expanded: controlledExpanded,
+  onToggle,
 }: CollapsibleSectionProps) {
-  const [expanded, setExpanded] = useState<boolean>(
+  const [internalExpanded, setInternalExpanded] = useState<boolean>(
     () => defaultExpandedOnDesktop && typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
   );
+
+  const isControlled = controlledExpanded !== undefined && onToggle !== undefined;
+  const expanded = isControlled ? controlledExpanded : internalExpanded;
+  const handleToggle = () => {
+    if (isControlled) onToggle();
+    else setInternalExpanded((v) => !v);
+  };
 
   return (
     <div className={className}>
       <button
         type="button"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={handleToggle}
         aria-expanded={expanded}
         className="w-full flex items-center justify-between gap-2 text-left"
       >

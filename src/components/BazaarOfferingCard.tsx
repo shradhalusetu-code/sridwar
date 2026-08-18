@@ -348,26 +348,36 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           </div>
         )}
 
-        {/* Extra option dropdowns (Bhog Type, Mala Type, Item Type…) */}
+        {/* Extra option dropdowns (Bhog Type, Mala Type, Item Type…) — each
+            choice's `note` (see BazaarSelectOption in bazaarOfferings.ts)
+            renders immediately below and updates live as the devotee
+            switches choices, mirroring the same immediate content-sync
+            pattern already used for the price-tier dropdown above. */}
         {product.options.length > 0 && (
           <div className="space-y-2.5 mb-3" onClick={(e) => e.stopPropagation()}>
-            {product.options.map((group) => (
-              <div key={group.id}>
-                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">{group.label}</label>
-                <div className="relative">
-                  <select
-                    value={optionChoices[group.id]}
-                    onChange={(e) => setOptionChoices((p) => ({ ...p, [group.id]: e.target.value }))}
-                    className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-8 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
-                  >
-                    {group.choices.map((c) => (
-                      <option key={c.value} value={c.value} className="bg-[#092320] text-white">{c.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+            {product.options.map((group) => {
+              const activeChoice = group.choices.find((c) => c.value === optionChoices[group.id]);
+              return (
+                <div key={group.id}>
+                  <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">{group.label}</label>
+                  <div className="relative">
+                    <select
+                      value={optionChoices[group.id]}
+                      onChange={(e) => setOptionChoices((p) => ({ ...p, [group.id]: e.target.value }))}
+                      className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-8 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50"
+                    >
+                      {group.choices.map((c) => (
+                        <option key={c.value} value={c.value} className="bg-[#092320] text-white">{c.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+                  </div>
+                  {activeChoice?.note && (
+                    <p className="text-[11px] text-white/40 mt-1">{activeChoice.note}</p>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

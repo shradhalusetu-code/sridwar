@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
+import CollapsibleSection from "./CollapsibleSection";
+import { useSingleOpen } from "./shared/useSingleOpen";
+import MobileCarousel from "./shared/MobileCarousel";
 import { PRIEST_PROFILES } from "../data/priests";
 
 // Artwork for each of the 10 guidance areas — compressed and converted to
@@ -500,11 +503,24 @@ const GUIDANCE_COUNSELORS: GuidanceCounselor[] = (() => {
 
 // ─── Small building blocks ─────────────────────────────────────────────────
 
-function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: {
+function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor, expanded, onExpand, onCollapse }: {
   service: GuidanceService;
   onBook: (title: string) => void;
   selectedCounselor: GuidanceCounselor | null;
   onChooseCounselor: () => void;
+  /** ✅ ACCORDION FIX: was this card's own useState — every card defaulted
+   *  to expanded on desktop (unchanged, by design — see note below) but
+   *  independently toggleable on phone/tablet, so multiple cards' full
+   *  details (may-help-with list, session-plan stats, counselor picker)
+   *  could stay open on mobile at once. `expanded` is now computed by the
+   *  parent from the shared useSingleOpen coordinator: on phone/tablet,
+   *  opening one card's details closes whichever other was open; on
+   *  desktop it's still forced true for every card, exactly as before —
+   *  the "Collapse back" button below only ever renders on `lg:hidden`,
+   *  so desktop never had a way to close a card anyway. */
+  expanded: boolean;
+  onExpand: () => void;
+  onCollapse: () => void;
 }) {
   // ─── Compact-by-default card (mobile/tablet) — Stage 6 ────────────────
   // Same progressive-disclosure pattern used across Seva/Bazaar/Puja/Plans/
@@ -512,9 +528,6 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
   // description + one key detail show up front. The full "may help with"
   // list, the 4-stat session plan grid, and the counselor picker sit
   // behind a tap. Desktop (lg+) always renders the full card, unchanged.
-  const [expanded, setExpanded] = useState<boolean>(
-    () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
-  );
   return (
     <div
       id={service.id}
@@ -554,7 +567,7 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
         {!expanded && (
           <button
             type="button"
-            onClick={() => setExpanded(true)}
+            onClick={onExpand}
             aria-expanded={expanded}
             className="lg:hidden mt-3 flex items-center gap-1 text-[12px] font-bold uppercase tracking-wide"
             style={{ color: service.color }}
@@ -651,7 +664,7 @@ function ServiceCard({ service, onBook, selectedCounselor, onChooseCounselor }: 
         {/* Collapse back — phone/tablet only */}
         <button
           type="button"
-          onClick={() => setExpanded(false)}
+          onClick={onCollapse}
           aria-expanded={expanded}
           className="lg:hidden self-center flex items-center gap-1 text-[12px] font-semibold text-white/45 hover:text-white/70 mt-2"
         >
@@ -689,6 +702,16 @@ interface CounsellingGuidanceProps {
 
 export default function CounsellingGuidance({ onNavigate, onBookSession, isAndroidApp = false }: CounsellingGuidanceProps) {
   const [guidanceAccordionOpen, setGuidanceAccordionOpen] = useState(false);
+  // ✅ ACCORDION FIX: single shared "which guidance card is expanded" value
+  // for phone/tablet (see ServiceCard's expanded/onExpand/onCollapse prop
+  // comment). `isDesktop` is checked once at mount — same one-time
+  // matchMedia check ServiceCard used to do itself — so desktop keeps
+  // showing every card's full details at once, completely unaffected by
+  // the coordinator; only phone/tablet ever sees a card collapse.
+  const [isDesktop] = useState<boolean>(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1024px)")?.matches
+  );
+  const { isOpen: isGuidanceCardOpen, open: openGuidanceCard, close: closeGuidanceCard } = useSingleOpen<string>();
 
   // ── "Choose Your Counselor" ────────────────────────────────────────────
   // A single, shared counselor selection used consistently across every one
@@ -850,18 +873,26 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           </button>
         </div>
 
-        {/* ── How it works ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-          {HOW_IT_WORKS.map((step, i) => (
-            <div key={step.title} className="bg-[#092320] border border-white/10 rounded-2xl p-4">
+        {/* ── How it works — Android/phone: horizontal snap carousel
+            (was a 1-column stack of 3 cards). Desktop keeps the same
+            3-column grid, unchanged. ──────────────────────────────── */}
+        <MobileCarousel
+          items={HOW_IT_WORKS}
+          getKey={(step) => step.title}
+          cardWidthClassName="w-[240px]"
+          desktopGridClassName="lg:grid-cols-3"
+          gapClassName="gap-4"
+          className="mb-12"
+          renderItem={(step, i) => (
+            <div className="bg-[#092320] border border-white/10 rounded-2xl p-4 h-full">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#5EEAD4]/15 border border-[#5EEAD4]/30 text-[#5EEAD4] text-[12px] font-black mb-2.5">
                 {i + 1}
               </span>
               <h3 className="text-xs font-bold text-white mb-1">{step.title}</h3>
               <p className="text-[13px] text-white/55 leading-relaxed">{step.desc}</p>
             </div>
-          ))}
-        </div>
+          )}
+        />
 
         {/* ── 10 Guidance Areas ────────────────────────────────────────── */}
         <div id="guidance-services" className="scroll-mt-24 mb-12">
@@ -874,11 +905,26 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {visibleServices.map((service) => (
-              <ServiceCard key={service.id} service={service} onBook={handleBookService} selectedCounselor={selectedCounselor} onChooseCounselor={() => setIsCounselorPickerOpen(true)} />
-            ))}
-          </div>
+          {/* Android/phone: horizontal snap carousel. Desktop keeps the
+              same 3-column grid, unchanged. */}
+          <MobileCarousel
+            items={visibleServices}
+            getKey={(service) => service.id}
+            cardWidthClassName="w-[280px]"
+            desktopGridClassName="lg:grid-cols-3"
+            gapClassName="gap-5"
+            renderItem={(service) => (
+              <ServiceCard
+                service={service}
+                onBook={handleBookService}
+                selectedCounselor={selectedCounselor}
+                onChooseCounselor={() => setIsCounselorPickerOpen(true)}
+                expanded={isDesktop || isGuidanceCardOpen(service.id)}
+                onExpand={() => openGuidanceCard(service.id)}
+                onCollapse={closeGuidanceCard}
+              />
+            )}
+          />
 
           {/* Android-only accordion for the remaining guidance areas — same
               collapse pattern as HolisticWellness.tsx. Never rendered on the
@@ -911,10 +957,25 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               </button>
 
               {guidanceAccordionOpen && (
-                <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {hiddenServices.map((service) => (
-                    <ServiceCard key={service.id} service={service} onBook={handleBookService} selectedCounselor={selectedCounselor} onChooseCounselor={() => setIsCounselorPickerOpen(true)} />
-                  ))}
+                <div className="mt-5">
+                  <MobileCarousel
+                    items={hiddenServices}
+                    getKey={(service) => service.id}
+                    cardWidthClassName="w-[280px]"
+                    desktopGridClassName="lg:grid-cols-3"
+                    gapClassName="gap-5"
+                    renderItem={(service) => (
+                      <ServiceCard
+                        service={service}
+                        onBook={handleBookService}
+                        selectedCounselor={selectedCounselor}
+                        onChooseCounselor={() => setIsCounselorPickerOpen(true)}
+                        expanded={isDesktop || isGuidanceCardOpen(service.id)}
+                        onExpand={() => openGuidanceCard(service.id)}
+                        onCollapse={closeGuidanceCard}
+                      />
+                    )}
+                  />
                 </div>
               )}
             </div>
@@ -935,11 +996,18 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {SESSION_FORMATS.map((format) => (
+          {/* Android/phone: horizontal snap carousel (was a 1-column
+              stack of 4 tall cards). Desktop keeps the same 4-column
+              grid, unchanged. */}
+          <MobileCarousel
+            items={SESSION_FORMATS}
+            getKey={(format) => format.id}
+            cardWidthClassName="w-[280px]"
+            desktopGridClassName="lg:grid-cols-4"
+            gapClassName="gap-4"
+            renderItem={(format) => (
               <div
-                key={format.id}
-                className={`relative flex flex-col bg-[#092320] border rounded-3xl p-5 ${
+                className={`relative flex flex-col bg-[#092320] border rounded-3xl p-5 h-full ${
                   format.highlight ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10" : "border-white/10"
                 }`}
               >
@@ -1003,8 +1071,8 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                   <PhoneCall className="w-3.5 h-3.5" /> {format.isCustom ? "Get Custom Pricing" : "Book This Session"}
                 </button>
               </div>
-            ))}
-          </div>
+            )}
+          />
           <p className="text-[12px] text-white/35 text-center mt-4 italic">
             Prices shown are per session (or starting from ₹199/hour for the Custom Guidance Plan, based on the
             guidance area selected) and may vary slightly by expert availability and language. No hidden fees.
@@ -1017,8 +1085,11 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             <Sparkles className="w-5 h-5 text-[#FFB347]" />
             <h2 className="font-serif text-lg font-bold text-white">Guided by Patient, Compassionate Experts</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
+          {/* Android/phone: horizontal snap carousel (was a 1-column
+              stack of 4 cards). Desktop keeps the same 4-column grid,
+              unchanged. */}
+          <MobileCarousel
+            items={[
               {
                 icon: <Heart className="w-4 h-4" />,
                 title: "Strengthening, Not Separating",
@@ -1039,24 +1110,30 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                 title: "Simple Phone or Video Calls",
                 desc: "No app to install — join by a simple phone or video call at your scheduled time.",
               },
-            ].map((f) => (
-              <div key={f.title} className="bg-[#021816] border border-white/8 rounded-2xl p-4">
+            ]}
+            getKey={(f) => f.title}
+            cardWidthClassName="w-[240px]"
+            desktopGridClassName="lg:grid-cols-4"
+            gapClassName="gap-3"
+            renderItem={(f) => (
+              <div className="bg-[#021816] border border-white/8 rounded-2xl p-4 h-full">
                 <div className="w-8 h-8 rounded-xl bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 flex items-center justify-center text-[#5EEAD4] mb-2.5">
                   {f.icon}
                 </div>
                 <h4 className="text-xs font-bold text-white mb-1">{f.title}</h4>
                 <p className="text-[13px] text-white/55 leading-relaxed">{f.desc}</p>
               </div>
-            ))}
-          </div>
+            )}
+          />
         </div>
 
         {/* ── Full disclaimer ──────────────────────────────────────────── */}
         <div id="full-disclaimer" className="scroll-mt-24 bg-[#021816] border border-[#FFB347]/25 rounded-3xl p-5 sm:p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-5 h-5 text-[#FFB347]" />
-            <h2 className="font-serif text-base font-bold text-white">Important Disclaimer</h2>
-          </div>
+          <CollapsibleSection
+            icon={<ShieldCheck className="w-5 h-5 text-[#FFB347]" />}
+            title="Important Disclaimer"
+            summary="Guidance sessions are spiritual/personal support, not medical, psychiatric, legal, or clinical treatment, with no guaranteed outcome. Tap to read the full disclaimer."
+          >
           <div className="space-y-2 text-[13px] text-white/60 leading-relaxed">
             <p>
               Counselling & Guidance sessions on Sri Dwar are offered in good faith by experienced Pandits and
@@ -1102,6 +1179,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               Have questions first? Contact us <ChevronRight className="w-3 h-3" />
             </button>
           </div>
+          </CollapsibleSection>
         </div>
 
       </div>

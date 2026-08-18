@@ -18,6 +18,7 @@ import OptimizedImage from "./OptimizedImage";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
+import { useSingleOpen } from "./shared/useSingleOpen";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 import { sectionTopPadding } from "../utils/androidSpacing";
 
@@ -687,9 +688,12 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#FFB347]/60" />{activeTier.duration}</span>
         </div>
 
-        {/* Badges */}
+        {/* Badges — "Starts at ₹100" intentionally omitted here: the Simple
+            Pujas section heading above already carries a single "Starts at
+            ₹100" badge for the whole section, so repeating it on every card
+            was redundant duplicate text per card. */}
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {["Starts at ₹100", "Digital Certificate", "Temple Priest Puja", "Evidence Shared"].map((b) => (
+          {["Digital Certificate", "Temple Priest Puja", "Evidence Shared"].map((b) => (
             <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[11px] text-white/55">
               <BadgeCheck className="w-2.5 h-2.5 text-[#5EEAD4]" /><span>{b}</span>
             </span>
@@ -1082,9 +1086,15 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
   // anywhere — this reveals them behind a tap, same expand/collapse pattern
   // as SevaOfferingCard.tsx / BazaarOfferingCard.tsx, without touching the
   // booking button, price, or any existing field.
-  const [expandedPujaIds, setExpandedPujaIds] = useState<Record<string, boolean>>({});
-  const togglePujaDetails = (id: string) =>
-    setExpandedPujaIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  // ✅ ACCORDION FIX: was Record<string, boolean> — every puja's "complete
+  // details" toggle tracked independently, so a devotee could open details
+  // on a puja in Health & Longevity AND one in Wealth & Prosperity AND one
+  // in Festivals/Ancestral/Graha Shanti all at the same time; opening a new
+  // one never closed whichever was already open. Backed by the shared
+  // useSingleOpen coordinator instead — same isOpen/toggle call shape used
+  // by HolisticWellness, so there's only ever one puja's details open
+  // across every category on this page at once.
+  const { isOpen: isPujaDetailsOpen, toggle: togglePujaDetails } = useSingleOpen<string>();
 
   // Tracks which accordion category sections have had "Show more" tapped —
   // once true for a category, that section shows every puja instead of the
@@ -1228,7 +1238,24 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
             <span>Every puja is performed with devotion by temple priests. A digital certificate/evidence will be shared after completion.</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Mobile/app: horizontal snap carousel — all 6 Simple Pujas fit
+              here, matching the Seva Offerings / Bazaar Offerings carousel
+              pattern. Desktop (lg+): unchanged grid. */}
+          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+            <div className="flex gap-4 w-max pb-1">
+              {SIMPLE_PUJAS.map((offering) => (
+                <div key={offering.id} className="snap-start shrink-0 w-[280px]">
+                  <SimplePujaCard
+                    offering={offering}
+                    isActive={activeSimplePujaId === offering.id}
+                    onActivate={() => setActiveSimplePujaId(offering.id)}
+                    onBook={handleBookSimplePuja}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SIMPLE_PUJAS.map((offering) => (
               <SimplePujaCard
                 key={offering.id}
@@ -1567,13 +1594,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
-                                aria-expanded={!!expandedPujaIds[puja.id]}
+                                aria-expanded={isPujaDetailsOpen(puja.id)}
                                 className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
                               >
-                                {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                                <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
+                                {isPujaDetailsOpen(puja.id) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                <span>{isPujaDetailsOpen(puja.id) ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
                               </button>
-                              {expandedPujaIds[puja.id] && (
+                              {isPujaDetailsOpen(puja.id) && (
                                 <div className="space-y-2.5 pt-1.5">
                                   {puja.benefits && (
                                     <div>
@@ -1803,13 +1830,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
-                              aria-expanded={!!expandedPujaIds[puja.id]}
+                              aria-expanded={isPujaDetailsOpen(puja.id)}
                               className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
                             >
-                              {expandedPujaIds[puja.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              <span>{expandedPujaIds[puja.id] ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
+                              {isPujaDetailsOpen(puja.id) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                              <span>{isPujaDetailsOpen(puja.id) ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
                             </button>
-                            {expandedPujaIds[puja.id] && (
+                            {isPujaDetailsOpen(puja.id) && (
                               <div className="space-y-2.5 pt-1.5">
                                 {puja.benefits && (
                                   <div>

@@ -4,6 +4,7 @@
  */
 
 import { Share2, Users, Wallet, Sparkles, ChevronRight } from "lucide-react";
+import MobileCarousel from "./shared/MobileCarousel";
 
 interface ReferAndEarnProps {
   onNavigate: (page: string) => void;
@@ -75,17 +76,25 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
           </div>
         </div>
 
-        {/* How it works */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {howItWorks.map((step, i) => (
-            <div key={step.title} className="bg-[#092320] border border-white/10 rounded-2xl p-4 relative overflow-hidden">
+        {/* How it works — Android/phone: horizontal snap carousel (was a
+            cramped 2-column grid, squeezing each step's longer description
+            into a narrow half-width card). Desktop keeps the same 4-column
+            grid, unchanged. */}
+        <MobileCarousel
+          items={howItWorks}
+          getKey={(step) => step.title}
+          cardWidthClassName="w-[240px]"
+          desktopGridClassName="lg:grid-cols-4"
+          gapClassName="gap-3 sm:gap-4"
+          renderItem={(step, i) => (
+            <div className="bg-[#092320] border border-white/10 rounded-2xl p-4 relative overflow-hidden h-full">
               <span className="absolute top-2 right-3 text-3xl font-serif font-black text-white/5">{i + 1}</span>
               <step.icon className="w-5 h-5 text-[#5EEAD4] mb-2" />
               <h3 className="font-serif text-sm font-bold text-white mb-1">{step.title}</h3>
               <p className="text-[13px] text-white/60 leading-snug">{step.desc}</p>
             </div>
-          ))}
-        </div>
+          )}
+        />
       </div>
     </section>
   );

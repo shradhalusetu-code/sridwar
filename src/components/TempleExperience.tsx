@@ -6,8 +6,9 @@
 import { useState, useEffect } from "react";
 import { TEMPLES_LIST } from "../data/temples";
 import { Temple } from "../types";
-import { Search, Sparkles, MapPin, ChevronDown, ChevronUp, Sunrise, Sun, Sunset, Navigation, UserCircle2 } from "lucide-react";
+import { Search, Sparkles, MapPin, ChevronDown, ChevronUp, Sunrise, Sun, Sunset, Navigation, UserCircle2, Check } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
+import MobileCarousel from "./shared/MobileCarousel";
 
 interface TempleExperienceProps {
   onBookPuja: (templeName: string, deityName: string) => void;
@@ -186,6 +187,67 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   </div>
                 </>
               )}
+            </div>
+
+            {/* Mobile/app: horizontal swipeable temple carousel — quick
+                visual browse alongside the dropdown above (dropdown =
+                precise search/select by name; carousel = swipe through
+                photos to browse). Same reference pattern as Temple
+                Bazaar's top offerings strip (components/shared/
+                MobileCarousel.tsx), inlined directly here rather than
+                via that shared component because desktop keeps its own
+                separate vertical list drawer completely unchanged below
+                — this whole block is `lg:hidden` and never renders past
+                that breakpoint, so it can't duplicate/affect desktop. */}
+            <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+              <div className="flex gap-3 w-max pb-1">
+                {filteredTemples.length > 0 ? (
+                  filteredTemples.map((templeObj) => {
+                    const isActive = selectedTempleId === templeObj.id;
+                    return (
+                      <button
+                        key={templeObj.id}
+                        type="button"
+                        id={`temple-carousel-card-${templeObj.id}`}
+                        onClick={() => setSelectedTempleId(templeObj.id)}
+                        aria-pressed={isActive}
+                        className={`snap-start shrink-0 w-[168px] text-left rounded-2xl border overflow-hidden transition-all ${
+                          isActive
+                            ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10"
+                            : "border-white/10 hover:border-white/25"
+                        }`}
+                      >
+                        <div className="relative w-full aspect-[4/3] bg-[#021816]">
+                          <OptimizedImage
+                            src={templeObj.imageUrl}
+                            alt={`${templeObj.name} Deity`}
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent" />
+                          <span className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-[#021816]/90 backdrop-blur flex items-center justify-center text-[13px] font-serif text-[#FFB347] border border-white/10">
+                            {templeObj.symbol}
+                          </span>
+                          {isActive && (
+                            <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FFB347] flex items-center justify-center shadow">
+                              <Check className="w-3 h-3 text-[#021816]" strokeWidth={3} />
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-2.5 bg-[#092320]">
+                          <span className="block text-[12px] font-bold text-white truncate">{templeObj.name}</span>
+                          <span className="block text-[11px] text-white/55 truncate mt-0.5">
+                            {templeObj.city}, {templeObj.state}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-center text-xs text-white/45 py-6 w-full">No holy shrines match your query.</p>
+                )}
+              </div>
             </div>
 
             {/* List selector (desktop / large screens only) */}
@@ -445,12 +507,23 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
             {/* Connector line for desktop - placed behind the cards with z-0 */}
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-[#5EEAD4]/20 via-[#FFB347]/50 to-[#5EEAD4]/20 hidden lg:block -translate-y-1/2 z-0" />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-6 relative">
-              {steps.map((step, idx) => (
+            {/* Android/phone: horizontal snap carousel — was a single
+                stacked column (grid-cols-1) before, meaning 7 full-height
+                cards to scroll past just to see the whole journey. Same
+                reference pattern as Temple Bazaar's top offerings strip.
+                Desktop keeps the exact same 7-column grid + connector
+                line, completely unchanged. */}
+            <MobileCarousel
+              items={steps}
+              getKey={(_step, idx) => `journey-step-${idx}`}
+              cardWidthClassName="w-[220px]"
+              desktopGridClassName="lg:grid-cols-7"
+              gapClassName="gap-6"
+              className="relative"
+              renderItem={(step, idx) => (
                 <div
-                  key={idx}
                   id={`journey-step-${idx}`}
-                  className="bg-[#062421] p-5 rounded-2xl border border-white/10 text-left relative z-10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103"
+                  className="bg-[#062421] p-5 rounded-2xl border border-white/10 text-left relative z-10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 h-full"
                 >
                   {/* Glowing step identifier */}
                   <div className="w-9 h-9 rounded-full bg-[#021816] text-[#FFB347] border border-[#FFB347] flex items-center justify-center font-bold font-serif text-sm absolute -top-4 left-4 shadow-md group-hover:bg-[#FFB347] group-hover:text-[#021816] transition-colors">
@@ -464,8 +537,8 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                     {step.desc}
                   </p>
                 </div>
-              ))}
-            </div>
+              )}
+            />
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { X, AlertCircle, ShieldCheck, RefreshCw, ExternalLink } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission } from "../lib/activities";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 
 /**
  * ─── Why this exists ────────────────────────────────────────────────────────
@@ -93,6 +94,12 @@ export default function RefundRequestModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  // ✅ DISCLAIMER COVERAGE FIX: same required-checkbox gate used across
+  // every other paid-flow surface — a refund/cancellation request previously
+  // had only the always-visible policy note above, with no acknowledgement
+  // gate before submit.
+  const [policyChecked, setPolicyChecked] = useState(false);
+  const [showPolicyError, setShowPolicyError] = useState(false);
 
   if (!isOpen || !booking) return null;
 
@@ -101,11 +108,18 @@ export default function RefundRequestModal({
     setNotes("");
     setErrorMessage("");
     setSubmitted(false);
+    setPolicyChecked(false);
+    setShowPolicyError(false);
     onClose();
   };
 
   const handleSubmit = async () => {
     if (submitting || submitted) return;
+    if (!policyChecked) {
+      setShowPolicyError(true);
+      document.getElementById("refund-request-disclaimer")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (!contactPhone || contactPhone.trim().length < 6) {
       setErrorMessage("Please provide a registered mobile number we can reach you on.");
       return;
@@ -299,6 +313,17 @@ export default function RefundRequestModal({
                     <span>{errorMessage}</span>
                   </div>
                 )}
+
+                <div id="refund-request-disclaimer">
+                  <DisclaimerAcknowledge
+                    summary="Submitting this doesn't cancel the booking automatically — our team reviews and confirms every request in writing."
+                    details="This is a request, not an automated refund. Our team reviews and confirms every cancellation/refund request in writing, per the Refund & Cancellation Policy, before it takes effect. Approved refunds are typically initiated within 7–15 business days of confirmation."
+                    checked={policyChecked}
+                    onCheckedChange={(v) => { setPolicyChecked(v); if (v) setShowPolicyError(false); }}
+                    checkboxLabel="I understand this request is subject to team review and confirm before submitting."
+                    showRequiredError={showPolicyError}
+                  />
+                </div>
 
                 <button
                   onClick={handleSubmit}

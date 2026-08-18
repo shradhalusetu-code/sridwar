@@ -1285,7 +1285,7 @@ export default function App() {
       {/* 6. RE-USABLE SEVA CONTRIBUTION MODAL */}
       {isSevaModalOpen && (
         <div id="seva-quick-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
-          style={{ touchAction: "pan-y" }}
+          style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
           onClick={(e) => { if (e.target === e.currentTarget) setIsSevaModalOpen(false); }}
         >
           <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-lg shadow-2xl animate-slideUp text-white flex flex-col"
@@ -1310,7 +1310,7 @@ export default function App() {
               </button>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
+            <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 32px)" }}>
             <div className="p-5 space-y-4">
               <span className="block text-xs font-bold text-white/85 text-left">Choose a quick Charity Offering:</span>
               
@@ -1361,7 +1361,7 @@ export default function App() {
       {/* 7. RE-USABLE TEMPLE EXPLORE / ARCHITECTURE HISTORY MODAL */}
       {activeExploreTemple && (
         <div id="temple-explore-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left text-xs text-white"
-          style={{ touchAction: "pan-y" }}
+          style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveExploreTemple(null); }}
         >
           <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl animate-slideUp text-white flex flex-col"
@@ -1393,7 +1393,7 @@ export default function App() {
                 <p className="text-xs text-[#FFB347] font-bold font-serif">{activeExploreTemple.city}, {activeExploreTemple.state}</p>
               </div>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
+            <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 32px)" }}>
             <div className="p-6 sm:p-8 space-y-4">
               <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-left">
                 <h4 className="font-bold text-[#5EEAD4] mb-1">Presiding supreme Deity:</h4>
@@ -1464,7 +1464,9 @@ export default function App() {
 
       {/* 8. CAR BASKET SIDE-OVER TRAY */}
       {isCartOpen && (
-        <div id="cart-slideover-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex justify-end animate-fadeIn">
+        <div id="cart-slideover-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex justify-end animate-fadeIn"
+          style={{ paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+        >
           <div className="w-full max-w-md bg-[#092320] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-xs text-white text-left">
             
             {/* Header — shrink-0 so it never scrolls away */}
@@ -1551,7 +1553,7 @@ export default function App() {
 
             <div
               className="shrink-0 px-6 pt-6 border-t border-white/10 space-y-4"
-              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 24px)" }}
+              style={{ paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 24px)" }}
             >
               <div className="flex justify-between items-center text-sm">
                 <div>
@@ -3902,7 +3904,7 @@ Where permitted by law, we may use cookies to:</p>
           <div
             id="legal-doc-modal"
             className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
-            style={{ touchAction: "pan-y" }}
+            style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
             onClick={(e) => { if (e.target === e.currentTarget) setActiveLegalDoc(null); }}
           >
             <div className="bg-[#092320] border border-white/10 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl text-white flex flex-col"
@@ -3933,7 +3935,7 @@ Where permitted by law, we may use cookies to:</p>
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
+              <div className="flex-1 min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 32px)" }}>
               {/* ── Tab switcher so user can jump between docs ── */}
               <div className="flex gap-2 px-6 pt-5 pb-1 flex-wrap">
                 {(

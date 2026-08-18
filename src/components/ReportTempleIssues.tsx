@@ -22,7 +22,7 @@
 import { useState, FormEvent } from "react";
 import {
   Landmark, Users, MapPin, Send, Check, ShieldCheck, RefreshCw, Flag,
-  Building2, Megaphone, Award, Info, ChevronRight, ClipboardList, Calendar, Download,
+  Building2, Megaphone, Award, Info, ChevronRight, ChevronDown, ChevronUp, ClipboardList, Calendar, Download,
 } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
@@ -30,6 +30,7 @@ import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { validateName, validateEmail, validatePhone, validateOptionalPhone, validateTextMinLength, firstError } from "../utils/formValidation";
 import { gaTempleIssueFormStart, gaTempleIssueSubmit, gaTempleIssueContribution } from "../utils/analytics";
 import OptimizedImage from "./OptimizedImage";
+import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import UPIPaymentModal from "./UPIPaymentModal";
 // @ts-ignore
 import reportHero from "../assets/images/ReportTempleIssuesHero.jpg";
@@ -119,6 +120,77 @@ const HOW_IT_WORKS = [
   { icon: Calendar, title: "Feedback & Updates", body: "We share weekly progress updates on responses and proposed improvements where available." },
 ];
 
+// ─── Compact "Send this to" recipient picker ───────────────────────────────
+// ✅ COMPACT DROPDOWN FIX: previously every level (Local, Block/Taluka,
+// District, State, National) rendered its full checkbox list permanently
+// expanded, one under another — five stacked lists, each with 2–3 options,
+// forced a long scroll just to reach the consent checkbox and submit button
+// below. Each level now collapses behind a single compact row showing the
+// level name and how many recipients are currently selected from it; tapping
+// a row expands just that level's checklist. Nothing about the underlying
+// multi-select behaviour changed — `selectedRecipients` / `toggleRecipient`
+// are unchanged and still drive submission exactly as before — only the
+// presentation is now progressive-disclosure instead of always-expanded.
+interface RecipientLevelDropdownProps {
+  group: (typeof RECIPIENT_GROUPS)[number];
+  selectedRecipients: string[];
+  toggleRecipient: (id: string) => void;
+}
+
+function RecipientLevelDropdown({ group, selectedRecipients, toggleRecipient }: RecipientLevelDropdownProps) {
+  const selectedCount = group.options.filter((o) => selectedRecipients.includes(o.id)).length;
+  const [open, setOpen] = useState(selectedCount > 0);
+
+  return (
+    <div className={`rounded-xl border transition-colors ${selectedCount > 0 ? "border-[#5EEAD4]/40 bg-white/5" : "border-white/10 bg-[#021816]"}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-2.5 p-3 text-left"
+      >
+        <group.icon className="w-3.5 h-3.5 text-[#FFB347] shrink-0" />
+        <span className="flex-1 min-w-0">
+          <span className="block text-[13px] font-bold text-white">{group.level}</span>
+          <span className="block text-[11px] text-white/45">
+            {selectedCount > 0 ? `${selectedCount} of ${group.options.length} selected` : `${group.options.length} recipients available`}
+          </span>
+        </span>
+        {selectedCount > 0 && (
+          <Check className="w-3.5 h-3.5 text-[#5EEAD4] shrink-0" />
+        )}
+        {open ? <ChevronUp className="w-3.5 h-3.5 text-white/40 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-white/40 shrink-0" />}
+      </button>
+
+      {open && (
+        <div className="px-3 pb-3 space-y-1.5">
+          {group.options.map((opt) => (
+            <label
+              key={opt.id}
+              className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-colors ${
+                selectedRecipients.includes(opt.id)
+                  ? "bg-white/10 border-[#5EEAD4]"
+                  : "bg-[#021816] border-white/10 hover:bg-white/5"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selectedRecipients.includes(opt.id)}
+                onChange={() => toggleRecipient(opt.id)}
+                className="mt-0.5 accent-[#5EEAD4]"
+              />
+              <span>
+                <span className="block text-[13px] font-bold text-white">{opt.label}</span>
+                <span className="block text-[12px] text-white/50">{opt.helper}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesProps) {
   // Reporter details
   const [name, setName] = useState("");
@@ -148,6 +220,10 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
   const [includeOther, setIncludeOther] = useState(false);
 
   const [consent, setConsent] = useState(false);
+  // ✅ DISCLAIMER COVERAGE FIX: same collapsed summary + expandable details
+  // pattern used across Seva/Bazaar/Puja/Counselling/Wellness — this form
+  // previously had a plain always-expanded paragraph + checkbox instead.
+  const [showConsentError, setShowConsentError] = useState(false);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -197,7 +273,14 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
     const consentErr = consent ? null : "Please confirm you've read and accept the disclaimer below.";
 
     const err = firstError(nameErr, emailErr, phoneErr, whatsappErr, itemErr, locationErr, descErr, recipientErr, consentErr);
-    if (err) { alert(err); return; }
+    if (err) {
+      if (consentErr) {
+        setShowConsentError(true);
+        document.getElementById("report-issues-disclaimer")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      alert(err);
+      return;
+    }
 
     setIsSyncing(true);
     const newRefId = makeSubmissionRef("TIR");
@@ -542,53 +625,31 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
             <div className="lg:col-span-5 bg-[#092320] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-5 flex flex-col">
               <div>
                 <h2 className="font-serif text-lg font-bold text-white mb-1">Send this to</h2>
-                <p className="text-[13px] text-white/50">You choose. We connect. Select every recipient this should reach.</p>
+                <p className="text-[13px] text-white/50">
+                  You choose. We connect.{" "}
+                  {selectedRecipients.length > 0
+                    ? `${selectedRecipients.length} recipient${selectedRecipients.length === 1 ? "" : "s"} selected.`
+                    : "Tap a level below to select recipients."}
+                </p>
               </div>
 
-              {/* flex-1 + min-h-0 lets this list grow to fill whatever
-                  height the "Send this to" card ends up with (it matches
-                  the taller left-hand form column on desktop) instead of
-                  stopping at a fixed max-height and leaving empty space
-                  above the submit button below. overflow-y-auto still
-                  kicks in to scroll internally if the recipient list itself
-                  ever grows taller than the available space. On mobile,
-                  where the card is only as tall as its own content, this
-                  has no visible effect — the list simply sizes to fit. */}
-              <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-1">
+              {/* Each level is now a compact collapsed-by-default dropdown
+                  row (see RecipientLevelDropdown above) instead of five
+                  permanently-expanded checklists — cuts the scroll length of
+                  this card substantially while keeping the exact same
+                  multi-select recipients underneath. */}
+              <div className="space-y-2.5 flex-1 min-h-0 overflow-y-auto pr-1">
                 {RECIPIENT_GROUPS.map((group) => (
-                  <div key={group.level}>
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <group.icon className="w-3.5 h-3.5 text-[#FFB347]" />
-                      <span className="text-[12px] font-bold uppercase tracking-wider text-[#FFB347]/80">{group.level}</span>
-                    </div>
-                    <div className="space-y-1.5">
-                      {group.options.map((opt) => (
-                        <label
-                          key={opt.id}
-                          className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-colors ${
-                            selectedRecipients.includes(opt.id)
-                              ? "bg-white/10 border-[#5EEAD4]"
-                              : "bg-[#021816] border-white/10 hover:bg-white/5"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedRecipients.includes(opt.id)}
-                            onChange={() => toggleRecipient(opt.id)}
-                            className="mt-0.5 accent-[#5EEAD4]"
-                          />
-                          <span>
-                            <span className="block text-[13px] font-bold text-white">{opt.label}</span>
-                            <span className="block text-[12px] text-white/50">{opt.helper}</span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  <RecipientLevelDropdown
+                    key={group.level}
+                    group={group}
+                    selectedRecipients={selectedRecipients}
+                    toggleRecipient={toggleRecipient}
+                  />
                 ))}
 
-                <div>
-                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl border bg-[#021816] border-white/10 cursor-pointer">
+                <div className={`rounded-xl border transition-colors ${includeOther ? "border-[#5EEAD4]/40 bg-white/5" : "border-white/10 bg-[#021816]"}`}>
+                  <label className="flex items-start gap-2.5 p-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={includeOther}
@@ -598,31 +659,29 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                     <span className="block text-[13px] font-bold text-white">Other relevant authority</span>
                   </label>
                   {includeOther && (
-                    <input
-                      type="text"
-                      placeholder="e.g. Waqf Board liaison, Heritage Society, District SP office..."
-                      value={otherRecipient}
-                      onChange={(e) => setOtherRecipient(e.target.value)}
-                      className="w-full mt-2 text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
-                    />
+                    <div className="px-3 pb-3">
+                      <input
+                        type="text"
+                        placeholder="e.g. Waqf Board liaison, Heritage Society, District SP office..."
+                        value={otherRecipient}
+                        onChange={(e) => setOtherRecipient(e.target.value)}
+                        className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#021816] text-white placeholder-white/30 shadow-sm focus:outline-none focus:border-[#5EEAD4]"
+                      />
+                    </div>
                   )}
                 </div>
               </div>
 
-              <label className="flex items-start gap-2.5 text-[12px] text-white/60 leading-relaxed">
-                <input
-                  type="checkbox"
+              <div id="report-issues-disclaimer">
+                <DisclaimerAcknowledge
+                  summary="Sri Dwar only facilitates sharing this report — it's not a government body and doesn't guarantee any response or outcome."
+                  details="Sri Dwar only facilitates sharing this report with the recipients you've selected, is not a government body, does not guarantee any response, action, or outcome, and is not responsible for the decisions or actions of any representative, authority, or temple body. By proceeding, you consent to your details being shared with the selected recipients for this purpose."
                   checked={consent}
-                  onChange={(e) => setConsent(e.target.checked)}
-                  className="mt-0.5 accent-[#FFB347]"
+                  onCheckedChange={(v) => { setConsent(v); if (v) setShowConsentError(false); }}
+                  checkboxLabel="I understand and consent to my details being shared with the selected recipients."
+                  showRequiredError={showConsentError}
                 />
-                <span>
-                  I understand Sri Dwar only facilitates sharing this report with the recipients I've selected, is
-                  not a government body, does not guarantee any response, action, or outcome, and is not
-                  responsible for the decisions or actions of any representative, authority, or temple body. I
-                  consent to my details being shared with the selected recipients for this purpose.
-                </span>
-              </label>
+              </div>
 
               <div className="flex items-center space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                 <ShieldCheck className="w-3.5 h-3.5" />
