@@ -70,6 +70,32 @@ import {
   Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin, HeartHandshake
 } from "lucide-react";
 
+// Footer "Policies & Legal Documents" — module-level so it's defined once,
+// not rebuilt on every render, and shared by both the mobile carousel and
+// the desktop link row. `blurb` is a one-line, plain-language summary of
+// what each full document (rendered elsewhere via activeLegalDoc/DOCS)
+// actually covers — shown only on the mobile carousel card, so a devotee
+// can tell which document they need before tapping "Read More" to open the
+// full text.
+const POLICY_DOCS: {
+  label: string;
+  key: "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "contribution" | "partner" | "referral";
+  blurb: string;
+}[] = [
+  { label: "Privacy Policy", key: "privacy", blurb: "What personal data we collect, why, and how it's protected." },
+  { label: "Cookie Policy", key: "cookie", blurb: "How cookies and similar tracking are used on the site and app." },
+  { label: "Terms of Use", key: "terms", blurb: "The rules that govern your use of Sri Dwar's platform and services." },
+  { label: "Refund Policy", key: "refund", blurb: "When and how refunds or cancellations are handled for bookings." },
+  { label: "Legal Compliance", key: "legal", blurb: "Regulatory registrations and compliance information for Sri Dwar." },
+  { label: "Legal Disclaimer", key: "disclaimer", blurb: "The limits of what pujas, sevas, and guidance can promise you." },
+  { label: "Grievance Redressal", key: "grievance", blurb: "How to raise a complaint and how it will be resolved." },
+  { label: "Community Guidelines", key: "community", blurb: "Expected conduct for devotees, priests, and partners on the platform." },
+  { label: "Content & IP Policy", key: "content_ip", blurb: "Ownership and permitted use of text, images, and other content." },
+  { label: "Divine Contribution & Charity Policy", key: "contribution", blurb: "How seva sponsorships and charitable contributions are used." },
+  { label: "Partner Agreement", key: "partner", blurb: "Terms for temples, priests, and vendors partnering with Sri Dwar." },
+  { label: "Refer & Earn Program Terms", key: "referral", blurb: "Rules, eligibility, and payout terms for the referral program." },
+];
+
 export default function App() {
   // True only inside the Android APK — main.tsx adds this class via Capacitor detection.
   // On localhost or GitHub Pages this is always false, so the bottom nav stays hidden.
@@ -1176,23 +1202,44 @@ export default function App() {
               <span>Policies & Legal Documents</span>
               <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.policies ? "rotate-180" : ""}`} />
             </button>
-            <div className={`${footerOpenSections.policies ? "flex" : "hidden"} md:!flex flex-wrap items-center justify-center gap-x-1 gap-y-2`}>
-              {(
-                [
-                  { label: "Privacy Policy",           key: "privacy"    },
-                  { label: "Cookie Policy",             key: "cookie"     },
-                  { label: "Terms of Use",              key: "terms"      },
-                  { label: "Refund Policy",             key: "refund"     },
-                  { label: "Legal Compliance",          key: "legal"      },
-                  { label: "Legal Disclaimer",          key: "disclaimer" },
-                  { label: "Grievance Redressal",       key: "grievance"  },
-                  { label: "Community Guidelines",      key: "community"  },
-                  { label: "Content & IP Policy",       key: "content_ip" },
-                  { label: "Divine Contribution & Charity Policy", key: "contribution"   },
-                  { label: "Partner Agreement",         key: "partner"    },
-                  { label: "Refer & Earn Program Terms", key: "referral"  },
-                ] as { label: string; key: "privacy" | "cookie" | "terms" | "refund" | "legal" | "disclaimer" | "grievance" | "community" | "content_ip" | "contribution" | "partner" | "referral" }[]
-              ).map(({ label, key }, i, arr) => (
+            {/* ✅ CAROUSEL FIX: on phone/app width this list previously wrapped
+                into a plain multi-line row of underlined links — no preview
+                of what each document actually covers, and not the uniform
+                swipeable-card pattern used everywhere else on the site. It's
+                now a horizontal snap carousel of uniform cards (title + a
+                one-line summary of what's in that document), each opening
+                the exact same full document modal as before via
+                setActiveLegalDoc — nothing about the modal/content changed,
+                only how the entry point is presented. Desktop (md+) keeps
+                the original compact underlined link row untouched, since a
+                card carousel isn't needed once there's room to show all 12
+                links on one or two lines. */}
+            <div className={`${footerOpenSections.policies ? "block" : "hidden"} md:hidden -mx-4 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory`}>
+              <div className="flex gap-3 w-max pb-1">
+                {POLICY_DOCS.map(({ label, key, blurb }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { gaLegalDocOpen(key); setActiveLegalDoc(key); }}
+                    className="snap-start shrink-0 w-[220px] h-[132px] flex flex-col text-left bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 rounded-2xl p-4 transition-colors"
+                  >
+                    <span className="text-[13px] font-bold text-white/85 leading-snug line-clamp-2">{label}</span>
+                    <span className="text-[11px] text-white/45 leading-relaxed mt-1.5 line-clamp-3 flex-1">{blurb}</span>
+                    <span className="text-[11px] font-bold text-[#5EEAD4] mt-auto pt-1">Read More →</span>
+                  </button>
+                ))}
+                <a
+                  href="/privacy-policy"
+                  className="snap-start shrink-0 w-[220px] h-[132px] flex flex-col text-left bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 rounded-2xl p-4 transition-colors"
+                >
+                  <span className="text-[13px] font-bold text-white/85 leading-snug line-clamp-2">Full Legal Documents</span>
+                  <span className="text-[11px] text-white/45 leading-relaxed mt-1.5 line-clamp-3 flex-1">All of Sri Dwar's policies and legal documents in one consolidated page.</span>
+                  <span className="text-[11px] font-bold text-[#5EEAD4] mt-auto pt-1">Open Page →</span>
+                </a>
+              </div>
+            </div>
+            <div className="hidden md:!flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
+              {POLICY_DOCS.map(({ label, key }, i, arr) => (
                 <span key={key} className="flex items-center">
                   <button
                     type="button"

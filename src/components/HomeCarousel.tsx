@@ -219,15 +219,30 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
       if (isAnimatingRef.current) return;
       if (settleTimeout) clearTimeout(settleTimeout);
       settleTimeout = setTimeout(() => {
+        // ✅ DOT/ARROW SYNC FIX: this used to find the card whose CENTER was
+        // closest to the track's center. That only matches the "active"
+        // card when exactly one card fits per screen (narrow phones). On
+        // tablets/wider phones — like the screenshot that reported this —
+        // 2-3+ cards are visible at once, so the true snapped card (the one
+        // whose LEFT edge is flush with the track's left edge, because
+        // every card uses `snap-start`, not `snap-center`) is very often a
+        // DIFFERENT card than the one nearest the visual center. That
+        // mismatch is exactly what made the dots/arrows look "free
+        // flowing"/"stuck": the dot would highlight a card that wasn't the
+        // one actually snapped at the edge, and an arrow click would then
+        // step by one from the WRONG index, producing a jump that looked
+        // like a skipped or unresponsive card. Comparing left edges instead
+        // matches how the browser's own snap-start engine decides which
+        // card is "current", so the dot and the arrows now always agree
+        // with what's actually snapped on screen, at every viewport width.
         const trackRect = track.getBoundingClientRect();
-        const trackCenter = trackRect.left + trackRect.width / 2;
+        const trackLeft = trackRect.left;
         let closestIndex = 0;
         let closestDistance = Infinity;
         cardRefs.current.forEach((card, i) => {
           if (!card) return;
           const cardRect = card.getBoundingClientRect();
-          const cardCenter = cardRect.left + cardRect.width / 2;
-          const distance = Math.abs(cardCenter - trackCenter);
+          const distance = Math.abs(cardRect.left - trackLeft);
           if (distance < closestDistance) {
             closestDistance = distance;
             closestIndex = i;

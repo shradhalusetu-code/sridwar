@@ -646,16 +646,18 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
 
 
 
-  // Sponsorship Services visibility — Android app shows only the first 2
-  // FEATURED_SEVAS up front (everything else, including all of EXTRA_SEVAS,
-  // stays inside the "More Sacred Sevas" accordion below). The website has
-  // no such limit since it scrolls freely, so it shows every Sponsorship
-  // Services card (all of FEATURED_SEVAS + EXTRA_SEVAS) up front, with
-  // nothing left to hide in the accordion.
-  const visibleFeaturedSevas = isAndroidApp ? FEATURED_SEVAS.slice(0, 2) : FEATURED_SEVAS;
-  const visibleExtraSevas = isAndroidApp ? [] : EXTRA_SEVAS;
-  const hiddenFeaturedSevas = isAndroidApp ? FEATURED_SEVAS.slice(2) : [];
-  const hiddenExtraSevas = isAndroidApp ? EXTRA_SEVAS : [];
+  // Sponsorship Services visibility — all 10 (FEATURED_SEVAS + EXTRA_SEVAS)
+  // now show directly in the carousel/grid on every platform, website and
+  // Android app alike. Previously the Android app capped this at the first
+  // 2 FEATURED_SEVAS and stranded the other 8 inside a collapsed "More
+  // Sacred Sevas" accordion — outside carousel navigation entirely, so a
+  // devotee swiping through the carousel on the app could only ever reach
+  // 2 of the 10 services. hasHiddenSevas is kept (always false now) so the
+  // accordion block below stays inert rather than being ripped out.
+  const visibleFeaturedSevas = FEATURED_SEVAS;
+  const visibleExtraSevas = EXTRA_SEVAS;
+  const hiddenFeaturedSevas: typeof FEATURED_SEVAS = [];
+  const hiddenExtraSevas: typeof EXTRA_SEVAS = [];
   const hasHiddenSevas = hiddenFeaturedSevas.length > 0 || hiddenExtraSevas.length > 0;
 
   return (
@@ -795,13 +797,31 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
             )}
           </div>
 
-          {/* Always-visible: on Android, first 2 FEATURED_SEVAS only —
-              everything else lives in "More Sacred Sevas" below, not
-              deleted. On the website, every Sponsorship Services card
-              (all FEATURED_SEVAS + EXTRA_SEVAS) shows here directly, in a
-              3-column grid on large screens so the wider, single-column
-              layout fills up evenly instead of leaving gaps. */}
-          <div className={isAndroidApp ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"}>
+          {/* ✅ CAROUSEL FIX: Sponsorship Services previously had no mobile
+              carousel at all — just the same grid at every width, which
+              squeezed down to 1 column on phones instead of the swipeable,
+              uniform-width strip every other section (Seva Offerings,
+              Simple Pujas, Bazaar) already uses. Mobile/app now gets the
+              same `w-[280px]` bare scroll-snap carousel (no dots/arrows,
+              matching every other non-Home carousel on the site); the
+              desktop grid below is otherwise unchanged. All 10 Sponsorship
+              Services cards (FEATURED_SEVAS + EXTRA_SEVAS) render here on
+              every platform — website and Android app alike. */}
+          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+            <div className="flex gap-4 w-max pb-1">
+              {visibleFeaturedSevas.map((seva) => (
+                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                  <SevaCard seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+                </div>
+              ))}
+              {visibleExtraSevas.map((seva) => (
+                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                  <SevaCard seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {visibleFeaturedSevas.map((seva) => (
               <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
             ))}
@@ -813,13 +833,13 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
 
         {/*
           ── Accordion row ──
-          Full width now (previously constrained to lg:col-span-7 to match
-          the Sponsorship Services column beside Sacred Moments, which no
-          longer sits next to it — see the comment above). On the website
-          this whole block never renders — hasHiddenSevas is always false
-          there since every Sponsorship Services card already shows above.
-          On the Android app it renders as before, holding everything past
-          the first 2 FEATURED_SEVAS.
+          hasHiddenSevas is always false now (see visibleFeaturedSevas /
+          visibleExtraSevas above) — all 10 Sponsorship Services cards
+          render directly in the carousel/grid above on every platform, so
+          this block never actually renders. Left in place rather than
+          deleted in case a future "too many services to fit" scenario
+          needs it again — reactivate by re-introducing a real slice()
+          cutoff above.
         */}
         {hasHiddenSevas && (
           <div className="mt-4">

@@ -240,25 +240,32 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
-          className="w-full flex items-center gap-3 p-3.5 text-left lg:hidden"
+          className="w-full flex flex-col text-left lg:hidden"
           aria-expanded={expanded}
           aria-controls={`seva-offering-details-${offering.id}`}
         >
-          <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border border-white/10 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-center">
+          <div className="w-full h-32 relative overflow-hidden rounded-t-3xl shrink-0 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-center">
             {offering.imageUrl ? (
               <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
             ) : (
               renderOfferingIcon(offering.id)
             )}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
+              <span className="text-[10px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
+                {offering.category}
+              </span>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-[10px] font-mono font-bold text-teal-300 uppercase tracking-wider">{offering.category}</span>
-            <h4 className="text-[15px] font-serif font-bold text-white leading-snug truncate">{offering.title}</h4>
-            <p className="text-[12px] text-white/55 leading-snug line-clamp-1 mt-0.5">{activeDescription}</p>
-          </div>
-          <div className="flex flex-col items-center gap-0.5 shrink-0 text-[#5EEAD4] pl-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wide whitespace-nowrap">View & Offer</span>
-            <ChevronDown className="w-4 h-4" />
+          <div className="flex items-start gap-2 p-3.5">
+            <div className="flex-1 min-w-0">
+              <h4 className="text-[15px] font-serif font-bold text-white leading-snug line-clamp-2">{offering.title}</h4>
+              <p className="text-[12px] text-white/55 leading-snug line-clamp-3 mt-1">{activeDescription}</p>
+              <p className="text-[12px] font-mono font-bold text-[#FFB347] mt-1.5">Starts at ₹{offering.priceOptions.find((p) => typeof p.value === "number")?.value ?? 100}</p>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 shrink-0 text-[#5EEAD4] pl-1 pt-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wide whitespace-nowrap">View & Offer</span>
+              <ChevronDown className="w-4 h-4" />
+            </div>
           </div>
         </button>
       )}

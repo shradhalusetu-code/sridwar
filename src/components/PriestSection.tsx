@@ -65,10 +65,20 @@ function StarRating({ rating }: { rating?: number }) {
   );
 }
 
+// Priests are shown in groups of 30 (Meet Our Priests currently lists 101,
+// so 4 groups) — one group visible at a time, with Prev/Next group
+// navigation below, instead of every profile mounted at once or endlessly
+// appended via "Show More". Search/filter always run against the FULL
+// directory (not just the current group) and jump back to group 1 of
+// whatever matches, so a search never appears to silently miss someone who
+// simply isn't in the currently-viewed group.
+const PRIEST_BATCH_SIZE = 30;
+
 export default function PriestSection({ initialPriestId = null, onBack }: PriestSectionProps) {
   const [selectedPriestId, setSelectedPriestId] = useState<string | null>(initialPriestId);
   const [search, setSearch] = useState("");
   const [expertiseFilter, setExpertiseFilter] = useState<string>("all");
+  const [priestGroupIndex, setPriestGroupIndex] = useState(0);
   // Anchor used to scroll the freshly-shown section (detail or listing) into
   // view starting at its very top, so the heading / priest name is the first
   // thing visible — instead of leaving the user's previous scroll position
@@ -103,6 +113,29 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
       return matchesSearch && matchesExpertise;
     });
   }, [search, expertiseFilter]);
+
+  // Reset back to group 1 whenever the devotee changes what they're
+  // searching/filtering for — otherwise a deeper group index could point
+  // past the end of a narrower (smaller) result set, or land the devotee
+  // on an empty/wrong group after the results underneath them changed.
+  useEffect(() => {
+    setPriestGroupIndex(0);
+  }, [search, expertiseFilter]);
+
+  const totalPriestGroups = Math.max(1, Math.ceil(filteredPriests.length / PRIEST_BATCH_SIZE));
+
+  // Clamp defensively in case filteredPriests shrinks in a way the effect
+  // above hasn't caught yet — never lets the group index point past the
+  // last real group.
+  const clampedGroupIndex = Math.min(priestGroupIndex, totalPriestGroups - 1);
+
+  const visiblePriests = useMemo(
+    () => filteredPriests.slice(
+      clampedGroupIndex * PRIEST_BATCH_SIZE,
+      (clampedGroupIndex + 1) * PRIEST_BATCH_SIZE
+    ),
+    [filteredPriests, clampedGroupIndex]
+  );
 
   const selectedPriest: PriestProfile | undefined = useMemo(
     () => PRIEST_PROFILES.find(p => p.id === selectedPriestId),
@@ -233,7 +266,26 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             A few things to check before booking a puja or seeking advice, so your ritual is performed
             with sincerity and care.
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Mobile/app: horizontal snap carousel — all 6 guidance points fit
+              here, same uniform-card pattern used by every other carousel
+              on the site (Simple Pujas, Seva Offerings, Bazaar). Desktop
+              (sm+) keeps the original static grid, unchanged. */}
+          <div className="sm:hidden -mx-4 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+            <div className="flex gap-4 w-max pb-1">
+              {GUIDANCE_POINTS.map(g => (
+                <div key={g.title} className="snap-start shrink-0 w-[260px] h-[168px] flex flex-col gap-3 bg-[#021816]/50 border border-white/10 rounded-2xl p-4">
+                  <div className="shrink-0 w-9 h-9 rounded-xl bg-[#FFB347]/10 border border-[#FFB347]/25 flex items-center justify-center">
+                    <g.icon className="w-4.5 h-4.5 text-[#FFB347]" />
+                  </div>
+                  <div className="min-h-0 overflow-hidden">
+                    <h4 className="text-xs font-bold text-white mb-1">{g.title}</h4>
+                    <p className="text-[13px] text-white/60 leading-relaxed line-clamp-4">{g.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {GUIDANCE_POINTS.map(g => (
               <div key={g.title} className="flex gap-3">
                 <div className="shrink-0 w-9 h-9 rounded-xl bg-[#FFB347]/10 border border-[#FFB347]/25 flex items-center justify-center">
@@ -277,69 +329,137 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
         </div>
 
         <p className="text-[13px] text-white/50 font-mono mb-4">
-          Showing <span className="text-[#5EEAD4] font-bold">{filteredPriests.length}</span> of{" "}
-          <span className="text-white/80 font-bold">{PRIEST_PROFILES.length}</span> priests
+          Showing <span className="text-[#5EEAD4] font-bold">{visiblePriests.length}</span> of{" "}
+          <span className="text-white/80 font-bold">{filteredPriests.length}</span> matching priests
+          {filteredPriests.length !== PRIEST_PROFILES.length && (
+            <> (out of {PRIEST_PROFILES.length} total)</>
+          )}
+          {totalPriestGroups > 1 && (
+            <> — Group <span className="text-[#5EEAD4] font-bold">{clampedGroupIndex + 1}</span> of{" "}
+              <span className="text-white/80 font-bold">{totalPriestGroups}</span></>
+          )}
         </p>
 
-        {/* ── Priest cards grid (aligned to the app-wide card system: bg-[#062421], rounded-2xl, gap-6, scale-on-hover) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPriests.map(p => {
-            const highlight = (p as PriestProfile & { localHighlight?: string }).localHighlight;
-            return (
-              <button
-                key={p.id}
-                onClick={() => setSelectedPriestId(p.id)}
-                className="text-left bg-[#062421] p-5 rounded-2xl border border-white/10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 flex flex-col h-full"
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-serif font-black text-white text-sm leading-snug">{p.name}</h3>
-                </div>
-
-                <p className="flex items-center gap-1 text-[12px] text-[#FFB347]/80 font-mono mb-1">
-                  <MapPin className="w-3 h-3" /> {p.currentCity}, {p.currentState}
-                </p>
-
-                <p className="text-[12px] text-white/50 font-mono mb-3 line-clamp-1">
-                  {p.templesAssociated[0]}
-                </p>
-
-                <div className="flex items-center gap-4 mb-3">
-                  <span className="text-[12px] font-mono text-white/60">
-                    <span className="text-white font-bold">{p.yearsExperience}</span> yrs experience
-                  </span>
-                  <StarRating rating={p.rating} />
-                </div>
-
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {p.pujaExpertise.slice(0, 2).map(e => (
-                    <span key={e} className="text-[11px] font-mono uppercase tracking-wide text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
-                      {e}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Locally-rooted highlight — distinguishes each priest's unique temple role */}
-                {highlight && (
-                  <p className="text-[13px] text-white/65 leading-relaxed mb-4 flex-1">
-                    {highlight}
-                  </p>
-                )}
-
-                <span className="flex items-center gap-1 text-[12px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
-                  <Eye className="w-3 h-3" /> View Full Profile
-                </span>
-              </button>
-            );
-          })}
-
-          {filteredPriests.length === 0 && (
-            <div className="col-span-full text-center py-16 text-white/40 text-xs">
-              No priests match your search. Try a different name, city, or expertise.
-            </div>
-          )}
+        {/* ── Priest cards — shown 30 at a time (see PRIEST_BATCH_SIZE above),
+            one group per "page" with Prev/Next navigation below, so devotees
+            browse a manageable, uniformly-sized set instead of every one of
+            the 101 profiles mounted at once. Mobile/app: horizontal snap
+            strip within the current group, same uniform-card pattern used
+            across the rest of the site (bare scroll-snap, no per-card dots/
+            arrows). Desktop (lg+): unchanged grid, aligned to the app-wide
+            card system (bg-[#062421], rounded-2xl, gap-6, scale-on-hover).
+            Individual search/filter above always runs against the full
+            101-priest directory, not just whatever group is currently
+            shown — a match outside the current group still gets found, and
+            jumps back to its own group 1. */}
+        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+          <div className="flex gap-4 w-max pb-1">
+            {visiblePriests.map(p => (
+              <div key={p.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <PriestCard priest={p} onSelect={() => setSelectedPriestId(p.id)} />
+              </div>
+            ))}
+          </div>
         </div>
+        <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {visiblePriests.map(p => (
+            <PriestCard key={p.id} priest={p} onSelect={() => setSelectedPriestId(p.id)} />
+          ))}
+        </div>
+
+        {filteredPriests.length === 0 && (
+          <div className="text-center py-16 text-white/40 text-xs">
+            No priests match your search. Try a different name, city, or expertise.
+          </div>
+        )}
+
+        {/* Group pager — Prev/Next between groups of 30. No dot row here on
+            purpose: with up to 4 groups of 30 priests each, this is page-level
+            navigation (which 30 are showing), not a per-card carousel, and
+            the "Group X of Y" text above already states position — matches
+            the site-wide rule that only the Home carousel gets dot
+            indicators, every other carousel/pager stays arrows-only or bare. */}
+        {totalPriestGroups > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <button
+              type="button"
+              aria-label="Previous group of priests"
+              onClick={() => {
+                setPriestGroupIndex(g => Math.max(0, g - 1));
+                topAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              disabled={clampedGroupIndex === 0}
+              className="inline-flex items-center gap-2 bg-[#062421] hover:bg-[#0D2F2B] border border-[#5EEAD4]/25 hover:border-[#5EEAD4]/50 disabled:opacity-30 disabled:cursor-not-allowed text-[#5EEAD4] text-xs font-bold px-5 py-3 rounded-full transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" /> Previous 30
+            </button>
+            <button
+              type="button"
+              aria-label="Next group of priests"
+              onClick={() => {
+                setPriestGroupIndex(g => Math.min(totalPriestGroups - 1, g + 1));
+                topAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              disabled={clampedGroupIndex === totalPriestGroups - 1}
+              className="inline-flex items-center gap-2 bg-[#062421] hover:bg-[#0D2F2B] border border-[#5EEAD4]/25 hover:border-[#5EEAD4]/50 disabled:opacity-30 disabled:cursor-not-allowed text-[#5EEAD4] text-xs font-bold px-5 py-3 rounded-full transition-all"
+            >
+              Next 30 <ArrowLeft className="w-4 h-4 rotate-180" />
+            </button>
+          </div>
+        )}
       </div>
     </section>
+  );
+}
+
+// Extracted from the inline grid markup so the exact same card renders
+// identically inside both the mobile carousel and the desktop grid above —
+// no behaviour or content change from before, just reused in two places.
+function PriestCard({ priest: p, onSelect }: { priest: PriestProfile & { localHighlight?: string }; onSelect: () => void }) {
+  const highlight = p.localHighlight;
+  return (
+    <button
+      onClick={onSelect}
+      className="text-left bg-[#062421] p-5 rounded-2xl border border-white/10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 flex flex-col h-full w-full"
+    >
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className="font-serif font-black text-white text-sm leading-snug">{p.name}</h3>
+      </div>
+
+      <p className="flex items-center gap-1 text-[12px] text-[#FFB347]/80 font-mono mb-1">
+        <MapPin className="w-3 h-3" /> {p.currentCity}, {p.currentState}
+      </p>
+
+      <p className="text-[12px] text-white/50 font-mono mb-3 line-clamp-1">
+        {p.templesAssociated[0]}
+      </p>
+
+      <div className="flex items-center gap-4 mb-3">
+        <span className="text-[12px] font-mono text-white/60">
+          <span className="text-white font-bold">{p.yearsExperience}</span> yrs experience
+        </span>
+        <StarRating rating={p.rating} />
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {p.pujaExpertise.slice(0, 2).map(e => (
+          <span key={e} className="text-[11px] font-mono uppercase tracking-wide text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
+            {e}
+          </span>
+        ))}
+      </div>
+
+      {/* Locally-rooted highlight — distinguishes each priest's unique temple role */}
+      {highlight && (
+        <p className="text-[13px] text-white/65 leading-relaxed mb-4 flex-1 line-clamp-3">
+          {highlight}
+        </p>
+      )}
+
+      <span className="flex items-center gap-1 text-[12px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
+        <Eye className="w-3 h-3" /> View Full Profile
+      </span>
+    </button>
   );
 }
 

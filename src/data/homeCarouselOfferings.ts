@@ -6,8 +6,11 @@
  * Powers HomeCarousel.tsx, a single continuous horizontal carousel shown
  * above the cinematic Hero section.
  *
- * Curated to exactly 9 real, bookable offerings — 3 Pujas, 3 Sevas, and
- * 3 marketplace Products — in that order. Utility/navigation sections like
+ * Curated to 11 real, bookable offerings in a specific hand-picked order:
+ * the two Armed/Inland Security Forces protection Pujas first, then Basic
+ * Sankalp & Mansik Ichha Puja, then Annadan & Deep Daan Seva, then two
+ * Counselling & Guidance categories, then a Bazaar product, then two
+ * Holistic Wellness yoga sessions. Utility/navigation sections like
  * "Seva Hub & Live Devotional Dashboard" or "Live Darshan" are intentionally
  * excluded: they're app features, not offerings a devotee books, so they
  * don't belong in an offerings carousel.
@@ -49,10 +52,30 @@ export interface CarouselCard {
 const img = (name: string) => `${import.meta.env.BASE_URL}images/${name}`;
 
 /**
- * Exactly 9 cards — 3 Pujas, then 3 Sevas, then 3 Products. Update/reorder
- * here only; HomeCarousel.tsx renders whatever this array contains.
+ * Exactly 11 cards, in this specific hand-picked order. Update/reorder here
+ * only; HomeCarousel.tsx renders whatever this array contains.
  */
 export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
+  // ── Protection Pujas (Simple Pujas page) ────────────────────────────────
+  {
+    id: "simple-puja-raksha-sankalp-armed-forces",
+    title: "Veer Raksha Kavach Puja — For Our Armed Forces",
+    description: "A sacred Raksha Kavach Sankalp offered for the safety, strength and safe return of our Army, Navy, and Air Force personnel.",
+    image: img("deity_kashtabhanjan_hanuman_1781874800576.jpg"),
+    targetPage: "puja",
+    badge: "Prayers for Our Forces",
+    imagePosition: "center 20%",
+  },
+  {
+    id: "simple-puja-raksha-sankalp-inland-security",
+    title: "Seema Prahari Kavach Puja — For Our Inland Security Forces",
+    description: "A devotional shield of prayer for the safety, wellbeing and strength of CRPF, BSF, CISF, ITBP and similar forces who guard us day and night.",
+    image: img("deity_maa_tarini_1781872917967.jpg"),
+    targetPage: "puja",
+    badge: "Prayers for Our Guardians",
+    imagePosition: "center 20%",
+  },
+
   // ── Pujas ──────────────────────────────────────────────────────────────
   {
     id: "basic-sankalp-puja",
@@ -72,14 +95,6 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     badge: "Trending",
     imagePosition: "center 20%",
   },
-  {
-    id: "sampoorna-bhog-deep-puja",
-    title: "Sampoorna Bhog & Deep Puja",
-    description: "A complete evening Aarti with Bhog offering and Deep rituals for prosperity and peace.",
-    image: img("deity_kashi_vishwanath_1781874522891.jpg"),
-    targetPage: "puja",
-    badge: "Devotee Favorite",
-  },
 
   // ── Sevas ──────────────────────────────────────────────────────────────
   {
@@ -98,13 +113,23 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     targetPage: "seva",
     badge: "Suggested",
   },
+
+  // ── Counselling & Guidance ───────────────────────────────────────────────
   {
-    id: "seva-temple-maintenance",
-    title: "Temple Maintenance Seva",
-    description: "Support the daily upkeep of temple premises — cleanliness, lamp oil, and general maintenance.",
-    image: img("Temple_Maintenance.jpg"),
-    targetPage: "seva",
-    badge: "Trending Today",
+    id: "counselling-marriage-family-planning",
+    title: "Marriage & Family Life Planning",
+    description: "Preventive, forward-looking guidance for marriage readiness, newly-married adjustment, and family life.",
+    image: img("counselling/marriage-family-planning.jpg"),
+    targetPage: "counselling",
+    badge: "Life Guidance",
+  },
+  {
+    id: "counselling-mental-emotional-wellbeing",
+    title: "Mental & Emotional Wellbeing",
+    description: "A safe, non-judgemental space to talk, understand your emotions, and build everyday emotional strength.",
+    image: img("counselling/emotional-wellbeing.jpg"),
+    targetPage: "counselling",
+    badge: "Compassionate Support",
   },
 
   // ── Products (Temple Bazaar) ────────────────────────────────────────────
@@ -116,20 +141,22 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     targetPage: "products",
     badge: "Community Choice",
   },
+
+  // ── Holistic Wellness (Yoga Sessions) ───────────────────────────────────
   {
-    id: "bazaar-puja-kits",
-    title: "Puja Kits",
-    description: "Curated home Puja Kits with everything needed to perform rituals with your family, delivered to your door.",
-    image: img("Home Puja Kit.jpg"),
-    targetPage: "products",
-    badge: "Most Loved",
+    id: "wellness-hatha-yoga",
+    title: "Hatha Yoga Session",
+    description: "Traditional Hatha yoga in the Sivananda lineage, balancing solar and lunar energies through asana and breath.",
+    image: img("Hatha Yoga.jpg"),
+    targetPage: "puja",
+    badge: "Classical Practice",
   },
   {
-    id: "bazaar-prasad-blessed",
-    title: "Prasad & Blessed Items",
-    description: "Temple-blessed Prasad and sacred keepsakes, sanctified during rituals and shipped with care.",
-    image: img("Mahaprasad Kit.jpg"),
-    targetPage: "products",
-    badge: "Highly Rated",
+    id: "wellness-ashtanga-vinyasa",
+    title: "Ashtanga Vinyasa Flow",
+    description: "A structured, heat-building practice following Patanjali's eight-limbed path of synchronised breath and movement.",
+    image: img("Ashtanga Vinyasa.jpg"),
+    targetPage: "puja",
+    badge: "Dynamic Practice",
   },
 ];
