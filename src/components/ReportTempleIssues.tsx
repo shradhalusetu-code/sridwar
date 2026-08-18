@@ -120,6 +120,22 @@ const HOW_IT_WORKS = [
   { icon: Calendar, title: "Feedback & Updates", body: "We share weekly progress updates on responses and proposed improvements where available." },
 ];
 
+// Uniform-height card: numbered/icon row + title + flex-1 body, so the
+// longest step's copy never makes the row uneven — every card stretches to
+// match its siblings via the parent's h-full wrapper (carousel and grid).
+function HowItWorksCard({ step, index }: { step: (typeof HOW_IT_WORKS)[number]; index: number }) {
+  return (
+    <div className="bg-[#092320] border border-white/10 rounded-2xl p-5 space-y-3 flex flex-col h-full">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="w-6 h-6 rounded-full bg-[#FFB347] text-[#021816] text-[13px] font-extrabold flex items-center justify-center shrink-0">{index + 1}</span>
+        <step.icon className="w-4 h-4 text-[#5EEAD4]" />
+      </div>
+      <h3 className="text-xs font-bold text-white">{step.title}</h3>
+      <p className="text-[13px] text-white/60 leading-relaxed flex-1">{step.body}</p>
+    </div>
+  );
+}
+
 // ─── Compact "Send this to" recipient picker ───────────────────────────────
 // ✅ COMPACT DROPDOWN FIX: previously every level (Local, Block/Taluka,
 // District, State, National) rendered its full checkbox list permanently
@@ -429,16 +445,24 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
           </p>
         </div>
 
-        {/* ── How it works ──────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
-          {HOW_IT_WORKS.map((step, i) => (
-            <div key={step.title} className="bg-[#092320] border border-white/10 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-[#FFB347] text-[#021816] text-[13px] font-extrabold flex items-center justify-center shrink-0">{i + 1}</span>
-                <step.icon className="w-4 h-4 text-[#5EEAD4]" />
+        {/* ── How it works — "Protect What Our Ancestors Preserved" ───────
+            Mobile/app: horizontal snap carousel, same Temple Bazaar top-6
+            pattern used across the site, so all 4 step cards render at a
+            fixed uniform width/height. Desktop (lg+): unchanged 4-column
+            grid. */}
+        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-16">
+          <div className="flex gap-4 w-max pb-1">
+            {HOW_IT_WORKS.map((step, i) => (
+              <div key={step.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[220px]">
+                <HowItWorksCard step={step} index={i} />
               </div>
-              <h3 className="text-xs font-bold text-white">{step.title}</h3>
-              <p className="text-[13px] text-white/60 leading-relaxed">{step.body}</p>
+            ))}
+          </div>
+        </div>
+        <div className="hidden lg:grid grid-cols-4 gap-4 mb-16 items-stretch">
+          {HOW_IT_WORKS.map((step, i) => (
+            <div key={step.title} className="h-full [&>*]:h-full">
+              <HowItWorksCard step={step} index={i} />
             </div>
           ))}
         </div>

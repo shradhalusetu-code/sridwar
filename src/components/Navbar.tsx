@@ -102,7 +102,13 @@ export default function Navbar({
         });
         gaShare("native_share", "website", "Sri Dwar");
       } catch (err) {
-        console.log("Error sharing:", err);
+        // navigator.share() throws AbortError whenever the devotee simply
+        // closes the native share sheet without picking anything — that's
+        // normal, expected user behaviour, not a real error, so it's not
+        // worth logging to the production console on every cancelled share.
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("Error sharing:", err);
+        }
       }
     } else {
       // Fallback: Copy link to clipboard

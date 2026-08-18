@@ -247,9 +247,21 @@ export default function App() {
     "plans": "Referral Plans, Cashback & Rewards | Sri Dwar",
     "counselling": "Counselling & Guidance – Personal, Family & Life Support | Sri Dwar",
   };
+  // ✅ TITLE FIX (Requirement #5): PAGE_TITLES["login"] above is only the
+  // signed-OUT title. The effect below previously kept showing that same
+  // "Sign In to Sri Dwar" title on the /login route even after a devotee
+  // had successfully signed in, because it only ever keyed off
+  // `currentPage` and never looked at `isLoggedIn`. The dedicated
+  // signed-in title is applied here instead, and the effect now also
+  // re-runs on every isLoggedIn change (right after handleLoginSuccess /
+  // handleLogout) so the browser/app tab title flips immediately — no new
+  // route/URL needed, /login still resolves to this same page either way.
   useEffect(() => {
-    document.title = PAGE_TITLES[currentPage] || PAGE_TITLES.home;
-  }, [currentPage]);
+    document.title =
+      currentPage === "login" && isLoggedIn
+        ? "My SriDwar Profile – Dharmic ID & Booking History"
+        : (PAGE_TITLES[currentPage] || PAGE_TITLES.home);
+  }, [currentPage, isLoggedIn]);
 
   const handleNavigate = (page: string, offeringId?: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -1285,7 +1297,7 @@ export default function App() {
       {/* 6. RE-USABLE SEVA CONTRIBUTION MODAL */}
       {isSevaModalOpen && (
         <div id="seva-quick-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left"
-          style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+          style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 24px))" }}
           onClick={(e) => { if (e.target === e.currentTarget) setIsSevaModalOpen(false); }}
         >
           <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-lg shadow-2xl animate-slideUp text-white flex flex-col"
@@ -1361,7 +1373,7 @@ export default function App() {
       {/* 7. RE-USABLE TEMPLE EXPLORE / ARCHITECTURE HISTORY MODAL */}
       {activeExploreTemple && (
         <div id="temple-explore-modal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn text-left text-xs text-white"
-          style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+          style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 24px))" }}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveExploreTemple(null); }}
         >
           <div className="bg-[#092320] border border-white/15 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl animate-slideUp text-white flex flex-col"
@@ -1465,7 +1477,16 @@ export default function App() {
       {/* 8. CAR BASKET SIDE-OVER TRAY */}
       {isCartOpen && (
         <div id="cart-slideover-portal" className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex justify-end animate-fadeIn"
-          style={{ paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+          // ✅ ANDROID STATUS-BAR FIX: this fallback was "0px" — every other
+          // safe-area padding in this codebase (see androidSpacing.ts and
+          // index.css) falls back to 24px, since plain env(safe-area-inset-top)
+          // silently returns 0px on Android WebView builds older than
+          // Chrome 140, regardless of --safe-area-inset-top being unset for
+          // any reason. A 0px fallback here is exactly why "Your Basket"
+          // could render up under/behind the native status bar instead of
+          // staying inside the app's own header boundary — fixed to match
+          // the established 24px fallback used everywhere else.
+          style={{ paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 24px))" }}
         >
           <div className="w-full max-w-md bg-[#092320] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-xs text-white text-left">
             
@@ -3904,7 +3925,7 @@ Where permitted by law, we may use cookies to:</p>
           <div
             id="legal-doc-modal"
             className="fixed inset-0 bg-black/85 backdrop-blur-md z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
-            style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+            style={{ touchAction: "pan-y", paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 24px))" }}
             onClick={(e) => { if (e.target === e.currentTarget) setActiveLegalDoc(null); }}
           >
             <div className="bg-[#092320] border border-white/10 w-full sm:rounded-3xl sm:max-w-2xl shadow-2xl text-white flex flex-col"

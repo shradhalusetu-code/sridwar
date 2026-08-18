@@ -160,7 +160,8 @@ export async function fetchActivities(): Promise<ActivityRecord[]> {
       .from("activities")
       .select("id, activity_type, item_name, amount, ref_id, payment_method, payment_status, created_at")
       .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(30);
 
     if (error) {
       console.error("fetchActivities failed:", error.message);

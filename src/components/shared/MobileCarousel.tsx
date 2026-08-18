@@ -73,7 +73,7 @@ export default function MobileCarousel<T>({
       <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
         <div className={`flex ${gapClassName} w-max pb-1`}>
           {items.map((item, i) => (
-            <div key={getKey(item, i)} className={`snap-start shrink-0 ${cardWidthClassName}`}>
+            <div key={getKey(item, i)} className={`snap-start shrink-0 h-full [&>*]:h-full ${cardWidthClassName}`}>
               {renderItem(item, i)}
             </div>
           ))}
@@ -81,9 +81,9 @@ export default function MobileCarousel<T>({
       </div>
 
       {/* Desktop: unchanged grid */}
-      <div className={`hidden lg:grid grid-cols-1 sm:grid-cols-2 ${desktopGridClassName} ${gapClassName}`}>
+      <div className={`hidden lg:grid grid-cols-1 sm:grid-cols-2 ${desktopGridClassName} ${gapClassName} items-stretch`}>
         {items.map((item, i) => (
-          <div key={getKey(item, i)}>{renderItem(item, i)}</div>
+          <div key={getKey(item, i)} className="h-full [&>*]:h-full">{renderItem(item, i)}</div>
         ))}
       </div>
     </div>

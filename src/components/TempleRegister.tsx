@@ -166,7 +166,8 @@ const _expertFinalSentRefs = new Set<string>();
 
 async function postExpertPendingRow(payload: Record<string, string>, refId: string): Promise<void> {
   if (_expertPendingSentRefs.has(refId)) {
-    console.log("[Expert Form]: Pending row already sent for", refId);
+    // Already sent — this guard firing is normal (e.g. a fast double-
+    // click), not an error, so it stays silent in production.
     return;
   }
   _expertPendingSentRefs.add(refId);
@@ -181,7 +182,7 @@ async function postExpertPendingRow(payload: Record<string, string>, refId: stri
 
 async function postExpertFinalRow(payload: Record<string, string>, refId: string): Promise<void> {
   if (_expertFinalSentRefs.has(refId)) {
-    console.log("[Expert Form]: Final row already sent for", refId);
+    // Already sent — this guard firing is normal, not an error.
     return;
   }
   _expertFinalSentRefs.add(refId);
@@ -230,7 +231,8 @@ const _devoteeFinalSentRefs = new Set<string>();
 
 async function postDevoteePendingRow(payload: Record<string, string>, refId: string): Promise<void> {
   if (_devoteePendingSentRefs.has(refId)) {
-    console.log("[Devotee Form]: Pending row already sent for", refId);
+    // Already sent — this guard firing is normal (e.g. a fast double-
+    // click), not an error, so it stays silent in production.
     return;
   }
   _devoteePendingSentRefs.add(refId);
@@ -245,7 +247,7 @@ async function postDevoteePendingRow(payload: Record<string, string>, refId: str
 
 async function postDevoteeFinalRow(payload: Record<string, string>, refId: string): Promise<void> {
   if (_devoteeFinalSentRefs.has(refId)) {
-    console.log("[Devotee Form]: Final row already sent for", refId);
+    // Already sent — this guard firing is normal, not an error.
     return;
   }
   _devoteeFinalSentRefs.add(refId);

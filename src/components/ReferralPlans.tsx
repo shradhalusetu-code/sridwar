@@ -42,6 +42,19 @@ interface PlanTierCardProps {
   unlockRequirement: string;
 }
 
+// Uniform-height card for the 3 "Your Cashback, Every Time They Book"
+// tiers — flex-col + flex-1 description so the tallest tier's copy never
+// makes that card taller than its siblings in the carousel/grid row.
+function CashbackTierCard({ tier }: { tier: import("../data/referralProgram").CommissionTier }) {
+  return (
+    <div className="bg-[#021816] border border-white/10 rounded-2xl p-4 text-center flex flex-col h-full">
+      <span className="block text-3xl font-serif font-black text-[#FFB347]">{tier.rate}%</span>
+      <span className="block text-xs font-bold text-white uppercase tracking-wide mt-1">{tier.bookingLabel}</span>
+      <p className="text-[13px] text-white/55 mt-2 leading-snug flex-1">{tier.description}</p>
+    </div>
+  );
+}
+
 function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: PlanTierCardProps) {
   const isFree = tier.monthlyPrice === 0;
   const priceLabel = billing === "monthly" ? tier.monthlyPriceLabel : tier.annualPriceLabel;
@@ -376,7 +389,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               {activeTiers.map((tier, index) => {
                 const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
                 return (
-                  <div key={tier.id} className="snap-start shrink-0 w-[240px]">
+                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[240px]">
                     <PlanTierCard
                       tier={tier}
                       billing={billing}
@@ -423,12 +436,23 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
             <TrendingUp className="w-5 h-5 text-[#FFB347]" />
             <h2 className="font-serif text-lg font-bold text-white">Your Cashback, Every Time They Book</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Mobile/app: horizontal snap carousel — same Temple Bazaar top-6
+              pattern used across the site, so all 3 cashback tier cards
+              render at a fixed uniform width/height. Desktop (lg+):
+              unchanged 3-column grid. */}
+          <div className="sm:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+            <div className="flex gap-3 w-max pb-1">
+              {COMMISSION_STRUCTURE.map((tier) => (
+                <div key={tier.bookingLabel} className="snap-start shrink-0 h-full [&>*]:h-full w-[200px]">
+                  <CashbackTierCard tier={tier} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden sm:grid grid-cols-3 gap-3 items-stretch">
             {COMMISSION_STRUCTURE.map((tier) => (
-              <div key={tier.bookingLabel} className="bg-[#021816] border border-white/10 rounded-2xl p-4 text-center">
-                <span className="block text-3xl font-serif font-black text-[#FFB347]">{tier.rate}%</span>
-                <span className="block text-xs font-bold text-white uppercase tracking-wide mt-1">{tier.bookingLabel}</span>
-                <p className="text-[13px] text-white/55 mt-2 leading-snug">{tier.description}</p>
+              <div key={tier.bookingLabel} className="h-full [&>*]:h-full">
+                <CashbackTierCard tier={tier} />
               </div>
             ))}
           </div>

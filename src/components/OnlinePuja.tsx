@@ -5,6 +5,7 @@
 
 import { useState, useMemo, useRef, useEffect, ElementType } from "react";
 import { ON_LINE_PUJAS, PUJA_DISCLAIMER } from "../data/spiritualData";
+import type { Puja } from "../types";
 import { getPriestByDetails, getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import { SEVA_OCCASIONS } from "../data/sevaOfferings";
@@ -918,6 +919,149 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// PujaCategoryCard — compact card used ONLY in the Android/phone carousel
+// for the 6 category accordions below (Health & Longevity, Wealth &
+// Prosperity, Protection & Victory, Career & Business, Family & Marriage,
+// and the "other" Festivals/Ancestral/Graha Shanti group). Desktop keeps
+// its existing detailed row-list completely unchanged — this card exists
+// purely so phone/app devotees get the same swipeable carousel experience
+// already used for Simple Pujas / Seva / Bazaar, instead of a long
+// vertical scroll of rows.
+//
+// Every card renders at a fixed w-[280px] and (via MobileCarousel's
+// h-full/[&>*]:h-full stretch) matches the height of the tallest card in
+// its row, so a puja with a long name/benefit line never makes its card
+// visually bigger than its neighbours.
+// ─────────────────────────────────────────────────────────────────────────
+interface PujaCategoryCardProps {
+  puja: Puja;
+  discountedPrice: number;
+  isDetailsOpen: boolean;
+  onToggleDetails: () => void;
+  onBook: () => void;
+  onViewPriestProfile?: (priestId: string) => void;
+}
+
+function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetails, onBook, onViewPriestProfile }: PujaCategoryCardProps) {
+  const priest = getPriestByDetails(puja.priestDetails);
+
+  return (
+    <div className="h-full flex flex-col bg-[#092320] rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition-colors">
+      {/* Thumbnail */}
+      <div className="relative w-full aspect-[4/3] bg-[#021816]/70 shrink-0">
+        {puja.imageUrl ? (
+          <OptimizedImage
+            src={puja.imageUrl}
+            alt={puja.name}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="absolute inset-0 w-full h-full object-cover filter brightness-90"
+          />
+        ) : (
+          <SacredIcon type={puja.id as any} size="sm" className="w-full h-full border-none" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent" />
+        <span className="absolute bottom-2 left-2 text-[11px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#021816]/85 backdrop-blur border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full">
+          {puja.deityName}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-serif font-black text-white text-sm leading-snug mb-1">{puja.name}</h3>
+        <p className="text-[12px] font-mono text-[#FFB347]/70 truncate mb-2">{puja.templeName}</p>
+
+        <div className="flex flex-wrap items-center gap-3 mb-2.5">
+          <span className="flex items-center gap-1 text-[11px] text-white/50 font-mono">
+            <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
+            {displayDuration(puja.duration)}
+          </span>
+          <span className="flex items-center gap-1 text-[11px] font-mono text-white/40">
+            <Video className="w-3 h-3 text-emerald-400 shrink-0" />
+            HD Video
+          </span>
+          <span className="flex items-center gap-1 text-[11px] font-mono text-white/40">
+            <CheckCircle2 className="w-3 h-3 text-[#5EEAD4] shrink-0" />
+            {puja.prasadIncluded ? "Prasad" : "E-Patrika"}
+          </span>
+        </div>
+
+        {priest && (
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
+            <span className="text-[11px] font-mono text-white/50 truncate">{puja.priestDetails}</span>
+            {onViewPriestProfile && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
+                className="text-[11px] font-bold text-[#5EEAD4] hover:underline shrink-0"
+              >
+                Profile
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Purpose / details toggle — reuses the same single-open state as
+            the desktop row list (isPujaDetailsOpen/togglePujaDetails), so
+            opening a card's details on mobile behaves identically: only
+            one puja's details stay expanded at a time. */}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onToggleDetails(); }}
+          aria-expanded={isDetailsOpen}
+          className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide mb-2 transition-colors"
+        >
+          {isDetailsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          <span>{isDetailsOpen ? "Hide details" : "Purpose & inclusions"}</span>
+        </button>
+
+        {isDetailsOpen && puja.benefits && (
+          <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8 mb-2">
+            <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+            <span>{puja.benefits}</span>
+          </div>
+        )}
+        {isDetailsOpen && puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+          <ul className="space-y-1 mb-2">
+            {puja.materialsIncluded.map((item, i) => (
+              <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
+                <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Spacer pushes price/book row to the bottom of every card,
+            regardless of how much text is above it, so the footer lines
+            up card-to-card even though descriptions/details vary. */}
+        <div className="flex-1" />
+
+        <div className="flex items-center justify-between gap-3 pt-2 mt-1 border-t border-white/8">
+          <div>
+            {isDiscountPromoVisible("puja") ? (
+              <>
+                <span className="block text-[11px] line-through text-white/30 font-mono">₹{puja.price}</span>
+                <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
+              </>
+            ) : (
+              <span className="block text-base font-black text-white font-serif">₹{discountedPrice}</span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onBook}
+            className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[11px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px] shrink-0"
+          >
+            Book Puja
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface OnlinePujaProps {
   onBookNowClick: (pujaName: string, price: number) => void;
   /** Optional — lets the parent app navigate to the dedicated Priest profile page. */
@@ -1244,7 +1388,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-4 w-max pb-1">
               {SIMPLE_PUJAS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 w-[280px]">
+                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                   <SimplePujaCard
                     offering={offering}
                     isActive={activeSimplePujaId === offering.id}
@@ -1493,13 +1637,38 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     overflow: "hidden",
                   }}
                 >
-                  <div className="border-t border-white/8 divide-y divide-white/5">
+                  {/* Mobile/app: horizontal snap carousel of compact cards —
+                      same reference pattern (fixed-width, uniform-height
+                      cards via [&>*]:h-full) as Simple Pujas / Seva /
+                      Bazaar. Desktop keeps the detailed row-list below,
+                      completely unchanged. */}
+                  <div className="lg:hidden border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+                    <div className="flex gap-4 w-max pb-1">
+                      {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
+                        const discountedPrice = getDiscountedPrice(puja.price);
+                        return (
+                          <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                            <PujaCategoryCard
+                              puja={puja}
+                              discountedPrice={discountedPrice}
+                              isDetailsOpen={isPujaDetailsOpen(puja.id)}
+                              onToggleDetails={() => togglePujaDetails(puja.id)}
+                              onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
+                              onViewPriestProfile={onViewPriestProfile}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="hidden lg:block border-t border-white/8 divide-y divide-white/5">
                     {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
                       const discountedPrice = getDiscountedPrice(puja.price);
                       return (
                         <div
                           key={puja.id}
-                          id={`puja-row-${puja.id}`}
+                          id={`puja-row-desktop-${puja.id}`}
                           className="flex flex-col sm:flex-row sm:items-center gap-3 px-6 py-4 hover:bg-white/3 transition-colors"
                         >
                           {/* Thumbnail image */}
@@ -1743,13 +1912,36 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   overflow: "hidden",
                 }}
               >
-                <div className="border-t border-white/8 divide-y divide-white/5">
+                {/* Mobile/app: horizontal snap carousel of compact cards —
+                    same pattern as the 6 category sections above. Desktop
+                    keeps the detailed row-list below, unchanged. */}
+                <div className="lg:hidden border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+                  <div className="flex gap-4 w-max pb-1">
+                    {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {
+                      const discountedPrice = getDiscountedPrice(puja.price);
+                      return (
+                        <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                          <PujaCategoryCard
+                            puja={puja}
+                            discountedPrice={discountedPrice}
+                            isDetailsOpen={isPujaDetailsOpen(puja.id)}
+                            onToggleDetails={() => togglePujaDetails(puja.id)}
+                            onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
+                            onViewPriestProfile={onViewPriestProfile}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="hidden lg:block border-t border-white/8 divide-y divide-white/5">
                   {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {
                     const discountedPrice = getDiscountedPrice(puja.price);
                     return (
                       <div
                         key={puja.id}
-                        id={`puja-row-${puja.id}`}
+                        id={`puja-row-desktop-${puja.id}`}
                         className="flex flex-col sm:flex-row sm:items-center gap-3 px-6 py-4 hover:bg-white/3 transition-colors"
                       >
                         {/* Thumbnail image */}

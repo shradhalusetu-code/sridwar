@@ -25,6 +25,7 @@ import {
   COMMISSION_STRUCTURE, findPlanTierById, isDevoteeTier, PLAN_CATEGORIES,
   REFERRAL_PAYOUT_THRESHOLD, REFERRAL_KYC_THRESHOLD,
 } from "../data/referralProgram";
+import MobileCarousel from "./shared/MobileCarousel";
 
 const REFERRAL_TERMS_VERSION = "2026-08-01";
 
@@ -181,39 +182,44 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
-          <Users className="w-3.5 h-3.5 text-[#5EEAD4] mx-auto mb-1" />
-          <span className="block text-base font-serif font-black text-white">{referrals.length}</span>
-          <span className="block text-[11px] text-white/45">Total Referrals</span>
-        </div>
-        <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
-          <TrendingUp className="w-3.5 h-3.5 text-[#5EEAD4] mx-auto mb-1" />
-          <span className="block text-base font-serif font-black text-white">{activeReferrals}</span>
-          <span className="block text-[11px] text-white/45">Active</span>
-        </div>
-        <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
-          <Wallet className="w-3.5 h-3.5 text-[#FFB347] mx-auto mb-1" />
-          <span className="block text-base font-serif font-black text-[#FFB347]">₹{(profile?.lifetimeCommission ?? 0).toLocaleString("en-IN")}</span>
-          <span className="block text-[11px] text-white/45">Total Cashback Earned</span>
-        </div>
-        <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
-          <Gift className="w-3.5 h-3.5 text-[#FFB347] mx-auto mb-1" />
-          <span className="block text-base font-serif font-black text-[#FFB347]">₹{(profile?.ledgerBalance ?? 0).toLocaleString("en-IN")}</span>
-          <span className="block text-[11px] text-white/45">Available Balance</span>
-        </div>
-      </div>
+      {/* Stats — swipeable carousel on mobile/app, unchanged 4-col grid on
+          desktop. Every tile is a fixed w-[130px] so all four line up at
+          the same height regardless of how long a number/label runs. */}
+      <MobileCarousel
+        items={[
+          { key: "total-referrals", icon: Users, iconColor: "text-[#5EEAD4]", value: String(referrals.length), valueColor: "text-white", label: "Total Referrals" },
+          { key: "active-referrals", icon: TrendingUp, iconColor: "text-[#5EEAD4]", value: String(activeReferrals), valueColor: "text-white", label: "Active" },
+          { key: "total-cashback", icon: Wallet, iconColor: "text-[#FFB347]", value: `₹${(profile?.lifetimeCommission ?? 0).toLocaleString("en-IN")}`, valueColor: "text-[#FFB347]", label: "Total Cashback Earned" },
+          { key: "available-balance", icon: Gift, iconColor: "text-[#FFB347]", value: `₹${(profile?.ledgerBalance ?? 0).toLocaleString("en-IN")}`, valueColor: "text-[#FFB347]", label: "Available Balance" },
+        ]}
+        getKey={(stat) => stat.key}
+        cardWidthClassName="w-[130px]"
+        gapClassName="gap-2.5"
+        desktopGridClassName="lg:grid-cols-4"
+        renderItem={(stat) => (
+          <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
+            <stat.icon className={`w-3.5 h-3.5 ${stat.iconColor} mx-auto mb-1`} />
+            <span className={`block text-base font-serif font-black ${stat.valueColor}`}>{stat.value}</span>
+            <span className="block text-[11px] text-white/45">{stat.label}</span>
+          </div>
+        )}
+      />
 
-      {/* Commission structure quick reference */}
-      <div className="grid grid-cols-3 gap-2">
-        {COMMISSION_STRUCTURE.map((c) => (
-          <div key={c.bookingLabel} className="bg-[#021816] border border-white/5 rounded-lg p-2 text-center">
+      {/* Commission structure quick reference — same carousel-on-mobile,
+          grid-on-desktop treatment. */}
+      <MobileCarousel
+        items={COMMISSION_STRUCTURE}
+        getKey={(c) => c.bookingLabel}
+        cardWidthClassName="w-[110px]"
+        gapClassName="gap-2"
+        desktopGridClassName="lg:grid-cols-3"
+        renderItem={(c) => (
+          <div className="bg-[#021816] border border-white/5 rounded-lg p-2 text-center">
             <span className="block text-sm font-serif font-black text-[#FFB347]">{c.rate}%</span>
             <span className="block text-[10px] text-white/45 uppercase">{c.bookingLabel}</span>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       {/* Subscription status */}
       <div className="bg-[#021816] border border-white/10 rounded-2xl p-3.5">

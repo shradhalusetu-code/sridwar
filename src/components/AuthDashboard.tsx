@@ -18,6 +18,7 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
 import ReferralDashboardPanel from "./ReferralDashboardPanel";
+import MobileCarousel from "./shared/MobileCarousel";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
 import {
@@ -127,6 +128,16 @@ export default function AuthDashboard({
   // activity on any device, not just this browser's session.
   const [activityRecords, setActivityRecords] = useState<ActivityRecord[]>([]);
   const [formSubmissions, setFormSubmissions] = useState<FormSubmissionRecord[]>([]);
+
+  // ── Ledger pagination ───────────────────────────────────────────────────
+  // Both "My Spiritual Transactions Ledger" (bookedItems) and "All Account
+  // Activity" (activityRecords) show their latest 6 entries as a carousel
+  // by default; everything past that is collapsed. Each "Show more" tap
+  // reveals 10 more, and can be tapped again to reveal 10 more after that.
+  const LEDGER_CAROUSEL_COUNT = 6;
+  const LEDGER_PAGE_SIZE = 10;
+  const [bookedLedgerVisible, setBookedLedgerVisible] = useState(LEDGER_CAROUSEL_COUNT);
+  const [activityLedgerVisible, setActivityLedgerVisible] = useState(LEDGER_CAROUSEL_COUNT);
 
   // Post-login "Contribute / Donate" panel — lets an already-logged-in
   // devotee start a new temple divine contribution from their Profile page,
@@ -1287,10 +1298,16 @@ export default function AuthDashboard({
                   {bookedItems.length > 0 ? (
                     <div>
                       <span className="text-xs font-bold text-[#5EEAD4] uppercase tracking-wider font-mono block mb-2 text-left">Booked Ceremonies</span>
-                      <div className="space-y-3">
-                        {bookedItems.map((item, idx) => (
+
+                      {/* Latest 6, as a swipeable carousel on mobile/app
+                          (desktop: 2-col grid, via MobileCarousel's default) */}
+                      <MobileCarousel
+                        items={bookedItems.slice(0, LEDGER_CAROUSEL_COUNT)}
+                        getKey={(item, idx) => `booked-carousel-${idx}`}
+                        desktopGridClassName="lg:grid-cols-2"
+                        cardWidthClassName="w-[240px]"
+                        renderItem={(item, idx) => (
                           <div
-                            key={idx}
                             id={`booked-item-ledg-${idx}`}
                             className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
                           >
@@ -1304,8 +1321,44 @@ export default function AuthDashboard({
                               </span>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        )}
+                      />
+
+                      {/* Beyond the latest 6 — collapsed by default, "Show
+                          more" reveals 10 more at a time. */}
+                      {bookedItems.length > LEDGER_CAROUSEL_COUNT && (
+                        <div className="space-y-3 mt-3">
+                          {bookedItems.slice(LEDGER_CAROUSEL_COUNT, bookedLedgerVisible).map((item, i) => {
+                            const idx = LEDGER_CAROUSEL_COUNT + i;
+                            return (
+                              <div
+                                key={idx}
+                                id={`booked-item-ledg-${idx}`}
+                                className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                              >
+                                <div className="absolute right-4 top-4 text-2xl">🐚</div>
+                                <h4 className="font-serif text-sm font-bold text-white">{item.pujaName}</h4>
+                                <span className="text-[12px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
+                                <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                                  <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
+                                  <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase animate-pulse">
+                                    Sankalpa Scheduled
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {bookedLedgerVisible < bookedItems.length && (
+                            <button
+                              type="button"
+                              onClick={() => setBookedLedgerVisible((v) => v + LEDGER_PAGE_SIZE)}
+                              className="w-full flex items-center justify-center gap-1.5 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide py-2 border border-white/10 rounded-xl"
+                            >
+                              Show {Math.min(LEDGER_PAGE_SIZE, bookedItems.length - bookedLedgerVisible)} more
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-xs text-white/40 py-4 italic text-left">No dynamic pujas scheduled in this current browser session yet. Use the header "Book a Puja" to watch live results.</p>
@@ -1323,32 +1376,86 @@ export default function AuthDashboard({
                   All Account Activity
                 </h3>
                 {activityRecords.length > 0 ? (
-                  <div className="space-y-3">
-                    {activityRecords.map((rec) => {
-                      const badge = paymentStatusBadge(rec.paymentStatus);
-                      return (
-                        <div
-                          key={rec.id}
-                          id={`synced-activity-${rec.id}`}
-                          className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
-                        >
-                          <span className="text-[11px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
-                            {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
-                          </span>
-                          <h4 className="font-serif text-sm font-bold text-white pr-4">{rec.itemName}</h4>
-                          <span className="text-[12px] text-white/50 font-mono font-medium block">
-                            Ref: {rec.refId} | {new Date(rec.createdAt).toLocaleDateString()}
-                          </span>
-                          <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
-                            <span className="font-bold text-[#FFB347]">₹{rec.amount}{rec.paymentMethod ? ` · ${rec.paymentMethod}` : ""}</span>
-                            <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase border ${badge.cls}`}>
-                              {badge.label}
+                  <>
+                    {/* Latest 6, as a swipeable carousel on mobile/app */}
+                    <MobileCarousel
+                      items={activityRecords.slice(0, LEDGER_CAROUSEL_COUNT)}
+                      getKey={(rec) => `activity-carousel-${rec.id}`}
+                      desktopGridClassName="lg:grid-cols-2"
+                      cardWidthClassName="w-[240px]"
+                      renderItem={(rec) => {
+                        const badge = paymentStatusBadge(rec.paymentStatus);
+                        return (
+                          <div
+                            id={`synced-activity-${rec.id}`}
+                            className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                          >
+                            <span className="text-[11px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
+                              {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
                             </span>
+                            <h4 className="font-serif text-sm font-bold text-white pr-4">{rec.itemName}</h4>
+                            <span className="text-[12px] text-white/50 font-mono font-medium block">
+                              Ref: {rec.refId} | {new Date(rec.createdAt).toLocaleDateString()}
+                            </span>
+                            <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                              <span className="font-bold text-[#FFB347]">₹{rec.amount}{rec.paymentMethod ? ` · ${rec.paymentMethod}` : ""}</span>
+                              <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase border ${badge.cls}`}>
+                                {badge.label}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      }}
+                    />
+
+                    {/* Beyond the latest 6 — collapsed by default, "Show
+                        more" reveals 10 more at a time. */}
+                    {activityRecords.length > LEDGER_CAROUSEL_COUNT && (
+                      <div className="space-y-3 mt-3">
+                        {activityRecords.slice(LEDGER_CAROUSEL_COUNT, activityLedgerVisible).map((rec) => {
+                          const badge = paymentStatusBadge(rec.paymentStatus);
+                          return (
+                            <div
+                              key={rec.id}
+                              id={`synced-activity-${rec.id}`}
+                              className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                            >
+                              <span className="text-[11px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
+                                {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
+                              </span>
+                              <h4 className="font-serif text-sm font-bold text-white pr-4">{rec.itemName}</h4>
+                              <span className="text-[12px] text-white/50 font-mono font-medium block">
+                                Ref: {rec.refId} | {new Date(rec.createdAt).toLocaleDateString()}
+                              </span>
+                              <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                                <span className="font-bold text-[#FFB347]">₹{rec.amount}{rec.paymentMethod ? ` · ${rec.paymentMethod}` : ""}</span>
+                                <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase border ${badge.cls}`}>
+                                  {badge.label}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {activityLedgerVisible < activityRecords.length && (
+                          <button
+                            type="button"
+                            onClick={() => setActivityLedgerVisible((v) => v + LEDGER_PAGE_SIZE)}
+                            className="w-full flex items-center justify-center gap-1.5 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide py-2 border border-white/10 rounded-xl"
+                          >
+                            Show {Math.min(LEDGER_PAGE_SIZE, activityRecords.length - activityLedgerVisible)} more
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* This interface only ever shows the latest 30 synced
+                        records (fetchActivities() caps the query itself),
+                        so a devotee with a longer history knows where to
+                        go for the rest. */}
+                    <p className="text-[11px] text-white/35 leading-relaxed mt-3">
+                      This shows your most recent 30 transactions. For older records or a full statement, please contact Sri Dwar.
+                    </p>
+                  </>
                 ) : (
                   <p className="text-xs text-white/40 py-4 italic text-left">
                     No synced activity yet — bookings, sevas, orders and divine contributions made on this Dharmic ID will appear here.

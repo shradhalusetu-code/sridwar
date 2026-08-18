@@ -59,6 +59,56 @@ const FOUNDERS: Founder[] = [
   },
 ];
 
+// ─── Mission / Core Values pillars ──────────────────────────────────────────
+interface MissionPillar {
+  title: string;
+  body: string;
+  icon: string;
+  iconClass: string;
+}
+
+const MISSION_PILLARS: MissionPillar[] = [
+  {
+    title: "Rooted in Scripture",
+    body: "No mass prayers, ever. Every puja is voiced individually with your Gotra and Nakshatra, faithfully preserving thousands of years of strict Vedic tradition.",
+    icon: "✓",
+    iconClass: "bg-[#5EEAD4]/10 text-[#5EEAD4] border-[#5EEAD4]/20",
+  },
+  {
+    title: "Priest Empowerment",
+    body: "We empower 100+ local pandits and gurukuls with technical training, digital tools, and consistent wages — keeping the chanting tradition alive for the next generation.",
+    icon: "❤",
+    iconClass: "bg-[#FFB347]/10 text-[#FFB347] border-[#FFB347]/20",
+  },
+  {
+    title: "Zero-Leaking Economy",
+    body: "Operated under Shradhalu Private Limited, we use secure transaction ledgers and a Sri Dwar-managed database for full audit disclosures on how every divine contribution is utilized.",
+    icon: "💡",
+    iconClass: "bg-[#FFB347]/10 text-[#FFB347] border-[#FFB347]/20",
+  },
+  {
+    title: "Global, Always On",
+    body: "Built on a fast, responsive, offline-friendly platform — so devotees across Europe, the Americas, and East Asia can connect with Indian temples anytime, from anywhere.",
+    icon: "🌍",
+    iconClass: "bg-[#5EEAD4]/10 text-[#5EEAD4] border-[#5EEAD4]/20",
+  },
+];
+
+// Uniform-height card: fixed icon row + title + flex-1 body, so the tallest
+// card's copy never makes the row uneven — every card in the carousel/grid
+// stretches to match its siblings via the parent's h-full wrapper.
+function MissionPillarCard({ pillar }: { pillar: MissionPillar }) {
+  return (
+    <div className="bg-[#092320] p-6 rounded-3xl border border-white/10 text-left space-y-3 flex flex-col h-full">
+      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-lg border shrink-0 ${pillar.iconClass}`}>
+        {pillar.icon}
+      </div>
+      <h4 className="font-serif text-base font-bold text-white">{pillar.title}</h4>
+      <p className="text-xs text-white/70 leading-relaxed flex-1">{pillar.body}</p>
+    </div>
+  );
+}
+
 function FounderCard({ founder }: { founder: Founder }) {
   const [imgFailed, setImgFailed] = useState(false);
   // ─── Compact-by-default card (mobile/tablet) — Stage 5 ──────────────────
@@ -286,47 +336,26 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
           </div>
         </div>
 
-        {/* Core Values / Impact Pillars Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-[#092320] p-6 rounded-3xl border border-white/10 text-left space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#5EEAD4]/10 text-[#5EEAD4] flex items-center justify-center font-bold text-lg border border-[#5EEAD4]/20">
-              ✓
-            </div>
-            <h4 className="font-serif text-base font-bold text-white">Rooted in Scripture</h4>
-            <p className="text-xs text-white/70 leading-relaxed">
-              No mass prayers, ever. Every puja is voiced individually with your Gotra and Nakshatra, faithfully preserving thousands of years of strict Vedic tradition.
-            </p>
+        {/* Core Values / Impact Pillars — Mission section.
+            Mobile/app: horizontal snap carousel, same Temple Bazaar top-6
+            pattern used across the site, so all 4 cards render at a fixed
+            uniform width/height regardless of how long any one card's copy
+            runs. Desktop (lg+): unchanged 4-column grid. */}
+        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+          <div className="flex gap-4 w-max pb-1">
+            {MISSION_PILLARS.map((pillar) => (
+              <div key={pillar.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[260px]">
+                <MissionPillarCard pillar={pillar} />
+              </div>
+            ))}
           </div>
-
-          <div className="bg-[#092320] p-6 rounded-3xl border border-white/10 text-left space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFB347]/10 text-[#FFB347] flex items-center justify-center font-bold text-lg border border-[#FFB347]/20">
-              ❤
+        </div>
+        <div className="hidden lg:grid grid-cols-4 gap-6 items-stretch">
+          {MISSION_PILLARS.map((pillar) => (
+            <div key={pillar.title} className="h-full [&>*]:h-full">
+              <MissionPillarCard pillar={pillar} />
             </div>
-            <h4 className="font-serif text-base font-bold text-white">Priest Empowerment</h4>
-            <p className="text-xs text-white/70 leading-relaxed">
-              We empower 100+ local pandits and gurukuls with technical training, digital tools, and consistent wages — keeping the chanting tradition alive for the next generation.
-            </p>
-          </div>
-
-          <div className="bg-[#092320] p-6 rounded-3xl border border-white/10 text-left space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFB347]/10 text-[#FFB347] flex items-center justify-center font-bold text-lg border border-[#FFB347]/20">
-              💡
-            </div>
-            <h4 className="font-serif text-base font-bold text-white">Zero-Leaking Economy</h4>
-            <p className="text-xs text-white/70 leading-relaxed">
-              Operated under Shradhalu Private Limited, we use secure transaction ledgers and a Sri Dwar-managed database for full audit disclosures on how every divine contribution is utilized.
-            </p>
-          </div>
-
-          <div className="bg-[#092320] p-6 rounded-3xl border border-white/10 text-left space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#5EEAD4]/10 text-[#5EEAD4] flex items-center justify-center font-bold text-lg border border-[#5EEAD4]/20">
-              🌍
-            </div>
-            <h4 className="font-serif text-base font-bold text-white">Global, Always On</h4>
-            <p className="text-xs text-white/70 leading-relaxed">
-              Built on a fast, responsive, offline-friendly platform — so devotees across Europe, the Americas, and East Asia can connect with Indian temples anytime, from anywhere.
-            </p>
-          </div>
+          ))}
         </div>
 
       </div>

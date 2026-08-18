@@ -461,151 +461,11 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // autosave here does not lose any real lead — it just stops writing a new
   // row for every pause in typing or tab switch.
 
-  return (
-    <section
-      id="temple-bazaar-section"
-      className="py-16 bg-[#021816] text-white relative"
-      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* ── Section Header ───────────────────────────────────────────── */}
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono uppercase">
-            Sacred Marketplace
-          </span>
-          <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
-            Temple Bazaar Store
-          </h2>
-          <p className="text-xs text-white/70 mt-2 leading-relaxed">
-            Traditional prasad, puja kits, sacred items & live puja services — sourced from temples across India,
-            performed in your Gotra, delivered to your doorstep.
-          </p>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════
-            Devotional Shopping Offerings — new structured products,
-            shown at the top of Temple Bazaar Store per the same tiered
-            (₹100 → ₹2,100+) pattern used by Seva Offerings.
-        ══════════════════════════════════════════════════════════════ */}
-        <div className="mb-12">
-          <div className="text-center max-w-2xl mx-auto mb-5">
-            <h3 className="font-serif text-xl font-bold text-white">Devotional Shopping Offerings</h3>
-            <p className="text-[13px] text-white/60 mt-1.5 leading-relaxed">{BAZAAR_DELIVERY_NOTE}</p>
-            <span className="inline-block text-[12px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full mt-2">
-              All Offerings Start at ₹100
-            </span>
-          </div>
-
-          {/* New products category filter */}
-          <div className="flex flex-wrap gap-2 justify-center mb-6">
-            {["All", ...BAZAAR_CATEGORIES].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => { gaCategoryFilter(cat, "temple_bazaar_devotional_shopping"); setNewSelectedCategory(cat); }}
-                className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
-                  newSelectedCategory === cat
-                    ? "bg-[#FFB347] text-[#021816] border-[#FFB347]"
-                    : "bg-white/5 text-white/70 border-white/10 hover:border-white/30"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile/app: horizontal snap carousel — all 5 key Bazaar
-              offerings fit here, so there's no separate "remaining
-              offerings" overflow for this section. Desktop (lg+): unchanged
-              grid. Same pattern as Seva Offerings (SevaExperience.tsx). */}
-          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-6">
-            <div className="flex gap-4 w-max pb-1">
-              {filteredNewProducts.map((product) => (
-                <div key={product.id} className="snap-start shrink-0 w-[280px]">
-                  <BazaarOfferingCard
-                    product={product}
-                    isActive={activeNewOfferingId === product.id}
-                    onActivate={() => setActiveNewOfferingId(product.id)}
-                    onOffer={handleOfferNewProduct}
-                    onAddToCart={handleAddToNewCart}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-            {filteredNewProducts.map((product) => (
-              <BazaarOfferingCard
-                key={product.id}
-                product={product}
-                isActive={activeNewOfferingId === product.id}
-                onActivate={() => setActiveNewOfferingId(product.id)}
-                onOffer={handleOfferNewProduct}
-                onAddToCart={handleAddToNewCart}
-              />
-            ))}
-          </div>
-
-          {/* Section-local cart summary — only shown once something's been added */}
-          {newBazaarCart.length > 0 && (
-            <div className="max-w-md mx-auto mb-6 bg-[#092320] border border-[#FFB347]/40 rounded-2xl px-4 py-3 shadow-lg flex items-center justify-between gap-3">
-              <div className="text-xs text-white/80">
-                <span className="font-bold text-[#FFB347]">{newBazaarCart.length} item{newBazaarCart.length > 1 ? "s" : ""}</span> in cart · ₹{newCartTotal.toLocaleString("en-IN")}
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button onClick={handleClearNewCart} className="text-[12px] text-white/50 underline hover:text-white/70">
-                  Clear
-                </button>
-                <button
-                  onClick={handleCheckoutNewCart}
-                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] text-[12px] font-extrabold px-3.5 py-2 rounded-xl uppercase tracking-wide"
-                >
-                  Checkout
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Trust copy */}
-          <div className="flex items-start space-x-2.5 text-xs text-white/70 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 max-w-3xl mx-auto">
-            <ShieldCheck className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
-            <span>{BAZAAR_TRUST_COPY}</span>
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════
-            Current Offerings — original Temple Bazaar catalogue
-        ══════════════════════════════════════════════════════════════ */}
-        <div className="text-center max-w-2xl mx-auto mb-5">
-          <h3 className="font-serif text-xl font-bold text-white">Current Offerings</h3>
-          <p className="flex items-center justify-center gap-1.5 text-[13px] text-white/60 mt-1.5 leading-relaxed">
-            <Truck className="w-3.5 h-3.5 text-[#FFB347] shrink-0" />
-            Shipping charges will apply on physical items and may vary based on your delivery PIN code.
-          </p>
-        </div>
-
-        {/* ── Category Filter ──────────────────────────────────────────── */}
-        <div className="flex flex-wrap gap-2 justify-center mb-8">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => { gaCategoryFilter(cat, "temple_bazaar"); setSelectedCategory(cat); }}
-              className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
-                selectedCategory === cat
-                  ? "bg-[#FFB347] text-[#021816] border-[#FFB347]"
-                  : "bg-white/5 text-white/70 border-white/10 hover:border-white/30"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Items Grid ───────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredItems.map(item => (
+  // Shared card renderer for the "Current Offerings" legacy catalogue —
+  // used by BOTH the mobile/app carousel and the desktop grid below so
+  // the two stay pixel-identical instead of drifting apart over time.
+  const renderLegacyItemCard = (item: BazaarItem) => (
             <div
-              key={item.id}
               className="bg-[#092320] rounded-3xl border border-white/10 overflow-hidden flex flex-col hover:border-[#5EEAD4]/20 transition-all hover:shadow-lg"
             >
               {/* Image */}
@@ -739,6 +599,170 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   </button>
                 </div>
               </div>
+            </div>
+  );
+
+  return (
+    <section
+      id="temple-bazaar-section"
+      className="py-16 bg-[#021816] text-white relative"
+      style={isAndroidApp ? sectionTopPadding(true) : { paddingTop: `calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 96px)` }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* ── Section Header ───────────────────────────────────────────── */}
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <span className="text-xs font-semibold text-[#5EEAD4]/80 tracking-wider font-mono uppercase">
+            Sacred Marketplace
+          </span>
+          <h2 className="text-3xl font-serif font-black text-white tracking-tight mt-1">
+            Temple Bazaar Store
+          </h2>
+          <p className="text-xs text-white/70 mt-2 leading-relaxed">
+            Traditional prasad, puja kits, sacred items & live puja services — sourced from temples across India,
+            performed in your Gotra, delivered to your doorstep.
+          </p>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            Devotional Shopping Offerings — new structured products,
+            shown at the top of Temple Bazaar Store per the same tiered
+            (₹100 → ₹2,100+) pattern used by Seva Offerings.
+        ══════════════════════════════════════════════════════════════ */}
+        <div className="mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-5">
+            <h3 className="font-serif text-xl font-bold text-white">Devotional Shopping Offerings</h3>
+            <p className="text-[13px] text-white/60 mt-1.5 leading-relaxed">{BAZAAR_DELIVERY_NOTE}</p>
+            <span className="inline-block text-[12px] font-mono text-[#5EEAD4] uppercase tracking-wide bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 px-2.5 py-1 rounded-full mt-2">
+              All Offerings Start at ₹100
+            </span>
+          </div>
+
+          {/* New products category filter */}
+          <div className="flex flex-wrap gap-2 justify-center mb-6">
+            {["All", ...BAZAAR_CATEGORIES].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => { gaCategoryFilter(cat, "temple_bazaar_devotional_shopping"); setNewSelectedCategory(cat); }}
+                className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
+                  newSelectedCategory === cat
+                    ? "bg-[#FFB347] text-[#021816] border-[#FFB347]"
+                    : "bg-white/5 text-white/70 border-white/10 hover:border-white/30"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile/app: horizontal snap carousel — all 5 key Bazaar
+              offerings fit here, so there's no separate "remaining
+              offerings" overflow for this section. Desktop (lg+): unchanged
+              grid. Same pattern as Seva Offerings (SevaExperience.tsx). */}
+          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-6">
+            <div className="flex gap-4 w-max pb-1">
+              {filteredNewProducts.map((product) => (
+                <div key={product.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                  <BazaarOfferingCard
+                    product={product}
+                    isActive={activeNewOfferingId === product.id}
+                    onActivate={() => setActiveNewOfferingId(product.id)}
+                    onOffer={handleOfferNewProduct}
+                    onAddToCart={handleAddToNewCart}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+            {filteredNewProducts.map((product) => (
+              <BazaarOfferingCard
+                key={product.id}
+                product={product}
+                isActive={activeNewOfferingId === product.id}
+                onActivate={() => setActiveNewOfferingId(product.id)}
+                onOffer={handleOfferNewProduct}
+                onAddToCart={handleAddToNewCart}
+              />
+            ))}
+          </div>
+
+          {/* Section-local cart summary — only shown once something's been added */}
+          {newBazaarCart.length > 0 && (
+            <div className="max-w-md mx-auto mb-6 bg-[#092320] border border-[#FFB347]/40 rounded-2xl px-4 py-3 shadow-lg flex items-center justify-between gap-3">
+              <div className="text-xs text-white/80">
+                <span className="font-bold text-[#FFB347]">{newBazaarCart.length} item{newBazaarCart.length > 1 ? "s" : ""}</span> in cart · ₹{newCartTotal.toLocaleString("en-IN")}
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={handleClearNewCart} className="text-[12px] text-white/50 underline hover:text-white/70">
+                  Clear
+                </button>
+                <button
+                  onClick={handleCheckoutNewCart}
+                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] text-[12px] font-extrabold px-3.5 py-2 rounded-xl uppercase tracking-wide"
+                >
+                  Checkout
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Trust copy */}
+          <div className="flex items-start space-x-2.5 text-xs text-white/70 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 max-w-3xl mx-auto">
+            <ShieldCheck className="w-4 h-4 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+            <span>{BAZAAR_TRUST_COPY}</span>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            Current Offerings — original Temple Bazaar catalogue
+        ══════════════════════════════════════════════════════════════ */}
+        <div className="text-center max-w-2xl mx-auto mb-5">
+          <h3 className="font-serif text-xl font-bold text-white">Current Offerings</h3>
+          <p className="flex items-center justify-center gap-1.5 text-[13px] text-white/60 mt-1.5 leading-relaxed">
+            <Truck className="w-3.5 h-3.5 text-[#FFB347] shrink-0" />
+            Shipping charges will apply on physical items and may vary based on your delivery PIN code.
+          </p>
+        </div>
+
+        {/* ── Category Filter ──────────────────────────────────────────── */}
+        <div className="flex flex-wrap gap-2 justify-center mb-8">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => { gaCategoryFilter(cat, "temple_bazaar"); setSelectedCategory(cat); }}
+              className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
+                selectedCategory === cat
+                  ? "bg-[#FFB347] text-[#021816] border-[#FFB347]"
+                  : "bg-white/5 text-white/70 border-white/10 hover:border-white/30"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Items Grid ───────────────────────────────────────────────── */}
+        {/* Mobile/app: horizontal snap carousel — same Temple Bazaar top-6
+            pattern as Devotional Shopping Offerings above. All uniform-
+            height cards regardless of category filter selection; card
+            height is set by the tallest card in the row (flex default
+            align-items: stretch), so a short description never makes one
+            card shrink smaller than its neighbours. Desktop (lg+):
+            unchanged grid. */}
+        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+          <div className="flex gap-5 w-max pb-1">
+            {filteredItems.map(item => (
+              <div key={item.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                {renderLegacyItemCard(item)}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+          {filteredItems.map(item => (
+            <div key={item.id} className="h-full [&>*]:h-full">
+              {renderLegacyItemCard(item)}
             </div>
           ))}
         </div>

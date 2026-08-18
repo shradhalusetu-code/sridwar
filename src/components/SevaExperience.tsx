@@ -695,7 +695,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-4 w-max pb-1">
               {SEVA_OFFERINGS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 w-[280px]">
+                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                   <SevaOfferingCard
                     offering={offering}
                     isActive={activeOfferingId === offering.id}
