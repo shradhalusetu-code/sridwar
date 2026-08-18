@@ -456,7 +456,7 @@ function PriestCard({ priest: p, onSelect }: { priest: PriestProfile & { localHi
         </p>
       )}
 
-      <span className="flex items-center gap-1 text-[12px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
+      <span className="flex items-center gap-1.5 text-[12px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
         <Eye className="w-3 h-3" /> View Full Profile
       </span>
     </button>

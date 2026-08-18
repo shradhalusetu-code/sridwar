@@ -1127,7 +1127,8 @@ function DharmicExpertSection() {
   // "Get Short Link" button below point to. ──
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("page") === "devotee-register" || params.get("d") === "1") {
+    const path = window.location.pathname;
+    if (params.get("page") === "devotee-register" || path === "/devotee-register" || params.get("d") === "1") {
       setShowDevoteeFlow(true);
     }
   }, []);
@@ -2080,8 +2081,15 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const page = params.get("page");
+    const path = window.location.pathname;
     const isShortDevoteeLink = params.get("d") === "1";
-    if (!page && !isShortDevoteeLink) return;
+
+    // Check both query param and clean URL path
+    const isDevoteeReg = page === "devotee-register" || path === "/devotee-register" || isShortDevoteeLink;
+    const isExpertReg = page === "dharmic-expert-register" || path === "/dharmic-expert-register";
+    const isTempleReg = page === "temple-register" || path === "/temple-register";
+
+    if (!page && !isShortDevoteeLink && !isExpertReg && !isDevoteeReg && !isTempleReg) return;
 
     // Fire a GA page_view so the shared-link visit is attributed correctly
     gaEvent("page_view", {
@@ -2093,12 +2101,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       utm_content:   params.get("utm_content")   ?? "",
     });
 
-    if (page === "temple-register") {
+    if (isTempleReg) {
       setStep("temple-reg");
       setTimeout(() => document.getElementById("temple-register-section")?.scrollIntoView({ behavior: "smooth" }), 300);
-    } else if (page === "dharmic-expert-register") {
+    } else if (isExpertReg) {
       setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
-    } else if (page === "devotee-register" || isShortDevoteeLink) {
+    } else if (isDevoteeReg) {
+      setShowDevoteeFlow(true);
       setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
     }
   }, []);

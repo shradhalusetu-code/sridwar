@@ -220,7 +220,7 @@ export default function SacredMoments() {
 
           {/* Input — "Offer your prayers or type a mantra..." stays visible
               and functional regardless of SHOW_PRAYER_WALL_COMMENTS. */}
-          <form onSubmit={handleSendMessage} className="flex gap-2 shrink-0">
+          <form onSubmit={handleSendMessage} className="flex gap-2.5 shrink-0">
             <input
               id="chat-input-box"
               type="text"

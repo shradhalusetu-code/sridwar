@@ -937,7 +937,7 @@ export default function AuthDashboard({
             <form onSubmit={handleGoogleLogin} className="space-y-4">
 
               {/* Sign Up / Log In toggle */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   id="auth-mode-signup-tab"

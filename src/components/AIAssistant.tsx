@@ -307,7 +307,7 @@ export default function AIAssistant({ currentLanguage, isAndroidApp = false }: A
               e.preventDefault();
               handleSendMessage(inputText);
             }}
-            className="flex items-center space-x-2 p-3 bg-[#021816] border-t border-white/10"
+            className="flex items-center space-x-2.5 p-3 bg-[#021816] border-t border-white/10"
           >
             <input
               id="ai-input-box"

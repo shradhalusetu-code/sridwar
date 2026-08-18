@@ -238,6 +238,8 @@ export default function App() {
     "live-darshan": "/darshan",
     "temple-register": "/temple-register",
     "add-temple": "/add-temple",
+    "devotee-register": "/devotee-register",
+    "dharmic-expert-register": "/dharmic-expert-register",
     "login": "/login",
     "plans": "/plans",
     // Deliberately capital "C" (matches the exact real-world URL requested:
@@ -269,6 +271,8 @@ export default function App() {
     "live-darshan": "Live Temple Darshan Online – Watch Aarti from India | Sri Dwar",
     "temple-register": "Register Your Temple or Priest Profile – Sri Dwar",
     "add-temple": "Register Your Temple & Local Pujaris | Sri Dwar",
+    "devotee-register": "Register Your Sacred Devotee Profile | Sri Dwar",
+    "dharmic-expert-register": "Register as a Dharmic Expert, Pujari or Guru | Sri Dwar",
     "login": "Sign In to Sri Dwar – My Account",
     "plans": "Referral Plans, Cashback & Rewards | Sri Dwar",
     "counselling": "Counselling & Guidance – Personal, Family & Life Support | Sri Dwar",
@@ -288,6 +292,27 @@ export default function App() {
         ? "My SriDwar Profile – Dharmic ID & Booking History"
         : (PAGE_TITLES[currentPage] || PAGE_TITLES.home);
   }, [currentPage, isLoggedIn]);
+
+  // ✅ CANONICAL FIX: index.html's <link rel="canonical"> and <meta
+  // property="og:url"> are static, hard-coded to "https://sridwar.com/".
+  // server.ts falls through every clean-URL route (/puja, /seva,
+  // /Counselling, etc. — see the "routes — they must fall through to
+  // index.html" comment there) to that same index.html, so a crawler
+  // hitting any of those routes directly was being told "the canonical
+  // version of this page is the homepage" — actively telling Google to
+  // fold /puja, /seva, /Counselling, etc. into the homepage instead of
+  // indexing them separately. This keeps both tags in sync with
+  // PAGE_PATHS/currentPage instead, the same way the title effect above
+  // already does. Only touches these two tags' content/href — nothing
+  // else in <head> (description, Twitter card, etc.) is modified here.
+  useEffect(() => {
+    const path = PAGE_PATHS[currentPage] || "/";
+    const url = `https://sridwar.com${path}`;
+    const canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (canonicalEl) canonicalEl.setAttribute("href", url);
+    const ogUrlEl = document.querySelector('meta[property="og:url"]');
+    if (ogUrlEl) ogUrlEl.setAttribute("content", url);
+  }, [currentPage]);
 
   const handleNavigate = (page: string, offeringId?: string) => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -392,7 +417,7 @@ export default function App() {
     const VALID_DEEP_LINK_PAGES = [
       "seva", "puja", "priests", "products", "about",
       "founder-story", "contact", "live-darshan", "report-temple-issues",
-      "temple-register", "add-temple", "login", "counselling",
+      "temple-register", "add-temple", "devotee-register", "dharmic-expert-register", "login", "counselling",
     ];
     const urlParams = new URLSearchParams(window.location.search);
     const requestedPage = urlParams.get("page");
@@ -863,7 +888,7 @@ export default function App() {
           </div>
         )}
 
-        {currentPage === "add-temple" && (
+        {(currentPage === "add-temple" || currentPage === "devotee-register" || currentPage === "dharmic-expert-register") && (
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
               <TempleRegister

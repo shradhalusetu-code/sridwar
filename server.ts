@@ -782,8 +782,6 @@ const STATIC_LEGAL_PAGES = [
   "disclaimer",
   "community-guidelines",
   "cookies",
-  "about",
-  "contact",
   "account-deletion",
 ];
 

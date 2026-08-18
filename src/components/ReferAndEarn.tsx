@@ -35,8 +35,8 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-          <div className="text-left space-y-2">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <div className="text-left space-y-2 md:flex-1 min-w-0">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Dharmic referral & cashback ecosystem</span>
             <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight">
               Refer, Earn & Grow with Dharma
@@ -55,7 +55,7 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
               Your own contributions count too — as little as ₹5 makes you eligible for seasonal campaigns, ₹50+ starts earning cashback and milestone progress, and ₹100+ adds eligibility toward pilgrimage-related opportunities.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             <button
               id="refer-earn-get-link-cta"
               onClick={() => onNavigate("login")}

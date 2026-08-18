@@ -523,17 +523,17 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               renderItem={(step, idx) => (
                 <div
                   id={`journey-step-${idx}`}
-                  className="bg-[#062421] p-5 rounded-2xl border border-white/10 text-left relative z-10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 h-full"
+                  className="bg-[#062421] p-5 pt-8 rounded-2xl border border-white/10 text-left relative z-10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 h-full"
                 >
                   {/* Glowing step identifier */}
-                  <div className="w-9 h-9 rounded-full bg-[#021816] text-[#FFB347] border border-[#FFB347] flex items-center justify-center font-bold font-serif text-sm absolute -top-4 left-4 shadow-md group-hover:bg-[#FFB347] group-hover:text-[#021816] transition-colors">
+                  <div className="w-9 h-9 rounded-full bg-[#021816] text-[#FFB347] border border-[#FFB347] flex items-center justify-center font-bold font-serif text-sm absolute -top-4 left-4 shadow-md group-hover:bg-[#FFB347] group-hover:text-[#021816] transition-colors z-20">
                     {idx + 1}
                   </div>
 
-                  <h4 className="font-serif text-sm font-bold text-white mt-2 mb-1.5 text-left">
+                  <h4 className="font-serif text-sm font-bold text-white mb-1.5 text-left relative z-10">
                     {step.title}
                   </h4>
-                  <p className="text-[13px] text-white/60 leading-relaxed font-sans text-left">
+                  <p className="text-[13px] text-white/60 leading-relaxed font-sans text-left relative z-10">
                     {step.desc}
                   </p>
                 </div>

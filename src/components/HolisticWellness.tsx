@@ -463,7 +463,7 @@ function ServiceCard({
       )}
 
       {/* Header */}
-      <div className="p-5 pb-3">
+      <div className="p-5 pb-3 flex flex-col flex-1">
         <div className="flex items-start space-x-3 mb-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
@@ -505,7 +505,7 @@ function ServiceCard({
           type="button"
           onClick={onToggleExpanded}
           aria-expanded={expanded}
-          className="mt-2 text-[12px] font-semibold transition-colors"
+          className="mt-2 text-[12px] font-semibold transition-colors text-left"
           style={{ color: service.categoryColor }}
         >
           {expanded ? "Show less ↑" : "View benefits ↓"}
@@ -529,7 +529,7 @@ function ServiceCard({
 
       {/* Contribution disclaimer — lives inside this card, right above its
           own "Book Now", same pattern as SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
-      <div id={`wellness-disclaimer-${service.id}`} className="px-5">
+      <div id={`wellness-disclaimer-${service.id}`} className="px-5 mt-auto">
         <DisclaimerAcknowledge
           summary="This session is guided wellness practice, not medical treatment — timings can vary and no specific outcome is guaranteed."
           details="Holistic Wellness sessions on Sri Dwar (yoga, meditation, pranayama, and related practices) are offered as general wellbeing guidance by experienced practitioners. They are not medical, psychiatric, or clinical treatment, do not diagnose or treat any condition, and no specific health outcome is guaranteed. Please consult a qualified doctor before starting any new practice if you have an existing health condition."
@@ -541,7 +541,7 @@ function ServiceCard({
       </div>
 
       {/* Footer */}
-      <div className="mt-auto px-5 py-4 border-t border-white/8 flex items-center justify-between">
+      <div className="px-5 py-4 border-t border-white/8 flex items-center justify-between gap-4">
         <div>
           <span className="text-[12px] text-white/35 font-mono">Starting from</span>
           {isDiscountActive() ? (

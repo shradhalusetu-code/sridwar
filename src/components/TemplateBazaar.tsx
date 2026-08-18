@@ -466,10 +466,10 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // the two stay pixel-identical instead of drifting apart over time.
   const renderLegacyItemCard = (item: BazaarItem) => (
             <div
-              className="bg-[#092320] rounded-3xl border border-white/10 overflow-hidden flex flex-col hover:border-[#5EEAD4]/20 transition-all hover:shadow-lg"
+              className="bg-[#092320] rounded-3xl border border-white/10 overflow-hidden flex flex-col hover:border-[#5EEAD4]/20 transition-all hover:shadow-lg h-full"
             >
               {/* Image */}
-              <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#0D2F2B]">
+              <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#0D2F2B] shrink-0">
                 {item.imageUrl ? (
                   <OptimizedImage
                     src={item.imageUrl}
@@ -506,7 +506,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
               {/* Content */}
               <div className="p-4 flex flex-col flex-1">
                 <h3 className="font-serif font-bold text-white text-sm mb-1">{item.name}</h3>
-                <p className="text-[13px] text-white/60 leading-relaxed mb-3 flex-1">{item.description}</p>
+                <p className="text-[13px] text-white/60 leading-relaxed mb-3">{item.description}</p>
 
                 {/* Includes / Receives accordion — both shown together per
                     the "What's Included" + "What You Receive" pattern used
@@ -556,9 +556,12 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   </div>
                 )}
 
+                {/* Spacer pushes price/CTA to the bottom */}
+                <div className="flex-1" />
+
                 {/* Contribution disclaimer — lives inside this card, right
                     above its own Buy Now/Book Seva button. */}
-                <div id={`bazaar-legacy-disclaimer-${item.id}`} className="mt-auto pt-3">
+                <div id={`bazaar-legacy-disclaimer-${item.id}`} className="mt-2 pt-3">
                   <DisclaimerAcknowledge
                     summary={item.isService
                       ? "This seva is performed with devotion as per temple process — timings can vary and no specific outcome is guaranteed."
@@ -575,7 +578,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 </div>
 
                 {/* Price + CTA */}
-                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                <div className="flex items-center justify-between pt-3 border-t border-white/10 gap-4">
                   <div>
                     {SHOW_BAZAAR_DISCOUNT_PROMO && (
                       <span className="block text-[12px] line-through text-white/30 font-mono">₹{item.mrp}</span>
@@ -660,9 +663,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
               offerings" overflow for this section. Desktop (lg+): unchanged
               grid. Same pattern as Seva Offerings (SevaExperience.tsx). */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-6">
-            <div className="flex gap-4 w-max pb-1">
+            <div className="flex gap-4 w-max pb-1 items-stretch">
               {filteredNewProducts.map((product) => (
-                <div key={product.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={product.id} className="snap-start shrink-0 flex flex-col w-[280px]">
                   <BazaarOfferingCard
                     product={product}
                     isActive={activeNewOfferingId === product.id}
@@ -751,9 +754,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
             card shrink smaller than its neighbours. Desktop (lg+):
             unchanged grid. */}
         <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-5 w-max pb-1">
+          <div className="flex gap-5 w-max pb-1 items-stretch">
             {filteredItems.map(item => (
-              <div key={item.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+              <div key={item.id} className="snap-start shrink-0 flex flex-col w-[280px]">
                 {renderLegacyItemCard(item)}
               </div>
             ))}

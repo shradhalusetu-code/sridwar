@@ -327,7 +327,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
         )}
 
         {/* Icon + Price row */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between gap-4 mb-3">
           <div className="flex items-center space-x-2">
             <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">
               {renderSevaIcon(seva.id)}
@@ -695,9 +695,9 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               here, so there is no separate "remaining offerings" overflow
               for this section specifically. Desktop (lg+): unchanged grid. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pb-1">
+            <div className="flex gap-4 w-max pb-1 items-stretch">
               {SEVA_OFFERINGS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={offering.id} className="snap-start shrink-0 flex flex-col w-[280px]">
                   <SevaOfferingCard
                     offering={offering}
                     isActive={activeOfferingId === offering.id}
@@ -808,14 +808,14 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               Services cards (FEATURED_SEVAS + EXTRA_SEVAS) render here on
               every platform — website and Android app alike. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pb-1">
+            <div className="flex gap-4 w-max pb-1 items-stretch">
               {visibleFeaturedSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={seva.id} className="snap-start shrink-0 flex flex-col w-[280px]">
                   <SevaCard seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                 </div>
               ))}
               {visibleExtraSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={seva.id} className="snap-start shrink-0 flex flex-col w-[280px]">
                   <SevaCard seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                 </div>
               ))}

@@ -463,14 +463,14 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
           {Header}
 
           {/* ── Scrollable body — THE ONLY scroll container ── */}
-          <div
-            className="flex-1 min-h-0 overflow-y-auto"
-            style={{
-              WebkitOverflowScrolling: "touch",
-              // Bottom padding clears Android nav bar + extra buffer for submit button
-              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)",
-            }}
-          >
+            <div
+              className="flex-1 min-h-0 overflow-y-auto"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                // Bottom padding clears Android nav bar + extra buffer for submit button
+                paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 80px)",
+              }}
+            >
             <div className="p-5 sm:p-6">
 
               {/* ── STEP 1: Sankalpa Details Form ── */}

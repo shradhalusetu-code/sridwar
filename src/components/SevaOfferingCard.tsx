@@ -514,7 +514,9 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           </div>
         )}
 
-        <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3">
+        <div className="flex-1" />
+
+        <div className="flex items-center space-x-1.5 text-[12px] text-white/50 mb-3 mt-4">
           <ShieldCheck className="w-3.5 h-3.5 text-[#5EEAD4] flex-shrink-0" />
           <span>{offering.certificateTimeline}</span>
         </div>
@@ -535,7 +537,7 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         <button
           id={`seva-offering-cta-${offering.id}`}
           onClick={(e) => { e.stopPropagation(); handleSubmit(); }}
-          className="mt-auto w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow flex items-center justify-center gap-1.5"
+          className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-xs tracking-wider transition-all shadow flex items-center justify-center gap-1.5"
         >
           {renderOfferingIcon(offering.id)}
           {isActive ? offering.ctaLabel.toUpperCase() + " 🙏" : "SELECT THIS SEVA"}

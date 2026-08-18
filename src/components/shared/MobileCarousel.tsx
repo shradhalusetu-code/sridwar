@@ -71,9 +71,9 @@ export default function MobileCarousel<T>({
     <div className={className}>
       {/* Mobile/app: horizontal snap carousel */}
       <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-        <div className={`flex ${gapClassName} w-max pb-1`}>
+        <div className={`flex ${gapClassName} w-max pb-1 items-stretch`}>
           {items.map((item, i) => (
-            <div key={getKey(item, i)} className={`snap-start shrink-0 h-full [&>*]:h-full ${cardWidthClassName}`}>
+            <div key={getKey(item, i)} className={`snap-start shrink-0 flex flex-col ${cardWidthClassName}`}>
               {renderItem(item, i)}
             </div>
           ))}

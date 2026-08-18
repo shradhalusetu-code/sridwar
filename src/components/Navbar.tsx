@@ -249,7 +249,7 @@ export default function Navbar({
             </div>
 
             {/* Right: Desktop Controls & CTAs */}
-            <div className={`${isAndroidApp ? "hidden" : "hidden lg:flex"} items-center space-x-2 xl:space-x-3 shrink-0`}>
+            <div className={`${isAndroidApp ? "hidden" : "hidden lg:flex"} items-center space-x-2.5 xl:space-x-3.5 shrink-0`}>
               {/* Preference & Account Utilities Capsule */}
               <div className="flex items-center space-x-1 bg-white/5 border border-white/10 p-1 rounded-full backdrop-blur-md h-10">
                 {/* Language Selector Selector */}
@@ -343,7 +343,7 @@ export default function Navbar({
               </div>
 
               {/* Action CTA Buttons */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 <button
                   id="nav-sponsor"
                   onClick={() => {
@@ -591,7 +591,7 @@ export default function Navbar({
                 <span>Open Divine Share Portal</span>
               </button>
 
-              <div id="mobile-drawer-socials" className="grid grid-cols-7 gap-2 text-center">
+              <div id="mobile-drawer-socials" className="grid grid-cols-4 sm:grid-cols-7 gap-y-3 gap-x-2 text-center">
                 <a
                   href="https://www.linkedin.com/company/sri-dwar"
                   target="_blank"

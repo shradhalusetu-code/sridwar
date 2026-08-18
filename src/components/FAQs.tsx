@@ -253,7 +253,7 @@ export default function FAQs() {
         {/* Categories & Search Grid */}
         <div className="bg-[#092320] border border-white/10 rounded-2xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
           {/* Category Chips */}
-          <div className="flex flex-wrap gap-2 justify-center md:justify-start w-full md:w-auto">
+          <div className="flex flex-wrap gap-2.5 justify-center md:justify-start w-full md:w-auto">
             {categories.map((cat) => (
               <button
                 key={cat}

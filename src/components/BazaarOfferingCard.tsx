@@ -508,7 +508,9 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           </div>
         )}
 
-        <div id={`bazaar-offering-disclaimer-${product.id}`} className="mt-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex-1" />
+
+        <div id={`bazaar-offering-disclaimer-${product.id}`} className="mt-4" onClick={(e) => e.stopPropagation()}>
           <DisclaimerAcknowledge
             summary={product.isService
               ? "This offering is performed with devotion as per temple process — timings can vary and no specific outcome is guaranteed."
@@ -521,7 +523,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           />
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-white/10 mb-3 mt-3">
+        <div className="flex items-center justify-between pt-3 border-t border-white/10 mb-3 mt-3 gap-4">
           <span className="text-[12px] text-white/50">Total</span>
           <span className="text-base font-extrabold text-[#FFB347] font-serif">₹{finalAmount > 0 ? finalAmount.toLocaleString("en-IN") : "—"}</span>
         </div>
@@ -531,7 +533,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           <span>{product.isService ? "Offered as per temple schedule; digital confirmation shared after completion." : "Dispatched after payment confirmation; digital confirmation shared after dispatch."}</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={(e) => { e.stopPropagation(); handlePrimary(); }}
             className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-[12px] tracking-wider uppercase transition-all shadow flex items-center justify-center gap-1.5"
