@@ -310,18 +310,44 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   <span className="text-lg font-serif text-[#FFB347]">{selectedTemple.symbol}</span>
                 </div>
 
-                {/* State Tag */}
-                <div className="absolute bottom-4 left-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white text-[12px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
-                  <MapPin className="w-3 h-3 text-[#FFB347]" />
-                  <span>{selectedTemple.state}, India</span>
-                </div>
+                {/* State + GPS Coordinates Tags
+                    ✅ OVERLAP FIX (v2): the previous attempt put `min-w-0` +
+                    `truncate` on the state badge inside a `flex-wrap` row and
+                    relied on the row wrapping once both badges didn't fit.
+                    That doesn't actually happen: `min-w-0` + `truncate` gives
+                    the badge an almost-zero minimum content width, so the
+                    flex algorithm always finds room to satisfy both children
+                    by shrinking the state badge down to a sliver BEFORE it
+                    ever considers wrapping — flex-wrap only kicks in once
+                    every child has hit its min-content width, and a
+                    truncated span's min-content width is tiny. The visible
+                    result was exactly the bug it was meant to fix: the state
+                    name shrinking down to "ASSAM, IND…" with the coordinates
+                    pill sitting right beside it on the same line, never
+                    dropping to its own line.
+                    Real fix: both badges are now `shrink-0` (flex-shrink: 0),
+                    so neither can shrink at all. With shrink disabled on
+                    both, the ONLY way the flex-wrap row can fit them is to
+                    wrap the coordinates pill onto its own line the moment
+                    they don't both fit — this makes wrapping the guaranteed
+                    outcome instead of a race the shrinking state badge
+                    always won. The state badge keeps `truncate`, but now
+                    bounded by a real pixel `max-width` on the text itself
+                    (not by flex-shrink), so it only ever clips with an
+                    ellipsis for a genuinely very long temple/state name —
+                    never as a side effect of making room for coordinates. */}
+                <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center gap-2">
+                  <div className="shrink-0 max-w-full bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white text-[11px] sm:text-[12px] uppercase font-bold tracking-widest px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
+                    <MapPin className="w-3 h-3 text-[#FFB347] shrink-0" />
+                    <span className="truncate max-w-[180px] sm:max-w-[260px]">{selectedTemple.state}, India</span>
+                  </div>
 
-                {/* GPS Coordinates Tag */}
-                <div className="absolute bottom-4 right-4 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white/90 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
-                  <Navigation className="w-3 h-3 text-[#5EEAD4]" />
-                  <span>
-                    {formatCoordinate(selectedTemple.coordinates.lat, "lat")}, {formatCoordinate(selectedTemple.coordinates.lng, "lng")}
-                  </span>
+                  <div className="shrink-0 bg-[#021816]/95 backdrop-blur-md border border-white/15 text-white/90 text-[10px] sm:text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md whitespace-nowrap">
+                    <Navigation className="w-3 h-3 text-[#5EEAD4] shrink-0" />
+                    <span>
+                      {formatCoordinate(selectedTemple.coordinates.lat, "lat")}, {formatCoordinate(selectedTemple.coordinates.lng, "lng")}
+                    </span>
+                  </div>
                 </div>
               </div>
 

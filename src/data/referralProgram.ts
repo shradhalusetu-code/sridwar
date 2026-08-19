@@ -300,7 +300,7 @@ export const PUJARI_TIERS: ProviderCategoryTier[] = [
     id: "purohit", categoryId: "pujari", name: "Purohit Path",
     monthlyPrice: 299, monthlyPriceLabel: "₹299/month",
     annualPrice: 3140, annualPriceLabel: "₹3,140/year", annualSavingsLabel: "45 days free",
-    annualExtraBenefit: "Annual Purohits keep their Verified badge and priority routing active continuously through the full festival calendar — no risk of a lapsed monthly renewal dropping you out of rotation during a high-demand season, plus 45 days free works out to over a month of extra ritual opportunities at no cost.",
+    annualExtraBenefit: "Annual Purohits keep their Verified badge and priority routing active continuously through the full festival calendar — no risk of a lapsed monthly renewal dropping you out of rotation during a high-demand season, on top of the 45 days free above.",
     tagline: "Walk the purohit's path with steady purpose — home visits, temple rituals, and muhurat consultations flow to you consistently.",
     servicesIncluded: "Priority routing for home-visit pujas, temple rituals & muhurat consultations",
     feeModel: "Set your own dakshina, plus milestone bonuses on high-value ceremonies",

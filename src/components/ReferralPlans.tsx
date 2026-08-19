@@ -82,7 +82,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       : [tier.servicesIncluded, tier.feeModel, tier.commissionEligibility];
 
     return (
-      <div className="relative flex flex-col h-full bg-[#092320]/60 border border-dashed border-white/10 rounded-2xl p-4">
+      <div className="relative flex flex-col flex-1 bg-[#092320]/60 border border-dashed border-white/10 rounded-2xl p-4">
         <div className="flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5 text-white/30" />
           <span className="font-serif text-base font-bold text-white/60">{tier.name}</span>
@@ -110,7 +110,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
 
   return (
     <div
-      className={`relative flex flex-col h-full bg-[#092320] border rounded-2xl p-4 ${
+      className={`relative flex flex-col flex-1 bg-[#092320] border rounded-2xl p-4 ${
         tier.highlight ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10" : isFree ? "border-[#5EEAD4]/50 shadow-lg shadow-[#5EEAD4]/10" : "border-white/10"
       }`}
     >
@@ -303,6 +303,23 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
   const activeCategoryMeta = PLAN_CATEGORIES.find((c) => c.id === activeCategory) ?? PLAN_CATEGORIES[0];
   const activeTiers = PLAN_TIERS_BY_CATEGORY[activeCategory];
 
+  // ✅ MISMATCHED "annual savings" BANNER FIX: this used to hard-code "up to
+  // 60 days free" regardless of which category tab was open. That number is
+  // only true for the 5 provider ladders' TOP tiers — the Devotee Circles
+  // (Diya...Chakra) are always free at every tier (annualSavingsLabel:
+  // "Always free"), so a devotee flipping to "Annual" saw a banner
+  // promising day-based savings that don't exist for their tiers at all —
+  // the exact "one place says 60 days, another says something else"
+  // mismatch. Fix: read the REAL max "N days free" figure out of whichever
+  // category's tiers are actually on screen, and hide the banner entirely
+  // when the active category has no day-based annual savings to report
+  // (i.e. every tier is "Always free").
+  const activeMaxAnnualSavingsDays = activeTiers.reduce((max, tier) => {
+    const match = /(\d+)\s*days?\s*free/i.exec(tier.annualSavingsLabel);
+    const days = match ? parseInt(match[1], 10) : 0;
+    return days > max ? days : max;
+  }, 0);
+
   return (
     <section
       className="pb-14 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen"
@@ -371,9 +388,9 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                 Annual
               </button>
             </div>
-            {billing === "annual" && (
+            {billing === "annual" && activeMaxAnnualSavingsDays > 0 && (
               <span className="text-[12px] font-bold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/30 px-2.5 py-1 rounded-full">
-                Save with annual billing — up to 60 days free
+                Save with annual billing — up to {activeMaxAnnualSavingsDays} days free
               </span>
             )}
           </div>
@@ -396,13 +413,32 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
 
           {/* Mobile/app: horizontal snap carousel — matches the Seva
               Offerings / Bazaar Offerings carousel pattern. Desktop (lg+):
-              unchanged 5-column grid. */}
+              unchanged 5-column grid.
+              ✅ HEIGHT-MISMATCH FIX v2 (Diya Circle vs Kalash Circle):
+              the previous attempt dropped `h-full [&>*]:h-full` in favor of
+              plain flex-grow (`flex flex-col` wrapper + `flex-1` on
+              PlanTierCard's own root) on a theory that percentage-height
+              was the weak link on Android WebView. In practice this is the
+              ONE carousel in the whole app that stopped matching the
+              wrapper pattern every other carousel here uses successfully
+              (Temple Bazaar, Seva Offerings, Priest cards, Sacred
+              Resources, Report Temple Issues, etc. — all `h-full
+              [&>*]:h-full`), and it's exactly this carousel that kept
+              showing the mismatch — so the deviation, not percentage
+              height, looks like the actual cause. Fix: restored the same
+              `h-full [&>*]:h-full` wrapper every other carousel uses (the
+              outer track's `items-stretch` gives this wrapper a real,
+              already-resolved pixel height before `h-full` is ever read,
+              so there's no unresolved-percentage step here), and kept
+              `flex-1` on PlanTierCard's own root as a second, independent
+              mechanism on top of it — so the card fills its wrapper by
+              construction whichever mechanism is doing the work. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-3 w-max pt-4 pb-1 items-stretch">
               {activeTiers.map((tier, index) => {
                 const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
                 return (
-                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(210px,62vw,360px)]">
+                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full flex flex-col w-[clamp(210px,62vw,360px)]">
                     <PlanTierCard
                       tier={tier}
                       billing={billing}
