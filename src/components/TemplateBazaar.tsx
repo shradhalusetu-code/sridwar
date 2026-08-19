@@ -577,9 +577,14 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   />
                 </div>
 
-                {/* Price + CTA */}
-                <div className="flex items-center justify-between pt-3 border-t border-white/10 gap-4">
-                  <div>
+                {/* Price + CTA
+                    ✅ FIX — same price/button collision fix as
+                    HolisticWellness.tsx: min-w-0 on the price block plus
+                    shrink-0 whitespace-nowrap on the button stops the
+                    label wrapping and visually overlapping the price at
+                    narrow (280px carousel) card widths. */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/10 gap-3">
+                  <div className="min-w-0">
                     {SHOW_BAZAAR_DISCOUNT_PROMO && (
                       <span className="block text-[12px] line-through text-white/30 font-mono">₹{item.mrp}</span>
                     )}
@@ -594,7 +599,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                       }
                       handleBuyNow(item);
                     }}
-                    className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5"
+                    className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5 shrink-0 whitespace-nowrap"
                   >
                     {item.isService
                       ? <><Flame className="w-3.5 h-3.5" /> Book Seva</>
@@ -665,7 +670,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-6">
             <div className="flex gap-4 w-max pb-1 items-stretch">
               {filteredNewProducts.map((product) => (
-                <div key={product.id} className="snap-start shrink-0 flex flex-col w-[280px]">
+                <div key={product.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                   <BazaarOfferingCard
                     product={product}
                     isActive={activeNewOfferingId === product.id}
@@ -756,7 +761,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
           <div className="flex gap-5 w-max pb-1 items-stretch">
             {filteredItems.map(item => (
-              <div key={item.id} className="snap-start shrink-0 flex flex-col w-[280px]">
+              <div key={item.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                 {renderLegacyItemCard(item)}
               </div>
             ))}

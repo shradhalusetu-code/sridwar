@@ -662,7 +662,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     <div
       id={`simple-puja-${offering.id}`}
       onClick={() => { if (!isActive) onActivate(); }}
-      className={`bg-[#092320] rounded-3xl border text-left transition-all flex flex-col text-white overflow-hidden ${
+      className={`bg-[#092320] rounded-3xl border text-left transition-all flex flex-col text-white overflow-hidden h-full ${
         isActive ? "border-[#FFB347]/60 shadow-lg shadow-[#FFB347]/10" : "border-white/10 hover:border-[#5EEAD4]/25 cursor-pointer"
       }`}
     >

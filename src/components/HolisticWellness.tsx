@@ -435,7 +435,7 @@ function ServiceCard({
 
   return (
     <div
-      className="relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-2xl group"
+      className="relative flex flex-col h-full rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-2xl group"
       style={{
         background: service.categoryBg,
         borderColor: service.categoryColor + "30",
@@ -540,9 +540,18 @@ function ServiceCard({
         />
       </div>
 
-      {/* Footer */}
-      <div className="px-5 py-4 border-t border-white/8 flex items-center justify-between gap-4">
-        <div>
+      {/* Footer
+          ✅ FIX — price and "Book Now" button rendering merged/overlapping
+          on narrow (280px carousel) cards: neither side of this row had
+          any shrink/wrap protection, so at narrow widths the button's
+          "Book Now" label wrapped onto two lines and visually collided
+          with the price block next to it instead of staying a single
+          compact pill. `min-w-0` on the price block lets it truncate its
+          own space instead of pushing into the button; `shrink-0
+          whitespace-nowrap` on the button keeps it a fixed-size pill that
+          never wraps, at every card width. */}
+      <div className="px-5 py-4 border-t border-white/8 flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <span className="text-[12px] text-white/35 font-mono">Starting from</span>
           {isDiscountActive() ? (
             <div className="flex items-center space-x-2">
@@ -565,7 +574,7 @@ function ServiceCard({
         <button
           type="button"
           onClick={handleBookClick}
-          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer"
+          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
           style={{
             background: service.categoryColor,
             color: "#021816",

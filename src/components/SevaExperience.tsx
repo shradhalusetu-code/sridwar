@@ -294,7 +294,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
   return (
     <div
       id={`seva-card-${seva.id}`}
-      className={`bg-[#092320] p-5 rounded-3xl border text-left hover:shadow-lg transition-all flex flex-col justify-between text-white ${
+      className={`bg-[#092320] p-5 rounded-3xl border text-left hover:shadow-lg transition-all flex flex-col justify-between text-white h-full ${
         highlighted ? "border-[#FFB347]/60 shadow-lg shadow-[#FFB347]/10" : "border-white/10 hover:border-[#5EEAD4]/20"
       }`}
     >
@@ -697,7 +697,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-4 w-max pb-1 items-stretch">
               {SEVA_OFFERINGS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 flex flex-col w-[280px]">
+                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                   <SevaOfferingCard
                     offering={offering}
                     isActive={activeOfferingId === offering.id}
@@ -810,12 +810,12 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-4 w-max pb-1 items-stretch">
               {visibleFeaturedSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 flex flex-col w-[280px]">
+                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                   <SevaCard seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                 </div>
               ))}
               {visibleExtraSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 flex flex-col w-[280px]">
+                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
                   <SevaCard seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                 </div>
               ))}

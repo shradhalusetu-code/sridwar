@@ -449,12 +449,27 @@ function PriestCard({ priest: p, onSelect }: { priest: PriestProfile & { localHi
         ))}
       </div>
 
-      {/* Locally-rooted highlight — distinguishes each priest's unique temple role */}
-      {highlight && (
-        <p className="text-[13px] text-white/65 leading-relaxed mb-4 flex-1 line-clamp-3">
-          {highlight}
-        </p>
-      )}
+      {/* Locally-rooted highlight — distinguishes each priest's unique
+          temple role. ✅ UNIFORM-HEIGHT FIX: this block used to only exist
+          in the DOM (with its `flex-1` sizing class) when a priest had a
+          `localHighlight` string. Priests without one skipped straight to
+          the "View Full Profile" footer, so under a stretched/equal-height
+          card (items-stretch), a with-highlight card and a without-
+          highlight card distributed their identical outer height
+          completely differently — one card's content genuinely filled
+          more of the box, the other left a single undifferentiated gap
+          right above the footer. Always rendering this wrapper div (empty
+          when there's no highlight) means every card has the exact same
+          flex structure, so the SAME stretched height behaves identically
+          across every card in the row instead of one subset of cards
+          looking oddly emptier than another. */}
+      <div className="flex-1 min-h-0">
+        {highlight && (
+          <p className="text-[13px] text-white/65 leading-relaxed line-clamp-3">
+            {highlight}
+          </p>
+        )}
+      </div>
 
       <span className="flex items-center gap-1.5 text-[12px] font-bold text-[#FFB347] group-hover:gap-2 transition-all mt-auto pt-1">
         <Eye className="w-3 h-3" /> View Full Profile

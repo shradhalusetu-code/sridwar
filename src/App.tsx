@@ -4075,8 +4075,23 @@ Where permitted by law, we may use cookies to:</p>
               </div>
 
               </div>
-              {/* ── Footer row ── */}
-              <div className="shrink-0 border-t border-white/10 px-6 py-4 flex items-center justify-between bg-[#021816]/60">
+              {/* ── Footer row ──
+                  ✅ FIX — bottom "CLOSE" button hidden behind the phone's
+                  status/nav bar (Android app + gesture-nav phones): this
+                  row is a `shrink-0` flex sibling sitting at the very
+                  bottom of the modal, which itself sits flush against
+                  `inset-0`. Unlike the scrollable content area right above
+                  it (which already pads its own bottom for the safe area),
+                  this footer had NO safe-area padding at all, so on a
+                  phone with a gesture-nav bar / home indicator (and on
+                  Android inside the app), the CLOSE button rendered
+                  partially or fully underneath it. Adding the same
+                  safe-area-bottom padding pattern used elsewhere in the
+                  app (CookieConsent, footer, tab bar) fixes it here too. */}
+              <div
+                className="shrink-0 border-t border-white/10 px-6 pt-4 flex items-center justify-between bg-[#021816]/60"
+                style={{ paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px)" }}
+              >
                 <p className="text-[12px] font-mono text-white/30">
                   © {new Date().getFullYear()} Shradhalu Private Limited. All rights reserved.
                 </p>

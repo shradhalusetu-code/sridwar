@@ -38,7 +38,19 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div className="text-left space-y-2 md:flex-1 min-w-0">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Dharmic referral & cashback ecosystem</span>
-            <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight">
+            {/* ✅ TABLET/LANDSCAPE FIX: this jumped straight from text-3xl to
+                text-4xl at the `sm:` breakpoint (640px) and stayed at
+                text-4xl all the way through tablet/landscape widths too —
+                but `md:flex-row` (768px+) is exactly where this heading
+                starts sharing its row with the two CTA buttons instead of
+                stacking above them. At text-4xl in that narrower shared
+                row, the heading wrapped awkwardly and crowded the buttons
+                on tablet/landscape widths. Stepping back down to text-3xl
+                for the `md:` row-sharing range and only growing to
+                text-4xl at `lg:` (1024px+, where there's real width to
+                spare) keeps the heading proportional to the space it
+                actually has at every width. */}
+            <h2 className="text-3xl lg:text-4xl font-serif font-black text-white tracking-tight">
               Refer, Earn & Grow with Dharma
             </h2>
             <p className="text-sm text-white/70 max-w-2xl">

@@ -82,7 +82,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       : [tier.servicesIncluded, tier.feeModel, tier.commissionEligibility];
 
     return (
-      <div className="relative flex flex-col bg-[#092320]/60 border border-dashed border-white/10 rounded-2xl p-4">
+      <div className="relative flex flex-col h-full bg-[#092320]/60 border border-dashed border-white/10 rounded-2xl p-4">
         <div className="flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5 text-white/30" />
           <span className="font-serif text-base font-bold text-white/60">{tier.name}</span>
@@ -110,7 +110,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
 
   return (
     <div
-      className={`relative flex flex-col bg-[#092320] border rounded-2xl p-4 ${
+      className={`relative flex flex-col h-full bg-[#092320] border rounded-2xl p-4 ${
         tier.highlight ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10" : isFree ? "border-[#5EEAD4]/50 shadow-lg shadow-[#5EEAD4]/10" : "border-white/10"
       }`}
     >
@@ -147,9 +147,22 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       )}
       <p className="text-[12px] text-white/50 mt-1 mb-3 leading-snug">{tier.tagline}</p>
 
-      {/* Collapsed summary — phone/tablet only, before expansion */}
+      {/* Collapsed summary — phone/tablet only, before expansion.
+          ✅ UNIFORM-HEIGHT FIX: this used to be a plain (non-flex) block,
+          so its "Explore" button sat directly after the highlight line
+          with no filler. The locked-tier card above it anchors its footer
+          badge to the bottom via a `flex-1` spacer; this collapsed card
+          had no equivalent, so under the same stretched row height, the
+          locked cards' filler landed ABOVE their badge (pushing it down
+          to match) while this card's leftover space landed as plain
+          background BELOW its button — the exact mismatch behind the
+          "Diya Circle looks fine, Kalash/Shankh Circle have a huge gap"
+          symptom. Making this a `flex-1 flex flex-col` and anchoring
+          "Explore" with `mt-auto` gives it the identical bottom-anchored
+          behavior as the locked-card variant, so every card in the row
+          distributes its stretched height the same way. */}
       {!expanded && (
-        <div className="lg:hidden">
+        <div className="lg:hidden flex flex-col flex-1">
           <div className="flex gap-1.5 text-[12px] text-white/70 mb-3">
             <Check className="w-3 h-3 text-[#5EEAD4] shrink-0 mt-0.5" /><span>{keyHighlight}</span>
           </div>
@@ -157,7 +170,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
             type="button"
             onClick={() => setExpanded(true)}
             aria-expanded={expanded}
-            className={`w-full text-center text-[13px] font-bold px-3 py-2 rounded-full transition-all ${
+            className={`w-full text-center text-[13px] font-bold px-3 py-2 rounded-full transition-all mt-auto ${
               isFree
                 ? "bg-[#5EEAD4] text-[#021816] border border-[#5EEAD4] hover:opacity-90"
                 : "border border-[#FFB347]/40 text-[#FFB347] hover:bg-[#FFB347] hover:text-[#021816]"
@@ -389,7 +402,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               {activeTiers.map((tier, index) => {
                 const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
                 return (
-                  <div key={tier.id} className="snap-start shrink-0 flex flex-col w-[240px]">
+                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[240px]">
                     <PlanTierCard
                       tier={tier}
                       billing={billing}
@@ -443,7 +456,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
           <div className="sm:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-3 w-max pb-1 items-stretch">
               {COMMISSION_STRUCTURE.map((tier) => (
-                <div key={tier.bookingLabel} className="snap-start shrink-0 flex flex-col w-[200px]">
+                <div key={tier.bookingLabel} className="snap-start shrink-0 h-full [&>*]:h-full w-[200px]">
                   <CashbackTierCard tier={tier} />
                 </div>
               ))}

@@ -767,13 +767,22 @@ app.post(
 
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
-// Community Guidelines, Cookie Policy, About, Contact, Account Deletion).
+// Community Guidelines, Cookie Policy, Account Deletion).
 //
-// Unlike /puja, /seva, /bazaar, /darshan (see note below), none of these
-// slugs collide with a client-side SPA route, so there is no naming
-// collision risk here. We deliberately add ONLY these explicit routes
-// rather than a blanket express.static `extensions` option, which would
-// reintroduce the /seva-style collisions described below.
+// NOTE: "About" and "Contact" used to be in this list too, but they are
+// genuine interactive SPA pages (AboutUs.tsx / ContactUs.tsx), not
+// static-only legal docs — keeping them here would have served a static
+// about.html/contact.html instead of the real interactive page, the same
+// class of bug described in the express.static `index: false` note below.
+// They were pulled out so /about and /contact fall through to the SPA
+// like every other interactive route.
+//
+// Unlike /puja, /seva, /bazaar, /darshan (see note below), none of the
+// slugs still in this list collide with a client-side SPA route, so
+// there is no naming collision risk here. We deliberately add ONLY these
+// explicit routes rather than a blanket express.static `extensions`
+// option, which would reintroduce the /seva-style collisions described
+// below.
 const STATIC_LEGAL_PAGES = [
   "privacy-policy",
   "terms-and-conditions",
@@ -839,7 +848,35 @@ async function startServer() {
   } else {
     console.log("Starting in PRODUCTION mode, serving static files...");
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    // ✅ ROOT-CAUSE FIX — "/priests", "/founder-story", "/devotee-register",
+    // "/about", "/contact" redirecting to the homepage: /public (and
+    // therefore /dist) still contains DIRECTORY-style static SEO fallback
+    // pages at these exact paths (priests/index.html, founder-story/
+    // index.html, about/index.html, contact/index.html — see main.tsx's
+    // routing comment). express.static defaults to serving a matching
+    // directory's own index.html for a request that matches the directory
+    // path — so a GET to /priests was being answered directly by
+    // express.static with priests/index.html BEFORE it ever reached the
+    // app.get("*") catch-all below, and that fallback page's own redirect
+    // logic sent the visitor to "/". The SPA's client-side router
+    // (App.tsx PATH_TO_PAGE) never got a chance to run at all for these
+    // paths.
+    // `index: false` disables ONLY that directory-index auto-serving
+    // behaviour — a request for the bare directory path now falls through
+    // to the catch-all below and gets index.html (the real SPA shell),
+    // letting App.tsx's router handle these paths correctly. This does
+    // NOT affect anything else express.static does: explicitly-named
+    // files (puja.html, seva.html, bazaar.html, darshan.html, any asset
+    // by its real filename) are still served directly and unaffected —
+    // `index` only controls the directory-index fallback, nothing else.
+    // The STATIC_LEGAL_PAGES routes above already use `res.sendFile`
+    // directly and were never affected by this in the first place.
+    //
+    // ⚠️ Do not remove this again without also removing (or renaming)
+    // the public/priests, public/founder-story, public/about,
+    // public/contact, public/devotee-register directory fallback pages —
+    // otherwise this exact bug comes straight back.
+    app.use(express.static(distPath, { index: false }));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
