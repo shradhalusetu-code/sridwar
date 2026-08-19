@@ -303,23 +303,6 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
   const activeCategoryMeta = PLAN_CATEGORIES.find((c) => c.id === activeCategory) ?? PLAN_CATEGORIES[0];
   const activeTiers = PLAN_TIERS_BY_CATEGORY[activeCategory];
 
-  // ✅ MISMATCHED "annual savings" BANNER FIX: this used to hard-code "up to
-  // 60 days free" regardless of which category tab was open. That number is
-  // only true for the 5 provider ladders' TOP tiers — the Devotee Circles
-  // (Diya...Chakra) are always free at every tier (annualSavingsLabel:
-  // "Always free"), so a devotee flipping to "Annual" saw a banner
-  // promising day-based savings that don't exist for their tiers at all —
-  // the exact "one place says 60 days, another says something else"
-  // mismatch. Fix: read the REAL max "N days free" figure out of whichever
-  // category's tiers are actually on screen, and hide the banner entirely
-  // when the active category has no day-based annual savings to report
-  // (i.e. every tier is "Always free").
-  const activeMaxAnnualSavingsDays = activeTiers.reduce((max, tier) => {
-    const match = /(\d+)\s*days?\s*free/i.exec(tier.annualSavingsLabel);
-    const days = match ? parseInt(match[1], 10) : 0;
-    return days > max ? days : max;
-  }, 0);
-
   return (
     <section
       className="pb-14 bg-gradient-to-b from-[#021816] to-[#021816] relative text-white min-h-screen"
@@ -388,15 +371,12 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                 Annual
               </button>
             </div>
-            {/* ✅ Removed for the 5-Tier Pujari (Pundit) Service Paths category
-                only, per request — every other category (Devotees, Puja
-                Mandals, Yoga Gurus, Dharmic Experts, Seva Providers) keeps
-                this banner unchanged. */}
-            {billing === "annual" && activeCategory !== "pujari" && activeMaxAnnualSavingsDays > 0 && (
-              <span className="text-[12px] font-bold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/30 px-2.5 py-1 rounded-full">
-                Save with annual billing — up to {activeMaxAnnualSavingsDays} days free
-              </span>
-            )}
+            {/* ✅ "Save with annual billing — up to N days free" banner
+                removed entirely, per request — no longer shown for any
+                category (Devotees, Pujaris, Puja Mandals, Yoga Gurus,
+                Dharmic Experts, Seva Providers). Each tier's own card still
+                shows its real annualSavingsLabel (e.g. "45 days free") when
+                Annual is selected, so that per-tier detail is unaffected. */}
           </div>
 
           <p className="text-[13px] text-white/50 mb-3 max-w-2xl">{activeCategoryMeta.intro}</p>
