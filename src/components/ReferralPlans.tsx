@@ -388,7 +388,11 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                 Annual
               </button>
             </div>
-            {billing === "annual" && activeMaxAnnualSavingsDays > 0 && (
+            {/* ✅ Removed for the 5-Tier Pujari (Pundit) Service Paths category
+                only, per request — every other category (Devotees, Puja
+                Mandals, Yoga Gurus, Dharmic Experts, Seva Providers) keeps
+                this banner unchanged. */}
+            {billing === "annual" && activeCategory !== "pujari" && activeMaxAnnualSavingsDays > 0 && (
               <span className="text-[12px] font-bold text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/30 px-2.5 py-1 rounded-full">
                 Save with annual billing — up to {activeMaxAnnualSavingsDays} days free
               </span>

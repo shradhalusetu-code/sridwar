@@ -634,13 +634,13 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
               <div className="flex items-start gap-2.5 bg-[#5EEAD4]/5 border border-[#5EEAD4]/20 px-3.5 py-3 rounded-xl text-[12px] text-white/70 leading-relaxed">
                 <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#5EEAD4]" />
                 <span>
-                  🙏 <strong className="text-[#5EEAD4]">Your privacy, respected:</strong> your name and contact details
-                  are <strong>not shared</strong> with the government bodies, elected representatives, temple authorities,
-                  or other recipients you select above — they only receive the report content itself. Sri Dwar keeps
-                  your details on file solely to send you acknowledgements, response and action updates, and your
-                  participation/thank-you certificate if applicable. As this information is retained by Sri Dwar for
-                  that purpose, it is kept confidential rather than fully anonymous — we do not sell it or share it
-                  with anyone beyond what's needed to process your report.
+                  🙏 Your privacy and trust matter to us. Your name and contact details are kept confidential and are
+                  not shared with the government bodies, elected representatives, temple authorities, or other
+                  recipients you select. They receive only the relevant report content. Sri Dwar retains your details
+                  solely to acknowledge your submission, provide responses and action updates, and issue a
+                  participation or thank-you certificate where applicable. We never sell your information or share it
+                  beyond what is necessary to process your report. Your trust is sacred to us, and we handle your
+                  information with the same respect and responsibility we hold for every devotee's sincere sankalpa.
                 </span>
               </div>
             </div>
