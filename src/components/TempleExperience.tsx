@@ -81,7 +81,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Block Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-6">
           <div className="text-left space-y-2">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Revered shrines network</span>
             <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight">
@@ -516,7 +516,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
             <MobileCarousel
               items={steps}
               getKey={(_step, idx) => `journey-step-${idx}`}
-              cardWidthClassName="w-[220px]"
+              cardWidthClassName="w-[clamp(190px,57vw,330px)]"
               desktopGridClassName="lg:grid-cols-7"
               gapClassName="gap-6"
               className="relative"
@@ -526,7 +526,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   className="bg-[#062421] p-5 pt-8 rounded-2xl border border-white/10 text-left relative z-10 shadow-sm hover:shadow-md hover:border-[#5EEAD4]/30 transition-all group scale-100 hover:scale-103 h-full"
                 >
                   {/* Glowing step identifier */}
-                  <div className="w-9 h-9 rounded-full bg-[#021816] text-[#FFB347] border border-[#FFB347] flex items-center justify-center font-bold font-serif text-sm absolute -top-4 left-4 shadow-md group-hover:bg-[#FFB347] group-hover:text-[#021816] transition-colors z-20">
+                  <div className="w-9 h-9 rounded-full bg-[#021816] text-[#FFB347] border border-[#FFB347] flex items-center justify-center font-bold font-serif text-sm absolute -top-3 left-4 shadow-md group-hover:bg-[#FFB347] group-hover:text-[#021816] transition-colors z-20">
                     {idx + 1}
                   </div>
 

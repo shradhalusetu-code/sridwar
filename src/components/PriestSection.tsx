@@ -271,9 +271,9 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
               on the site (Simple Pujas, Seva Offerings, Bazaar). Desktop
               (sm+) keeps the original static grid, unchanged. */}
           <div className="sm:hidden -mx-4 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pb-1">
+            <div className="flex gap-4 w-max pt-4 pb-1">
               {GUIDANCE_POINTS.map(g => (
-                <div key={g.title} className="snap-start shrink-0 w-[260px] h-[168px] flex flex-col gap-3 bg-[#021816]/50 border border-white/10 rounded-2xl p-4">
+                <div key={g.title} className="snap-start shrink-0 w-[clamp(225px,67vw,390px)] h-[168px] flex flex-col gap-3 bg-[#021816]/50 border border-white/10 rounded-2xl p-4">
                   <div className="shrink-0 w-9 h-9 rounded-xl bg-[#FFB347]/10 border border-[#FFB347]/25 flex items-center justify-center">
                     <g.icon className="w-4.5 h-4.5 text-[#FFB347]" />
                   </div>
@@ -353,9 +353,9 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             shown — a match outside the current group still gets found, and
             jumps back to its own group 1. */}
         <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-4 w-max pb-1">
+          <div className="flex gap-4 w-max pt-4 pb-1">
             {visiblePriests.map(p => (
-              <div key={p.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+              <div key={p.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                 <PriestCard priest={p} onSelect={() => setSelectedPriestId(p.id)} />
               </div>
             ))}

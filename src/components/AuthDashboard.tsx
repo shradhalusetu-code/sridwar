@@ -1305,7 +1305,7 @@ export default function AuthDashboard({
                         items={bookedItems.slice(0, LEDGER_CAROUSEL_COUNT)}
                         getKey={(item, idx) => `booked-carousel-${idx}`}
                         desktopGridClassName="lg:grid-cols-2"
-                        cardWidthClassName="w-[240px]"
+                        cardWidthClassName="w-[clamp(210px,62vw,360px)]"
                         renderItem={(item, idx) => (
                           <div
                             id={`booked-item-ledg-${idx}`}
@@ -1382,7 +1382,7 @@ export default function AuthDashboard({
                       items={activityRecords.slice(0, LEDGER_CAROUSEL_COUNT)}
                       getKey={(rec) => `activity-carousel-${rec.id}`}
                       desktopGridClassName="lg:grid-cols-2"
-                      cardWidthClassName="w-[240px]"
+                      cardWidthClassName="w-[clamp(210px,62vw,360px)]"
                       renderItem={(rec) => {
                         const badge = paymentStatusBadge(rec.paymentStatus);
                         return (

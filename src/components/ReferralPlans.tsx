@@ -398,11 +398,11 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               Offerings / Bazaar Offerings carousel pattern. Desktop (lg+):
               unchanged 5-column grid. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-3 w-max pb-1 items-stretch">
+            <div className="flex gap-3 w-max pt-4 pb-1 items-stretch">
               {activeTiers.map((tier, index) => {
                 const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
                 return (
-                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[240px]">
+                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(210px,62vw,360px)]">
                     <PlanTierCard
                       tier={tier}
                       billing={billing}
@@ -454,9 +454,9 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
               render at a fixed uniform width/height. Desktop (lg+):
               unchanged 3-column grid. */}
           <div className="sm:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-3 w-max pb-1 items-stretch">
+            <div className="flex gap-3 w-max pt-4 pb-1 items-stretch">
               {COMMISSION_STRUCTURE.map((tier) => (
-                <div key={tier.bookingLabel} className="snap-start shrink-0 h-full [&>*]:h-full w-[200px]">
+                <div key={tier.bookingLabel} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(170px,52vw,300px)]">
                   <CashbackTierCard tier={tier} />
                 </div>
               ))}

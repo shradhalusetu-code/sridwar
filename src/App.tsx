@@ -971,27 +971,33 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* ── Row 1: Brand + Links ───────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
 
-            {/* Logo / brand block */}
-            <div className="space-y-4 md:col-span-1">
+            {/* Logo / brand block — flex flex-col items-start matches the
+                other three footer columns exactly (Quick Devotions, Legal &
+                Compliance, Social Linkages all use flex flex-col), so the
+                logo and description sit flush against the same left edge
+                as the other headings instead of relying on default block
+                flow, which could visually read as "floating"/centered next
+                to the tightly left-set list columns beside it. */}
+            <div className="flex flex-col items-start space-y-4 lg:col-span-1">
               <h4 className="invisible font-serif text-sm font-bold mb-4 uppercase tracking-wider" aria-hidden="true">Sri Dwar</h4>
-              <SriDwarLogo variant="colored" iconSize="xl" showTagline={true} className="" />
-              <p className="text-xs text-white/60 font-sans leading-relaxed">
+              <SriDwarLogo variant="colored" iconSize="xl" showTagline={true} className="justify-start" />
+              <p className="text-xs text-white/60 font-sans leading-relaxed text-left">
                 An AI-powered faith-tech platform built on Sri Dwar's proprietary technology, bridging holy distances with time-honoured rituals, live aartis, and trusted certifications.
               </p>
             </div>
-            <div className="md:col-span-2 flex flex-col">
+            <div className="lg:col-span-2 flex flex-col">
               <button
                 type="button"
                 onClick={() => toggleFooterSection("quickDevotions")}
                 aria-expanded={!!footerOpenSections.quickDevotions}
-                className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left md:pointer-events-none md:cursor-default"
+                className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left lg:pointer-events-none lg:cursor-default"
               >
                 <span>Quick Devotions</span>
-                <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.quickDevotions ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 lg:hidden transition-transform ${footerOpenSections.quickDevotions ? "rotate-180" : ""}`} />
               </button>
-              <div className={`${footerOpenSections.quickDevotions ? "grid" : "hidden"} md:!grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-white/60 font-medium`}>
+              <div className={`${footerOpenSections.quickDevotions ? "grid" : "hidden"} lg:!grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-white/60 font-medium`}>
                 <ul className="space-y-2">
                   <li><button onClick={() => handleNavigate("home")} className="hover:text-white transition-colors">Home Portal</button></li>
                   <li><button onClick={() => handleNavigate("seva")} className="hover:text-white transition-colors">Seva Hub</button></li>
@@ -1034,17 +1040,17 @@ export default function App() {
                 </ul>
               </div>
             </div>
-            <div className="md:col-span-1 flex flex-col">
+            <div className="lg:col-span-1 flex flex-col">
               <button
                 type="button"
                 onClick={() => toggleFooterSection("legalCompliance")}
                 aria-expanded={!!footerOpenSections.legalCompliance}
-                className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left md:pointer-events-none md:cursor-default"
+                className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left lg:pointer-events-none lg:cursor-default"
               >
                 <span>Legal & Compliance</span>
-                <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.legalCompliance ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 lg:hidden transition-transform ${footerOpenSections.legalCompliance ? "rotate-180" : ""}`} />
               </button>
-              <ul className={`${footerOpenSections.legalCompliance ? "block" : "hidden"} md:!block space-y-2 text-xs text-white/60`}>
+              <ul className={`${footerOpenSections.legalCompliance ? "block" : "hidden"} lg:!block space-y-2 text-xs text-white/60`}>
                 <li className="font-bold text-white">Shradhalu Private Ltd</li>
                 <li className="font-mono text-[12px] text-[#FFB347]">CIN: U62099OD2026PTC054237</li>
                 <li>Secured Payments: Sri Dwar UPI/Payment Gateway</li>
@@ -1055,7 +1061,7 @@ export default function App() {
                 </li>
               </ul>
             </div>
-            <div className="md:col-span-1 flex flex-col">
+            <div className="lg:col-span-1 flex flex-col">
               <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Social Linkages</h4>
 
               <div className="flex flex-wrap gap-2.5">
@@ -1137,28 +1143,35 @@ export default function App() {
                   <Mail className="w-4 h-4" />
                 </a>
               </div>
-
-              {/* Disclaimer — relocated here from the brand column so it sits
-                  directly beneath Social Linkages. */}
-              <div className="mt-auto pt-5">
-                <p className="text-[12px] text-white/40 leading-relaxed italic border-t border-white/5 pt-3">
-                  Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
-                </p>
-              </div>
             </div>
 
+          </div>
+
+          {/* Disclaimer — its own full-width row instead of being pinned
+              under the Social Linkages column. mt-auto previously pushed it
+              to the bottom of whichever column was tallest (Quick
+              Devotions), so on rows where Legal & Compliance/Social
+              Linkages were much shorter, the disclaimer ended up floating
+              well below them with nothing above it lining up — reading as
+              "out of alignment." A full-width row below the grid always
+              sits at a consistent position and aligns flush with every
+              other footer row (Recognition & Downloads, copyright line). */}
+          <div className="mb-8 border-t border-white/5 pt-4">
+            <p className="text-[12px] text-white/40 leading-relaxed italic max-w-3xl">
+              Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
+            </p>
           </div>
           <div className="mb-8 bg-[#051F1A] border border-white/8 rounded-3xl p-5 sm:p-6">
             <button
               type="button"
               onClick={() => toggleFooterSection("recognitionDownloads")}
               aria-expanded={!!footerOpenSections.recognitionDownloads}
-              className="w-full flex items-center justify-between text-[12px] font-mono font-bold text-white/60 uppercase tracking-widest text-left md:pointer-events-none md:cursor-default mb-1"
+              className="w-full flex items-center justify-between text-[12px] font-mono font-bold text-white/60 uppercase tracking-widest text-left lg:pointer-events-none lg:cursor-default mb-1"
             >
               <span>Recognition & App Downloads</span>
-              <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.recognitionDownloads ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-4 h-4 lg:hidden transition-transform ${footerOpenSections.recognitionDownloads ? "rotate-180" : ""}`} />
             </button>
-            <div className={`${footerOpenSections.recognitionDownloads ? "grid" : "hidden"} md:!grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8`}>
+            <div className={`${footerOpenSections.recognitionDownloads ? "grid" : "hidden"} lg:!grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8`}>
 
               <div className="space-y-2 text-left lg:pr-6">
                 <p className="text-[12px] font-mono font-bold text-white/30 uppercase tracking-widest">
@@ -1222,10 +1235,10 @@ export default function App() {
               type="button"
               onClick={() => toggleFooterSection("policies")}
               aria-expanded={!!footerOpenSections.policies}
-              className="w-full flex items-center justify-center gap-1.5 text-[12px] font-mono font-bold text-white/45 uppercase tracking-widest text-center md:pointer-events-none md:cursor-default mb-3"
+              className="w-full flex items-center justify-center gap-1.5 text-[12px] font-mono font-bold text-white/45 uppercase tracking-widest text-center lg:pointer-events-none lg:cursor-default mb-3"
             >
               <span>Policies & Legal Documents</span>
-              <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${footerOpenSections.policies ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-4 h-4 lg:hidden transition-transform ${footerOpenSections.policies ? "rotate-180" : ""}`} />
             </button>
             {/* ✅ CAROUSEL FIX: on phone/app width this list previously wrapped
                 into a plain multi-line row of underlined links — no preview
@@ -1239,14 +1252,14 @@ export default function App() {
                 the original compact underlined link row untouched, since a
                 card carousel isn't needed once there's room to show all 12
                 links on one or two lines. */}
-            <div className={`${footerOpenSections.policies ? "block" : "hidden"} md:hidden -mx-4 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory`}>
+            <div className={`${footerOpenSections.policies ? "block" : "hidden"} lg:hidden -mx-4 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory`}>
               <div className="flex gap-3 w-max pb-1">
                 {POLICY_DOCS.map(({ label, key, blurb }) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => { gaLegalDocOpen(key); setActiveLegalDoc(key); }}
-                    className="snap-start shrink-0 w-[220px] h-[132px] flex flex-col text-left bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 rounded-2xl p-4 transition-colors"
+                    className="snap-start shrink-0 w-[clamp(190px,57vw,330px)] h-[132px] flex flex-col text-left bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 rounded-2xl p-4 transition-colors"
                   >
                     <span className="text-[13px] font-bold text-white/85 leading-snug line-clamp-2">{label}</span>
                     <span className="text-[11px] text-white/45 leading-relaxed mt-1.5 line-clamp-3 flex-1">{blurb}</span>
@@ -1255,7 +1268,7 @@ export default function App() {
                 ))}
                 <a
                   href="/privacy-policy"
-                  className="snap-start shrink-0 w-[220px] h-[132px] flex flex-col text-left bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 rounded-2xl p-4 transition-colors"
+                  className="snap-start shrink-0 w-[clamp(190px,57vw,330px)] h-[132px] flex flex-col text-left bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 rounded-2xl p-4 transition-colors"
                 >
                   <span className="text-[13px] font-bold text-white/85 leading-snug line-clamp-2">Full Legal Documents</span>
                   <span className="text-[11px] text-white/45 leading-relaxed mt-1.5 line-clamp-3 flex-1">All of Sri Dwar's policies and legal documents in one consolidated page.</span>
@@ -1263,7 +1276,7 @@ export default function App() {
                 </a>
               </div>
             </div>
-            <div className="hidden md:!flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
+            <div className="hidden lg:!flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
               {POLICY_DOCS.map(({ label, key }, i, arr) => (
                 <span key={key} className="flex items-center">
                   <button

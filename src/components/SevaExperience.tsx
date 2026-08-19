@@ -695,9 +695,9 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               here, so there is no separate "remaining offerings" overflow
               for this section specifically. Desktop (lg+): unchanged grid. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pb-1 items-stretch">
+            <div className="flex gap-4 w-max pt-4 pb-1 items-stretch">
               {SEVA_OFFERINGS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                   <SevaOfferingCard
                     offering={offering}
                     isActive={activeOfferingId === offering.id}
@@ -802,20 +802,20 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               squeezed down to 1 column on phones instead of the swipeable,
               uniform-width strip every other section (Seva Offerings,
               Simple Pujas, Bazaar) already uses. Mobile/app now gets the
-              same `w-[280px]` bare scroll-snap carousel (no dots/arrows,
+              same fluid `w-[clamp(240px,72vw,420px)]` bare scroll-snap carousel (no dots/arrows,
               matching every other non-Home carousel on the site); the
               desktop grid below is otherwise unchanged. All 10 Sponsorship
               Services cards (FEATURED_SEVAS + EXTRA_SEVAS) render here on
               every platform — website and Android app alike. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pb-1 items-stretch">
+            <div className="flex gap-4 w-max pt-4 pb-1 items-stretch">
               {visibleFeaturedSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                   <SevaCard seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                 </div>
               ))}
               {visibleExtraSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                   <SevaCard seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
                 </div>
               ))}

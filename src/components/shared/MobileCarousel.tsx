@@ -57,7 +57,7 @@ export default function MobileCarousel<T>({
   items,
   getKey,
   renderItem,
-  cardWidthClassName = "w-[280px]",
+  cardWidthClassName = "w-[clamp(240px,72vw,420px)]",
   desktopGridClassName = "lg:grid-cols-3",
   gapClassName = "gap-4",
   className = "",

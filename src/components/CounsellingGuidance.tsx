@@ -879,7 +879,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
         <MobileCarousel
           items={HOW_IT_WORKS}
           getKey={(step) => step.title}
-          cardWidthClassName="w-[240px]"
+          cardWidthClassName="w-[clamp(210px,62vw,360px)]"
           desktopGridClassName="lg:grid-cols-3"
           gapClassName="gap-4"
           className="mb-12"
@@ -910,7 +910,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           <MobileCarousel
             items={visibleServices}
             getKey={(service) => service.id}
-            cardWidthClassName="w-[280px]"
+            cardWidthClassName="w-[clamp(240px,72vw,420px)]"
             desktopGridClassName="lg:grid-cols-3"
             gapClassName="gap-5"
             renderItem={(service) => (
@@ -961,7 +961,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                   <MobileCarousel
                     items={hiddenServices}
                     getKey={(service) => service.id}
-                    cardWidthClassName="w-[280px]"
+                    cardWidthClassName="w-[clamp(240px,72vw,420px)]"
                     desktopGridClassName="lg:grid-cols-3"
                     gapClassName="gap-5"
                     renderItem={(service) => (
@@ -1002,7 +1002,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           <MobileCarousel
             items={SESSION_FORMATS}
             getKey={(format) => format.id}
-            cardWidthClassName="w-[280px]"
+            cardWidthClassName="w-[clamp(240px,72vw,420px)]"
             desktopGridClassName="lg:grid-cols-4"
             gapClassName="gap-4"
             renderItem={(format) => (
@@ -1112,7 +1112,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
               },
             ]}
             getKey={(f) => f.title}
-            cardWidthClassName="w-[240px]"
+            cardWidthClassName="w-[clamp(210px,62vw,360px)]"
             desktopGridClassName="lg:grid-cols-4"
             gapClassName="gap-3"
             renderItem={(f) => (

@@ -191,7 +191,7 @@ export default function CookieConsent() {
           <button
             onClick={handleDismiss}
             aria-label="Close (you'll be asked again next visit)"
-            className="text-white/40 hover:text-white/70 shrink-0 p-2 -m-2"
+            className="text-white/40 hover:text-white/70 shrink-0 p-3 -m-3"
           >
             <X className="w-5 h-5" />
           </button>

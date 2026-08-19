@@ -541,47 +541,66 @@ function ServiceCard({
       </div>
 
       {/* Footer
-          ✅ FIX — price and "Book Now" button rendering merged/overlapping
-          on narrow (280px carousel) cards: neither side of this row had
-          any shrink/wrap protection, so at narrow widths the button's
-          "Book Now" label wrapped onto two lines and visually collided
-          with the price block next to it instead of staying a single
-          compact pill. `min-w-0` on the price block lets it truncate its
-          own space instead of pushing into the button; `shrink-0
-          whitespace-nowrap` on the button keeps it a fixed-size pill that
-          never wraps, at every card width. */}
+          ✅ FIX — price hidden behind the "Book Now" button on narrow
+          carousel cards: the card's min width is 240px (see
+          `w-[clamp(240px,72vw,420px)]` on the MobileCarousel calls below),
+          which leaves ~200px inside the px-5 padding for this whole row.
+          The old markup put the strikethrough original price and the
+          discounted price SIDE BY SIDE (`flex items-center space-x-2`)
+          with no wrap protection — together they needed ~105-110px, and
+          the button needed another ~115-120px, well over the 200px
+          budget. Neither side could shrink safely, so the price text
+          simply overflowed its own box and rendered underneath/behind the
+          button instead of wrapping or shrinking.
+          Fix, two parts:
+          1) Price stacks vertically (strikethrough price on its own line
+             above the bold discounted price) instead of sitting side by
+             side, and both are a size down (`text-[11px]` / `text-[15px]`
+             instead of `text-[13px]` / `text-base`) — together this cuts
+             the price block's needed width roughly in half, down to the
+             width of a single price string.
+          2) The button is a size down too (`px-3 py-1.5`, `text-[12px]`,
+             smaller icon) — a visibly smaller pill that still reads
+             clearly as "Book Now" but frees up real width instead of
+             eating most of the 200px budget.
+          `min-w-0` + `truncate` on the price block is kept as a
+          last-resort safety net (so if a price is ever unusually long it
+          clips with an ellipsis instead of bleeding into the button);
+          `shrink-0 whitespace-nowrap` on the button keeps it a
+          fixed-size pill that never wraps, at every card width down to
+          240px. */}
       <div className="px-5 py-4 border-t border-white/8 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <span className="text-[12px] text-white/35 font-mono">Starting from</span>
+        <div className="min-w-0 flex-1">
+          <span className="text-[11px] text-white/35 font-mono">Starting from</span>
           {isDiscountActive() ? (
-            <div className="flex items-center space-x-2">
-              <p className="text-[13px] text-white/40 line-through font-mono">
+            <div className="flex flex-col">
+              <p className="text-[11px] text-white/40 line-through font-mono truncate">
                 ₹{service.price.toLocaleString("en-IN")}
               </p>
-              <p className="text-base font-black text-white">
+              <p className="text-[15px] font-black text-white truncate">
                 ₹{getDiscountedPrice(service.price).toLocaleString("en-IN")}
               </p>
             </div>
           ) : (
-            <p className="text-base font-black text-white">
+            <p className="text-[15px] font-black text-white truncate">
               ₹{service.price.toLocaleString("en-IN")}
             </p>
           )}
           {isDiscountActive() && (
-            <span className="block text-[11px] font-mono font-bold text-[#FFB347]">{DISCOUNT_TAG}</span>
+            <span className="block text-[10px] font-mono font-bold text-[#FFB347] truncate">{DISCOUNT_TAG}</span>
           )}
         </div>
         <button
           type="button"
           onClick={handleBookClick}
-          className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-[13px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+          className="flex items-center space-x-1 px-3 py-1.5 rounded-xl text-[12px] font-bold uppercase tracking-wide transition-all hover:opacity-90 active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
           style={{
             background: service.categoryColor,
             color: "#021816",
           }}
         >
           <span>Book Now</span>
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-3 h-3" />
         </button>
       </div>
     </div>
@@ -705,7 +724,7 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
         <MobileCarousel
           items={visibleCards}
           getKey={(service) => service.id}
-          cardWidthClassName="w-[280px]"
+          cardWidthClassName="w-[clamp(240px,72vw,420px)]"
           desktopGridClassName="lg:grid-cols-3"
           gapClassName="gap-5"
           renderItem={(service) => (
@@ -767,7 +786,7 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
                 <MobileCarousel
                   items={hiddenCards}
                   getKey={(service) => service.id}
-                  cardWidthClassName="w-[280px]"
+                  cardWidthClassName="w-[clamp(240px,72vw,420px)]"
                   desktopGridClassName="lg:grid-cols-3"
                   gapClassName="gap-5"
                   renderItem={(service) => (

@@ -931,7 +931,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 // already used for Simple Pujas / Seva / Bazaar, instead of a long
 // vertical scroll of rows.
 //
-// Every card renders at a fixed w-[280px] and (via MobileCarousel's
+// Every card renders at a fluid clamp(240px,72vw,420px) width and (via MobileCarousel's
 // h-full/[&>*]:h-full stretch) matches the height of the tallest card in
 // its row, so a puja with a long name/benefit line never makes its card
 // visually bigger than its neighbours.
@@ -1388,9 +1388,9 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
               here, matching the Seva Offerings / Bazaar Offerings carousel
               pattern. Desktop (lg+): unchanged grid. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pb-1">
+            <div className="flex gap-4 w-max pt-4 pb-1">
               {SIMPLE_PUJAS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                   <SimplePujaCard
                     offering={offering}
                     isActive={activeSimplePujaId === offering.id}
@@ -1645,11 +1645,11 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                       Bazaar. Desktop keeps the detailed row-list below,
                       completely unchanged. */}
                   <div className="lg:hidden border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                    <div className="flex gap-4 w-max pb-1">
+                    <div className="flex gap-4 w-max pt-4 pb-1">
                       {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
                         const discountedPrice = getDiscountedPrice(puja.price);
                         return (
-                          <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                          <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                             <PujaCategoryCard
                               puja={puja}
                               discountedPrice={discountedPrice}
@@ -1918,11 +1918,11 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     same pattern as the 6 category sections above. Desktop
                     keeps the detailed row-list below, unchanged. */}
                 <div className="lg:hidden border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                  <div className="flex gap-4 w-max pb-1">
+                  <div className="flex gap-4 w-max pt-4 pb-1">
                     {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {
                       const discountedPrice = getDiscountedPrice(puja.price);
                       return (
-                        <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[280px]">
+                        <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
                           <PujaCategoryCard
                             puja={puja}
                             discountedPrice={discountedPrice}

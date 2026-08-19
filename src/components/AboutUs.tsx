@@ -342,9 +342,9 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
             uniform width/height regardless of how long any one card's copy
             runs. Desktop (lg+): unchanged 4-column grid. */}
         <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-4 w-max pb-1">
+          <div className="flex gap-4 w-max pt-4 pb-1">
             {MISSION_PILLARS.map((pillar) => (
-              <div key={pillar.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[260px]">
+              <div key={pillar.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
                 <MissionPillarCard pillar={pillar} />
               </div>
             ))}

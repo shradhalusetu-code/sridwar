@@ -58,6 +58,28 @@ export default function Navbar({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
 
+  // ✅ MOBILE DRAWER ACCESSIBILITY: the drawer previously had no keyboard or
+  // screen-reader affordances at all — no way to dismiss it with Escape,
+  // and the page behind it stayed scrollable while it was open (so a
+  // two-finger/scroll-wheel gesture over the overlay scrolled the hidden
+  // page underneath instead of doing nothing, which is disorienting on
+  // both touch and desktop). Locking body scroll and wiring Escape here
+  // matches the same pattern already used by every other modal/drawer in
+  // the app (BookNowWizard, RefundRequestModal, etc.).
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen, setIsMobileMenuOpen]);
+
   const t = TRANSLATIONS[currentLanguage];
 
   useEffect(() => {
@@ -425,6 +447,9 @@ export default function Navbar({
               <button
                 id="hamburger-menu-trigger"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-drawer-overlay"
                 className="p-2 rounded-md text-white hover:bg-white/10"
               >
                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -438,9 +463,16 @@ export default function Navbar({
       {isMobileMenuOpen && (
         <div
           id="mobile-drawer-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation menu"
+          onClick={() => setIsMobileMenuOpen(false)}
           className="fixed inset-0 z-[200] bg-[#021816]/70 backdrop-blur-md flex justify-end animate-fadeIn"
         >
-          <div className="w-4/5 max-w-sm bg-[#04201e] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-white overflow-hidden">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-4/5 max-w-sm bg-[#04201e] border-l border-white/10 h-full shadow-2xl flex flex-col animate-slideLeft text-white overflow-hidden"
+          >
             {/* Scrollable inner content */}
             <div className="flex-1 overflow-y-auto overscroll-contain p-6 flex flex-col justify-between"
               onTouchMove={e => e.stopPropagation()}
@@ -454,6 +486,7 @@ export default function Navbar({
                 <button
                   id="close-mobile-menu"
                   onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Close menu"
                   className="p-1 rounded-md text-white/70 hover:bg-white/10 hover:text-white"
                 >
                   <X className="w-6 h-6" />

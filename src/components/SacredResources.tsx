@@ -274,8 +274,8 @@ export default function SacredResources() {
             Simple Pujas carousel pattern used elsewhere. Desktop (lg+):
             unchanged grid. */}
         <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-5 w-max pb-1">
-            <div className="snap-start shrink-0 w-[260px]">
+          <div className="flex gap-5 w-max pt-4 pb-1 items-stretch">
+            <div className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
               <DropdownGroup
                 label="Mantra"
                 icon={<Sparkles className="w-4 h-4 text-[#5EEAD4]" />}
@@ -284,7 +284,7 @@ export default function SacredResources() {
                 placeholderNote={(s) => `🙏 ${s} selected. Full chanting guide & audio will be available here soon.`}
               />
             </div>
-            <div className="snap-start shrink-0 w-[260px]">
+            <div className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
               <DropdownGroup
                 label="Aarti"
                 icon={<Flame className="w-4 h-4 text-[#5EEAD4]" />}
@@ -293,7 +293,7 @@ export default function SacredResources() {
                 placeholderNote={(s) => `🙏 ${s} selected. Full lyrics & audio will be available here soon.`}
               />
             </div>
-            <div className="snap-start shrink-0 w-[260px]">
+            <div className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
               <DropdownGroup
                 label="Chalisa"
                 icon={<BookOpen className="w-4 h-4 text-[#5EEAD4]" />}
@@ -302,7 +302,7 @@ export default function SacredResources() {
                 placeholderNote={(s) => `🙏 ${s} selected. Full verses & audio will be available here soon.`}
               />
             </div>
-            <div className="snap-start shrink-0 w-[260px]">
+            <div className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
               <DropdownGroup
                 label="Bhajan/Stotram"
                 icon={<Music2 className="w-4 h-4 text-[#5EEAD4]" />}
@@ -311,7 +311,7 @@ export default function SacredResources() {
                 placeholderNote={(s) => `🙏 ${s} selected. Full lyrics & audio will be available here soon.`}
               />
             </div>
-            <div className="snap-start shrink-0 w-[260px]">
+            <div className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
               <DropdownGroup
                 label="Sun Rise & Sun Set Timings"
                 icon={<Sun className="w-4 h-4 text-[#5EEAD4]" />}
@@ -320,7 +320,7 @@ export default function SacredResources() {
                 placeholderNote={(s) => `Sunrise & sunset timings for ${s} will appear here once live astronomy data is connected.`}
               />
             </div>
-            <div className="snap-start shrink-0 w-[260px]">
+            <div className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
               <DropdownGroup
                 label="Moon Rise & Moon Set Timings"
                 icon={<Moon className="w-4 h-4 text-[#5EEAD4]" />}

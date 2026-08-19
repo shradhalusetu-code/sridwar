@@ -451,9 +451,9 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
             fixed uniform width/height. Desktop (lg+): unchanged 4-column
             grid. */}
         <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-16">
-          <div className="flex gap-4 w-max pb-1">
+          <div className="flex gap-4 w-max pt-4 pb-1">
             {HOW_IT_WORKS.map((step, i) => (
-              <div key={step.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[220px]">
+              <div key={step.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(190px,57vw,330px)]">
                 <HowItWorksCard step={step} index={i} />
               </div>
             ))}
