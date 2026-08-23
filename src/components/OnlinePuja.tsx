@@ -20,6 +20,7 @@ import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { useSingleOpen } from "./shared/useSingleOpen";
+import MobileCarousel from "./shared/MobileCarousel";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 import { sectionTopPadding } from "../utils/androidSpacing";
 
@@ -1384,34 +1385,22 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
             <span>Every puja is performed with devotion by temple priests. A digital certificate/evidence will be shared after completion.</span>
           </div>
 
-          {/* Mobile/app: horizontal snap carousel — all 6 Simple Pujas fit
-              here, matching the Seva Offerings / Bazaar Offerings carousel
-              pattern. Desktop (lg+): unchanged grid. */}
-          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pt-4 pb-1">
-              {SIMPLE_PUJAS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                  <SimplePujaCard
-                    offering={offering}
-                    isActive={activeSimplePujaId === offering.id}
-                    onActivate={() => setActiveSimplePujaId(offering.id)}
-                    onBook={handleBookSimplePuja}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SIMPLE_PUJAS.map((offering) => (
+          {/* ✅ MIGRATED TO SHARED MobileCarousel — see SevaExperience.tsx /
+              shared/MobileCarousel.tsx for why hand-copied carousel markup
+              was consolidated into one component. */}
+          <MobileCarousel
+            items={SIMPLE_PUJAS}
+            getKey={(offering) => offering.id}
+            cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+            renderItem={(offering) => (
               <SimplePujaCard
-                key={offering.id}
                 offering={offering}
                 isActive={activeSimplePujaId === offering.id}
                 onActivate={() => setActiveSimplePujaId(offering.id)}
                 onBook={handleBookSimplePuja}
               />
-            ))}
-          </div>
+            )}
+          />
 
           {/* Disclaimer */}
           <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl">
@@ -1639,30 +1628,32 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     overflow: "hidden",
                   }}
                 >
-                  {/* Mobile/app: horizontal snap carousel of compact cards —
-                      same reference pattern (fixed-width, uniform-height
-                      cards via [&>*]:h-full) as Simple Pujas / Seva /
-                      Bazaar. Desktop keeps the detailed row-list below,
-                      completely unchanged. */}
-                  <div className="lg:hidden border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                    <div className="flex gap-4 w-max pt-4 pb-1">
-                      {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
-                        const discountedPrice = getDiscountedPrice(puja.price);
-                        return (
-                          <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                            <PujaCategoryCard
-                              puja={puja}
-                              discountedPrice={discountedPrice}
-                              isDetailsOpen={isPujaDetailsOpen(puja.id)}
-                              onToggleDetails={() => togglePujaDetails(puja.id)}
-                              onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
-                              onViewPriestProfile={onViewPriestProfile}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  {/* ✅ MIGRATED TO SHARED MobileCarousel (mobileOnly —
+                      desktop below stays the existing detailed row-list,
+                      which was never a card grid, so only the mobile
+                      carousel markup itself is shared/consolidated here). */}
+                  <MobileCarousel
+                    mobileOnly
+                    className="border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6"
+                    items={openedOnce[cat] ? (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)) : []}
+                    getKey={(puja) => puja.id}
+                    cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+                    renderItem={(puja) => {
+                      const discountedPrice = getDiscountedPrice(puja.price);
+                      return (
+                        <div id={`puja-row-${puja.id}`}>
+                          <PujaCategoryCard
+                            puja={puja}
+                            discountedPrice={discountedPrice}
+                            isDetailsOpen={isPujaDetailsOpen(puja.id)}
+                            onToggleDetails={() => togglePujaDetails(puja.id)}
+                            onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
+                            onViewPriestProfile={onViewPriestProfile}
+                          />
+                        </div>
+                      );
+                    }}
+                  />
 
                   <div className="hidden lg:block border-t border-white/8 divide-y divide-white/5">
                     {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
@@ -1914,28 +1905,30 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   overflow: "hidden",
                 }}
               >
-                {/* Mobile/app: horizontal snap carousel of compact cards —
-                    same pattern as the 6 category sections above. Desktop
-                    keeps the detailed row-list below, unchanged. */}
-                <div className="lg:hidden border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                  <div className="flex gap-4 w-max pt-4 pb-1">
-                    {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {
-                      const discountedPrice = getDiscountedPrice(puja.price);
-                      return (
-                        <div key={puja.id} id={`puja-row-${puja.id}`} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                          <PujaCategoryCard
-                            puja={puja}
-                            discountedPrice={discountedPrice}
-                            isDetailsOpen={isPujaDetailsOpen(puja.id)}
-                            onToggleDetails={() => togglePujaDetails(puja.id)}
-                            onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
-                            onViewPriestProfile={onViewPriestProfile}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                {/* ✅ MIGRATED TO SHARED MobileCarousel (mobileOnly — see
+                    the category carousels above for why). */}
+                <MobileCarousel
+                  mobileOnly
+                  className="border-t border-white/8 pt-4 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6"
+                  items={openedOnce["other"] ? (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)) : []}
+                  getKey={(puja) => puja.id}
+                  cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+                  renderItem={(puja) => {
+                    const discountedPrice = getDiscountedPrice(puja.price);
+                    return (
+                      <div id={`puja-row-${puja.id}`}>
+                        <PujaCategoryCard
+                          puja={puja}
+                          discountedPrice={discountedPrice}
+                          isDetailsOpen={isPujaDetailsOpen(puja.id)}
+                          onToggleDetails={() => togglePujaDetails(puja.id)}
+                          onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
+                          onViewPriestProfile={onViewPriestProfile}
+                        />
+                      </div>
+                    );
+                  }}
+                />
 
                 <div className="hidden lg:block border-t border-white/8 divide-y divide-white/5">
                   {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {

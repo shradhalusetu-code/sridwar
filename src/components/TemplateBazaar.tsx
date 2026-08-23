@@ -22,6 +22,7 @@ import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } 
 import BazaarOfferingCard from "./BazaarOfferingCard";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import OptimizedImage from "./OptimizedImage";
+import MobileCarousel from "./shared/MobileCarousel";
 import { sectionTopPadding } from "../utils/androidSpacing";
 import {
   BAZAAR_PRODUCTS, BAZAAR_CATEGORIES, BAZAAR_DELIVERY_NOTE, BAZAAR_TRUST_COPY,
@@ -663,36 +664,25 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
             ))}
           </div>
 
-          {/* Mobile/app: horizontal snap carousel — all 5 key Bazaar
-              offerings fit here, so there's no separate "remaining
-              offerings" overflow for this section. Desktop (lg+): unchanged
-              grid. Same pattern as Seva Offerings (SevaExperience.tsx). */}
-          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-6">
-            <div className="flex gap-4 w-max pt-4 pb-1 items-stretch">
-              {filteredNewProducts.map((product) => (
-                <div key={product.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                  <BazaarOfferingCard
-                    product={product}
-                    isActive={activeNewOfferingId === product.id}
-                    onActivate={() => setActiveNewOfferingId(product.id)}
-                    onOffer={handleOfferNewProduct}
-                    onAddToCart={handleAddToNewCart}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-            {filteredNewProducts.map((product) => (
-              <BazaarOfferingCard
-                key={product.id}
-                product={product}
-                isActive={activeNewOfferingId === product.id}
-                onActivate={() => setActiveNewOfferingId(product.id)}
-                onOffer={handleOfferNewProduct}
-                onAddToCart={handleAddToNewCart}
-              />
-            ))}
+          {/* ✅ MIGRATED TO SHARED MobileCarousel — see SevaExperience.tsx
+              for why hand-copied carousel markup was consolidated into one
+              component. */}
+          <div className="mb-6">
+            <MobileCarousel
+              items={filteredNewProducts}
+              getKey={(product) => product.id}
+              cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+              gapClassName="gap-5"
+              renderItem={(product) => (
+                <BazaarOfferingCard
+                  product={product}
+                  isActive={activeNewOfferingId === product.id}
+                  onActivate={() => setActiveNewOfferingId(product.id)}
+                  onOffer={handleOfferNewProduct}
+                  onAddToCart={handleAddToNewCart}
+                />
+              )}
+            />
           </div>
 
           {/* Section-local cart summary — only shown once something's been added */}
@@ -751,29 +741,16 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         </div>
 
         {/* ── Items Grid ───────────────────────────────────────────────── */}
-        {/* Mobile/app: horizontal snap carousel — same Temple Bazaar top-6
-            pattern as Devotional Shopping Offerings above. All uniform-
-            height cards regardless of category filter selection; card
-            height is set by the tallest card in the row (flex default
-            align-items: stretch), so a short description never makes one
-            card shrink smaller than its neighbours. Desktop (lg+):
-            unchanged grid. */}
-        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-5 w-max pt-4 pb-1 items-stretch">
-            {filteredItems.map(item => (
-              <div key={item.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                {renderLegacyItemCard(item)}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
-          {filteredItems.map(item => (
-            <div key={item.id} className="h-full [&>*]:h-full">
-              {renderLegacyItemCard(item)}
-            </div>
-          ))}
-        </div>
+        {/* ✅ MIGRATED TO SHARED MobileCarousel — same Temple Bazaar top-6
+            pattern as Devotional Shopping Offerings above, now sharing the
+            same component instead of a second hand-copied implementation. */}
+        <MobileCarousel
+          items={filteredItems}
+          getKey={(item) => item.id}
+          cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+          gapClassName="gap-5"
+          renderItem={(item) => renderLegacyItemCard(item)}
+        />
 
         {/* ── Trust Badges ─────────────────────────────────────────────── */}
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">

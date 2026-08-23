@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { PRIEST_PROFILES } from "../data/priests";
 import { PriestProfile } from "../types";
+import MobileCarousel from "./shared/MobileCarousel";
 
 interface PriestSectionProps {
   /** Optional: pre-select a priest (e.g. coming from the Online Puja priest filter) */
@@ -266,25 +267,32 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             A few things to check before booking a puja or seeking advice, so your ritual is performed
             with sincerity and care.
           </p>
-          {/* Mobile/app: horizontal snap carousel — all 6 guidance points fit
-              here, same uniform-card pattern used by every other carousel
-              on the site (Simple Pujas, Seva Offerings, Bazaar). Desktop
-              (sm+) keeps the original static grid, unchanged. */}
-          <div className="sm:hidden -mx-4 px-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pt-4 pb-1">
-              {GUIDANCE_POINTS.map(g => (
-                <div key={g.title} className="snap-start shrink-0 w-[clamp(225px,67vw,390px)] h-[168px] flex flex-col gap-3 bg-[#021816]/50 border border-white/10 rounded-2xl p-4">
-                  <div className="shrink-0 w-9 h-9 rounded-xl bg-[#FFB347]/10 border border-[#FFB347]/25 flex items-center justify-center">
-                    <g.icon className="w-4.5 h-4.5 text-[#FFB347]" />
-                  </div>
-                  <div className="min-h-0 overflow-hidden">
-                    <h4 className="text-xs font-bold text-white mb-1">{g.title}</h4>
-                    <p className="text-[13px] text-white/60 leading-relaxed line-clamp-4">{g.desc}</p>
-                  </div>
+          {/* ✅ MIGRATED TO SHARED MobileCarousel (mobileOnly, breakpoint="sm"
+              to preserve the original sm:hidden switch point). Desktop
+              below is intentionally a different, chrome-less layout (plain
+              icon+text pairs, no card border/background) — not just the
+              same card in a grid — so only the mobile carousel markup is
+              shared here; the desktop grid keeps its own distinct markup
+              untouched, same as OnlinePuja.tsx's puja-row carousels. */}
+          <MobileCarousel
+            mobileOnly
+            breakpoint="sm"
+            className="-mx-4 px-4"
+            items={GUIDANCE_POINTS}
+            getKey={(g) => g.title}
+            cardWidthClassName="w-[clamp(225px,67vw,390px)]"
+            renderItem={(g) => (
+              <div className="min-h-[168px] flex flex-col gap-3 bg-[#021816]/50 border border-white/10 rounded-2xl p-4">
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-[#FFB347]/10 border border-[#FFB347]/25 flex items-center justify-center">
+                  <g.icon className="w-4.5 h-4.5 text-[#FFB347]" />
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="min-h-0 overflow-hidden">
+                  <h4 className="text-xs font-bold text-white mb-1">{g.title}</h4>
+                  <p className="text-[13px] text-white/60 leading-relaxed line-clamp-4">{g.desc}</p>
+                </div>
+              </div>
+            )}
+          />
           <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {GUIDANCE_POINTS.map(g => (
               <div key={g.title} className="flex gap-3">
@@ -352,20 +360,14 @@ export default function PriestSection({ initialPriestId = null, onBack }: Priest
             101-priest directory, not just whatever group is currently
             shown — a match outside the current group still gets found, and
             jumps back to its own group 1. */}
-        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-4 w-max pt-4 pb-1">
-            {visiblePriests.map(p => (
-              <div key={p.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                <PriestCard priest={p} onSelect={() => setSelectedPriestId(p.id)} />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {visiblePriests.map(p => (
-            <PriestCard key={p.id} priest={p} onSelect={() => setSelectedPriestId(p.id)} />
-          ))}
-        </div>
+        {/* ✅ MIGRATED TO SHARED MobileCarousel. */}
+        <MobileCarousel
+          items={visiblePriests}
+          getKey={(p) => p.id}
+          cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+          gapClassName="gap-6"
+          renderItem={(p) => <PriestCard priest={p} onSelect={() => setSelectedPriestId(p.id)} />}
+        />
 
         {filteredPriests.length === 0 && (
           <div className="text-center py-16 text-white/40 text-xs">

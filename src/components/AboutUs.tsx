@@ -7,6 +7,7 @@ import { useState, ReactNode } from "react";
 import { Sparkles, Award, Heart, ShieldCheck, Users, Linkedin, ArrowUpRight, ChevronDown } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import OptimizedImage from "./OptimizedImage";
+import MobileCarousel from "./shared/MobileCarousel";
 import kunuPhoto from "../assets/images/Kunu.jpg";
 // @ts-ignore
 import kunuPhotoWebp from "../assets/images/Kunu.webp";
@@ -337,26 +338,15 @@ export default function AboutUs({ onNavigate }: AboutUsProps) {
         </div>
 
         {/* Core Values / Impact Pillars — Mission section.
-            Mobile/app: horizontal snap carousel, same Temple Bazaar top-6
-            pattern used across the site, so all 4 cards render at a fixed
-            uniform width/height regardless of how long any one card's copy
-            runs. Desktop (lg+): unchanged 4-column grid. */}
-        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-          <div className="flex gap-4 w-max pt-4 pb-1">
-            {MISSION_PILLARS.map((pillar) => (
-              <div key={pillar.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(225px,67vw,390px)]">
-                <MissionPillarCard pillar={pillar} />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="hidden lg:grid grid-cols-4 gap-6 items-stretch">
-          {MISSION_PILLARS.map((pillar) => (
-            <div key={pillar.title} className="h-full [&>*]:h-full">
-              <MissionPillarCard pillar={pillar} />
-            </div>
-          ))}
-        </div>
+            ✅ MIGRATED TO SHARED MobileCarousel. */}
+        <MobileCarousel
+          items={MISSION_PILLARS}
+          getKey={(pillar) => pillar.title}
+          cardWidthClassName="w-[clamp(225px,67vw,390px)]"
+          desktopGridClassName="lg:grid-cols-4"
+          gapClassName="gap-6"
+          renderItem={(pillar) => <MissionPillarCard pillar={pillar} />}
+        />
 
       </div>
     </section>

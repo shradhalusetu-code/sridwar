@@ -189,66 +189,61 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
               )}
             </div>
 
-            {/* Mobile/app: horizontal swipeable temple carousel — quick
-                visual browse alongside the dropdown above (dropdown =
-                precise search/select by name; carousel = swipe through
-                photos to browse). Same reference pattern as Temple
-                Bazaar's top offerings strip (components/shared/
-                MobileCarousel.tsx), inlined directly here rather than
-                via that shared component because desktop keeps its own
-                separate vertical list drawer completely unchanged below
-                — this whole block is `lg:hidden` and never renders past
-                that breakpoint, so it can't duplicate/affect desktop. */}
-            <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-              <div className="flex gap-3 w-max pb-1">
-                {filteredTemples.length > 0 ? (
-                  filteredTemples.map((templeObj) => {
-                    const isActive = selectedTempleId === templeObj.id;
-                    return (
-                      <button
-                        key={templeObj.id}
-                        type="button"
-                        id={`temple-carousel-card-${templeObj.id}`}
-                        onClick={() => setSelectedTempleId(templeObj.id)}
-                        aria-pressed={isActive}
-                        className={`snap-start shrink-0 w-[168px] text-left rounded-2xl border overflow-hidden transition-all ${
-                          isActive
-                            ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10"
-                            : "border-white/10 hover:border-white/25"
-                        }`}
-                      >
-                        <div className="relative w-full aspect-[4/3] bg-[#021816]">
-                          <OptimizedImage
-                            src={templeObj.imageUrl}
-                            alt={`${templeObj.name} Deity`}
-                            loading="lazy"
-                            referrerPolicy="no-referrer"
-                            className="absolute inset-0 w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent" />
-                          <span className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-[#021816]/90 backdrop-blur flex items-center justify-center text-[13px] font-serif text-[#FFB347] border border-white/10">
-                            {templeObj.symbol}
+            {/* ✅ MIGRATED TO SHARED MobileCarousel (mobileOnly — desktop
+                keeps its own separate vertical list drawer above,
+                completely untouched, same as before). */}
+            {filteredTemples.length > 0 ? (
+              <MobileCarousel
+                mobileOnly
+                items={filteredTemples}
+                getKey={(templeObj) => templeObj.id}
+                cardWidthClassName="w-[168px]"
+                gapClassName="gap-3"
+                renderItem={(templeObj) => {
+                  const isActive = selectedTempleId === templeObj.id;
+                  return (
+                    <button
+                      type="button"
+                      id={`temple-carousel-card-${templeObj.id}`}
+                      onClick={() => setSelectedTempleId(templeObj.id)}
+                      aria-pressed={isActive}
+                      className={`w-full text-left rounded-2xl border overflow-hidden transition-all ${
+                        isActive
+                          ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10"
+                          : "border-white/10 hover:border-white/25"
+                      }`}
+                    >
+                      <div className="relative w-full aspect-[4/3] bg-[#021816]">
+                        <OptimizedImage
+                          src={templeObj.imageUrl}
+                          alt={`${templeObj.name} Deity`}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent" />
+                        <span className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-[#021816]/90 backdrop-blur flex items-center justify-center text-[13px] font-serif text-[#FFB347] border border-white/10">
+                          {templeObj.symbol}
+                        </span>
+                        {isActive && (
+                          <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FFB347] flex items-center justify-center shadow">
+                            <Check className="w-3 h-3 text-[#021816]" strokeWidth={3} />
                           </span>
-                          {isActive && (
-                            <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FFB347] flex items-center justify-center shadow">
-                              <Check className="w-3 h-3 text-[#021816]" strokeWidth={3} />
-                            </span>
-                          )}
-                        </div>
-                        <div className="p-2.5 bg-[#092320]">
-                          <span className="block text-[12px] font-bold text-white truncate">{templeObj.name}</span>
-                          <span className="block text-[11px] text-white/55 truncate mt-0.5">
-                            {templeObj.city}, {templeObj.state}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })
-                ) : (
-                  <p className="text-center text-xs text-white/45 py-6 w-full">No holy shrines match your query.</p>
-                )}
-              </div>
-            </div>
+                        )}
+                      </div>
+                      <div className="p-2.5 bg-[#092320]">
+                        <span className="block text-[12px] font-bold text-white truncate">{templeObj.name}</span>
+                        <span className="block text-[11px] text-white/55 truncate mt-0.5">
+                          {templeObj.city}, {templeObj.state}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                }}
+              />
+            ) : (
+              <p className="lg:hidden text-center text-xs text-white/45 py-6">No holy shrines match your query.</p>
+            )}
 
             {/* List selector (desktop / large screens only) */}
             <div 

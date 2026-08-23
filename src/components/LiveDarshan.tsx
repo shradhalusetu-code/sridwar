@@ -8,6 +8,7 @@ import { TEMPLES_LIST } from "../data/temples";
 import { LIVE_DARSHAN_INFO } from "../data/liveDarshan";
 import { Heart, MapPin, ChevronRight, ChevronDown, Users, Award, Megaphone, Check } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
+import MobileCarousel from "./shared/MobileCarousel";
 import SacredMoments from "./SacredMoments";
 
 interface LiveDarshanProps {
@@ -155,52 +156,57 @@ export default function LiveDarshan({ onNavigate }: LiveDarshanProps) {
                 Every card is a fixed w-[168px]/aspect-[4/3] tile so all
                 31 previews render at one uniform size regardless of how
                 long a temple's name or city/state text is. */}
-            <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-              <div className="flex gap-3 w-max pb-1">
-                {TEMPLES_LIST.map((templeObj) => {
-                  const isActive = darshanTempleId === templeObj.id;
-                  return (
-                    <button
-                      key={templeObj.id}
-                      type="button"
-                      id={`darshan-carousel-card-${templeObj.id}`}
-                      onClick={() => setDarshanTempleId(templeObj.id)}
-                      aria-pressed={isActive}
-                      className={`snap-start shrink-0 w-[168px] text-left rounded-2xl border overflow-hidden transition-all ${
-                        isActive
-                          ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10"
-                          : "border-white/10 hover:border-white/25"
-                      }`}
-                    >
-                      <div className="relative w-full aspect-[4/3] bg-[#021816]">
-                        <OptimizedImage
-                          src={templeObj.imageUrl}
-                          alt={`${templeObj.name} Darshan Preview`}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent" />
-                        <span className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-[#021816]/90 backdrop-blur flex items-center justify-center text-[13px] font-serif text-[#FFB347] border border-white/10">
-                          {templeObj.symbol}
+            {/* ✅ MIGRATED TO SHARED MobileCarousel (mobileOnly — no
+                desktop grid counterpart, same as TempleExperience.tsx's
+                temple browse strip). */}
+            <MobileCarousel
+              mobileOnly
+              items={TEMPLES_LIST}
+              getKey={(templeObj) => templeObj.id}
+              cardWidthClassName="w-[168px]"
+              gapClassName="gap-3"
+              renderItem={(templeObj) => {
+                const isActive = darshanTempleId === templeObj.id;
+                return (
+                  <button
+                    type="button"
+                    id={`darshan-carousel-card-${templeObj.id}`}
+                    onClick={() => setDarshanTempleId(templeObj.id)}
+                    aria-pressed={isActive}
+                    className={`w-full text-left rounded-2xl border overflow-hidden transition-all ${
+                      isActive
+                        ? "border-[#FFB347] shadow-lg shadow-[#FFB347]/10"
+                        : "border-white/10 hover:border-white/25"
+                    }`}
+                  >
+                    <div className="relative w-full aspect-[4/3] bg-[#021816]">
+                      <OptimizedImage
+                        src={templeObj.imageUrl}
+                        alt={`${templeObj.name} Darshan Preview`}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#021816]/90 via-transparent to-transparent" />
+                      <span className="absolute top-2 left-2 w-7 h-7 rounded-lg bg-[#021816]/90 backdrop-blur flex items-center justify-center text-[13px] font-serif text-[#FFB347] border border-white/10">
+                        {templeObj.symbol}
+                      </span>
+                      {isActive && (
+                        <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FFB347] flex items-center justify-center shadow">
+                          <Check className="w-3 h-3 text-[#021816]" strokeWidth={3} />
                         </span>
-                        {isActive && (
-                          <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FFB347] flex items-center justify-center shadow">
-                            <Check className="w-3 h-3 text-[#021816]" strokeWidth={3} />
-                          </span>
-                        )}
-                      </div>
-                      <div className="p-2.5 bg-[#092320] min-h-[3.5rem]">
-                        <span className="block text-[12px] font-bold text-white truncate">{templeObj.name}</span>
-                        <span className="block text-[11px] text-white/55 truncate mt-0.5">
-                          {templeObj.city}, {templeObj.state}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      )}
+                    </div>
+                    <div className="p-2.5 bg-[#092320] min-h-[3.5rem]">
+                      <span className="block text-[12px] font-bold text-white truncate">{templeObj.name}</span>
+                      <span className="block text-[11px] text-white/55 truncate mt-0.5">
+                        {templeObj.city}, {templeObj.state}
+                      </span>
+                    </div>
+                  </button>
+                );
+              }}
+            />
           </div>
 
           {/* Left side: Live Video screen player (cols 7) */}

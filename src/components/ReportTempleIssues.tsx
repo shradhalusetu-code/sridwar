@@ -32,6 +32,7 @@ import { gaTempleIssueFormStart, gaTempleIssueSubmit, gaTempleIssueContribution 
 import OptimizedImage from "./OptimizedImage";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import UPIPaymentModal from "./UPIPaymentModal";
+import MobileCarousel from "./shared/MobileCarousel";
 // @ts-ignore
 import reportHero from "../assets/images/ReportTempleIssuesHero.jpg";
 // @ts-ignore
@@ -446,25 +447,15 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
         </div>
 
         {/* ── How it works — "Protect What Our Ancestors Preserved" ───────
-            Mobile/app: horizontal snap carousel, same Temple Bazaar top-6
-            pattern used across the site, so all 4 step cards render at a
-            fixed uniform width/height. Desktop (lg+): unchanged 4-column
-            grid. */}
-        <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory mb-16">
-          <div className="flex gap-4 w-max pt-4 pb-1">
-            {HOW_IT_WORKS.map((step, i) => (
-              <div key={step.title} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(190px,57vw,330px)]">
-                <HowItWorksCard step={step} index={i} />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="hidden lg:grid grid-cols-4 gap-4 mb-16 items-stretch">
-          {HOW_IT_WORKS.map((step, i) => (
-            <div key={step.title} className="h-full [&>*]:h-full">
-              <HowItWorksCard step={step} index={i} />
-            </div>
-          ))}
+            ✅ MIGRATED TO SHARED MobileCarousel. */}
+        <div className="mb-16">
+          <MobileCarousel
+            items={HOW_IT_WORKS}
+            getKey={(step) => step.title}
+            cardWidthClassName="w-[clamp(190px,57vw,330px)]"
+            desktopGridClassName="lg:grid-cols-4"
+            renderItem={(step, i) => <HowItWorksCard step={step} index={i} />}
+          />
         </div>
 
         {!isSubmitted ? (

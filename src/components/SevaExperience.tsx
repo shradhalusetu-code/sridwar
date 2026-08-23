@@ -15,6 +15,7 @@ import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../
 import SevaOfferingCard from "./SevaOfferingCard";
 import OptimizedImage from "./OptimizedImage";
 import SevaLiveDashboard from "./SevaLiveDashboard";
+import MobileCarousel from "./shared/MobileCarousel";
 import { sectionTopPadding } from "../utils/androidSpacing";
 
 // ─── Temporary feature flag ─────────────────────────────────────────────────
@@ -691,34 +692,27 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
               All Sevas Start at ₹100
             </span>
           </div>
-          {/* Mobile/app: horizontal snap carousel — all 6 Seva Offerings fit
-              here, so there is no separate "remaining offerings" overflow
-              for this section specifically. Desktop (lg+): unchanged grid. */}
-          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pt-4 pb-1 items-stretch">
-              {SEVA_OFFERINGS.map((offering) => (
-                <div key={offering.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                  <SevaOfferingCard
-                    offering={offering}
-                    isActive={activeOfferingId === offering.id}
-                    onActivate={() => setActiveOfferingId(offering.id)}
-                    onOffer={handleOfferSeva}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SEVA_OFFERINGS.map((offering) => (
+          {/* ✅ MIGRATED TO SHARED MobileCarousel — this used to be its own
+              hand-copied "mobile track + desktop grid" pair, identical in
+              shape to five other components' carousels but maintained as a
+              separate copy. That's exactly how the Counselling & Guidance /
+              Holistic Wellness height-mismatch bug slipped through: one
+              copy got a fix, the others didn't. Routing through the shared
+              component means a future fix here (or a future audit) only
+              has to touch one file, not every carousel in the app. */}
+          <MobileCarousel
+            items={SEVA_OFFERINGS}
+            getKey={(offering) => offering.id}
+            cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+            renderItem={(offering) => (
               <SevaOfferingCard
-                key={offering.id}
                 offering={offering}
                 isActive={activeOfferingId === offering.id}
                 onActivate={() => setActiveOfferingId(offering.id)}
                 onOffer={handleOfferSeva}
               />
-            ))}
-          </div>
+            )}
+          />
         </div>
 
         {/* Live Devotional Dashboard — temporarily disabled, see
@@ -797,38 +791,18 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
             )}
           </div>
 
-          {/* ✅ CAROUSEL FIX: Sponsorship Services previously had no mobile
-              carousel at all — just the same grid at every width, which
-              squeezed down to 1 column on phones instead of the swipeable,
-              uniform-width strip every other section (Seva Offerings,
-              Simple Pujas, Bazaar) already uses. Mobile/app now gets the
-              same fluid `w-[clamp(240px,72vw,420px)]` bare scroll-snap carousel (no dots/arrows,
-              matching every other non-Home carousel on the site); the
-              desktop grid below is otherwise unchanged. All 10 Sponsorship
-              Services cards (FEATURED_SEVAS + EXTRA_SEVAS) render here on
-              every platform — website and Android app alike. */}
-          <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-            <div className="flex gap-4 w-max pt-4 pb-1 items-stretch">
-              {visibleFeaturedSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                  <SevaCard seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-                </div>
-              ))}
-              {visibleExtraSevas.map((seva) => (
-                <div key={seva.id} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(240px,72vw,420px)]">
-                  <SevaCard seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="hidden lg:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleFeaturedSevas.map((seva) => (
-              <SevaCard key={seva.id} seva={seva} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-            ))}
-            {visibleExtraSevas.map((seva) => (
-              <SevaCard key={seva.id} seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
-            ))}
-          </div>
+          {/* ✅ MIGRATED TO SHARED MobileCarousel (see Seva Offerings above
+              for why). All 10 Sponsorship Services cards (FEATURED_SEVAS +
+              EXTRA_SEVAS) still render here on every platform — website
+              and Android app alike; only the wrapper markup changed. */}
+          <MobileCarousel
+            items={[...visibleFeaturedSevas, ...visibleExtraSevas]}
+            getKey={(seva) => seva.id}
+            cardWidthClassName="w-[clamp(240px,72vw,420px)]"
+            renderItem={(seva) => (
+              <SevaCard seva={seva as any} onSponsor={handleSponsor} highlighted={highlightedCardId === seva.id} />
+            )}
+          />
         </div>
 
         {/*
