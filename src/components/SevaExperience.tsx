@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { FEATURED_SEVAS } from "../data/spiritualData";
-import { Heart, Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Droplets, Star, Sun, Moon, Tag, ShieldCheck, HeartHandshake, ArrowRight, Check, AlertCircle, MapPin } from "lucide-react";
+import { Sparkles, Utensils, Flame, BookOpen, ChevronDown, ChevronUp, Star, Sun, Tag, ShieldCheck, HeartHandshake, ArrowRight, Check, AlertCircle, MapPin } from "lucide-react";
 import { gaSevaSelect } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { SEVA_OFFERINGS, SEVA_OCCASIONS } from "../data/sevaOfferings";
@@ -76,31 +76,23 @@ function saveCompletedSeva(record: CompletedSevaRecord) {
 // NOT be pre-discounted.
 const EXTRA_SEVAS = [
   {
-    id: "seva-rudrabhishek",
-    name: "Rudrabhishek Puja",
-    significance: "Sacred abhishek of Shivalinga with Panchamrit, Gangajal & bilva leaves with Vedic Rudra chanting by qualified pandits.",
-    impactStat: "Performed at Kashi Vishwanath & Lingaraj Mandir, Bhubaneswar",
-    templeAssociation: "Kashi Vishwanath",
-    donationTiers: [{ amount: 3300 }],
-    imageUrl: import.meta.env.BASE_URL + "images/Rudrabhishek Puja.jpg",
-    includes: ["Panchamrit, Gangajal & bilva leaf abhishek on the Shivalinga", "Vedic Rudra chanting performed by qualified pandits", "Photo/video evidence where available"],
-    devoteeReceives: ["Digital puja certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
-    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "One full Rudrabhishek ritual performed in your name",
-    priestKeywords: ["health", "protection", "festival"],
-  },
-  {
     id: "seva-mahaprasad",
     name: "Mahaprasad Distribution",
     significance: "Sponsor distribution of sacred Chhappan Bhog Mahaprasad to pilgrims and underprivileged devotees at Jagannath Puri.",
     impactStat: "Feeds 200+ devotees per sponsorship at Jagannath Puri",
     templeAssociation: "Jagannath Puri",
-    donationTiers: [{ amount: 3000 }],
+    // ✅ QUANTITY PRICING (Sponsorship Services update): replaces the fixed
+    // amount with a quantity selector — the devotee picks a number of
+    // Mahaprasad distributions and the total is quantity × ₹100.
+    donationTiers: [{ amount: 100 }],
+    pricingMode: "quantity" as const,
+    unitPrice: 100,
+    unitLabel: "prasad distribution",
     imageUrl: import.meta.env.BASE_URL + "images/Mahaprasad Seva.jpg",
     includes: ["Temple-blessed Mahaprasad distributed to pilgrims/underprivileged devotees at Jagannath Puri", "Distribution coordinated with temple-approved sevaks", "Photo/video evidence where available"],
     devoteeReceives: ["Digital sponsorship certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
     certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "Feeds 200+ devotees per sponsorship — a bulk temple distribution, priced separately from individual Annadan meal sponsorship",
+    coverageLabel: "₹100 per Mahaprasad distribution — choose any quantity",
     priestKeywords: ["wealth", "health", "festival"],
   },
   {
@@ -109,70 +101,30 @@ const EXTRA_SEVAS = [
     significance: "Sacred marriage ceremony of Tulsi plant with Lord Vishnu — an auspicious ritual that removes dosha and blesses families.",
     impactStat: "Conducted during Kartik Maas at Vrindavan & Dwarka temples",
     templeAssociation: "Vrindavan Dham",
-    donationTiers: [{ amount: 1350 }],
+    // ✅ DURATION + PANDIT PRICING (Sponsorship Services update): replaces
+    // the fixed amount with a duration + number-of-Pandits selector.
+    // Base: 10 minutes + 1 Pandit = ₹150; each additional 10-minute block
+    // adds ₹150, and each additional Pandit adds ₹150.
+    donationTiers: [{ amount: 150 }],
+    pricingMode: "duration-pandit" as const,
+    unitPrice: 150,
+    unitDurationMinutes: 10,
     imageUrl: import.meta.env.BASE_URL + "images/Tulsi Vivah.jpg",
-    includes: ["Tulsi Vivah ceremony performed as per temple ritual process", "Sankalp taken in your name for the family", "Photo/video evidence where available"],
+    includes: ["Tulsi Vivah ceremony performed as per temple ritual process, for the duration and number of Pandits sponsored", "Sankalp taken in your name for the family", "Photo/video evidence where available"],
     devoteeReceives: ["Digital seva certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
     certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "One Tulsi Vivah ceremony performed on behalf of your family",
+    coverageLabel: "₹150 for 10 minutes with 1 Pandit — extend the duration or add Pandits",
     priestKeywords: ["marriage", "family", "festival"],
-  },
-  {
-    id: "seva-navagraha",
-    name: "Navagraha Shanti Homa",
-    significance: "Nine-planet pacification homa to remove planetary doshas, improve fortune, health and career using specific samidha and herbal offerings.",
-    impactStat: "Performed by Jyotish-trained Acharyas at Ujjain Mahakaleshwar",
-    templeAssociation: "Mahakaleshwar, Ujjain",
-    donationTiers: [{ amount: 12000 }],
-    imageUrl: import.meta.env.BASE_URL + "images/Navagraha.jpg",
-    includes: ["Navagraha Shanti Homa performed with samidha and herbal offerings for all nine planets", "Performed by Jyotish-trained Acharyas", "Photo/video evidence where available"],
-    devoteeReceives: ["Digital homa certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
-    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "One complete nine-planet Navagraha Homa performed in your name",
-    priestKeywords: ["career", "health", "wealth"],
-  },
-  {
-    id: "seva-akhand-path",
-    name: "Akhand Ramayan Path",
-    significance: "Uninterrupted 24-hour recitation of the complete Valmiki Ramayana by a team of trained pandits to bring peace and blessings.",
-    impactStat: "Organised at Ram Janmabhoomi, Ayodhya for devotee sankalpa",
-    templeAssociation: "Ram Janmabhoomi, Ayodhya",
-    donationTiers: [{ amount: 12750 }],
-    imageUrl: import.meta.env.BASE_URL + "images/Akhand Ramayan.jpg",
-    includes: ["Uninterrupted 24-hour Valmiki Ramayana recitation by a team of trained pandits", "Sankalp taken in your name at the start of the path", "Photo/video evidence where available"],
-    devoteeReceives: ["Digital seva certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
-    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "One full 24-hour Akhand Ramayan Path performed in your name",
-    priestKeywords: ["family", "ancestral", "festival"],
-  },
-  {
-    id: "seva-gomata-puja",
-    name: "Gomata Puja & Feeding",
-    significance: "Ceremonial worship and feeding of sacred desi cows with tulsi, jaggery and sesame — performed on your behalf with photo proof.",
-    impactStat: "Done at registered Gaushalas in Mathura & Vrindavan",
-    templeAssociation: "Mathura Gaushala",
-    donationTiers: [{ amount: 2000 }],
-    imageUrl: import.meta.env.BASE_URL + "images/Gaushala.jpg",
-    includes: ["Gomata Puja (worship) followed by feeding with tulsi, jaggery and sesame", "Performed at a registered Gaushala", "Photo evidence of the puja and feeding"],
-    devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
-    certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "One Gomata Puja plus feeding, performed on your behalf",
-    priestKeywords: ["wealth", "health", "ancestral"],
   },
 ];
 
 const renderSevaIcon = (id: string) => {
   switch (id) {
     case "seva-annadanam":   return <Utensils className="w-4 h-4 text-[#FFB347]" />;
-    case "seva-cow":         return <Heart className="w-4 h-4 text-emerald-400" fill="currentColor" />;
     case "seva-diya":        return <Flame className="w-4 h-4 text-orange-500 animate-pulse" fill="currentColor" />;
     case "seva-gurukul":     return <BookOpen className="w-4 h-4 text-cyan-400" />;
-    case "seva-rudrabhishek":return <Droplets className="w-4 h-4 text-blue-400" />;
     case "seva-mahaprasad":  return <Star className="w-4 h-4 text-yellow-300" />;
     case "seva-tulsi-vivah": return <Sun className="w-4 h-4 text-green-400" />;
-    case "seva-navagraha":   return <Moon className="w-4 h-4 text-violet-400" />;
-    case "seva-akhand-path": return <BookOpen className="w-4 h-4 text-orange-300" />;
-    case "seva-gomata-puja": return <Heart className="w-4 h-4 text-pink-400" fill="currentColor" />;
     default:                 return <Sparkles className="w-4 h-4 text-yellow-400" />;
   }
 };
@@ -216,6 +168,13 @@ interface SevaCardProps {
      *  "Coverage" for everything else. */
     coverageLabel?: string;
     priestKeywords?: string[];
+    /** "quantity": price = quantity * unitPrice. "duration-pandit": price =
+     *  unitPrice * (durationUnits + pandits - 1). Omitted/"tiers" keeps the
+     *  original fixed single-price behaviour (donationTiers[0].amount). */
+    pricingMode?: "tiers" | "quantity" | "duration-pandit";
+    unitPrice?: number;
+    unitLabel?: string;
+    unitDurationMinutes?: number;
   };
   onSponsor: (name: string, price: number) => void;
   /** Optional — true when this card is the deep-link target arriving from
@@ -227,7 +186,31 @@ interface SevaCardProps {
 
 function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
   const tier = seva.donationTiers[0];
-  const { display, original } = getSevaDiscountedPrice(tier.amount);
+
+  // ─── Quantity / Duration+Pandit dynamic pricing ──────────────────────────
+  // Sponsorship Services previously showed one fixed donationTiers[0].amount
+  // no matter what. For sevas with pricingMode "quantity" the devotee now
+  // picks a count (e.g. number of people/cows/diyas/prasad distributions)
+  // and the total is quantity × unitPrice. For "duration-pandit" sevas the
+  // devotee picks a duration (in unitDurationMinutes blocks, starting at 1
+  // block) and a number of Pandits — base is 1 block + 1 Pandit = unitPrice,
+  // and each additional block OR additional Pandit adds unitPrice again:
+  // total = unitPrice * (durationUnits + pandits - 1). Sevas without a
+  // pricingMode (or "tiers") are entirely unaffected — baseAmount below
+  // just falls back to the original tier.amount.
+  const [quantity, setQuantity] = useState(1);
+  const [durationUnits, setDurationUnits] = useState(1);
+  const [pandits, setPandits] = useState(1);
+
+  const baseAmount =
+    seva.pricingMode === "quantity"
+      ? quantity * (seva.unitPrice ?? tier.amount)
+      : seva.pricingMode === "duration-pandit"
+      ? (seva.unitPrice ?? tier.amount) * (durationUnits + pandits - 1)
+      : tier.amount;
+
+  const { display, original } = getSevaDiscountedPrice(baseAmount);
+  const durationMinutes = (seva.unitDurationMinutes ?? 10) * durationUnits;
   // ─── Compact-by-default "how it's performed" details ────────────────────
   // Mirrors the exact expand/collapse pattern already used by
   // SevaOfferingCard.tsx and BazaarOfferingCard.tsx ("What's included · What
@@ -278,6 +261,12 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
     const chosenTemple = selectedTempleId ? TEMPLES_LIST.find((t) => t.id === selectedTempleId) : undefined;
 
     const detailParts: string[] = [];
+    if (seva.pricingMode === "quantity") {
+      detailParts.push(`Quantity: ${quantity} ${seva.unitLabel ?? "unit"}${quantity === 1 ? "" : "s"}`);
+    } else if (seva.pricingMode === "duration-pandit") {
+      detailParts.push(`Duration: ${durationMinutes} minutes`);
+      detailParts.push(`Pandits: ${pandits}`);
+    }
     if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
     if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
@@ -290,6 +279,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
     setFormOpen(false);
     setOccasion(""); setPreferredDate(""); setPincode("");
     setSelectedTempleId(""); setSelectedPriestId("");
+    setQuantity(1); setDurationUnits(1); setPandits(1);
   };
 
   return (
@@ -353,6 +343,116 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
         {seva.coverageLabel && (
           <div className="text-[12px] text-white/70 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 mb-4">
             <strong className="text-[#5EEAD4]">{seva.id === "seva-annadanam" ? "Meal Coverage" : "Coverage"}:</strong> {seva.coverageLabel}
+          </div>
+        )}
+
+        {/* Quantity selector — Annadanam, Gau Seva, Akhanda Diya, Mahaprasad
+            Distribution. Same stepper input style as the custom-amount field
+            in SevaOfferingCard.tsx (bg-white/5, border-white/12, rounded-xl)
+            so it matches the rest of the site. */}
+        {seva.pricingMode === "quantity" && (
+          <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+            <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1.5">
+              Number of {seva.unitLabel ?? "unit"}s
+            </label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
+                aria-label={`Decrease number of ${seva.unitLabel ?? "unit"}s`}
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2 text-xs text-white text-center focus:outline-none focus:border-[#FFB347]/50"
+              />
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => q + 1)}
+                className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
+                aria-label={`Increase number of ${seva.unitLabel ?? "unit"}s`}
+              >
+                +
+              </button>
+            </div>
+            <p className="text-[11px] text-white/40 mt-1">
+              ₹{(seva.unitPrice ?? tier.amount).toLocaleString("en-IN")} × {quantity} {seva.unitLabel ?? "unit"}{quantity === 1 ? "" : "s"} = ₹{baseAmount.toLocaleString("en-IN")}
+            </p>
+          </div>
+        )}
+
+        {/* Duration + Pandit selector — Tulsi Vivah Seva, Navagraha Shanti
+            Homa, Akhand Ramayan Path. Base: 10 minutes + 1 Pandit = ₹150;
+            each additional 10-minute block or additional Pandit adds ₹150. */}
+        {seva.pricingMode === "duration-pandit" && (
+          <div className="mb-4 space-y-2.5" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1.5">
+                Duration ({durationMinutes} minutes)
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDurationUnits((d) => Math.max(1, d - 1))}
+                  className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Decrease duration"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  value={durationUnits}
+                  onChange={(e) => setDurationUnits(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2 text-xs text-white text-center focus:outline-none focus:border-[#FFB347]/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDurationUnits((d) => d + 1)}
+                  className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Increase duration"
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-[11px] text-white/40 mt-1">{durationUnits} × {seva.unitDurationMinutes ?? 10}-minute block{durationUnits === 1 ? "" : "s"}</p>
+            </div>
+            <div>
+              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1.5">Number of Pandits</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPandits((p) => Math.max(1, p - 1))}
+                  className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Decrease number of Pandits"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  value={pandits}
+                  onChange={(e) => setPandits(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2 text-xs text-white text-center focus:outline-none focus:border-[#FFB347]/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPandits((p) => p + 1)}
+                  className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Increase number of Pandits"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <p className="text-[11px] text-white/40">
+              ₹{(seva.unitPrice ?? tier.amount).toLocaleString("en-IN")} base (10 min, 1 Pandit) + ₹{(seva.unitPrice ?? tier.amount).toLocaleString("en-IN")} per extra 10 minutes or extra Pandit = ₹{baseAmount.toLocaleString("en-IN")}
+            </p>
           </div>
         )}
 
@@ -647,7 +747,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
 
 
 
-  // Sponsorship Services visibility — all 10 (FEATURED_SEVAS + EXTRA_SEVAS)
+  // Sponsorship Services visibility — all 5 (FEATURED_SEVAS + EXTRA_SEVAS)
   // now show directly in the carousel/grid on every platform, website and
   // Android app alike. Previously the Android app capped this at the first
   // 2 FEATURED_SEVAS and stranded the other 8 inside a collapsed "More
@@ -792,7 +892,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
           </div>
 
           {/* ✅ MIGRATED TO SHARED MobileCarousel (see Seva Offerings above
-              for why). All 10 Sponsorship Services cards (FEATURED_SEVAS +
+              for why). All 5 Sponsorship Services cards (FEATURED_SEVAS +
               EXTRA_SEVAS) still render here on every platform — website
               and Android app alike; only the wrapper markup changed. */}
           <MobileCarousel
@@ -808,7 +908,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
         {/*
           ── Accordion row ──
           hasHiddenSevas is always false now (see visibleFeaturedSevas /
-          visibleExtraSevas above) — all 10 Sponsorship Services cards
+          visibleExtraSevas above) — all 5 Sponsorship Services cards
           render directly in the carousel/grid above on every platform, so
           this block never actually renders. Left in place rather than
           deleted in case a future "too many services to fit" scenario

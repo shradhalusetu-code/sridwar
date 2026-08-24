@@ -35,7 +35,7 @@ export default defineConfig(() => {
         output: {
           manualChunks: {
             // Core React — loaded first, cached aggressively
-            vendor: ['react', 'react-dom'],
+            vendor: ['react', 'react-dom', 'react-dom/client'],
             // Lucide icons — large library, loaded separately
             lucide: ['lucide-react'],
             // Motion/animation — only needed once interactive sections mount

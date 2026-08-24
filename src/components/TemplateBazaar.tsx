@@ -134,47 +134,6 @@ const BAZAAR_ITEMS: BazaarItem[] = [
     includes: ["6-inch Brass Idol", "Energisation Certificate", "Red Velvet Base"],
     receives: ["Hand-cast brass idol shipped with a red velvet base", "Energisation certificate confirming the process followed before dispatch", "Digital confirmation shared after dispatch"],
   },
-
-  // ── Seva / Puja Services (no delivery, isService=true) ─────────────────
-  {
-    id: "bazaar-rudrabhishek",
-    name: "Rudrabhishek Puja Service",
-    description: "Live Rudrabhishek at Kashi Vishwanath or Lingaraj Mandir — performed in your name & Gotra with live photo confirmation.",
-    price: 2640,
-    mrp: 3300,
-    category: "Puja Services",
-    imageUrl: import.meta.env.BASE_URL + "images/Rudrabhishek Seva.jpg",
-    badge: "Live Puja",
-    isService: true,
-    includes: ["Performed in your Gotra", "Live Photo Proof", "WhatsApp Confirmation", "Digital Certificate"],
-    receives: ["Puja performed in your name and Gotra as per temple process", "Photo proof and digital certificate shared after the puja", "WhatsApp confirmation once completed"],
-  },
-  {
-    id: "bazaar-navagraha",
-    name: "Navagraha Shanti Homa",
-    description: "Nine-planet pacification homa to remove planetary doshas — performed by Jyotish-trained Acharyas at Ujjain Mahakaleshwar.",
-    price: 9600,
-    mrp: 12000,
-    category: "Puja Services",
-    imageUrl: import.meta.env.BASE_URL + "images/Shanti Homa.jpg",
-    badge: "20% OFF",
-    isService: true,
-    includes: ["Jyotish-trained Acharya", "All Herbal Samidha included", "Video Confirmation", "Digital Certificate"],
-    receives: ["Homa performed by a Jyotish-trained Acharya as per temple process", "Video confirmation and digital certificate shared after completion", "All herbal samidha included in the offering"],
-  },
-  {
-    id: "bazaar-annadanam",
-    name: "Annadanam Sponsorship",
-    description: "Sponsor hot meals for 35+ pilgrims at Jagannath Puri — the most auspicious seva in Odisha's temple tradition.",
-    price: 2160,
-    mrp: 2700,
-    category: "Puja Services",
-    imageUrl: import.meta.env.BASE_URL + "images/Annadanam Puja.jpg",
-    badge: "High Impact",
-    isService: true,
-    includes: ["Feeds 35+ pilgrims", "Performed at Puri Temple", "Photo Report", "WhatsApp Receipt"],
-    receives: ["Meals sponsored and distributed to 35+ pilgrims at Puri Temple", "Photo report and WhatsApp receipt shared once completed", "Sponsorship acknowledged in your name"],
-  },
 ];
 
 const CATEGORIES = ["All", ...Array.from(new Set(BAZAAR_ITEMS.map(i => i.category)))];

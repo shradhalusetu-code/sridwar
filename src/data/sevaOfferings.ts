@@ -11,6 +11,23 @@
 // data without touching component code.
 // ─────────────────────────────────────────────────────────────────────────
 
+// ✅ IMAGE FIX (Red-Cloth & Coconut / Bhang, Fruits & Confectionery / Brass
+// Bell / Custom Temple Offering): these 4 photos live in src/assets/images,
+// not public/images, so they can't use the `import.meta.env.BASE_URL +
+// "images/Name.jpg"` string pattern the other offerings above use (that
+// pattern only resolves files placed in public/images — pointing it at a
+// src/assets file 404s and renders as blank space). They need a static
+// Vite import instead — see OptimizedImage.tsx's "case 2" for why — which
+// is what these four import pairs are for.
+import coconutImg from "../assets/images/Coconut.jpg";
+import coconutImgWebp from "../assets/images/Coconut.webp";
+import bhangImg from "../assets/images/Bhang.jpg";
+import bhangImgWebp from "../assets/images/Bhang.webp";
+import bellsImg from "../assets/images/Bells.jpg";
+import bellsImgWebp from "../assets/images/Bells.webp";
+import otherOfferingsImg from "../assets/images/Other_Offerings.jpg";
+import otherOfferingsImgWebp from "../assets/images/Other_Offerings.webp";
+
 export interface SevaPriceOption {
   /** Rupee amount for this option, or "custom" to reveal the custom-amount input. */
   value: number | "custom";
@@ -61,6 +78,11 @@ export interface SevaOffering {
    *  real photo yet, so the card falls back to the icon banner instead of
    *  showing an unrelated/misleading image. */
   imageUrl?: string | null;
+  /** Only set when `imageUrl` is a statically-imported src/assets image
+   *  (Vite fingerprints these into hashed filenames at build time, so the
+   *  .jpg → .webp string-replace OptimizedImage does for BASE_URL-based
+   *  images won't work). Passed through as OptimizedImage's `webpSrc`. */
+  webpImageUrl?: string | null;
   /**
    * Subjects (matched against real priest pujaExpertise/adviceAreas in
    * priests.ts) used to build this offering's "Priest / Expert Selection"
@@ -70,6 +92,19 @@ export interface SevaOffering {
    * (verified against the live directory) instead of a fixed hand-typed list.
    */
   priestKeywords: string[];
+  /** When true (Custom Temple Offering only), the card also collects a
+   *  free-text temple name, location in India, and the temple's known
+   *  offering — required before this seva can be offered, since there is
+   *  no fixed temple/offering to describe otherwise. */
+  customTempleFields?: boolean;
+  /** How the banner image fills its fixed-height frame. Default (omitted)
+   *  is "cover" — the existing site-wide behaviour (fills the frame,
+   *  center-cropping any overflow) used by every offering above. Set to
+   *  "contain" only when the source image is a square graphic with text or
+   *  detail near its edges (e.g. a title, a labelled diagram) that
+   *  center-cropping would cut off — the full image is shown letterboxed
+   *  on the site's dark teal background instead. */
+  imageFit?: "cover" | "contain";
 }
 
 // Occasion options shared by every seva's common form fields.
@@ -196,29 +231,6 @@ export const SEVA_OFFERINGS: SevaOffering[] = [
     priestKeywords: ["festival", "marriage", "protection"],
   },
   {
-    id: "seva-gau-feeding",
-    title: "Gau Seva / Cow Feeding",
-    category: "Gau Seva",
-    description: "Offer fresh fodder, jaggery, and roti to sacred cows at Gaushalas we work with — a seva believed to bring prosperity and remove obstacles.",
-    includes: ["Fresh fodder, jaggery & roti for the cows sponsored", "Seva performed at a registered Gaushala", "Photo evidence of the feeding"],
-    devoteeReceives: ["Digital seva certificate in your name", "Your Seva, Your Sacred Connection — wherever the temple or Gaushala permits, we share a blessed photograph of your seva as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the ritual may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.", "Sankalp recorded with your Gotra"],
-    dropdownLabel: "Number of cows",
-    priceOptions: [
-      { value: 100, label: "Feed 1 cow", description: "Offer fresh fodder, jaggery and roti to one sacred cow at a Gaushala we work with." },
-      { value: 200, label: "Feed 2 cows", description: "Offer fresh fodder, jaggery and roti to two cows — a slightly fuller Gau Seva.", extraInclude: "Fodder is sponsored for 2 cows instead of 1." },
-      { value: 500, label: "Feed 5 cows", description: "Offer fodder to five cows — a fuller Gau Seva, believed to bring prosperity and remove obstacles.", extraInclude: "Fodder is sponsored for 5 cows." },
-      { value: 1100, label: "Feed 11 cows", description: "Offer fodder to eleven cows — a Premium Gau Seva feeding a small herd in your name.", extraInclude: "Fodder is sponsored for 11 cows, with your Sankalp read for the full herd fed." , extraReceive: "At this tier, where the temple/Gaushala permits, we also share a short personal audio or video testimony from the performing priest along with your certificate — a fuller, more personal remembrance of this seva." },
-      { value: 2100, label: "Special Gau Seva", description: "A Maha Gau Seva — fodder for a larger group of cows at the Gaushala, a generous and far-reaching offering.", extraInclude: "Fodder is sponsored for a larger group of cows at the Gaushala, as guided by their current need." , extraReceive: "At this Maha tier, where the temple/Gaushala permits, we prioritise sharing both a blessed photograph and a short personal audio/video testimony from the performing priest — and where recording is restricted, a detailed signed certificate captures this seva in full." },
-      { value: "custom", label: "Custom Amount" },
-    ],
-    customAmountEnabled: true,
-    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
-    ctaLabel: "Offer Gau Seva",
-    imageUrl: import.meta.env.BASE_URL + "images/Gau Seva.jpg",
-    // Verified against the live priest directory: union match count 38.
-    priestKeywords: ["wealth", "health", "festival", "ancestral"],
-  },
-  {
     id: "seva-dhoop-camphor",
     title: "Dhoop & Camphor Seva",
     category: "Dhoop & Camphor",
@@ -239,5 +251,115 @@ export const SEVA_OFFERINGS: SevaOffering[] = [
     imageUrl: import.meta.env.BASE_URL + "images/Aarti.jpg",
     // Verified against the live priest directory: union match count 41.
     priestKeywords: ["protection", "festival", "health"],
+  },
+  // ─── New Seva Offerings ──────────────────────────────────────────────────
+  {
+    id: "seva-red-cloth-coconut",
+    title: "Traditional Red-Cloth & Coconut Offering",
+    category: "Red-Cloth & Coconut",
+    description: "Offer a traditional red cloth (Lal Chunari) and coconut bundle to the Goddess — a customary Shakti-tradition offering at Ghatgaon Maa Tarini, Tara Tarini, and Maa Samaleswari temples.",
+    includes: ["Red cloth (Lal Chunari) and coconut bundle offered at the sanctum", "Offered as per the temple's traditional process", "Photo evidence of the offering"],
+    devoteeReceives: ["Digital seva certificate in your name", "Your Seva, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your seva as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the ritual may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.", "Sankalp recorded with your Gotra"],
+    dropdownLabel: "Number of bundles",
+    priceOptions: [
+      { value: 100, label: "1 bundle", description: "Offer one red-cloth and coconut bundle at the temple sanctum." },
+      { value: 200, label: "2 bundles", description: "Offer two red-cloth and coconut bundles — a slightly fuller offering.", extraInclude: "2 bundles are offered instead of 1." },
+      { value: 500, label: "5 bundles", description: "Offer five red-cloth and coconut bundles — a fuller offering.", extraInclude: "5 bundles are offered at the sanctum." },
+      { value: 1100, label: "11 bundles", description: "Offer eleven red-cloth and coconut bundles — a Premium offering.", extraInclude: "11 bundles are offered, with your Sankalp read for the full offering.", extraReceive: "At this tier, where the temple permits, we also share a short personal audio or video testimony from the performing priest along with your certificate — a fuller, more personal remembrance of this seva." },
+      { value: "custom", label: "Custom Amount" },
+    ],
+    customAmountEnabled: true,
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    ctaLabel: "Offer Red-Cloth & Coconut",
+    // ✅ IMAGE FIX: replaced the old square placeholder graphic with the
+    // real landscape photo (imageFit removed so it uses the default
+    // "cover" fill instead of being letterboxed as if still square).
+    imageUrl: coconutImg,
+    webpImageUrl: coconutImgWebp,
+    priestKeywords: ["protection", "festival", "wealth"],
+  },
+  {
+    id: "seva-dry-bhang-fruits-confectionery",
+    title: "Special Dry Bhang, Fruits & Confectionery Offering",
+    category: "Bhang, Fruits & Confectionery",
+    description: "Offer dry Bhang (Dhatura/Bel-leaf preparations as per temple custom), fresh fruits, and traditional confectionery to Lord Lingaraj at Lingaraj Temple, Bhubaneswar.",
+    // ⚠️ PRICING NOT SPECIFIED IN THE REQUEST: this offering follows the same
+    // ₹100/₹200/₹500/₹1100 + custom tier structure as Flower Seva and Dhoop
+    // & Camphor Seva above (no linear per-unit rate was given for it). Flag
+    // this to update the exact tier amounts if a different rate is intended.
+    includes: ["Dry Bhang preparation, fresh fruits, and confectionery offered as per temple custom", "Offered directly to Lord Lingaraj at the sanctum", "Photo evidence of the offering"],
+    devoteeReceives: ["Digital seva certificate in your name", "Your Seva, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your seva as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the ritual may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.", "Sankalp recorded with your Gotra"],
+    dropdownLabel: "Offering type",
+    priceOptions: [
+      { value: 100, label: "Small offering", description: "Offer a small, simple bhang, fruit and confectionery offering to Lord Lingaraj." },
+      { value: 200, label: "Enhanced offering", description: "Offer an enhanced bhang, fruit and confectionery offering — a slightly fuller offering.", extraInclude: "An enhanced quantity of bhang, fruits and confectionery is offered." },
+      { value: 500, label: "Special offering", description: "Sponsor a special, expanded bhang, fruit and confectionery offering to Lord Lingaraj.", extraInclude: "An expanded selection of items is offered, beyond the small/enhanced tiers." },
+      { value: 1100, label: "Premium offering", description: "Sponsor a Premium bhang, fruit and confectionery offering — the fullest tier of this seva.", extraInclude: "The fullest selection of bhang, fruits and confectionery is offered, with your Sankalp read for the full offering.", extraReceive: "At this tier, where the temple permits, we also share a short personal audio or video testimony from the performing priest along with your certificate — a fuller, more personal remembrance of this seva." },
+      { value: "custom", label: "Custom Amount" },
+    ],
+    customAmountEnabled: true,
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    ctaLabel: "Offer Bhang, Fruits & Confectionery",
+    // ✅ IMAGE FIX: replaced the old square placeholder graphic with the
+    // real landscape photo (imageFit removed so it uses the default
+    // "cover" fill instead of being letterboxed as if still square).
+    imageUrl: bhangImg,
+    webpImageUrl: bhangImgWebp,
+    priestKeywords: ["protection", "festival", "health"],
+  },
+  {
+    id: "seva-brass-bell",
+    title: "Brass Bell Offering",
+    category: "Brass Bell",
+    description: "Sponsor a brass bell (Ghanta) offered at Ghanteswari Temple, Chipilima — dedicated to the temple famed for its thousands of devotional bells.",
+    includes: ["Brass bell (Ghanta) offered and hung at the temple", "Offered as per the temple's traditional process", "Photo evidence of the offering"],
+    devoteeReceives: ["Digital seva certificate in your name", "Your Seva, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your seva as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the ritual may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.", "Sankalp recorded with your Gotra"],
+    dropdownLabel: "Number of bells",
+    priceOptions: [
+      { value: 50, label: "1 bell", description: "Offer one brass bell (Ghanta) at Ghanteswari Temple, Chipilima." },
+      { value: 100, label: "2 bells", description: "Offer two brass bells — a slightly fuller offering.", extraInclude: "2 bells are offered instead of 1." },
+      { value: 250, label: "5 bells", description: "Offer five brass bells — a fuller offering.", extraInclude: "5 bells are offered at the temple." },
+      { value: 550, label: "11 bells", description: "Offer eleven brass bells — a Premium offering.", extraInclude: "11 bells are offered, with your Sankalp read for the full offering.", extraReceive: "At this tier, where the temple permits, we also share a short personal audio or video testimony from the performing priest along with your certificate — a fuller, more personal remembrance of this seva." },
+      { value: "custom", label: "Custom Amount" },
+    ],
+    customAmountEnabled: true,
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    ctaLabel: "Offer Brass Bell",
+    // ✅ IMAGE FIX: replaced the old square placeholder graphic with the
+    // real landscape photo (imageFit removed so it uses the default
+    // "cover" fill instead of being letterboxed as if still square).
+    imageUrl: bellsImg,
+    webpImageUrl: bellsImgWebp,
+    priestKeywords: ["protection", "festival"],
+  },
+  {
+    id: "seva-custom-temple-offering",
+    title: "Custom Temple Offering",
+    category: "Custom Temple Offering",
+    description: "Tell us your temple, its location in India, and its traditional offering — we'll arrange for it to be performed on your behalf, in your name and Gotra.",
+    // ⚠️ PRICING NOT SPECIFIED IN THE REQUEST: since the temple and offering
+    // vary devotee to devotee, this uses the same base ₹100/₹200/₹500/₹1100
+    // + custom tier structure as the rest of Seva Offerings. Flag this if a
+    // different rate is intended once the specific temple/offering is known.
+    includes: ["Your named temple's traditional offering performed as per the temple's own process", "Coordinated with a priest/sevak familiar with that temple, where available", "Photo evidence of the offering, where the temple permits"],
+    devoteeReceives: ["Digital seva certificate in your name", "Your Seva, Your Sacred Connection — wherever the temple permits, we share a blessed photograph of your seva as a cherished remembrance of your offering. Where audio or video recording is allowed, a short glimpse of the ritual may also be shared. At certain ancient and revered temples, strict security and sacred privacy rules may prohibit photography, audio/video recording, or electronic devices — we deeply respect these traditions and never compromise the temple's sanctity. In such circumstances, your devotion is lovingly acknowledged through a signed certificate from the performing priest and, where permitted, a personal audio/video testimony from the priest.", "Sankalp recorded with your Gotra"],
+    dropdownLabel: "Offering size",
+    priceOptions: [
+      { value: 100, label: "Small offering", description: "Sponsor a small, simple offering at your named temple, as per that temple's tradition." },
+      { value: 200, label: "Enhanced offering", description: "Sponsor an enhanced offering — a slightly fuller version of your named temple's traditional offering.", extraInclude: "An enhanced quantity/version of the offering is arranged." },
+      { value: 500, label: "Special offering", description: "Sponsor a special, expanded version of your named temple's traditional offering.", extraInclude: "An expanded version of the offering is arranged, beyond the small/enhanced tiers." },
+      { value: 1100, label: "Premium offering", description: "Sponsor a Premium offering — the fullest tier of your named temple's traditional offering.", extraInclude: "The fullest version of the offering is arranged, with your Sankalp read for the full offering.", extraReceive: "At this tier, where the temple permits, we also share a short personal audio or video testimony from the performing priest along with your certificate — a fuller, more personal remembrance of this seva." },
+      { value: "custom", label: "Custom Amount" },
+    ],
+    customAmountEnabled: true,
+    certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
+    ctaLabel: "Offer Custom Temple Seva",
+    // ✅ IMAGE FIX: replaced the old square placeholder graphic with the
+    // real landscape photo (imageFit removed so it uses the default
+    // "cover" fill instead of being letterboxed as if still square).
+    imageUrl: otherOfferingsImg,
+    webpImageUrl: otherOfferingsImgWebp,
+    priestKeywords: ["protection", "festival", "wealth", "health"],
+    customTempleFields: true,
   },
 ];

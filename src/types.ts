@@ -60,6 +60,24 @@ export interface Seva {
    *  this offering's Priest/Expert Selection dropdown — same pattern used
    *  by SEVA_OFFERINGS in data/sevaOfferings.ts. */
   priestKeywords?: string[];
+  // ── Dynamic pricing modes (Sponsorship Services quantity/duration pricing) ──
+  // Defaults to "tiers" (existing behaviour: donationTiers[0] is the shown
+  // price) when omitted, so every Seva object that doesn't set this is
+  // completely unaffected.
+  /** "quantity": price = quantity * unitPrice, devotee picks a quantity.
+   *  "duration-pandit": price = unitPrice * (durationUnits + pandits - 1),
+   *  devotee picks a duration (in unitDurationMinutes blocks) and a pandit
+   *  count. Omit (or "tiers") for the original fixed/tiered behaviour. */
+  pricingMode?: "tiers" | "quantity" | "duration-pandit";
+  /** Rupee amount per unit (per person/cow/diya/prasad for "quantity" mode,
+   *  or the shared ₹150 base/increment for "duration-pandit" mode). */
+  unitPrice?: number;
+  /** Singular label for one unit, e.g. "person", "cow", "diya", "prasad
+   *  distribution" — used to build the quantity field's helper text. */
+  unitLabel?: string;
+  /** Minutes represented by one duration increment in "duration-pandit"
+   *  mode (10, per spec). */
+  unitDurationMinutes?: number;
 }
 
 export interface Puja {

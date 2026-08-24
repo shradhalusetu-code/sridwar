@@ -141,19 +141,22 @@ export const FEATURED_SEVAS: Seva[] = [
     significance: "Considered the highest form of charity (Maha Dana) in Vedic philosophy. Feeding a hungry soul is equal to serving the supreme Lord.",
     blessingExplanation: "Receive a consecrated Prasad certificate and visual video capturing the cooked Mahaprasad being distributed lovingly to sadhus and devotees.",
     impactStat: "Over 15,000+ meals cooked daily by temple cooks.",
-    donationTiers: [
-      // ₹100/person/meal — same rate SEVA_OFFERINGS' Annadan uses at ₹1,100
-      // (11 people) and ₹2,100 (21 people). Amounts unchanged from before;
-      // only the beneficiary counts were corrected to match that rate.
-      { amount: 2000, label: "Feed 20 Sadhus", description: "Sponsor highly nutritious, fresh, sacred meals for 20 visiting sadhus." },
-      { amount: 2700, label: "Feed 27 Pilgrims", description: "Provide hot, pure vegetarian meals to families arriving from remote quarters." },
-      { amount: 6750, label: "Maha Bhandara (Full Day)", description: "Sponsor a fully-managed meal service — roughly 67 meals across the day — in your name, including direct videos." }
-    ],
+    // ✅ QUANTITY PRICING (Sponsorship Services update): replaces the old
+    // fixed/tiered donation amounts with a plain quantity selector — the
+    // devotee picks how many people to feed and the total is calculated
+    // live as quantity × ₹80. donationTiers is kept as a single minimal
+    // entry (no label/description) purely so the shared Seva type/fallback
+    // rendering still has a numeric amount to fall back on; it is not shown
+    // to devotees — see pricingMode below.
+    donationTiers: [{ amount: 80, label: "", description: "" }],
+    pricingMode: "quantity",
+    unitPrice: 80,
+    unitLabel: "person",
     imageUrl: import.meta.env.BASE_URL + "images/Annadanam Seva.jpg",
-    includes: ["Freshly cooked, temple-blessed meals for the number of people/sadhus sponsored", "Distribution at temple premises or a registered kitchen", "Photo/video evidence of the meal service where available"],
+    includes: ["Freshly cooked, temple-blessed meals for the number of people sponsored", "Distribution at temple premises or a registered kitchen", "Photo/video evidence of the meal service where available"],
     devoteeReceives: ["Digital seva certificate in your name", "Photo/video evidence shared after completion", "Sankalp recorded with your Gotra"],
     certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
-    coverageLabel: "Feeds 20 Sadhus, one meal — ₹100 per person, same rate used across every Annadan tier on SriDwar",
+    coverageLabel: "₹80 per person, per meal — choose any quantity",
     priestKeywords: ["wealth", "health", "ancestral", "festival"],
   },
   {
@@ -163,21 +166,18 @@ export const FEATURED_SEVAS: Seva[] = [
     significance: "Serving cows is equivalent to satisfying all 33 crore deities residing within Gau Mata according to Hindu scriptures.",
     blessingExplanation: "Fosters home peace, prosperity, and dissolves ancestors' karmic blockages. You will receive pictures with your name Sankalpa displayed at the Gaushala.",
     impactStat: "350+ native cows nurtured in green sanctuaries.",
-    donationTiers: [
-      // ₹100/cow — matches SEVA_OFFERINGS' Gau Seva rate (₹100=1 cow,
-      // ₹1,100=11 cows). Amount unchanged; count corrected from 5 to 20.
-      { amount: 2000, label: "One Day Green Fodder", description: "Fresh green grass, nutritious oil cakes, and pure water for 20 cows." },
-      // Monthly adoption and shed-building are not a per-cow linear rate
-      // (ongoing care / capital contribution), so left as-is — not
-      // comparable to the one-time per-cow feeding rate above.
-      { amount: 3000, label: "Adoption Support (Monthly)", description: "Complete feeding, veterinary wellness, and cozy shelter maintenance for a cow." },
-      { amount: 7500, label: "Sacred Gau-Daan Sponsor", description: "Contribute to building brand new sustainable shed spaces for cows." }
-    ],
+    // ✅ QUANTITY PRICING (Sponsorship Services update): see Annadanam above
+    // for the pattern — donationTiers kept as a single non-displayed entry;
+    // the devotee picks a number of cows and the total is quantity × ₹80.
+    donationTiers: [{ amount: 80, label: "", description: "" }],
+    pricingMode: "quantity",
+    unitPrice: 80,
+    unitLabel: "cow",
     imageUrl: import.meta.env.BASE_URL + "images/Gau Seva.jpg",
     includes: ["Fresh fodder, jaggery & roti for the cows sponsored", "Seva performed at a registered Gaushala", "Photo evidence of the feeding"],
     devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
     certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
-    coverageLabel: "Feeds 20 cows for one day — ₹100 per cow, same rate used across every Gau Seva tier on SriDwar",
+    coverageLabel: "₹80 per cow — choose any quantity",
     priestKeywords: ["wealth", "health", "festival", "ancestral"],
   },
   {
@@ -187,16 +187,19 @@ export const FEATURED_SEVAS: Seva[] = [
     significance: "Lighting a lamp represents dispelling the darkness of ignorance, warding off negative energies, and invoking spiritual illumination.",
     blessingExplanation: "A copper diya will be lit on your behalf in front of Maa Tarini, continuously fueled with pure mustard/cow ghee.",
     impactStat: "12,000+ lamps glowing at the sacred shrine.",
-    donationTiers: [
-      { amount: 1000, label: "3-Day Continuous Diya", description: "A beautiful clay diya constantly fed with quality oils on your behalf." },
-      { amount: 1650, label: "15-Day Akhanda Ghee Diya", description: "Sponsor a glowing copper ghee lamp with customized name placard." },
-      { amount: 3300, label: "Annual Festival Light Supporter", description: "A special brass diya kept burning across key festivals like Navratri + Diwali." }
-    ],
+    // ✅ QUANTITY PRICING (Sponsorship Services update): converted to the
+    // same ₹100-per-diya rate already used by Deep Daan / Diya Seva in
+    // Seva Offerings (data/sevaOfferings.ts, seva-deep-daan) — the
+    // devotee picks a number of diyas and the total is quantity × ₹100.
+    donationTiers: [{ amount: 100, label: "", description: "" }],
+    pricingMode: "quantity",
+    unitPrice: 100,
+    unitLabel: "diya",
     imageUrl: import.meta.env.BASE_URL + "images/Diya Lighting.jpg",
-    includes: ["A continuously-fed diya (mustard/cow ghee) lit on your behalf for the sponsored duration", "Diya seva performed during temple Aarti", "Photo evidence of the lit diya"],
+    includes: ["A continuously-fed diya (mustard/cow ghee) lit on your behalf for each diya sponsored", "Diya seva performed during temple Aarti", "Photo evidence of the lit diyas"],
     devoteeReceives: ["Digital seva certificate in your name", "Photo evidence shared after completion", "Sankalp recorded with your Gotra"],
     certificateTimeline: "Certificate & evidence shared within 3-7 working days of seva completion.",
-    coverageLabel: "1 continuous diya, lit and fed for 3 days on your behalf",
+    coverageLabel: "₹100 per diya — choose any quantity",
     priestKeywords: ["protection", "festival", "health"],
   },
   {

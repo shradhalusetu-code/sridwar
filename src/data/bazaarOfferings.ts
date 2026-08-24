@@ -304,7 +304,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ],
     customAmountEnabled: true,
     ctaLabels: { primary: "Buy Now", secondary: "Add to Cart" },
-    imageUrl: import.meta.env.BASE_URL + "images/Aarti.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/Diya.webp",
     isService: false,
     badges: ["Digital Confirmation"],
     // Verified against the live priest directory: union match count 28.
@@ -347,7 +347,7 @@ export const BAZAAR_PRODUCTS: BazaarProduct[] = [
     ],
     customAmountEnabled: true,
     ctaLabels: { primary: "Buy Now", secondary: "Add to Cart" },
-    imageUrl: import.meta.env.BASE_URL + "images/prasad.jpg",
+    imageUrl: import.meta.env.BASE_URL + "images/prasad.webp",
     isService: false,
     badges: ["Digital Confirmation"],
     // Verified against the live priest directory: union match count 33.

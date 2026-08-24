@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
-  Heart, Utensils, Flame, Wind, Flower2, Landmark,
+  Heart, Utensils, Flame, Wind, Flower2, Landmark, Bell,
   Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
 import { SevaOffering, SevaPriceOption, SEVA_OCCASIONS, SEVA_DISCLAIMER } from "../data/sevaOfferings";
@@ -17,12 +17,15 @@ import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../
 
 const renderOfferingIcon = (id: string) => {
   switch (id) {
-    case "seva-gau-feeding":        return <Heart className="w-4 h-4 text-emerald-400" fill="currentColor" />;
     case "seva-annadan":            return <Utensils className="w-4 h-4 text-[#FFB347]" />;
     case "seva-deep-daan":          return <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />;
     case "seva-dhoop-camphor":      return <Wind className="w-4 h-4 text-[#5EEAD4]" />;
     case "seva-flower":             return <Flower2 className="w-4 h-4 text-pink-400" />;
     case "seva-temple-maintenance": return <Landmark className="w-4 h-4 text-cyan-300" />;
+    case "seva-red-cloth-coconut":  return <Heart className="w-4 h-4 text-red-400" fill="currentColor" />;
+    case "seva-dry-bhang-fruits-confectionery": return <Flower2 className="w-4 h-4 text-lime-400" />;
+    case "seva-brass-bell":         return <Bell className="w-4 h-4 text-amber-400" />;
+    case "seva-custom-temple-offering": return <Landmark className="w-4 h-4 text-[#5EEAD4]" />;
     default:                        return <Heart className="w-4 h-4 text-[#FFB347]" />;
   }
 };
@@ -117,9 +120,16 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
   // Pujas cards in OnlinePuja.tsx, so every temple on the platform is
   // selectable here too, never a hardcoded subset.
   const [selectedTempleId, setSelectedTempleId] = useState("");
+  // Custom Temple Offering only (offering.customTempleFields) — the devotee
+  // types their own temple name, its location in India, and the temple's
+  // known/traditional offering, since there's no fixed temple to pick from
+  // the existing Temple Selection dropdown for this one.
+  const [customTempleName, setCustomTempleName] = useState("");
+  const [customTempleLocation, setCustomTempleLocation] = useState("");
+  const [customTempleOffering, setCustomTempleOffering] = useState("");
   // Validation error for Pincode — shown inline and cleared as soon as the
   // devotee edits the field again.
-  const [errors, setErrors] = useState<{ pincode?: string; preferredDate?: string }>({});
+  const [errors, setErrors] = useState<{ pincode?: string; preferredDate?: string; customTemple?: string }>({});
   // Brief "thank you" confirmation shown right after offering — the card
   // itself is never hidden or shrunk, so a devotee can immediately fill the
   // form again to offer the same seva for someone else (e.g. another cow,
@@ -162,6 +172,15 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     }
     if (isCustomSelected && !customAmountValid) { alert("Custom seva amount starts from ₹100."); return; }
 
+    // Custom Temple Offering — temple name, location, and the temple's
+    // offering are required here since there is no fixed temple/offering to
+    // fall back on for this seva.
+    if (offering.customTempleFields && (!customTempleName.trim() || !customTempleLocation.trim() || !customTempleOffering.trim())) {
+      setErrors((p) => ({ ...p, customTemple: "Please fill in your temple's name, location, and traditional offering." }));
+      document.getElementById(`seva-offering-custom-temple-${offering.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     // Pincode is the only field left on this card — validate its format
     // only when the devotee actually entered one (it's optional here).
     const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
@@ -183,10 +202,17 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
     const detailParts: string[] = [];
     if (selectedOption && !isCustomSelected) detailParts.push(selectedOption.label);
+    if (offering.customTempleFields) {
+      detailParts.push(`Temple Name: ${customTempleName.trim()}`);
+      detailParts.push(`Location: ${customTempleLocation.trim()}`);
+      detailParts.push(`Traditional Offering: ${customTempleOffering.trim()}`);
+    }
     if (occasionLabel) detailParts.push(`Occasion: ${occasionLabel}`);
     if (preferredDate) detailParts.push(`Preferred Date: ${preferredDate}`);
     if (pincode.trim()) detailParts.push(`Pincode: ${pincode.trim()}`);
-    detailParts.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
+    if (!offering.customTempleFields) {
+      detailParts.push(`Temple Selection: ${chosenTemple ? chosenTemple.name : "Any Temple"}`);
+    }
     detailParts.push(`Priest/Expert Selection: ${chosenPriest ? chosenPriest.name : "Any approved priest for this seva"}`);
 
     const composedName = detailParts.length ? `${offering.title} — ${detailParts.join(", ")}` : offering.title;
@@ -214,6 +240,9 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     setCustomAmount("");
     setSelectedPriestId("");
     setSelectedTempleId("");
+    setCustomTempleName("");
+    setCustomTempleLocation("");
+    setCustomTempleOffering("");
     setDisclaimerChecked(false);
     setShowDisclaimerError(false);
     setJustOffered(true);
@@ -246,7 +275,12 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
         >
           <div className="w-full h-32 relative overflow-hidden rounded-t-3xl shrink-0 bg-gradient-to-br from-[#0D2F2B] to-[#021816] flex items-center justify-center">
             {offering.imageUrl ? (
-              <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+              <OptimizedImage
+                src={offering.imageUrl}
+                webpSrc={offering.webpImageUrl ?? undefined}
+                alt={offering.title}
+                className={`w-full h-full select-none filter brightness-90 ${offering.imageFit === "contain" ? "object-contain object-center p-1" : "object-cover object-center"}`}
+              />
             ) : (
               renderOfferingIcon(offering.id)
             )}
@@ -287,8 +321,13 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           grid. A fixed height + object-cover + centered crop keeps every
           card's header the same size and the cards aligned. */}
       {offering.imageUrl ? (
-        <div className="w-full h-44 relative overflow-hidden">
-          <OptimizedImage src={offering.imageUrl} alt={offering.title} className="w-full h-full object-cover object-center select-none filter brightness-90" />
+        <div className={`w-full h-44 relative overflow-hidden ${offering.imageFit === "contain" ? "bg-gradient-to-br from-[#0D2F2B] to-[#021816]" : ""}`}>
+          <OptimizedImage
+            src={offering.imageUrl}
+            webpSrc={offering.webpImageUrl ?? undefined}
+            alt={offering.title}
+            className={`w-full h-full select-none filter brightness-90 ${offering.imageFit === "contain" ? "object-contain object-center p-2" : "object-cover object-center"}`}
+          />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#021816]/90 to-transparent p-2">
             <span className="text-[11px] font-mono font-bold text-teal-300 bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm">
               {offering.category}
@@ -450,28 +489,63 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
               </div>
             </div>
 
-            {/* Temple Selection — replicated from the Temple Selection +
-                dropdown pattern already used across the Simple Pujas cards
-                in OnlinePuja.tsx. */}
-            <div>
-              <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
-              <div className="relative">
-                <select
-                  id={`seva-offering-temple-${offering.id}`}
-                  value={selectedTempleId}
-                  onChange={(e) => setSelectedTempleId(e.target.value)}
-                  className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
-                >
-                  <option value="" className="bg-[#092320] text-white">Any Temple</option>
-                  {[...TEMPLES_LIST].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
-                    <option key={t.id} value={t.id} className="bg-[#092320] text-white">
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+            {/* Custom Temple Offering only — free-text temple name, location
+                in India, and the temple's traditional offering, since there
+                is no fixed temple/offering for this seva to fall back on. */}
+            {offering.customTempleFields ? (
+              <div id={`seva-offering-custom-temple-${offering.id}`}>
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Your Temple's Name</label>
+                <input
+                  type="text"
+                  value={customTempleName}
+                  onChange={(e) => { setCustomTempleName(e.target.value); if (errors.customTemple) setErrors((p) => ({ ...p, customTemple: undefined })); }}
+                  placeholder="e.g. Jagannath Temple"
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 mb-2"
+                />
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Location in India</label>
+                <input
+                  type="text"
+                  value={customTempleLocation}
+                  onChange={(e) => { setCustomTempleLocation(e.target.value); if (errors.customTemple) setErrors((p) => ({ ...p, customTemple: undefined })); }}
+                  placeholder="e.g. Puri, Odisha"
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50 mb-2"
+                />
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple's Known/Traditional Offering</label>
+                <input
+                  type="text"
+                  value={customTempleOffering}
+                  onChange={(e) => { setCustomTempleOffering(e.target.value); if (errors.customTemple) setErrors((p) => ({ ...p, customTemple: undefined })); }}
+                  placeholder="e.g. Tulsi garland offering"
+                  className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#FFB347]/50"
+                />
+                {errors.customTemple && (
+                  <p className="flex items-center gap-1 text-[12px] text-red-300 mt-1"><AlertCircle className="w-3 h-3 flex-shrink-0" />{errors.customTemple}</p>
+                )}
               </div>
-            </div>
+            ) : (
+              /* Temple Selection — replicated from the Temple Selection +
+                 dropdown pattern already used across the Simple Pujas cards
+                 in OnlinePuja.tsx. */
+              <div>
+                <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Temple Selection</label>
+                <div className="relative">
+                  <select
+                    id={`seva-offering-temple-${offering.id}`}
+                    value={selectedTempleId}
+                    onChange={(e) => setSelectedTempleId(e.target.value)}
+                    className="w-full appearance-none bg-white/5 border border-white/12 rounded-xl pl-3.5 pr-9 py-2.5 text-xs text-white focus:outline-none focus:border-[#FFB347]/50 focus:bg-white/8 transition-all"
+                  >
+                    <option value="" className="bg-[#092320] text-white">Any Temple</option>
+                    {[...TEMPLES_LIST].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                      <option key={t.id} value={t.id} className="bg-[#092320] text-white">
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-[12px] font-bold text-white/60 uppercase tracking-wide mb-1">Occasion</label>
