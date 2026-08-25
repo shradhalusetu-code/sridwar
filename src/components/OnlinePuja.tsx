@@ -939,15 +939,50 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 // ─────────────────────────────────────────────────────────────────────────
 interface PujaCategoryCardProps {
   puja: Puja;
-  discountedPrice: number;
   isDetailsOpen: boolean;
   onToggleDetails: () => void;
-  onBook: () => void;
+  /** Receives the final composed puja name (with Duration/Pandits appended
+   *  for dynamically-priced pujas) and the final amount to charge — same
+   *  pattern as SimplePujaCard's onBook. Pujas without pricingMode set
+   *  behave exactly as before: name is unchanged, amount is
+   *  getDiscountedPrice(puja.price). */
+  onBook: (pujaName: string, amount: number) => void;
   onViewPriestProfile?: (priestId: string) => void;
 }
 
-function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetails, onBook, onViewPriestProfile }: PujaCategoryCardProps) {
+function PujaCategoryCard({ puja, isDetailsOpen, onToggleDetails, onBook, onViewPriestProfile }: PujaCategoryCardProps) {
   const priest = getPriestByDetails(puja.priestDetails);
+
+  // ─── Dynamic Duration + Pandit pricing (Health/Wealth/Protection/Career/
+  // Marriage pujas only — see types.ts Puja.pricingMode, and
+  // isPujaDynamicPricing() below for the full eligibility rule, including
+  // the 6-hour+ exclusion). Every other puja falls straight through to its
+  // original fixed puja.price, completely unaffected. ────────────────────
+  const isDynamicPricing = isPujaDynamicPricing(puja);
+  const unitMinutes = puja.unitDurationMinutes ?? 10;
+  const [durationUnits, setDurationUnits] = useState(() => getDefaultDurationUnits(puja));
+  const [pandits, setPandits] = useState(1);
+  const baseAmount = computePujaBaseAmount(puja, durationUnits, pandits);
+  // ✅ PRICE-CONSISTENCY FIX: for dynamically-priced pujas, the breakdown
+  // text right below the selector (e.g. "₹250 base ... = ₹500") IS the
+  // actual total — it must never be silently discounted into a different
+  // final price (e.g. showing ₹400 at the bottom of the card). So dynamic
+  // pujas always show/charge baseAmount as-is. Pujas without pricingMode
+  // are completely unaffected and keep the sitewide discount exactly as
+  // before.
+  const discountedPrice = isDynamicPricing ? baseAmount : getDiscountedPrice(baseAmount);
+  // Tier-based rate per 10-minute block / per Pandit — derived from this
+  // puja's own price (see getPujaUnitPrice), NOT the legacy per-record
+  // unitPrice field. Used only for the breakdown text below; baseAmount
+  // above is always the single source of truth for the actual total.
+  const pujaUnitPrice = isDynamicPricing ? getPujaUnitPrice(puja) : 0;
+  const dynamicValueNotes = isDynamicPricing ? getDynamicPujaValueNotes(puja, durationUnits, pandits, unitMinutes) : [];
+
+  const handleBook = () => {
+    if (!isDynamicPricing) { onBook(puja.name, discountedPrice); return; }
+    const composedName = `${puja.name} — Duration: ${durationUnits * unitMinutes} minutes, Pandits: ${pandits}`;
+    onBook(composedName, discountedPrice);
+  };
 
   return (
     <div className="h-full flex flex-col bg-[#092320] rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition-colors">
@@ -978,7 +1013,12 @@ function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetail
         <div className="flex flex-wrap items-center gap-3 mb-2.5">
           <span className="flex items-center gap-1 text-[11px] text-white/50 font-mono">
             <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-            {displayDuration(puja.duration)}
+            {/* ✅ DURATION-DISPLAY FIX: for dynamically-priced pujas this
+                must track the devotee's selected duration, not the puja's
+                static traditional duration string — otherwise this badge
+                disagrees with the "DURATION (X MIN)" selector below it
+                (e.g. staying on "60 minutes" after picking 20 minutes). */}
+            {isDynamicPricing ? `${durationUnits * unitMinutes} minutes` : displayDuration(puja.duration)}
           </span>
           <span className="flex items-center gap-1 text-[11px] font-mono text-white/40">
             <Video className="w-3 h-3 text-emerald-400 shrink-0" />
@@ -1026,6 +1066,12 @@ function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetail
             <span>{puja.benefits}</span>
           </div>
         )}
+        {isDetailsOpen && dynamicValueNotes.map((note, i) => (
+          <div key={i} className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8 mb-2">
+            <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+            <span>{note}</span>
+          </div>
+        ))}
         {isDetailsOpen && puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
           <ul className="space-y-1 mb-2">
             {puja.materialsIncluded.map((item, i) => (
@@ -1034,6 +1080,72 @@ function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetail
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Duration + Pandit selector — only for pujas with dynamic pricing.
+            Same stepper pattern as Sponsorship Services' duration-pandit
+            sevas (SevaExperience.tsx), sized down to fit this card. */}
+        {isDynamicPricing && (
+          <div className="grid grid-cols-2 gap-2 mb-2" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wide mb-1">
+                Duration ({durationUnits * unitMinutes} min)
+              </label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setDurationUnits((d) => clampPujaDurationUnits(puja, d - 1))}
+                  className="w-7 h-7 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-sm font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Decrease duration"
+                >
+                  −
+                </button>
+                <span className="flex-1 text-center text-xs text-white font-mono">{durationUnits}</span>
+                <button
+                  type="button"
+                  onClick={() => setDurationUnits((d) => clampPujaDurationUnits(puja, d + 1))}
+                  className="w-7 h-7 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-sm font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Increase duration"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wide mb-1">Pandits</label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPandits((p) => clampPujaPandits(p - 1))}
+                  className="w-7 h-7 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-sm font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Decrease number of Pandits"
+                >
+                  −
+                </button>
+                <span className="flex-1 text-center text-xs text-white font-mono">{pandits}</span>
+                <button
+                  type="button"
+                  onClick={() => setPandits((p) => clampPujaPandits(p + 1))}
+                  className="w-7 h-7 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-sm font-bold hover:border-[#FFB347]/50 transition-colors"
+                  aria-label="Increase number of Pandits"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Price breakdown — base price charged once, extra duration and
+            extra Pandits shown as separate additive line items (duration
+            can also go negative, for a shorter/cheaper version below the
+            puja's traditional length). Only rendered once a devotee has
+            actually moved away from the default, so the default view
+            stays a single clean price. */}
+        {isDynamicPricing && (
+          <p className="text-[11px] text-white/40 mb-2 -mt-1">
+            ₹{pujaUnitPrice} base (10 min, 1 Pandit) + ₹{pujaUnitPrice} per extra 10 minutes or extra Pandit = ₹{baseAmount}
+          </p>
         )}
 
         {/* Spacer pushes price/book row to the bottom of every card,
@@ -1045,7 +1157,7 @@ function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetail
           <div>
             {isDiscountPromoVisible("puja") ? (
               <>
-                <span className="block text-[11px] line-through text-white/30 font-mono">₹{puja.price}</span>
+                <span className="block text-[11px] line-through text-white/30 font-mono">₹{baseAmount}</span>
                 <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
               </>
             ) : (
@@ -1054,12 +1166,304 @@ function PujaCategoryCard({ puja, discountedPrice, isDetailsOpen, onToggleDetail
           </div>
           <button
             type="button"
-            onClick={onBook}
+            onClick={handleBook}
             className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[11px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px] shrink-0"
           >
             Book Puja
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// PujaDesktopRow — the detailed row-list layout used on desktop (lg+) for
+// all 6 accordion sections: the 5 named categories (Health & Longevity,
+// Wealth & Prosperity, Protection & Victory, Career & Business, Family &
+// Marriage) AND the "Festivals, Ancestral & Graha Shanti" ("other") group.
+// Extracted from an inline .map() into its own component so pujas with
+// dynamic Duration + Pandit pricing can hold their own duration/pandit
+// selection state (React hooks cannot be called conditionally inside a
+// .map() callback). Markup/styling is otherwise byte-for-byte the same row
+// this replaces everywhere it's used.
+// ─────────────────────────────────────────────────────────────────────────
+interface PujaDesktopRowProps {
+  puja: Puja;
+  isDetailsOpen: boolean;
+  onToggleDetails: () => void;
+  onViewPriestProfile?: (priestId: string) => void;
+  onBook: (pujaName: string, amount: number) => void;
+}
+
+function PujaDesktopRow({ puja, isDetailsOpen, onToggleDetails, onViewPriestProfile, onBook }: PujaDesktopRowProps) {
+  const priest = getPriestByDetails(puja.priestDetails);
+
+  // ─── Dynamic Duration + Pandit pricing — same calculation as
+  // PujaCategoryCard above, kept in sync intentionally. ────────────────────
+  const isDynamicPricing = isPujaDynamicPricing(puja);
+  const unitMinutes = puja.unitDurationMinutes ?? 10;
+  const [durationUnits, setDurationUnits] = useState(() => getDefaultDurationUnits(puja));
+  const [pandits, setPandits] = useState(1);
+  const baseAmount = computePujaBaseAmount(puja, durationUnits, pandits);
+  // ✅ PRICE-CONSISTENCY FIX: see PujaCategoryCard above — dynamic pujas
+  // always show/charge baseAmount as-is, matching the breakdown text.
+  const discountedPrice = isDynamicPricing ? baseAmount : getDiscountedPrice(baseAmount);
+  // Tier-based rate per 10-minute block / per Pandit (see PujaCategoryCard
+  // above for the full explanation) — used only for the breakdown text;
+  // baseAmount is always the single source of truth for the actual total.
+  const pujaUnitPrice = isDynamicPricing ? getPujaUnitPrice(puja) : 0;
+  const dynamicValueNotes = isDynamicPricing ? getDynamicPujaValueNotes(puja, durationUnits, pandits, unitMinutes) : [];
+
+  const handleBook = () => {
+    if (!isDynamicPricing) { onBook(puja.name, discountedPrice); return; }
+    const composedName = `${puja.name} — Duration: ${durationUnits * unitMinutes} minutes, Pandits: ${pandits}`;
+    onBook(composedName, discountedPrice);
+  };
+
+  return (
+    <div
+      id={`puja-row-desktop-${puja.id}`}
+      className="flex flex-col sm:flex-row sm:items-center gap-3 px-6 py-4 hover:bg-white/3 transition-colors"
+    >
+      {/* Thumbnail image */}
+      <div className="shrink-0 w-full sm:w-16 h-24 sm:h-16 rounded-xl overflow-hidden bg-[#021816]/70 border border-white/8">
+        {puja.imageUrl ? (
+          <OptimizedImage
+            src={puja.imageUrl}
+            alt={puja.name}
+            loading="lazy"
+            width={128}
+            height={128}
+            className="w-full h-full object-cover filter brightness-90"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <SacredIcon
+            type={puja.id as any}
+            size="sm"
+            className="w-full h-full border-none"
+          />
+        )}
+      </div>
+
+      {/* Left: puja info */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+
+        {/* Puja name + deity badge */}
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-serif font-black text-white text-sm leading-snug">
+            {puja.name}
+          </h3>
+          <span className="text-[11px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
+            {puja.deityName}
+          </span>
+        </div>
+
+        {/* Temple */}
+        <p className="text-[12px] font-mono text-[#FFB347]/70">
+          {puja.templeName}
+        </p>
+
+        {/* Duration row */}
+        <div className="flex flex-wrap items-center gap-3 pt-0.5">
+          <span className="flex items-center gap-1 text-[12px] text-white/50 font-mono">
+            <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
+            {/* ✅ DURATION-DISPLAY FIX: see PujaCategoryCard above — must
+                track the selected duration for dynamically-priced pujas. */}
+            {isDynamicPricing ? `${durationUnits * unitMinutes} minutes` : displayDuration(puja.duration)}
+          </span>
+        </div>
+
+        {/* Prasad / Video indicators */}
+        <div className="flex items-center gap-4 text-[11px] font-mono text-white/40 pt-0.5">
+          <span className="flex items-center gap-1">
+            <Video className="w-3 h-3 text-emerald-400 shrink-0" />
+            HD Video
+          </span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 text-[#5EEAD4] shrink-0" />
+            {puja.prasadIncluded ? "Prasad Shipped" : "E-Patrika"}
+          </span>
+        </div>
+
+        {/* Priest details + link to full profile */}
+        <div className="flex items-center gap-1.5 pt-0.5">
+          <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
+          <span className="text-[11px] font-mono text-white/50 truncate">
+            {puja.priestDetails}
+          </span>
+          {priest && onViewPriestProfile && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
+              className="text-[11px] font-bold text-[#5EEAD4] hover:underline shrink-0"
+            >
+              View Profile
+            </button>
+          )}
+        </div>
+
+        {/* Duration + Pandit selector — only for pujas with dynamic
+            pricing. Compact stepper row so it fits the existing horizontal
+            row layout without disrupting it. */}
+        {isDynamicPricing && (
+          <div className="flex flex-wrap items-center gap-4 pt-1" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-bold text-white/50 uppercase tracking-wide">
+                Duration ({durationUnits * unitMinutes} min)
+              </span>
+              <button
+                type="button"
+                onClick={() => setDurationUnits((d) => clampPujaDurationUnits(puja, d - 1))}
+                className="w-6 h-6 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-xs font-bold hover:border-[#FFB347]/50 transition-colors"
+                aria-label="Decrease duration"
+              >
+                −
+              </button>
+              <span className="w-5 text-center text-xs text-white font-mono">{durationUnits}</span>
+              <button
+                type="button"
+                onClick={() => setDurationUnits((d) => clampPujaDurationUnits(puja, d + 1))}
+                className="w-6 h-6 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-xs font-bold hover:border-[#FFB347]/50 transition-colors"
+                aria-label="Increase duration"
+              >
+                +
+              </button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-bold text-white/50 uppercase tracking-wide">Pandits</span>
+              <button
+                type="button"
+                onClick={() => setPandits((p) => clampPujaPandits(p - 1))}
+                className="w-6 h-6 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-xs font-bold hover:border-[#FFB347]/50 transition-colors"
+                aria-label="Decrease number of Pandits"
+              >
+                −
+              </button>
+              <span className="w-5 text-center text-xs text-white font-mono">{pandits}</span>
+              <button
+                type="button"
+                onClick={() => setPandits((p) => clampPujaPandits(p + 1))}
+                className="w-6 h-6 shrink-0 rounded-lg bg-white/5 border border-white/12 text-white text-xs font-bold hover:border-[#FFB347]/50 transition-colors"
+                aria-label="Increase number of Pandits"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Price breakdown — base price charged once, extra duration and
+            extra Pandits shown as separate additive line items (duration
+            can also go negative, for a shorter/cheaper version below the
+            puja's traditional length). */}
+        {isDynamicPricing && (
+          <p className="text-[11px] text-white/40">
+            ₹{pujaUnitPrice} base (10 min, 1 Pandit) + ₹{pujaUnitPrice} per extra 10 minutes or extra Pandit = ₹{baseAmount}
+          </p>
+        )}
+
+        {/* Complete details toggle — benefits + materials included, both
+            present in data but not shown in the compact row above.
+            Expanded content follows the same consistent structure used
+            across Simple Pujas / Seva / Bazaar: purpose, what's included,
+            what the devotee receives, and a disclaimer. */}
+        <>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggleDetails(); }}
+            aria-expanded={isDetailsOpen}
+            className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
+          >
+            {isDetailsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            <span>{isDetailsOpen ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
+          </button>
+          {isDetailsOpen && (
+            <div className="space-y-2.5 pt-1.5">
+              {puja.benefits && (
+                <div>
+                  <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Purpose</span>
+                  <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
+                    <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
+                    <span>{puja.benefits}</span>
+                  </div>
+                  {dynamicValueNotes.map((note, i) => (
+                    <div key={i} className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8 mt-1.5">
+                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                      <span>{note}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
+                <div>
+                  <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">This puja includes</span>
+                  <ul className="space-y-1">
+                    {puja.materialsIncluded.map((item, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
+                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div>
+                <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Devotee receives</span>
+                <ul className="space-y-1">
+                  <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                    <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                    <span>Digital Sankalpa Certificate, signed off by the performing priest, within 3-7 working days of completion.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                    <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                    <span>{puja.videoAvailable ? "A blessed photograph of your puja, and — where this temple graciously permits it — a short video glimpse of the sacred recitation." : "A blessed photograph of your puja. As this ancient temple's sacred privacy traditions do not permit recording, your devotion is lovingly acknowledged through a signed priest certificate and the performing priest's own personal video/audio testimony."}</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 text-[12px] text-white/60">
+                    <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
+                    <span>{puja.prasadIncluded ? "Prasad shipped to your address." : "Digital e-Patrika / puja summary."}</span>
+                  </li>
+                </ul>
+              </div>
+              <p className="text-[11px] text-white/35 leading-relaxed">
+                Temple and priest for this puja are as shown above; your Sankalp details (name, gotra, preferred date, pincode, occasion) are collected next in the Puja Sankalp Portal. Performed with devotion as per temple process — timings may vary with temple schedule, festival rush, and priest availability. A puja is an act of devotion and does not guarantee any specific outcome.
+              </p>
+            </div>
+          )}
+        </>
+      </div>
+
+      {/* Right: price + book button */}
+      <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
+        {/* Price */}
+        <div className="text-right">
+          {isDiscountPromoVisible("puja") ? (
+            <>
+              <span className="block text-[12px] line-through text-white/30 font-mono">
+                ₹{baseAmount}
+              </span>
+              <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">
+                ₹{discountedPrice}
+              </span>
+              <span className="block text-[11px] text-[#FFB347] font-mono">
+                {DISCOUNT_TAG}
+              </span>
+            </>
+          ) : (
+            <span className="block text-base font-black text-white font-serif">
+              ₹{discountedPrice}
+            </span>
+          )}
+        </div>
+
+        {/* Book button */}
+        <button
+          id={`puja-book-btn-${puja.id}`}
+          onClick={handleBook}
+          className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
+        >
+          Book Puja
+        </button>
       </div>
     </div>
   );
@@ -1145,6 +1549,207 @@ const SELECT_CLS =
 // ── Utility: graceful duration display ────────────────────────────────────────
 function displayDuration(d?: string) {
   return d && d.trim() ? d : "Not specified";
+}
+
+// ── Utility: default Duration selector value for dynamically-priced pujas
+// (pricingMode "duration-pandit") ───────────────────────────────────────
+// ✅ DEFAULT FIX: the selector must always start at 1 block (10 minutes) +
+// 1 Pandit, per spec — NOT the puja's own traditional duration (e.g. 60
+// minutes) rounded into blocks. Anchoring the default to the puja's
+// traditional duration was also what caused the base price to be
+// re-derived from puja.price instead of purely from the unit rate (see
+// computePujaBaseAmount below), which is what produced mismatched
+// card/checkout prices. The puja's real traditional duration is still
+// shown unchanged elsewhere on the card (the clock/"Duration" info row
+// above uses puja.duration directly) — only the pricing selector's
+// starting point changes here.
+function getDefaultDurationUnits(_puja: Puja): number {
+  return 1;
+}
+
+// ── Duration + Pandit pricing — purely unit-rate based ─────────────────────
+// ✅ PRICE-MODEL FIX: the total is 1 × unitPrice at the 10-minute/1-Pandit
+// default, and every additional 10-minute block OR additional Pandit adds
+// exactly one more unitPrice — the whole puja price is never multiplied or
+// re-multiplied by duration/Pandits. Hard caps per spec: 1–10 duration
+// units (10–100 minutes) and 1–10 Pandits, regardless of puja.
+const PUJA_MIN_DURATION_UNITS = 1;
+const PUJA_MAX_DURATION_UNITS = 10;
+const PUJA_MAX_PANDITS = 10;
+
+function clampPujaDurationUnits(puja: Puja, units: number): number {
+  return Math.min(PUJA_MAX_DURATION_UNITS, Math.max(PUJA_MIN_DURATION_UNITS, units));
+}
+
+function clampPujaPandits(units: number): number {
+  return Math.min(PUJA_MAX_PANDITS, Math.max(1, units));
+}
+
+// ── Tier-based per-unit rate for Duration + Pandit pricing ─────────────────
+// ✅ TIER FIX (rate-table correction): the rate charged per extra
+// 10-minute block / extra Pandit is derived directly from this puja's own
+// `price` (used ONLY to pick the tier — never multiplied into the total),
+// following ONE shared tier table:
+//   under ₹2,000            → ₹200 per 10 minutes / per Pandit
+//   ₹2,000 – ₹3,000         → ₹250
+//   ₹3,000 – ₹4,000         → ₹300
+//   ₹4,000 – ₹6,000         → ₹350
+//   above ₹6,000            → +₹100 for every further ₹2,000 band
+//                              (₹6,000–₹8,000 → ₹450, ₹8,000–₹10,000 → ₹550, …)
+function getPujaUnitPrice(puja: Puja): number {
+  const price = puja.price;
+  if (price <= 2000) return 200;
+  if (price <= 3000) return 250;
+  if (price <= 4000) return 300;
+  if (price <= 6000) return 350;
+  const bandsAbove6000 = Math.ceil((price - 6000) / 2000);
+  return 350 + bandsAbove6000 * 100;
+}
+
+// ── Duration string parsing + 6-hour exclusion guard ───────────────────────
+// Handles both "NN minutes" and "N hours" duration strings so a puja whose
+// traditional ritual already runs 6 hours (360 minutes) or more never gets
+// the Duration + Pandit selector, even if pricingMode were ever set on one
+// by mistake — those must stay completely unchanged per spec.
+function getPujaDurationMinutes(duration?: string): number | null {
+  if (!duration) return null;
+  const hourMatch = duration.match(/(\d+(?:\.\d+)?)\s*hour/i);
+  if (hourMatch) return Math.round(parseFloat(hourMatch[1]) * 60);
+  const minuteMatch = duration.match(/(\d+)\s*minute/i);
+  if (minuteMatch) return parseInt(minuteMatch[1], 10);
+  return null;
+}
+
+// ✅ SCOPE GUARD: Duration + Pandit pricing applies within the 5 original
+// named Online Puja categories — Health & Longevity, Wealth & Prosperity,
+// Protection & Victory, Career & Business, Family & Marriage — PLUS the
+// "Festivals, Ancestral & Graha Shanti" ("other") group (festivals,
+// ancestor, graha_shanti, education), which now uses the exact same
+// duration-pandit logic. Every puja with pricingMode "duration-pandit" in
+// spiritualData.ts sits in one of these 9 categories; this check makes
+// that a hard rule instead of a coincidence, and Simple Pujas can still
+// never pick this up even if pricingMode were ever mistakenly set on one
+// of them later.
+const PUJA_DYNAMIC_PRICING_CATEGORIES: Puja["category"][] = [
+  "health", "wealth", "protection", "career", "marriage",
+  "festivals", "ancestor", "graha_shanti", "education",
+];
+
+function isPujaDynamicPricing(puja: Puja): boolean {
+  if (puja.pricingMode !== "duration-pandit") return false;
+  if (!PUJA_DYNAMIC_PRICING_CATEGORIES.includes(puja.category)) return false;
+  const minutes = getPujaDurationMinutes(puja.duration);
+  // ✅ NULL-SAFETY FIX: a duration string that doesn't parse as a plain
+  // "NN minutes"/"N hours" value (e.g. "Multi-day recitation (as per
+  // temple schedule)") must be EXCLUDED, not allowed through — the whole
+  // point of this guard is to keep the selector away from rituals that
+  // don't fit a fixed-minutes format. Previously `minutes === null` fell
+  // through as eligible, which was backwards.
+  return minutes !== null && minutes < 360;
+}
+
+/** Pre-discount amount for a puja at a given duration/Pandit selection.
+ *  ✅ PRICE-MODEL FIX: the total is now computed purely from the tiered
+ *  unit rate — never anchored to or offset from puja.price — exactly
+ *  matching the required behavior: 10 min + 1 Pandit = 1 × unitPrice, and
+ *  every additional 10-minute block OR additional Pandit adds one more
+ *  unitPrice. This is the same additive model as Sponsorship Services'
+ *  duration-pandit sevas (see SevaExperience.tsx), so both duration+pandit
+ *  selectors on the site now follow one identical rule:
+ *    10 min + 1 pandit = unitPrice
+ *    20 min + 1 pandit = 2 × unitPrice
+ *    20 min + 2 pandits = 3 × unitPrice
+ *    30 min + 2 pandits = 4 × unitPrice
+ *  Pujas without pricingMode "duration-pandit" (or excluded by the
+ *  6-hour+ guard) are entirely unaffected — always puja.price, exactly as
+ *  before. */
+function computePujaBaseAmount(puja: Puja, durationUnits: number, pandits: number): number {
+  if (!isPujaDynamicPricing(puja)) return puja.price;
+  const unitPrice = getPujaUnitPrice(puja);
+  return unitPrice * (durationUnits + pandits - 1);
+}
+
+// ── Dynamic "Purpose · What's included · What you'll receive" content ─────
+// As a devotee selects more duration or more Pandits, the Purpose section
+// grows with additional lines explaining the extra devotional value —
+// deeper mantra/japa cycles for more time, and multi-priest chanting /
+// wider sankalpa coverage for more Pandits. Grounded in each category's
+// own traditional ritual elements (not generic repeated text), and always
+// shown ALONGSIDE the puja's existing benefits text — nothing existing is
+// replaced or removed. Only rendered for pujas eligible for Duration +
+// Pandit pricing; every other puja's Purpose section is unchanged.
+type DynamicPujaCategory =
+  | "health" | "wealth" | "protection" | "career" | "marriage"
+  | "festivals" | "ancestor" | "graha_shanti" | "education";
+const CATEGORY_RITUAL_FOCUS: Record<DynamicPujaCategory, { mantra: string; offering: string; sankalp: string }> = {
+  health: {
+    mantra: "Mahamrityunjaya and healing-mantra japa cycles",
+    offering: "extended Rudrabhishek stages and healing havan offerings",
+    sankalp: "health and longevity sankalpa, covering more family members by name",
+  },
+  wealth: {
+    mantra: "Lakshmi and Kubera mantra japa cycles",
+    offering: "additional havan offerings and prosperity rituals",
+    sankalp: "wealth and prosperity sankalpa, covering more family members by name",
+  },
+  protection: {
+    mantra: "raksha and shanti mantra recitation cycles",
+    offering: "additional protective havan offerings",
+    sankalp: "protection sankalpa, covering more family members by name",
+  },
+  career: {
+    mantra: "Saraswati and Ganesha mantra japa cycles for clarity and success",
+    offering: "additional havan offerings dedicated to career and business growth",
+    sankalp: "career and business sankalpa, covering more family members by name",
+  },
+  marriage: {
+    mantra: "Parvati-Shiva vivah-related mantra japa cycles",
+    offering: "additional offerings for marital harmony",
+    sankalp: "family and marriage sankalpa, covering more family members by name",
+  },
+  // ── New: "Festivals, Ancestral & Graha Shanti" categories ──────────────
+  festivals: {
+    mantra: "extended Aarti and festival-sankalpa mantra recitation",
+    offering: "additional festival havan offerings and temple sevas performed in your name",
+    sankalp: "festival sankalpa, covering more family members by name",
+  },
+  ancestor: {
+    mantra: "Pitru Tarpan and ancestral-peace mantra japa cycles",
+    offering: "additional Pind Daan-related offerings for departed ancestors",
+    sankalp: "Pitru Dosha and ancestral-peace sankalpa, covering more family members and forefathers by name",
+  },
+  graha_shanti: {
+    mantra: "Navagraha and planetary-pacification mantra japa cycles",
+    offering: "additional Graha Shanti havan offerings for the afflicted planet",
+    sankalp: "Graha Shanti sankalpa, covering more family members by name",
+  },
+  education: {
+    mantra: "Saraswati Vandana and Ganesh Atharvashirsha japa cycles",
+    offering: "additional offerings for learning, memory, and academic clarity",
+    sankalp: "education and knowledge sankalpa, covering more family members by name",
+  },
+};
+
+/** Returns 0, 1, or 2 additional Purpose lines describing the extra
+ *  devotional value of the current duration/Pandit selection, beyond the
+ *  puja's base 10-minute/1-Pandit selection. Empty at the default
+ *  selection so the default view stays exactly as authored. */
+function getDynamicPujaValueNotes(puja: Puja, durationUnits: number, pandits: number, unitMinutes: number): string[] {
+  if (!isPujaDynamicPricing(puja)) return [];
+  const focus = CATEGORY_RITUAL_FOCUS[puja.category as DynamicPujaCategory];
+  if (!focus) return [];
+  const notes: string[] = [];
+  if (durationUnits > 1) {
+    notes.push(
+      `At ${durationUnits * unitMinutes} minutes, the priest extends the ${focus.mantra}, with ${focus.offering} — giving the ritual stronger continuity and a more complete conclusion.`
+    );
+  }
+  if (pandits > 1) {
+    notes.push(
+      `With ${pandits} Pandits performing together, the puja includes simultaneous multi-priest chanting and expanded ${focus.sankalp}.`
+    );
+  }
+  return notes;
 }
 
 // "Festivals, Ancestral & Graha Shanti" — same show-6-then-"Show more"
@@ -1639,15 +2244,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     getKey={(puja) => puja.id}
                     cardWidthClassName="w-[clamp(240px,72vw,420px)]"
                     renderItem={(puja) => {
-                      const discountedPrice = getDiscountedPrice(puja.price);
                       return (
                         <div id={`puja-row-${puja.id}`}>
                           <PujaCategoryCard
                             puja={puja}
-                            discountedPrice={discountedPrice}
                             isDetailsOpen={isPujaDetailsOpen(puja.id)}
                             onToggleDetails={() => togglePujaDetails(puja.id)}
-                            onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
+                            onBook={(name, amount) => { gaBookNowOpen(name, amount); onBookNowClick(name, amount); }}
                             onViewPriestProfile={onViewPriestProfile}
                           />
                         </div>
@@ -1656,195 +2259,16 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   />
 
                   <div className="hidden lg:block border-t border-white/8 divide-y divide-white/5">
-                    {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => {
-                      const discountedPrice = getDiscountedPrice(puja.price);
-                      return (
-                        <div
-                          key={puja.id}
-                          id={`puja-row-desktop-${puja.id}`}
-                          className="flex flex-col sm:flex-row sm:items-center gap-3 px-6 py-4 hover:bg-white/3 transition-colors"
-                        >
-                          {/* Thumbnail image */}
-                          <div className="shrink-0 w-full sm:w-16 h-24 sm:h-16 rounded-xl overflow-hidden bg-[#021816]/70 border border-white/8">
-                            {puja.imageUrl ? (
-                              <OptimizedImage
-                                src={puja.imageUrl}
-                                alt={puja.name}
-                                loading="lazy"
-                                width={128}
-                                height={128}
-                                className="w-full h-full object-cover filter brightness-90"
-                                referrerPolicy="no-referrer"
-                              />
-                            ) : (
-                              <SacredIcon
-                                type={puja.id as any}
-                                size="sm"
-                                className="w-full h-full border-none"
-                              />
-                            )}
-                          </div>
-
-                          {/* Left: puja info */}
-                          <div className="flex-1 min-w-0 space-y-1.5">
-
-                            {/* Puja name + deity badge */}
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="font-serif font-black text-white text-sm leading-snug">
-                                {puja.name}
-                              </h3>
-                              <span className="text-[11px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
-                                {puja.deityName}
-                              </span>
-                            </div>
-
-                            {/* Temple */}
-                            <p className="text-[12px] font-mono text-[#FFB347]/70">
-                              {puja.templeName}
-                            </p>
-
-                            {/* Duration row */}
-                            <div className="flex flex-wrap items-center gap-3 pt-0.5">
-                              <span className="flex items-center gap-1 text-[12px] text-white/50 font-mono">
-                                <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-                                {displayDuration(puja.duration)}
-                              </span>
-                            </div>
-
-                            {/* Prasad / Video indicators */}
-                            <div className="flex items-center gap-4 text-[11px] font-mono text-white/40 pt-0.5">
-                              <span className="flex items-center gap-1">
-                                <Video className="w-3 h-3 text-emerald-400 shrink-0" />
-                                HD Video
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3 text-[#5EEAD4] shrink-0" />
-                                {puja.prasadIncluded ? "Prasad Shipped" : "E-Patrika"}
-                              </span>
-                            </div>
-
-                            {/* Priest details + link to full profile */}
-                            {(() => {
-                              const priest = getPriestByDetails(puja.priestDetails);
-                              return (
-                                <div className="flex items-center gap-1.5 pt-0.5">
-                                  <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-                                  <span className="text-[11px] font-mono text-white/50 truncate">
-                                    {puja.priestDetails}
-                                  </span>
-                                  {priest && onViewPriestProfile && (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
-                                      className="text-[11px] font-bold text-[#5EEAD4] hover:underline shrink-0"
-                                    >
-                                      View Profile
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })()}
-
-                            {/* Complete details toggle — benefits + materials
-                                included, both present in data but not shown
-                                in the compact row above. Expanded content
-                                follows the same consistent structure used
-                                across Simple Pujas / Seva / Bazaar: purpose,
-                                what's included, what the devotee receives,
-                                and a disclaimer. */}
-                            <>
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
-                                aria-expanded={isPujaDetailsOpen(puja.id)}
-                                className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
-                              >
-                                {isPujaDetailsOpen(puja.id) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                                <span>{isPujaDetailsOpen(puja.id) ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
-                              </button>
-                              {isPujaDetailsOpen(puja.id) && (
-                                <div className="space-y-2.5 pt-1.5">
-                                  {puja.benefits && (
-                                    <div>
-                                      <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Purpose</span>
-                                      <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
-                                        <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
-                                        <span>{puja.benefits}</span>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
-                                    <div>
-                                      <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">This puja includes</span>
-                                      <ul className="space-y-1">
-                                        {puja.materialsIncluded.map((item, i) => (
-                                          <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                            <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                  <div>
-                                    <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Devotee receives</span>
-                                    <ul className="space-y-1">
-                                      <li className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
-                                        <span>Digital Sankalpa Certificate, signed off by the performing priest, within 3-7 working days of completion.</span>
-                                      </li>
-                                      <li className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
-                                        <span>{puja.videoAvailable ? "A blessed photograph of your puja, and — where this temple graciously permits it — a short video glimpse of the sacred recitation." : "A blessed photograph of your puja. As this ancient temple's sacred privacy traditions do not permit recording, your devotion is lovingly acknowledged through a signed priest certificate and the performing priest's own personal video/audio testimony."}</span>
-                                      </li>
-                                      <li className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                        <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
-                                        <span>{puja.prasadIncluded ? "Prasad shipped to your address." : "Digital e-Patrika / puja summary."}</span>
-                                      </li>
-                                    </ul>
-                                  </div>
-                                  <p className="text-[11px] text-white/35 leading-relaxed">
-                                    Temple and priest for this puja are as shown above; your Sankalp details (name, gotra, preferred date, pincode, occasion) are collected next in the Puja Sankalp Portal. Performed with devotion as per temple process — timings may vary with temple schedule, festival rush, and priest availability. A puja is an act of devotion and does not guarantee any specific outcome.
-                                  </p>
-                                </div>
-                              )}
-                            </>
-                          </div>
-
-                          {/* Right: price + book button */}
-                          <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
-                            {/* Price */}
-                            <div className="text-right">
-                              {isDiscountPromoVisible("puja") ? (
-                                <>
-                                  <span className="block text-[12px] line-through text-white/30 font-mono">
-                                    ₹{puja.price}
-                                  </span>
-                                  <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">
-                                    ₹{discountedPrice}
-                                  </span>
-                                  <span className="block text-[11px] text-[#FFB347] font-mono">
-                                    {DISCOUNT_TAG}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="block text-base font-black text-white font-serif">
-                                  ₹{discountedPrice}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Book button */}
-                            <button
-                              id={`puja-book-btn-${puja.id}`}
-                              onClick={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
-                              className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
-                            >
-                              Book Puja
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {openedOnce[cat] && (categoryShowAll[cat] ? pujas : getInitialCuratedPujas(pujas)).map(puja => (
+                      <PujaDesktopRow
+                        key={puja.id}
+                        puja={puja}
+                        isDetailsOpen={isPujaDetailsOpen(puja.id)}
+                        onToggleDetails={() => togglePujaDetails(puja.id)}
+                        onViewPriestProfile={onViewPriestProfile}
+                        onBook={(name, amount) => { gaBookNowOpen(name, amount); onBookNowClick(name, amount); }}
+                      />
+                    ))}
                   </div>
 
                   {/* "Show more" — only when this category has more pujas than the
@@ -1914,15 +2338,13 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   getKey={(puja) => puja.id}
                   cardWidthClassName="w-[clamp(240px,72vw,420px)]"
                   renderItem={(puja) => {
-                    const discountedPrice = getDiscountedPrice(puja.price);
                     return (
                       <div id={`puja-row-${puja.id}`}>
                         <PujaCategoryCard
                           puja={puja}
-                          discountedPrice={discountedPrice}
                           isDetailsOpen={isPujaDetailsOpen(puja.id)}
                           onToggleDetails={() => togglePujaDetails(puja.id)}
-                          onBook={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
+                          onBook={(name, amount) => { gaBookNowOpen(name, amount); onBookNowClick(name, amount); }}
                           onViewPriestProfile={onViewPriestProfile}
                         />
                       </div>
@@ -1930,169 +2352,24 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   }}
                 />
 
+                {/* "other" category desktop row-list — now shares the exact
+                    same PujaDesktopRow component as the 5 category
+                    accordions above, so pujas here with pricingMode
+                    "duration-pandit" get the identical Duration + Pandit
+                    selector, live pricing, and dynamic Purpose notes.
+                    Markup/styling is unchanged; only the duplicated inline
+                    JSX was replaced with the shared component. */}
                 <div className="hidden lg:block border-t border-white/8 divide-y divide-white/5">
-                  {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => {
-                    const discountedPrice = getDiscountedPrice(puja.price);
-                    return (
-                      <div
-                        key={puja.id}
-                        id={`puja-row-desktop-${puja.id}`}
-                        className="flex flex-col sm:flex-row sm:items-center gap-3 px-6 py-4 hover:bg-white/3 transition-colors"
-                      >
-                        {/* Thumbnail image */}
-                        <div className="shrink-0 w-full sm:w-16 h-24 sm:h-16 rounded-xl overflow-hidden bg-[#021816]/70 border border-white/8">
-                          {puja.imageUrl ? (
-                            <OptimizedImage
-                              src={puja.imageUrl}
-                              alt={puja.name}
-                              loading="lazy"
-                              width={128}
-                              height={128}
-                              className="w-full h-full object-cover filter brightness-90"
-                              referrerPolicy="no-referrer"
-                            />
-                          ) : (
-                            <SacredIcon
-                              type={puja.id as any}
-                              size="sm"
-                              className="w-full h-full border-none"
-                            />
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0 space-y-1.5">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-serif font-black text-white text-sm leading-snug">
-                              {puja.name}
-                            </h3>
-                            <span className="text-[11px] uppercase font-mono tracking-widest text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 px-2 py-0.5 rounded-full shrink-0">
-                              {puja.deityName}
-                            </span>
-                          </div>
-                          <p className="text-[12px] font-mono text-[#FFB347]/70">{puja.templeName}</p>
-                          <div className="flex flex-wrap items-center gap-3 pt-0.5">
-                            <span className="flex items-center gap-1 text-[12px] text-white/50 font-mono">
-                              <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-                              {displayDuration(puja.duration)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4 text-[11px] font-mono text-white/40 pt-0.5">
-                            <span className="flex items-center gap-1">
-                              <Video className="w-3 h-3 text-emerald-400 shrink-0" />
-                              HD Video
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-[#5EEAD4] shrink-0" />
-                              {puja.prasadIncluded ? "Prasad Shipped" : "E-Patrika"}
-                            </span>
-                          </div>
-
-                          {/* Priest details + link to full profile */}
-                          {(() => {
-                            const priest = getPriestByDetails(puja.priestDetails);
-                            return (
-                              <div className="flex items-center gap-1.5 pt-0.5">
-                                <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
-                                <span className="text-[11px] font-mono text-white/50 truncate">
-                                  {puja.priestDetails}
-                                </span>
-                                {priest && onViewPriestProfile && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}
-                                    className="text-[11px] font-bold text-[#5EEAD4] hover:underline shrink-0"
-                                  >
-                                    View Profile
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })()}
-
-                          {/* Complete details toggle — same consistent
-                              structure as the category rows above: purpose,
-                              what's included, what the devotee receives,
-                              disclaimer. */}
-                          <>
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); togglePujaDetails(puja.id); }}
-                              aria-expanded={isPujaDetailsOpen(puja.id)}
-                              className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide pt-0.5 transition-colors"
-                            >
-                              {isPujaDetailsOpen(puja.id) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              <span>{isPujaDetailsOpen(puja.id) ? "Hide details" : "Purpose · What's included · What you'll receive"}</span>
-                            </button>
-                            {isPujaDetailsOpen(puja.id) && (
-                              <div className="space-y-2.5 pt-1.5">
-                                {puja.benefits && (
-                                  <div>
-                                    <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Purpose</span>
-                                    <div className="flex items-start gap-1.5 text-[12px] text-white/70 bg-[#021816]/60 px-2.5 py-2 rounded-lg border border-white/8">
-                                      <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" />
-                                      <span>{puja.benefits}</span>
-                                    </div>
-                                  </div>
-                                )}
-                                {puja.materialsIncluded && puja.materialsIncluded.length > 0 && (
-                                  <div>
-                                    <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">This puja includes</span>
-                                    <ul className="space-y-1">
-                                      {puja.materialsIncluded.map((item, i) => (
-                                        <li key={i} className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                          <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{item}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                                <div>
-                                  <span className="block text-[11px] font-bold text-white/50 uppercase tracking-wide mb-1">Devotee receives</span>
-                                  <ul className="space-y-1">
-                                    <li className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
-                                      <span>Digital Sankalpa Certificate, signed off by the performing priest, within 3-7 working days of completion.</span>
-                                    </li>
-                                    <li className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
-                                      <span>{puja.videoAvailable ? "A blessed photograph of your puja, and — where this temple graciously permits it — a short video glimpse of the sacred recitation." : "A blessed photograph of your puja. As this ancient temple's sacred privacy traditions do not permit recording, your devotion is lovingly acknowledged through a signed priest certificate and the performing priest's own personal video/audio testimony."}</span>
-                                    </li>
-                                    <li className="flex items-start gap-1.5 text-[12px] text-white/60">
-                                      <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" />
-                                      <span>{puja.prasadIncluded ? "Prasad shipped to your address." : "Digital e-Patrika / puja summary."}</span>
-                                    </li>
-                                  </ul>
-                                </div>
-                                <p className="text-[11px] text-white/35 leading-relaxed">
-                                  Temple and priest for this puja are as shown above; your Sankalp details (name, gotra, preferred date, pincode, occasion) are collected next in the Puja Sankalp Portal. Performed with devotion as per temple process — timings may vary with temple schedule, festival rush, and priest availability. A puja is an act of devotion and does not guarantee any specific outcome.
-                                </p>
-                              </div>
-                            )}
-                          </>
-                        </div>
-                        <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
-                          <div className="text-right">
-                            {isDiscountPromoVisible("puja") ? (
-                              <>
-                                <span className="block text-[12px] line-through text-white/30 font-mono">₹{puja.price}</span>
-                                <span className="block text-base font-black text-[#5EEAD4] font-serif leading-tight">₹{discountedPrice}</span>
-                                <span className="block text-[11px] text-[#FFB347] font-mono">{DISCOUNT_TAG}</span>
-                              </>
-                            ) : (
-                              <span className="block text-base font-black text-white font-serif">₹{discountedPrice}</span>
-                            )}
-                          </div>
-                          <button
-                            id={`puja-book-btn-${puja.id}`}
-                            onClick={() => { gaBookNowOpen(puja.name, discountedPrice); onBookNowClick(puja.name, discountedPrice); }}
-                            className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-5 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-colors shadow cursor-pointer whitespace-nowrap min-h-[40px]"
-                          >
-                            Book Puja
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {openedOnce["other"] && (categoryShowAll["other"] ? otherPujas : otherPujas.slice(0, OTHER_CATEGORY_INITIAL_COUNT)).map(puja => (
+                    <PujaDesktopRow
+                      key={puja.id}
+                      puja={puja}
+                      isDetailsOpen={isPujaDetailsOpen(puja.id)}
+                      onToggleDetails={() => togglePujaDetails(puja.id)}
+                      onViewPriestProfile={onViewPriestProfile}
+                      onBook={(name, amount) => { gaBookNowOpen(name, amount); onBookNowClick(name, amount); }}
+                    />
+                  ))}
                 </div>
 
                 {/* "Show more" — only when this category has more pujas than the

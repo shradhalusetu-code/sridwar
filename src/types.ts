@@ -90,10 +90,41 @@ export interface Puja {
   priestDetails: string;
   videoAvailable: boolean;
   prasadIncluded: boolean;
+  /** Default/base price for pujas without pricingMode set — used as-is,
+   *  unaffected. For pujas with pricingMode "duration-pandit", this value
+   *  is used ONLY to pick the puja's pricing tier (see OnlinePuja.tsx's
+   *  getPujaUnitPrice) — it is never added into or multiplied against the
+   *  actual charged total, which is computed purely from the tiered unit
+   *  rate (see computePujaBaseAmount). */
   price: number;
   imageUrl: string;
   duration?: string;
   materialsIncluded?: string[];
+  // ── Dynamic Duration + Pandit pricing (Online Puja categories: Health &
+  // Longevity, Wealth & Prosperity, Protection & Victory, Career &
+  // Business, Family & Marriage, and Festivals/Ancestral/Graha Shanti —
+  // i.e. festivals, ancestor, graha_shanti, education) ────────────────────
+  // Mirrors the Seva interface's pricingMode field/naming. Both now use the
+  // same additive, unit-rate-only formula — see OnlinePuja.tsx's
+  // computePujaBaseAmount. Omitted entirely (undefined) for any puja that
+  // keeps its old fixed `price` — e.g. Akhand Ramayan Path, whose
+  // "Multi-day recitation" duration doesn't fit a linear per-block rate —
+  // and for any future puja in the same situation.
+  /** "duration-pandit": total = unitPrice × (durationUnits + pandits − 1),
+   *  where durationUnits is how many unitDurationMinutes blocks the
+   *  devotee selects (default 1, i.e. 10 minutes) and pandits is the
+   *  number of Pandits selected (default 1) — so the default selection
+   *  always totals exactly 1 × unitPrice. Omitted = original fixed
+   *  `price` behaviour, unaffected. */
+  pricingMode?: "duration-pandit";
+  /** Legacy field, no longer read by the price calculation — the charged
+   *  rate now always comes from OnlinePuja.tsx's shared tier table (see
+   *  getPujaUnitPrice), keyed off `price` above. Left in place only so
+   *  existing spiritualData.ts records don't need every occurrence
+   *  removed. */
+  unitPrice?: number;
+  /** Minutes represented by one duration block (10, per spec). */
+  unitDurationMinutes?: number;
 }
 
 export interface PriestProfile {

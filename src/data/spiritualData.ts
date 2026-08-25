@@ -235,6 +235,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2399,
+    pricingMode: "duration-pandit",
+    unitPrice: 400,
+    unitDurationMinutes: 10,
     duration: "60 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg"
   },
@@ -249,6 +252,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 5999,
+    pricingMode: "duration-pandit",
+    unitPrice: 665,
+    unitDurationMinutes: 10,
     duration: "90 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
   },
@@ -263,6 +269,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3749,
+    pricingMode: "duration-pandit",
+    unitPrice: 470,
+    unitDurationMinutes: 10,
     duration: "75 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/maa.jpg"
   },
@@ -277,6 +286,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 600,
+    unitDurationMinutes: 10,
     duration: "45 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg"
   },
@@ -291,6 +303,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: false,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     duration: "60 minutes",
     imageUrl: import.meta.env.BASE_URL + "images/puja.jpg"
   },
@@ -311,6 +326,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 250,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -326,6 +344,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1649,
+    pricingMode: "duration-pandit",
+    unitPrice: 200,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -341,6 +362,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 5699,
+    pricingMode: "duration-pandit",
+    unitPrice: 950,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "60 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -356,6 +380,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bbsr-lingaraj"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -371,6 +398,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bbsr-lingaraj"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -386,6 +416,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bbsr-lingaraj"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -401,6 +434,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("ghatgaon-tarini"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -416,6 +452,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("ghatgaon-tarini"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -431,6 +470,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("ghatgaon-tarini"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -446,6 +488,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("purushottampur-tara-tarini"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -461,6 +506,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("purushottampur-tara-tarini"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -476,6 +524,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("purushottampur-tara-tarini"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -491,6 +542,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jajpur-biraja"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -506,6 +560,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jajpur-biraja"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -521,6 +578,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jajpur-biraja"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -536,6 +596,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("sambalpur-samaleswari"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -551,6 +614,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("sambalpur-samaleswari"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -566,6 +632,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("sambalpur-samaleswari"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -581,6 +650,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jagatsinghpur-sarala"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -596,6 +668,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jagatsinghpur-sarala"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -611,6 +686,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jagatsinghpur-sarala"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -626,6 +704,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kakatpur-mangala"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -641,6 +722,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kakatpur-mangala"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -656,6 +740,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kakatpur-mangala"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -671,6 +758,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("cuttack-dhabaleswar"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -686,6 +776,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("cuttack-dhabaleswar"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -701,6 +794,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("cuttack-dhabaleswar"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -716,6 +812,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -731,6 +830,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -746,6 +848,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -761,6 +866,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -776,6 +884,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 600,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "50 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -791,6 +902,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 7499,
+    pricingMode: "duration-pandit",
+    unitPrice: 450,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "75 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -806,6 +920,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 250,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jajpur-chhatia-bata"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -821,6 +938,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1649,
+    pricingMode: "duration-pandit",
+    unitPrice: 200,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jajpur-chhatia-bata"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -836,6 +956,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 5699,
+    pricingMode: "duration-pandit",
+    unitPrice: 950,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("jajpur-chhatia-bata"),
     duration: "60 minutes",
     materialsIncluded: ["Tulsi leaves", "Kotha Bhoga rice", "Camphor", "Sandalwood paste", "Fresh flowers"]
@@ -851,6 +974,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi leaves", "Dahi-Pakhila (curd-rice)", "White flowers", "Sandalwood paste", "Areca leaves"]
@@ -866,6 +992,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1649,
+    pricingMode: "duration-pandit",
+    unitPrice: 410,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "35 minutes",
     materialsIncluded: ["Tulsi leaves", "Dahi-Pakhila (curd-rice)", "White flowers", "Sandalwood paste", "Areca leaves"]
@@ -881,6 +1010,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 660,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Dahi-Pakhila (curd-rice)", "White flowers", "Sandalwood paste", "Areca leaves"]
@@ -896,6 +1028,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("dhenkanal-kapilash"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -911,6 +1046,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("dhenkanal-kapilash"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -926,6 +1064,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("dhenkanal-kapilash"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -941,6 +1082,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("varanasi-kashi-vishwanath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -956,6 +1100,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("varanasi-kashi-vishwanath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -971,6 +1118,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("varanasi-kashi-vishwanath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -979,13 +1129,16 @@ export const ON_LINE_PUJAS: Puja[] = [
     id: "kedarnath-kedarnath-puja-1",
     name: "Rudrabhishek Maha Puja",
     category: "protection",
-    templeName: "Kedarnath Temple —Kedarnath",
+    templeName: "Kedarnath Temple — Kedarnath",
     deityName: "Lord Shiva (Kedarnath)",
     benefits: "A powerful ablution ritual offering milk, honey, and Bilva leaves to the Shiva Lingam in your name and Gotra, dissolving deep-rooted fears and negative planetary influences.",
     priestDetails: "Pandit Ananta Prasad Bhatt — 14 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kedarnath-kedarnath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -994,13 +1147,16 @@ export const ON_LINE_PUJAS: Puja[] = [
     id: "kedarnath-kedarnath-puja-2",
     name: "Maha Mrityunjaya Jaap Puja",
     category: "health",
-    templeName: "Kedarnath Temple —Kedarnath",
+    templeName: "Kedarnath Temple — Kedarnath",
     deityName: "Lord Shiva (Kedarnath)",
     benefits: "108 chants of the life-restoring Mahamrityunjaya Mantra performed before the sanctum, invoking healing grace for longevity and recovery from illness.",
     priestDetails: "Pandit Bhuvneshwar Dimri — 20 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kedarnath-kedarnath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1009,13 +1165,16 @@ export const ON_LINE_PUJAS: Puja[] = [
     id: "kedarnath-kedarnath-puja-3",
     name: "Graha Shanti Rudra Puja",
     category: "graha_shanti",
-    templeName: "Kedarnath Temple —Kedarnath",
+    templeName: "Kedarnath Temple — Kedarnath",
     deityName: "Lord Shiva (Kedarnath)",
     benefits: "A dedicated Vedic ritual to pacify malefic planetary doshas (Shani, Rahu, Ketu) through sacred fire offerings and Rudra chanting, restoring balance to your horoscope.",
     priestDetails: "Pandit Gopal Krishna Tiwari — 17 years of experience",
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kedarnath-kedarnath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1031,6 +1190,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("badrinath-badrinath"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -1046,6 +1208,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 600,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("badrinath-badrinath"),
     duration: "50 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -1061,6 +1226,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 7499,
+    pricingMode: "duration-pandit",
+    unitPrice: 450,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("badrinath-badrinath"),
     duration: "75 minutes",
     materialsIncluded: ["Tulsi leaves", "Panchamrit", "Yellow flowers", "Sandalwood paste", "Lotus seeds"]
@@ -1076,6 +1244,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("katra-vaishno-devi"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1091,6 +1262,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("katra-vaishno-devi"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1106,6 +1280,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("katra-vaishno-devi"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1121,6 +1298,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("vrindavan-banke-bihari"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1136,6 +1316,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1649,
+    pricingMode: "duration-pandit",
+    unitPrice: 550,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("vrindavan-banke-bihari"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1151,6 +1334,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 660,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("vrindavan-banke-bihari"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1166,6 +1352,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("vrindavan-prem-mandir"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1181,6 +1370,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1649,
+    pricingMode: "duration-pandit",
+    unitPrice: 550,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("vrindavan-prem-mandir"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1196,6 +1388,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 660,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("vrindavan-prem-mandir"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1211,6 +1406,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("haridwar-har-ki-pauri"),
     duration: "60 minutes",
     materialsIncluded: ["Sesame seeds", "Copper vessel", "Holy Ganga jal", "Cotton wicks", "Marigold flowers"]
@@ -1226,6 +1424,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 450,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("haridwar-har-ki-pauri"),
     duration: "45 minutes",
     materialsIncluded: ["Sesame seeds", "Copper vessel", "Holy Ganga jal", "Cotton wicks", "Marigold flowers"]
@@ -1241,6 +1442,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 5699,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("haridwar-har-ki-pauri"),
     duration: "75 minutes",
     materialsIncluded: ["Sesame seeds", "Copper vessel", "Holy Ganga jal", "Cotton wicks", "Marigold flowers"]
@@ -1256,6 +1460,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kangra-jwala-ji"),
     duration: "40 minutes",
     materialsIncluded: ["Ghee lamp wicks", "Camphor", "Red flowers", "Kheer (rice pudding) offering", "Coconut"]
@@ -1271,6 +1478,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 1050,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kangra-jwala-ji"),
     duration: "35 minutes",
     materialsIncluded: ["Ghee lamp wicks", "Camphor", "Red flowers", "Kheer (rice pudding) offering", "Coconut"]
@@ -1286,6 +1496,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 7499,
+    pricingMode: "duration-pandit",
+    unitPrice: 450,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kangra-jwala-ji"),
     duration: "90 minutes",
     materialsIncluded: ["Ghee lamp wicks", "Camphor", "Red flowers", "Kheer (rice pudding) offering", "Coconut"]
@@ -1301,6 +1514,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("somnath-somnath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1316,6 +1532,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("somnath-somnath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1331,6 +1550,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("somnath-somnath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1346,6 +1568,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("dwarka-dwarkadhish"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1361,6 +1586,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1649,
+    pricingMode: "duration-pandit",
+    unitPrice: 550,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("dwarka-dwarkadhish"),
     duration: "30 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1376,6 +1604,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 660,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("dwarka-dwarkadhish"),
     duration: "45 minutes",
     materialsIncluded: ["Tulsi garland", "Makhan-mishri (butter-sugar)", "Peacock feather motif cloth", "Fresh flowers", "Sandalwood paste"]
@@ -1391,6 +1622,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("nashik-trimbakeshwar"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1406,6 +1640,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("nashik-trimbakeshwar"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1421,6 +1658,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("nashik-trimbakeshwar"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1436,6 +1676,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("mumbai-siddhivinayak"),
     duration: "35 minutes",
     materialsIncluded: ["Durva grass", "Modak sweets", "Red flowers", "Coconut", "Sindoor"]
@@ -1451,6 +1694,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 250,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("mumbai-siddhivinayak"),
     duration: "40 minutes",
     materialsIncluded: ["Durva grass", "Modak sweets", "Red flowers", "Coconut", "Sindoor"]
@@ -1466,6 +1712,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("mumbai-siddhivinayak"),
     duration: "45 minutes",
     materialsIncluded: ["Durva grass", "Modak sweets", "Red flowers", "Coconut", "Sindoor"]
@@ -1481,6 +1730,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolhapur-mahalakshmi"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1496,6 +1748,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolhapur-mahalakshmi"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1511,6 +1766,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolhapur-mahalakshmi"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1526,6 +1784,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 450,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("sarangpur-kashtabhanjan-hanuman"),
     duration: "45 minutes",
     materialsIncluded: ["Sindoor (vermilion)", "Til (sesame) oil", "Betel leaves", "Red flowers", "Coconut"]
@@ -1541,6 +1802,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("sarangpur-kashtabhanjan-hanuman"),
     duration: "40 minutes",
     materialsIncluded: ["Sindoor (vermilion)", "Til (sesame) oil", "Betel leaves", "Red flowers", "Coconut"]
@@ -1556,6 +1820,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 750,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("sarangpur-kashtabhanjan-hanuman"),
     duration: "35 minutes",
     materialsIncluded: ["Sindoor (vermilion)", "Til (sesame) oil", "Betel leaves", "Red flowers", "Coconut"]
@@ -1571,6 +1838,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("guwahati-kamakhya"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1586,6 +1856,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("guwahati-kamakhya"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1601,6 +1874,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("guwahati-kamakhya"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1616,6 +1892,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolkata-kalighat"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1631,6 +1910,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolkata-kalighat"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1646,6 +1928,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolkata-kalighat"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1661,6 +1946,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolkata-dakshineswar"),
     duration: "50 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1676,6 +1964,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2249,
+    pricingMode: "duration-pandit",
+    unitPrice: 560,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolkata-dakshineswar"),
     duration: "35 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1691,6 +1982,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3299,
+    pricingMode: "duration-pandit",
+    unitPrice: 825,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kolkata-dakshineswar"),
     duration: "40 minutes",
     materialsIncluded: ["Red hibiscus flowers", "Kumkum (vermilion)", "Red silk cloth", "Coconut", "Glass bangles"]
@@ -1706,6 +2000,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4199,
+    pricingMode: "duration-pandit",
+    unitPrice: 840,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "45 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1721,6 +2018,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 2999,
+    pricingMode: "duration-pandit",
+    unitPrice: 500,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "60 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1736,6 +2036,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 4949,
+    pricingMode: "duration-pandit",
+    unitPrice: 350,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("deoghar-baidyanath"),
     duration: "40 minutes",
     materialsIncluded: ["Bilva leaves", "Raw milk", "Vibhuti (sacred ash)", "Ganga jal", "White flowers"]
@@ -1763,6 +2066,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 799,
+    pricingMode: "duration-pandit",
+    unitPrice: 200,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "20 minutes",
     materialsIncluded: ["Mahaprasad (rice, dal, vegetable preparations)", "Tulsi leaves", "Kotha Bhoga rice", "Sandalwood paste"]
@@ -1778,6 +2084,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 1899,
+    pricingMode: "duration-pandit",
+    unitPrice: 475,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("kantilo-nilamadhab"),
     duration: "40 minutes",
     materialsIncluded: ["Tulsi plant", "Sugarcane stalks", "Wedding mandap decoration", "Fresh flowers", "Sandalwood paste"]
@@ -1793,6 +2102,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 3499,
+    pricingMode: "duration-pandit",
+    unitPrice: 300,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("bhadrak-akhandaalamani"),
     duration: "50 minutes",
     materialsIncluded: ["Navagraha Samidha (sacred wood)", "Nine-grain offering", "Ghee", "Vibhuti (sacred ash)", "Sesame oil"]
@@ -1808,6 +2120,14 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: true,
     price: 5499,
+    // ✅ SCOPE EXCEPTION: this is the one puja in "Festivals, Ancestral &
+    // Graha Shanti" that intentionally does NOT get pricingMode
+    // "duration-pandit" — its duration is "Multi-day recitation (as per
+    // temple schedule)", not a fixed number of minutes, so a 10–100 minute
+    // selector would misrepresent the ritual. It keeps its original fixed
+    // `price` exactly as before; every other puja in this category was
+    // switched over. See isPujaDynamicPricing's unparsable-duration guard
+    // in OnlinePuja.tsx, which also protects this case defensively.
     imageUrl: getTempleImage("kendrapara-baladevjew"),
     duration: "Multi-day recitation (as per temple schedule)",
     materialsIncluded: ["Ramayana text recitation", "Akhand Deep (unbroken lamp)", "Fresh flowers", "Tulsi leaves"]
@@ -1823,6 +2143,9 @@ export const ON_LINE_PUJAS: Puja[] = [
     videoAvailable: true,
     prasadIncluded: false,
     price: 599,
+    pricingMode: "duration-pandit",
+    unitPrice: 300,
+    unitDurationMinutes: 10,
     imageUrl: getTempleImage("puri-jagannath"),
     duration: "15 minutes",
     materialsIncluded: ["Fresh fodder, jaggery & roti for the cows sponsored", "Gomata Aarti", "Fresh flowers"]

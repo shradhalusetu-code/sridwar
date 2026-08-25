@@ -103,8 +103,10 @@ const EXTRA_SEVAS = [
     templeAssociation: "Vrindavan Dham",
     // ✅ DURATION + PANDIT PRICING (Sponsorship Services update): replaces
     // the fixed amount with a duration + number-of-Pandits selector.
-    // Base: 10 minutes + 1 Pandit = ₹150; each additional 10-minute block
-    // adds ₹150, and each additional Pandit adds ₹150.
+    // Base: 10 minutes + 1 Pandit = ₹200; each additional 10-minute block
+    // adds ₹200, and each additional Pandit adds ₹200 (rate derived from
+    // this seva's own base price via getSevaDurationPanditUnitPrice's
+    // shared tier table — see that function for the full table).
     donationTiers: [{ amount: 150 }],
     pricingMode: "duration-pandit" as const,
     unitPrice: 150,
@@ -113,10 +115,79 @@ const EXTRA_SEVAS = [
     includes: ["Tulsi Vivah ceremony performed as per temple ritual process, for the duration and number of Pandits sponsored", "Sankalp taken in your name for the family", "Photo/video evidence where available"],
     devoteeReceives: ["Digital seva certificate in your name", "Evidence shared after completion", "Sankalp recorded with your Gotra"],
     certificateTimeline: "Certificate & evidence shared within 3-7 working days of completion.",
-    coverageLabel: "₹150 for 10 minutes with 1 Pandit — extend the duration or add Pandits",
+    coverageLabel: "₹200 for 10 minutes with 1 Pandit — extend the duration or add Pandits",
     priestKeywords: ["marriage", "family", "festival"],
   },
 ];
+
+// ── Duration + Pandit pricing bounds & tier rate — Tulsi Vivah Seva only ───
+// Mirrors the same fix applied to Online Puja's Health/Wealth/Protection/
+// Career/Marriage pujas (see OnlinePuja.tsx getPujaUnitPrice /
+// clampPujaDurationUnits / clampPujaPandits) so both duration-pandit
+// selectors on the site follow one consistent rule: 1–10 duration blocks
+// (10–100 minutes), 1–10 Pandits, and a per-unit rate derived from the
+// item's own base price via the same shared tier table.
+const SEVA_DURATION_PANDIT_MIN_UNITS = 1;
+const SEVA_DURATION_PANDIT_MAX_UNITS = 10;
+const SEVA_DURATION_PANDIT_MAX_PANDITS = 10;
+
+function clampSevaDurationPanditUnits(units: number): number {
+  return Math.min(SEVA_DURATION_PANDIT_MAX_UNITS, Math.max(SEVA_DURATION_PANDIT_MIN_UNITS, units));
+}
+
+function clampSevaDurationPanditPandits(pandits: number): number {
+  return Math.min(SEVA_DURATION_PANDIT_MAX_PANDITS, Math.max(1, pandits));
+}
+
+//   under ₹2,000            → ₹200 per 10 minutes / per Pandit
+//   ₹2,000 – ₹3,000         → ₹250
+//   ₹3,000 – ₹4,000         → ₹300
+//   ₹4,000 – ₹6,000         → ₹350
+//   above ₹6,000            → +₹100 for every further ₹2,000 band above
+//                              ₹6,000 (₹6,000–₹8,000 → ₹450, …)
+function getSevaDurationPanditUnitPrice(basePrice: number): number {
+  if (basePrice <= 2000) return 200;
+  if (basePrice <= 3000) return 250;
+  if (basePrice <= 4000) return 300;
+  if (basePrice <= 6000) return 350;
+  const bandsAbove6000 = Math.ceil((basePrice - 6000) / 2000);
+  return 350 + bandsAbove6000 * 100;
+}
+
+// ── Dynamic "How this is performed · What you receive" content ────────────
+// Mirrors OnlinePuja.tsx's getDynamicPujaValueNotes for the same
+// duration-pandit pricing model: as a devotee selects more duration or
+// more Pandits, the "How this is performed" list grows with additional
+// lines explaining the extra devotional value — grounded in this seva's
+// own ritual significance, always shown ALONGSIDE the existing includes
+// list, never replacing it. Keyed by seva id so each duration-pandit seva
+// (today, only Tulsi Vivah Seva) gets its own authentic phrasing.
+const SEVA_DYNAMIC_VALUE_NOTES: Record<string, { duration: string; pandits: string }> = {
+  "seva-tulsi-vivah": {
+    duration:
+      "the priest extends the Tulsi Vivah rites with additional mantra recitation and ritual stages — including a fuller Kanyadaan-style vivah sequence — giving the ceremony deeper continuity as per Vaishnav tradition",
+    pandits:
+      "the sacred marriage ceremony includes simultaneous multi-priest chanting and expanded sankalp coverage, so more family members can be named in the ceremony",
+  },
+};
+
+/** Returns 0, 1, or 2 additional "How this is performed" lines describing
+ *  the extra devotional value of the current duration/Pandit selection,
+ *  beyond the seva's base 10-minute/1-Pandit selection. Empty at the
+ *  default selection, and empty for any seva without a defined entry
+ *  above (so this only ever applies to duration-pandit sevas that opt in). */
+function getDynamicSevaValueNotes(sevaId: string, durationUnits: number, pandits: number, durationMinutes: number): string[] {
+  const focus = SEVA_DYNAMIC_VALUE_NOTES[sevaId];
+  if (!focus) return [];
+  const notes: string[] = [];
+  if (durationUnits > 1) {
+    notes.push(`At ${durationMinutes} minutes, ${focus.duration}.`);
+  }
+  if (pandits > 1) {
+    notes.push(`With ${pandits} Pandits performing together, ${focus.pandits}.`);
+  }
+  return notes;
+}
 
 const renderSevaIcon = (id: string) => {
   switch (id) {
@@ -191,26 +262,55 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
   // Sponsorship Services previously showed one fixed donationTiers[0].amount
   // no matter what. For sevas with pricingMode "quantity" the devotee now
   // picks a count (e.g. number of people/cows/diyas/prasad distributions)
-  // and the total is quantity × unitPrice. For "duration-pandit" sevas the
-  // devotee picks a duration (in unitDurationMinutes blocks, starting at 1
-  // block) and a number of Pandits — base is 1 block + 1 Pandit = unitPrice,
-  // and each additional block OR additional Pandit adds unitPrice again:
-  // total = unitPrice * (durationUnits + pandits - 1). Sevas without a
-  // pricingMode (or "tiers") are entirely unaffected — baseAmount below
-  // just falls back to the original tier.amount.
+  // and the total is quantity × unitPrice — UNCHANGED, not part of this fix.
+  //
+  // For "duration-pandit" sevas — today that's only Tulsi Vivah Seva, the
+  // sole Sponsorship Services item with this pricingMode — the devotee
+  // picks a duration (in unitDurationMinutes blocks, starting at 1 block =
+  // 10 minutes) and a number of Pandits. Base is 1 block + 1 Pandit = the
+  // per-unit rate, and each additional block OR additional Pandit adds that
+  // same rate again: total = unitPrice × (durationUnits + pandits - 1).
+  // ✅ MAX-CAP FIX: both durationUnits and pandits had no upper bound before
+  // (only a floor of 1) — clamped to 1–10 now, matching Online Puja's same
+  // Duration + Pandit model (max 100 minutes / max 10 Pandits).
+  // ✅ TIER FIX: the per-unit rate is now derived from the seva's own base
+  // price via the same shared tier table Online Puja uses (see
+  // getSevaDurationPanditUnitPrice below), instead of trusting the raw
+  // unitPrice field directly — for Tulsi Vivah Seva (₹150 base, in the
+  // ₹150–₹2,000 tier) this resolves to ₹200 per 10-minute block / per
+  // Pandit.
+  // Sevas without a pricingMode (or "tiers") are entirely unaffected —
+  // baseAmount below just falls back to the original tier.amount.
   const [quantity, setQuantity] = useState(1);
   const [durationUnits, setDurationUnits] = useState(1);
   const [pandits, setPandits] = useState(1);
+
+  const sevaDurationPanditUnitPrice =
+    seva.pricingMode === "duration-pandit" ? getSevaDurationPanditUnitPrice(seva.unitPrice ?? tier.amount) : 0;
 
   const baseAmount =
     seva.pricingMode === "quantity"
       ? quantity * (seva.unitPrice ?? tier.amount)
       : seva.pricingMode === "duration-pandit"
-      ? (seva.unitPrice ?? tier.amount) * (durationUnits + pandits - 1)
+      ? sevaDurationPanditUnitPrice * (durationUnits + pandits - 1)
       : tier.amount;
 
-  const { display, original } = getSevaDiscountedPrice(baseAmount);
+  // ✅ PRICE-CONSISTENCY FIX: for "quantity" and "duration-pandit" sevas
+  // the calculated total shown in the selector (e.g. "₹200 for 10 min, 1
+  // Pandit") IS the actual price — it must never be silently discounted
+  // behind the devotee's back into a different "Active Seva" badge number
+  // (e.g. showing ₹160 at the top while the selector says ₹200). So these
+  // two computed pricing modes always show/charge baseAmount as-is. Fixed
+  // single-tier sevas (Annadanam, Gau Seva, Akhanda Diya, etc.) are
+  // completely unaffected and keep the sitewide 20% discount exactly as
+  // before.
+  const { display, original } =
+    seva.pricingMode === "quantity" || seva.pricingMode === "duration-pandit"
+      ? { display: baseAmount, original: null as number | null }
+      : getSevaDiscountedPrice(baseAmount);
   const durationMinutes = (seva.unitDurationMinutes ?? 10) * durationUnits;
+  const dynamicSevaValueNotes =
+    seva.pricingMode === "duration-pandit" ? getDynamicSevaValueNotes(seva.id, durationUnits, pandits, durationMinutes) : [];
   // ─── Compact-by-default "how it's performed" details ────────────────────
   // Mirrors the exact expand/collapse pattern already used by
   // SevaOfferingCard.tsx and BazaarOfferingCard.tsx ("What's included · What
@@ -386,9 +486,11 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
           </div>
         )}
 
-        {/* Duration + Pandit selector — Tulsi Vivah Seva, Navagraha Shanti
-            Homa, Akhand Ramayan Path. Base: 10 minutes + 1 Pandit = ₹150;
-            each additional 10-minute block or additional Pandit adds ₹150. */}
+        {/* Duration + Pandit selector — Tulsi Vivah Seva only (Navagraha
+            Shanti Homa and Akhand Ramayan Path have moved to Online Pujas).
+            Base: 10 minutes + 1 Pandit = ₹200; each additional 10-minute
+            block or additional Pandit adds ₹200, up to the 100-minute /
+            10-Pandit cap. */}
         {seva.pricingMode === "duration-pandit" && (
           <div className="mb-4 space-y-2.5" onClick={(e) => e.stopPropagation()}>
             <div>
@@ -398,7 +500,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setDurationUnits((d) => Math.max(1, d - 1))}
+                  onClick={() => setDurationUnits((d) => clampSevaDurationPanditUnits(d - 1))}
                   className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
                   aria-label="Decrease duration"
                 >
@@ -407,13 +509,14 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
                 <input
                   type="number"
                   min={1}
+                  max={10}
                   value={durationUnits}
-                  onChange={(e) => setDurationUnits(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  onChange={(e) => setDurationUnits(clampSevaDurationPanditUnits(parseInt(e.target.value, 10) || 1))}
                   className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2 text-xs text-white text-center focus:outline-none focus:border-[#FFB347]/50"
                 />
                 <button
                   type="button"
-                  onClick={() => setDurationUnits((d) => d + 1)}
+                  onClick={() => setDurationUnits((d) => clampSevaDurationPanditUnits(d + 1))}
                   className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
                   aria-label="Increase duration"
                 >
@@ -427,7 +530,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setPandits((p) => Math.max(1, p - 1))}
+                  onClick={() => setPandits((p) => clampSevaDurationPanditPandits(p - 1))}
                   className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
                   aria-label="Decrease number of Pandits"
                 >
@@ -436,13 +539,14 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
                 <input
                   type="number"
                   min={1}
+                  max={10}
                   value={pandits}
-                  onChange={(e) => setPandits(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  onChange={(e) => setPandits(clampSevaDurationPanditPandits(parseInt(e.target.value, 10) || 1))}
                   className="w-full bg-white/5 border border-white/12 rounded-xl px-3.5 py-2 text-xs text-white text-center focus:outline-none focus:border-[#FFB347]/50"
                 />
                 <button
                   type="button"
-                  onClick={() => setPandits((p) => p + 1)}
+                  onClick={() => setPandits((p) => clampSevaDurationPanditPandits(p + 1))}
                   className="w-9 h-9 shrink-0 rounded-xl bg-white/5 border border-white/12 text-white text-base font-bold hover:border-[#FFB347]/50 transition-colors"
                   aria-label="Increase number of Pandits"
                 >
@@ -451,7 +555,7 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
               </div>
             </div>
             <p className="text-[11px] text-white/40">
-              ₹{(seva.unitPrice ?? tier.amount).toLocaleString("en-IN")} base (10 min, 1 Pandit) + ₹{(seva.unitPrice ?? tier.amount).toLocaleString("en-IN")} per extra 10 minutes or extra Pandit = ₹{baseAmount.toLocaleString("en-IN")}
+              ₹{sevaDurationPanditUnitPrice.toLocaleString("en-IN")} base (10 min, 1 Pandit) + ₹{sevaDurationPanditUnitPrice.toLocaleString("en-IN")} per extra 10 minutes or extra Pandit = ₹{baseAmount.toLocaleString("en-IN")}
             </p>
           </div>
         )}
@@ -483,6 +587,15 @@ function SevaCard({ seva, onSponsor, highlighted = false }: SevaCardProps) {
                       {seva.includes.map((item, i) => (
                         <li key={i} className="flex items-start space-x-1.5 text-[13px] text-white/70">
                           <Check className="w-3 h-3 text-[#5EEAD4] flex-shrink-0 mt-0.5" /><span>{item}</span>
+                        </li>
+                      ))}
+                      {/* ✅ DYNAMIC CONTENT: additional lines as duration or
+                          Pandits increase — see getDynamicSevaValueNotes.
+                          Empty at the 10-min/1-Pandit default, so the
+                          original list is exactly what's authored above. */}
+                      {dynamicSevaValueNotes.map((note, i) => (
+                        <li key={`dyn-${i}`} className="flex items-start space-x-1.5 text-[13px] text-white/70">
+                          <Check className="w-3 h-3 text-[#FFB347] flex-shrink-0 mt-0.5" /><span>{note}</span>
                         </li>
                       ))}
                     </ul>

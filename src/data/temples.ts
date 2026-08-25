@@ -849,7 +849,7 @@ export const TEMPLES_LIST: Temple[] = [
   },
   {
     id: "kedarnath-kedarnath",
-    name: "Kedarnath Temple —Kedarnath",
+    name: "Kedarnath Temple — Kedarnath",
     city: "Kedarnath",
     state: "Uttarakhand",
     deity: "Lord Shiva (Mountain Sages)",
