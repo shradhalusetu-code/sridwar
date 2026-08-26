@@ -424,9 +424,9 @@ export default function SubscriptionSignup({
                   <div id="signup-disclaimer-acknowledge">
                     <DisclaimerAcknowledge
                       summary={isFree
-                        ? "Free plan activation is subject to review — listing visibility and referral benefits are platform features, not guaranteed income."
-                        : "Your subscription activates once payment is verified — read the full terms before continuing to payment."}
-                      details="Sri Dwar reviews new provider profiles before they go live and may request additional verification. Listing visibility, referral cashback tiers, and campaign eligibility are genuine platform features tied to real activity on the platform — not a guaranteed income, investment, or money-circulation scheme. For paid plans, your subscription is activated once payment is verified by our team, typically within a few hours; the amount and billing cycle shown at the next step apply from that point. Your details are used to list and contact you for this purpose and are not sold to third parties."
+                        ? "With श्रद्धा, we welcome your free plan for a gentle review — listing visibility and referral benefits are heartfelt platform features, not a promise of guaranteed income."
+                        : "With gratitude, your subscription activates once payment is lovingly verified — kindly read the full details before continuing to payment."}
+                      details="With श्रद्धा and heartfelt gratitude, we welcome you into the Sri Dwar family of providers. Our team reviews new provider profiles with care before they go live, and may kindly request a little additional verification. Listing visibility, referral cashback tiers and campaign eligibility are genuine platform features tied to real activity on the platform — offered warmly as encouragement, not as a guaranteed income, investment, or money-circulation scheme. For paid plans, your subscription is activated once payment is verified by our team, typically within a few hours; the amount and billing cycle shown at the next step apply from that point. Your details are used only to list and contact you for this purpose, and are never sold to third parties."
                       checked={signupDisclaimerChecked}
                       onCheckedChange={(v) => { setSignupDisclaimerChecked(v); if (v) setShowSignupDisclaimerError(false); }}
                       checkboxLabel="I understand and agree to the above before continuing."

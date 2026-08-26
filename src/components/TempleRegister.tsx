@@ -825,10 +825,10 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
             <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#FFB347]">Your divine contribution helps preserve our heritage, temples, and Sridwar's mission:</p>
+              <p className="text-xs font-semibold text-[#FFB347]">With gratitude, your divine contribution helps care for our heritage, our temples, and Sri Dwar's mission:</p>
               <p className="text-[13px] text-white/55 leading-relaxed">
-                Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
-                <br />A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification.
+                Every offering helps us gently connect devotees worldwide with sacred temples, trusted priests, and dharmic services — with special warmth for the smaller temples that quietly continue their seva with very limited resources or visibility.
+                <br />As a lasting token of your devotion, a small marble slab bearing your name is placed on the wall of the temple your contribution supports. Once it finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation.
               </p>
             </div>
           </div>
@@ -876,7 +876,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
                   <li className="text-[13px] text-white/60 leading-snug">✦ Eligibility toward pilgrimage-related opportunities offered to regular devotees</li>
                 )}
               </ul>
-              <p className="text-[11px] text-white/30 leading-snug pt-0.5">Genuine platform benefits — not a guarantee of any spiritual outcome. Higher contributions unlock more.</p>
+              <p className="text-[11px] text-white/30 leading-snug pt-0.5">These are heartfelt platform blessings, offered in appreciation of your generosity — not a promise of any specific spiritual outcome, guaranteed income, or investment return. The more you're moved to offer, the more of these humble blessings unfold.</p>
             </div>
           )}
 
@@ -1014,8 +1014,8 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         {/* Required acknowledgement — gates "Submit and Proceed" below. */}
         <div id="devotee-reg-disclaimer-acknowledge">
           <DisclaimerAcknowledge
-            summary="Your details are used to register your Dharmic profile and coordinate services you request — a genuine registration, not a guarantee of any specific outcome."
-            details="Sri Dwar retains your name, contact details, and stated interests to register your Dharmic profile, coordinate any pujas/sevas/services you separately book, and send related updates. Any optional divine contribution on the next step is a genuine platform contribution, not a guarantee of any spiritual outcome, investment, or money-circulation scheme. We do not sell your details to third parties."
+            summary="With श्रद्धा, we welcome you into the Sri Dwar family — your details simply help us create your Dharmic profile and stay lovingly connected as you explore our services."
+            details="With श्रद्धा and heartfelt gratitude, we welcome you into the Sri Dwar family. Your name, contact details and stated interests are kept with care, simply to create your Dharmic profile, coordinate any pujas, sevas or services you separately choose to book, and keep you gently updated. We never sell your details to third parties. Any optional divine contribution on the next step is received with gratitude as a heartfelt part of your devotional journey with us — may Prabhu and Maa's कृपा always be upon you and your family."
             checked={disclaimerChecked}
             onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
             checkboxLabel="I understand and agree to the above before proceeding."
@@ -1594,10 +1594,10 @@ function DharmicExpertSection() {
           <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
             <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#FFB347]">Your divine contribution helps preserve our heritage, temples, and Sridwar's mission:</p>
+              <p className="text-xs font-semibold text-[#FFB347]">With gratitude, your divine contribution helps care for our heritage, our temples, and Sri Dwar's mission:</p>
               <p className="text-[13px] text-white/55 leading-relaxed">
-                Build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services — including this dharmic directory of local pujaris, pandits, gurus, sants, sadhus, purohits, and seers.
-                <br />A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification.
+                Every offering helps us gently connect devotees worldwide with sacred temples, trusted priests, and dharmic services — including this dharmic directory of local pujaris, pandits, gurus, sants, sadhus, purohits, and seers.
+                <br />As a lasting token of your devotion, a small marble slab bearing your name is placed on the wall of the temple your contribution supports. Once it finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation.
               </p>
             </div>
           </div>
@@ -1981,8 +1981,8 @@ function DharmicExpertSection() {
             handleContinueToServices). */}
         <div id="expert-reg-disclaimer-acknowledge">
           <DisclaimerAcknowledge
-            summary="Your details are used to list your profile on Sri Dwar and coordinate services devotees book with you — a genuine registration, not a guarantee of bookings or income."
-            details="Sri Dwar reviews new expert/pujari profiles before they go live and may request additional verification. Being listed does not guarantee any number of bookings or income — it depends on genuine devotee interest in your services. Your details are used to list your profile, coordinate bookings, and send related updates; we do not sell them to third parties. Any optional divine contribution on the next step is a genuine platform contribution, not a guarantee of any spiritual outcome."
+            summary="With श्रद्धा, we welcome you into the Sri Dwar family of experts — your details simply help us list your profile and lovingly coordinate the devotees who reach out to you."
+            details="With श्रद्धा and heartfelt gratitude, we welcome you into the Sri Dwar family of experts. Our team reviews new expert/pujari profiles with care before they go live, and may kindly request a little additional verification. As with any genuine service, the number of bookings or income naturally depends on devotee interest — it isn't something we can promise in advance. Your details are used only to list your profile, coordinate bookings and keep you gently updated; we never sell them to third parties. Any optional divine contribution on the next step is received with gratitude as a heartfelt part of your devotional journey with us."
             checked={disclaimerChecked}
             onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
             checkboxLabel="I understand and agree to the above before proceeding."
@@ -2105,9 +2105,31 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
       setStep("temple-reg");
       setTimeout(() => document.getElementById("temple-register-section")?.scrollIntoView({ behavior: "smooth" }), 300);
     } else if (isExpertReg) {
+      // ✅ FIX (2026-08-26): dharmic-expert-section only renders once
+      // `step === "portal"` (see the `if (step === "portal")` render
+      // branch below) — without this, the section isn't in the DOM yet
+      // when scrollIntoView runs below, so the deep link silently landed
+      // on the default "find" screen instead of the expert registration
+      // form. DharmicExpertSection itself defaults to its own
+      // "category-select" step, which is exactly what an expert-register
+      // link should land on — no further action needed here.
+      setStep("portal");
       setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
     } else if (isDevoteeReg) {
-      setShowDevoteeFlow(true);
+      // ✅ FIX (2026-08-26): this used to call setShowDevoteeFlow(true) —
+      // that setter belongs to DharmicExpertSection (a separate component
+      // below in this file), not to TempleRegister, so calling it here
+      // threw "setShowDevoteeFlow is not defined" the instant anyone
+      // opened a devotee-register / short "?d=1" link, before the page
+      // could render anything.
+      // No replacement call is needed: DharmicExpertSection already reads
+      // these exact same URL params itself (its own effect a few hundred
+      // lines below, matching page === "devotee-register" / path ===
+      // "/devotee-register" / d === "1") and opens its devotee sub-flow on
+      // its own the moment it mounts. The only thing actually missing here
+      // is putting `step` into "portal" so that component mounts at all —
+      // same underlying bug as the isExpertReg branch above.
+      setStep("portal");
       setTimeout(() => document.getElementById("dharmic-expert-section")?.scrollIntoView({ behavior: "smooth" }), 300);
     }
   }, []);
@@ -2606,15 +2628,14 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                     <Gift className="w-3.5 h-3.5" /> Optional Divine Contribution
                   </h3>
                   <p className="text-[13px] text-white/40 leading-relaxed">
-                    Support your temple's renovation, annadanam, or seva activities. This step is entirely optional — tap "Skip" to finish.
+                    A heartfelt, entirely optional way to support your temple's renovation, annadanam, or seva activities — tap "Skip" any time to finish without one.
                   </p>
                 </div>
 
                 <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
                   <Heart className="w-3.5 h-3.5 text-[#FFB347] shrink-0 mt-0.5" />
                   <p className="text-[13px] text-white/55 leading-relaxed">
-                    If you contribute, your payment will be forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>, helping preserve our heritage, temples, and Sridwar's mission to connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
-                    A specific puja will be performed in your name at <strong className="text-white/80">{templeReg.templeName}</strong>, and <strong className="text-white/80">the certificate</strong> for that puja will be shared on WhatsApp &amp; Email within <strong className="text-white/80">3 working days</strong> after payment verification.
+                    With gratitude, your contribution is lovingly forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>, helping care for temples like this one — especially those that quietly serve their devotees with limited resources or visibility. As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall, and once it finds its place and a puja is performed in your name, we will share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/80">3 working days</strong> of payment confirmation.
                   </p>
                 </div>
 
@@ -2799,8 +2820,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               {/* Required acknowledgement — gates the submit button below. */}
               <div id="temple-reg-disclaimer-acknowledge">
                 <DisclaimerAcknowledge
-                  summary="This registers your temple/committee's details for review and listing — not an automatic or guaranteed listing."
-                  details="Sri Dwar reviews temple and committee registrations before listing them, and may contact the provided contact person to verify details. Listing does not guarantee any specific volume of devotee bookings, contributions, or visibility. Contact details are used to verify and coordinate this registration and are not sold to third parties."
+                  summary="With श्रद्धा, we welcome your temple/committee into the Sri Dwar family — your details simply help our team lovingly review and list your temple."
+                  details="With श्रद्धा and heartfelt gratitude, we welcome your temple or committee into the Sri Dwar family. Our team reviews every registration with care before listing it, and may gently reach out to the contact person provided to verify details. As with any genuine listing, the exact reach in devotee visits, bookings or contributions naturally varies and isn't something we can promise in advance. Contact details are used only to verify and coordinate this registration, and are never sold to third parties."
                   checked={templeRegDisclaimerChecked}
                   onCheckedChange={(v) => { setTempleRegDisclaimerChecked(v); if (v) setShowTempleRegDisclaimerError(false); }}
                   checkboxLabel="I understand and agree to the above before submitting."
@@ -2984,17 +3005,17 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             <h2 className="text-2xl font-serif font-bold text-white">
               Support <span className="text-[#FFB347]">{selectedTemple.split("—")[0].trim()}</span>
             </h2>
-            <p className="text-white/50 text-sm">Your divine contribution goes directly toward temple upkeep, annadanam, and seva activities, helping preserve our heritage, temples, and Sridwar's mission to connect devotees worldwide to sacred temples, trusted priests, and dharmic services.</p>
+            <p className="text-white/50 text-sm">With gratitude, your divine contribution goes directly toward temple upkeep, annadanam, and seva activities — helping care for our heritage, our temples, and Sri Dwar's mission, with special warmth for smaller temples that quietly serve with limited resources or visibility.</p>
           </div>
 
           <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
             <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-2xl px-4 py-3.5">
               <Gift className="w-4 h-4 text-[#FFB347] shrink-0 mt-0.5" />
               <div className="space-y-1 text-left">
-                <p className="text-xs font-semibold text-[#FFB347]">Your divine contribution will be forwarded to:</p>
+                <p className="text-xs font-semibold text-[#FFB347]">With gratitude, your divine contribution will be lovingly forwarded to:</p>
                 <p className="text-sm font-bold text-white leading-snug">{selectedTemple.split("—")[0].trim()}</p>
                 <p className="text-[13px] text-white/50 leading-relaxed">
-                  A specific puja will be performed in your name at your ista devta temple, and <strong className="text-white/75">the certificate</strong> for that puja will be shared with you on WhatsApp &amp; Email within <strong className="text-white/75">3 working days</strong> after payment verification and temple / puja committee management response.
+                  As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall. Once it finds its place and a puja is performed in your name, we will share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation and the temple/puja committee's response.
                 </p>
               </div>
             </div>
@@ -3142,8 +3163,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             {/* Required acknowledgement — gates the submit button below. */}
             <div id="devotee-flow-disclaimer-acknowledge">
               <DisclaimerAcknowledge
-                summary="This registers your visit/puja request with the selected temple and generates your Dharmic ID — a genuine registration, not a guarantee of any specific outcome."
-                details="Sri Dwar shares your name, phone, and stated puja/seva request with the selected temple to coordinate your visit or request, and generates a Dharmic ID for your profile. We do not sell your details to third parties. Any optional divine contribution on the next step is a genuine platform contribution, not a guarantee of any spiritual outcome, investment, or money-circulation scheme."
+                summary="With श्रद्धा and heartfelt gratitude, we welcome you into the Sri Dwar family and into a sacred connection with your chosen temple — kindly create your Dharmic ID as a humble beginning to your devotional journey with us."
+                details="With श्रद्धा and heartfelt gratitude, we welcome you into the Sri Dwar family and into a sacred connection with your chosen temple. To help your visit or Puja/Seva request be coordinated with the temple, Sri Dwar respectfully shares your name, phone and stated request with the selected temple. Your Dharmic ID is then created as a meaningful part of your devotional profile. We hold your personal information with care and do not sell it to third parties. Any optional Divine Contribution that follows is a voluntary contribution to support the Sri Dwar platform, offered simply in the spirit of devotion. May Prabhu and Maa's कृपा always be upon you and your family, filling your lives with happiness, peace and divine blessings."
                 checked={devoteeFlowDisclaimerChecked}
                 onCheckedChange={(v) => { setDevoteeFlowDisclaimerChecked(v); if (v) setShowDevoteeFlowDisclaimerError(false); }}
                 checkboxLabel="I understand and agree to the above before submitting."

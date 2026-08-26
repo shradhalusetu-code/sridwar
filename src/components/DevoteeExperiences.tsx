@@ -539,8 +539,8 @@ export default function DevoteeExperiences() {
             Divine Miracles & Success Stories
           </h2>
           <p className="text-[12px] text-white/40 font-mono max-w-md mx-auto pt-1">
-            Personal experiences shared by devotees. Individual experiences vary, and Sri Dwar does not guarantee
-            any specific spiritual, health, or personal outcome.
+            Heartfelt experiences shared by devotees, in their own words. Every journey is personal, and these
+            reflections are shared as devotional stories rather than a promise of any specific outcome for you.
           </p>
         </div>
 
@@ -850,8 +850,8 @@ export default function DevoteeExperiences() {
                       submit. */}
                   <div id="review-disclaimer-acknowledge">
                     <DisclaimerAcknowledge
-                      summary="Your testimony is published on this page as submitted, in your name/location — Sri Dwar may lightly edit for length or clarity and reserves the right not to publish."
-                      details="By submitting, you confirm this testimony reflects your genuine experience. Sri Dwar may review, lightly edit for length or clarity, or decline to publish any submission, and may feature it on this page and in related devotional content for other devotees to read. No compensation is offered for submitting a testimony. This is a devotee-shared reflection, not a verified claim of any specific spiritual outcome."
+                      summary="Thank you for sharing from the heart — your testimony appears on this page in your name/location, and Sri Dwar may gently edit for length or clarity before it's featured."
+                      details="With gratitude, we receive your testimony as a genuine reflection of your own experience. Our team may lovingly review it, lightly edit for length or clarity, or occasionally choose not to publish a submission, and may feature it here and in related devotional content for other devotees to read. No compensation is offered for sharing a testimony — it is simply received with gratitude as part of your devotional journey, a personal reflection rather than a verified claim of any specific spiritual outcome."
                       checked={reviewDisclaimerChecked}
                       onCheckedChange={(v) => { setReviewDisclaimerChecked(v); if (v) setShowReviewDisclaimerError(false); }}
                       checkboxLabel="I confirm this testimony is genuine and agree to the above before submitting."

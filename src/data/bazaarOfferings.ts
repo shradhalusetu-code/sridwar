@@ -125,8 +125,24 @@ export const BAZAAR_DELIVERY_NOTE =
 export const BAZAAR_TRUST_COPY =
   "Every devotional item is prepared, offered, packed, or dispatched with respect for temple tradition. Digital confirmation or certificate will be shared wherever applicable.";
 
+// Full disclaimer text shown once, inside the Puja Sankalpa Portal's
+// "Bhog Offerings" section (components/TemplateBazaar.tsx) — kept
+// devotional and welcoming while preserving every original safeguard:
+// process/timing transparency across temple schedule, festivals, priest
+// availability, stock availability, and dispatch. Previously duplicated at
+// the card level (BazaarOfferingCard.tsx) as well; that copy has been
+// removed so a devotee reads this once, not on every step. Same pattern as
+// PUJA_DISCLAIMER (spiritualData.ts) and SEVA_DISCLAIMER (sevaOfferings.ts).
 export const BAZAAR_DISCLAIMER =
-  "Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple schedule, festival rush, priest availability, stock availability, dispatch location, and temple rituals.";
+  "Every Offering and Seva is offered with a sincere heart and devotion, following the sacred practices of the temple. As temple activities, festivals and rituals each have their own rhythm, the timing may vary along with priest availability and the preparation and dispatch of the offering.";
+
+// Short, always-visible summary line shown above BAZAAR_DISCLAIMER's full
+// details — same short+expand pattern DisclaimerAcknowledge uses everywhere
+// else. Only ever shown for the one Devotional Shopping product that is
+// actually performed at a temple (isService === true, i.e. Bhog Offerings —
+// see isBhogOffering() in BazaarOfferingCard.tsx).
+export const BAZAAR_BHOG_OFFERING_SUMMARY =
+  "May this offering be a heartfelt expression of your श्रद्धा, lovingly performed according to the sacred traditions of the temple. Its timing may follow the natural rhythm of the temple, while each devotee's spiritual experience unfolds in its own unique way.";
 
 export const BAZAAR_CUSTOM_AMOUNT_NOTE = "Custom devotional amount starts from ₹100.";
 

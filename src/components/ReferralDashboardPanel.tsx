@@ -139,7 +139,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
           <div className="flex items-start gap-2">
             <Lock className="w-3.5 h-3.5 text-[#FFB347] mt-0.5 shrink-0" />
             <p className="text-[13px] text-white/70 leading-relaxed">
-              Accept the Program Terms to activate your referral link and start earning cashback.
+              With gratitude, kindly accept the Program Terms so we may activate your referral link and begin your cashback journey with us.
             </p>
           </div>
           <label className="flex items-start gap-2 text-[12px] text-white/60 cursor-pointer">

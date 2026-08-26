@@ -267,7 +267,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                   <span className="text-2xl">🙏</span>
                 </div>
                 <h4 className="font-serif text-lg font-bold text-white">Message Received!</h4>
-                <p className="text-xs text-white/60">Would you like to make a voluntary divine contribution to help preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services?</p>
+                <p className="text-xs text-white/60">Would you like to make a voluntary divine contribution to help care for our heritage and our temples — especially the smaller ones that quietly serve their devotees with limited resources or visibility? As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall, and once a puja is performed in your name, we'll lovingly share photographs of that moment with you.</p>
 
                 <div className="grid grid-cols-3 gap-2">
                   {[51, 101, 251].map((amt) => (
@@ -401,8 +401,8 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 {/* Required acknowledgement — gates Submit below. */}
                 <div id="contact-disclaimer-acknowledge">
                   <DisclaimerAcknowledge
-                    summary="Your details are used only to respond to this query and send related updates — not shared beyond what's needed to process it."
-                    details="Sri Dwar retains your name, email, and phone number to respond to this query, coordinate with the relevant temple priest or team where needed, and send you status updates. We do not sell your details or share them beyond what's needed to process this request. Response times vary by query type and season; we aim to respond within 2 working days but this is not a guaranteed turnaround."
+                    summary="With care, we keep your details simply to respond to your message and keep you gently updated — never shared beyond what's needed to help you."
+                    details="With care and warmth, Sri Dwar keeps your name, email and phone number to respond to your message, coordinate with the relevant temple priest or team where needed, and share status updates with you. We never sell your details or share them beyond what's needed to help with this request. Response times can vary a little depending on the query and season; we lovingly aim to respond within 2 working days, though this isn't a fixed or guaranteed turnaround."
                     checked={contactDisclaimerChecked}
                     onCheckedChange={(v) => { setContactDisclaimerChecked(v); if (v) setShowContactDisclaimerError(false); }}
                     checkboxLabel="I understand and agree to the above before sending my message."

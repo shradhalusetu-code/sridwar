@@ -134,23 +134,23 @@ const BLESSING_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
 // medical/psychiatric/legal care rather than implying any such claim.
 const DISCLAIMER_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
   darshan_certificate:
-    "This document confirms your request only — it is not the Darshan Certificate itself. The certificate is prepared separately by our priests and delivered once the darshan/puja process is complete; timing may vary with temple schedule and priest availability.",
+    "This document lovingly confirms your request only — it is not the Darshan Certificate itself. Your certificate is prepared separately, with care, by our priests, and delivered once the darshan/puja process is complete; timing may naturally vary with temple schedule and priest availability.",
   puja_seva:
-    "This document confirms your Sankalpa and payment only — it is not proof that the ritual has been performed. Your Sankalpa Certificate of performance is issued separately once the puja/seva is carried out as per temple process, priest availability, and temple schedule.",
+    "This document confirms your Sankalpa and payment only — it is not proof that the ritual has been performed. Your Sankalpa Certificate of performance is lovingly issued separately, once the puja/seva is carried out as per temple process, priest availability, and temple schedule.",
   counselling_guidance:
-    "This document confirms your request only. Counselling & Guidance sessions offer spiritual and emotional support and are not a substitute for professional medical, psychiatric, or legal advice. No specific outcome or exact session timing is guaranteed.",
+    "This document confirms your request only. Counselling & Guidance sessions offer spiritual and emotional support and are not a substitute for professional medical, psychiatric, or legal advice. The exact session timing and specific outcome cannot be guaranteed.",
   holistic_wellness:
-    "This document confirms your enrollment only. These are guided yogic/wellness practices, not medical treatment — please consult a qualified physician for any health condition before or during participation.",
+    "This document confirms your enrollment only. These are guided yogic/wellness practices, not medical treatment — we humbly invite you to consult a qualified physician for any health condition, before or during participation.",
   seva_offering:
-    "This document confirms your Seva Sankalp and payment only — it is not proof that the seva has been performed. Your Seva Certificate of performance is issued separately once the seva is carried out as per temple process, priest availability, and temple schedule.",
+    "This document confirms your Seva Sankalp and payment only — it is not proof that the seva has been performed. Your Seva Certificate of performance is lovingly issued separately, once the seva is carried out as per temple process, priest availability, and temple schedule.",
   temple_contribution:
-    "This document confirms your contribution only. A separate acknowledgement letter is issued by our team; processing time may vary with volume and temple schedule.",
+    "This document confirms your contribution only. A separate acknowledgement letter is issued by our team with care; processing time may naturally vary with volume and temple schedule.",
   bazaar_order:
     "This document confirms your order only — it is not a dispatch or delivery guarantee. Dispatch timing may vary with item availability, packing, and courier schedules.",
   subscription:
-    "This document confirms your membership contribution only. Your welcome letter and any associated benefits are sent separately.",
+    "This document confirms your membership contribution only. Your welcome letter and any associated benefits are sent separately, with care.",
   support_contribution:
-    "This document confirms your offering only. A separate acknowledgement is sent by our team; no specific outcome is implied or guaranteed.",
+    "This document confirms your offering only. A separate acknowledgement is lovingly sent by our team; no specific outcome is implied or guaranteed.",
 };
 
 /** Structured pieces, for screens that render the message with their own styling (e.g. Hero.tsx's card layout). */

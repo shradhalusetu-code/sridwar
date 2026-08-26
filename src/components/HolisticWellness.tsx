@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { getDiscountedPrice, isDiscountActive, DISCOUNT_TAG } from "../utils/discount";
 import OptimizedImage from "./OptimizedImage";
-import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import MobileCarousel from "./shared/MobileCarousel";
 import { useSingleOpen } from "./shared/useSingleOpen";
 
@@ -418,18 +417,15 @@ function ServiceCard({
   expanded: boolean;
   onToggleExpanded: () => void;
 }) {
-  // ✅ DISCLAIMER COVERAGE FIX: same required-checkbox gate SevaOfferingCard.tsx
-  // / BazaarOfferingCard.tsx / OnlinePuja.tsx already use before a "Book Now"
-  // commits — Holistic Wellness previously had none.
-  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
-  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
-
+  // ✅ DISCLAIMER PLACEMENT FIX: the enrollment disclaimer previously shown
+  // on every single wellness card (repeating the same paragraph down the
+  // whole grid) now lives once, inside the Wellness & Yogic Sciences
+  // Enrollment wizard's "Enrollment Details" step (BookNowWizard.tsx) —
+  // which already gates the enrollment submit button on its own required
+  // checkbox — so nothing about the safeguard itself is weakened, it's
+  // simply read once instead of on every card. Same dedup pattern already
+  // used for SevaOfferingCard.tsx / BazaarOfferingCard.tsx's Bhog Offering.
   const handleBookClick = () => {
-    if (!disclaimerChecked) {
-      setShowDisclaimerError(true);
-      document.getElementById(`wellness-disclaimer-${service.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
     onBook(service.title, getDiscountedPrice(service.price));
   };
 
@@ -525,19 +521,6 @@ function ServiceCard({
             </p>
           </div>
         )}
-      </div>
-
-      {/* Contribution disclaimer — lives inside this card, right above its
-          own "Book Now", same pattern as SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
-      <div id={`wellness-disclaimer-${service.id}`} className="px-5 mt-auto">
-        <DisclaimerAcknowledge
-          summary="This session is guided wellness practice, not medical treatment — timings can vary and no specific outcome is guaranteed."
-          details="Holistic Wellness sessions on Sri Dwar (yoga, meditation, pranayama, and related practices) are offered as general wellbeing guidance by experienced practitioners. They are not medical, psychiatric, or clinical treatment, do not diagnose or treat any condition, and no specific health outcome is guaranteed. Please consult a qualified doctor before starting any new practice if you have an existing health condition."
-          checked={disclaimerChecked}
-          onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
-          checkboxLabel="I understand this is guided wellness practice, not medical treatment, and confirm before booking."
-          showRequiredError={showDisclaimerError}
-        />
       </div>
 
       {/* Footer

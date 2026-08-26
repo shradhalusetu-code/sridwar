@@ -619,7 +619,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       per-tier benefit copy. */}
                   {membershipTier !== null && membershipTier >= 51 && (
                     <p className="text-[11px] text-white/35 leading-snug mt-2">
-                      Contributions of ₹100 or more also carry eligibility toward pilgrimage-related opportunities offered periodically to regular devotees — genuine platform benefits, not a guarantee of any outcome.
+                      With gratitude, contributions of ₹100 or more also carry eligibility toward pilgrimage-related opportunities offered periodically to regular devotees — heartfelt platform benefits, offered warmly as encouragement rather than a guarantee of any outcome.
                     </p>
                   )}
                 </div>

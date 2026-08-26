@@ -33,7 +33,6 @@ import {
   ChevronDown, Tag, UserCheck, X, Star, Languages,
 } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
-import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import CollapsibleSection from "./CollapsibleSection";
 import { useSingleOpen } from "./shared/useSingleOpen";
 import MobileCarousel from "./shared/MobileCarousel";
@@ -732,13 +731,13 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
   const hiddenServices = isAndroidApp ? SERVICES.slice(ANDROID_VISIBLE_COUNT) : [];
   const hasHiddenServices = hiddenServices.length > 0;
 
-  // ✅ DISCLAIMER COVERAGE FIX: the Session Pricing cards are the actual
-  // purchase decision point (price shown, "Book This Session" commits) —
-  // previously nothing gated that click. Same per-item checkbox pattern as
-  // TemplateBazaar.tsx's legacy catalogue cards, keyed by format id so each
-  // of the four pricing cards gates only its own booking.
-  const [formatDisclaimerChecked, setFormatDisclaimerChecked] = useState<Record<string, boolean>>({});
-  const [formatDisclaimerError, setFormatDisclaimerError] = useState<Record<string, boolean>>({});
+  // ✅ DISCLAIMER CONSOLIDATION: the per-format-card acknowledgement gate
+  // previously lived here as well as, one step later, inside the Guidance
+  // Session Portal's "Guidance Details" step (BookNowWizard) — a devotee had
+  // to read and tick essentially the same disclaimer twice for one booking.
+  // The Session Pricing cards below no longer gate on their own copy; the
+  // single required acknowledgement now lives once, inside the Guidance
+  // Session Portal.
 
   const handleBookService = (title: string) => {
     // Every service card books the Standard Guidance Session by default —
@@ -752,11 +751,6 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
   };
 
   const handleBookFormat = (format: SessionFormat) => {
-    if (!formatDisclaimerChecked[format.id]) {
-      setFormatDisclaimerError((p) => ({ ...p, [format.id]: true }));
-      document.getElementById(`counselling-format-disclaimer-${format.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
     onBookSession(`Counselling & Guidance — ${format.name}`, format.price);
   };
 
@@ -869,7 +863,7 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
             onClick={() => scrollToSection("full-disclaimer")}
             className="inline-flex items-center gap-1.5 text-[13px] text-white/45 hover:text-[#FFB347] underline underline-offset-2 mt-5 transition-colors"
           >
-            <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> This is spiritual & personal guidance, not medical or clinical treatment — see full disclaimer below
+            <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> Offered as spiritual & personal guidance, not medical or clinical treatment — read the full details below
           </button>
         </div>
 
@@ -1040,22 +1034,9 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
                     each card's text runs. */}
                 <p className="text-[12px] text-white/40 leading-relaxed mt-1.5 italic flex-1">{format.note}</p>
 
-                {/* Contribution disclaimer — lives inside this card, right
-                    above its own booking button, same pattern as
-                    SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
-                <div id={`counselling-format-disclaimer-${format.id}`} className="mt-3">
-                  <DisclaimerAcknowledge
-                    summary="Sessions are guidance and support, not medical, psychiatric, legal, or clinical treatment — see the Important Disclaimer below for full details."
-                    details="Counselling & Guidance sessions on Sri Dwar are offered in good faith as informational, spiritual, and personal guidance. They are not medical, psychiatric, legal, or clinical treatment or therapy, do not diagnose or treat any condition, and no specific outcome is guaranteed. Where a matter is clinical, severe, or an emergency, please consult a qualified doctor, licensed mental-health professional, lawyer, or the appropriate emergency service."
-                    checked={!!formatDisclaimerChecked[format.id]}
-                    onCheckedChange={(v) => {
-                      setFormatDisclaimerChecked((p) => ({ ...p, [format.id]: v }));
-                      if (v) setFormatDisclaimerError((p) => ({ ...p, [format.id]: false }));
-                    }}
-                    checkboxLabel="I understand this is guidance, not clinical treatment, and confirm before booking."
-                    showRequiredError={!!formatDisclaimerError[format.id]}
-                  />
-                </div>
+                {/* Disclaimer acknowledgement now lives once, in the
+                    Guidance Session Portal's "Guidance Details" step
+                    (BookNowWizard) that opens next — not duplicated here. */}
 
                 {/* Identical style, dimensions, spacing, and click
                     behaviour on all four cards — only the label text
@@ -1132,43 +1113,43 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
           <CollapsibleSection
             icon={<ShieldCheck className="w-5 h-5 text-[#FFB347]" />}
             title="Important Disclaimer"
-            summary="Guidance sessions are spiritual/personal support, not medical, psychiatric, legal, or clinical treatment, with no guaranteed outcome. Tap to read the full disclaimer."
+            summary="Guidance sessions are offered as spiritual and personal support, not medical, psychiatric, legal, or clinical treatment, and no specific outcome can be guaranteed. Tap to read the full details."
           >
           <div className="space-y-2 text-[13px] text-white/60 leading-relaxed">
             <p>
-              Counselling & Guidance sessions on Sri Dwar are offered in good faith by experienced Pandits and
-              Dharmic experts as informational, spiritual, and personal guidance. They are intended to help you
-              understand your situation, reflect on it, and think through possible ways forward.
+              With warmth and sincerity, our Counselling & Guidance sessions are offered by experienced Pandits
+              and Dharmic experts as informational, spiritual and personal guidance — a caring space to help you
+              understand your situation, reflect gently on it, and think through possible ways forward.
             </p>
             <p>
               These sessions are <strong className="text-white/80">not</strong> medical, psychiatric, legal, or
-              clinical treatment or therapy. They do not diagnose, treat, or cure any medical or mental health
-              condition, and Sri Dwar does not guarantee any specific outcome, resolution, or result from any
-              session. Where a matter is clinical, severe, or an emergency, please consult a qualified doctor,
-              licensed mental-health professional, lawyer, or the appropriate emergency service — a guidance
-              session is not a substitute for that care.
+              clinical treatment or therapy. They do not diagnose, treat or cure any medical or mental health
+              condition, and no specific outcome, resolution or result can be guaranteed from any session. Where
+              a matter feels clinical, severe or urgent, we humbly encourage you to reach out to a qualified
+              doctor, licensed mental-health professional, lawyer, or the appropriate emergency service — a
+              guidance session is offered alongside that care, never as a replacement for it.
             </p>
             <p className="flex items-start gap-2">
               <Pill className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#FFB347]" />
               <span>
                 <strong className="text-white/80">No medication or medical advice is ever given.</strong> Every
-                session on Sri Dwar is strictly limited to wellbeing, counselling, and personal/spiritual
-                guidance. If an expert offers a comment or suggestion that falls outside this scope — for
-                example, anything that sounds medical, legal, or financial — please treat it as informal opinion
-                only and independently verify it with a qualified, licensed professional before acting on it.
+                session on Sri Dwar stays within wellbeing, counselling, and personal/spiritual guidance. If an
+                expert's comment ever touches something beyond this — for example, anything that sounds medical,
+                legal or financial — please receive it as an informal thought only, and kindly verify it with a
+                qualified, licensed professional before acting on it.
               </span>
             </p>
             <p>
-              The "recommended sessions, duration, frequency, and timeframe" shown against each guidance area is a
-              general, informational starting point, not a clinical treatment plan or a promise of resolution by
-              that date — situations that are more complex or layered than usual may reasonably need more
-              sessions or a longer period of support, and your expert may revise this after your first
-              conversation. The Custom Guidance Plan exists specifically for that longer-support case.
+              The recommended sessions, duration, frequency and timeframe shown against each guidance area are a
+              gentle, informational starting point, not a clinical treatment plan or a promise of resolution by
+              that date — every journey is unique, and situations that carry more complexity may naturally call
+              for more sessions or a longer period of support; your expert may lovingly revise this after your
+              first conversation. Our Custom Guidance Plan exists especially for that longer-support case.
             </p>
             <p>
-              By booking a session, you acknowledge that Sri Dwar and its associated experts are providing
-              guidance in good faith, based on their experience and Dharmic knowledge, and that the final
-              decisions in your personal, family, or professional life remain entirely your own.
+              By booking a session, you're trusting that Sri Dwar and its associated experts offer this guidance
+              in good faith, drawing on their experience and Dharmic knowledge — while the final decisions in
+              your personal, family or professional life always remain entirely your own.
             </p>
           </div>
           <div className="mt-4 pt-4 border-t border-white/8 flex flex-wrap items-center gap-x-4 gap-y-2">

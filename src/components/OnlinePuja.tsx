@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useRef, useEffect, ElementType } from "react";
-import { ON_LINE_PUJAS, PUJA_DISCLAIMER } from "../data/spiritualData";
+import { ON_LINE_PUJAS } from "../data/spiritualData";
 import type { Puja } from "../types";
 import { getPriestByDetails, getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import SacredIcon from "./SacredIcon";
 import OptimizedImage from "./OptimizedImage";
-import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { gaCategoryFilter, gaBookNowOpen } from "../utils/analytics";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { useSingleOpen } from "./shared/useSingleOpen";
@@ -558,11 +557,12 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
   const [errors, setErrors] = useState<{ pincode?: string; pujaDate?: string }>({});
   const [justBooked, setJustBooked] = useState(false);
   const justBookedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // ✅ DISCLAIMER COVERAGE FIX: same gate SevaOfferingCard.tsx /
-  // BazaarOfferingCard.tsx already require before a devotee can submit —
-  // Simple Pujas previously had no acknowledgement step at all.
-  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
-  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
+  // ✅ DISCLAIMER CONSOLIDATION: the acknowledgement gate previously lived
+  // here, on every card, in addition to an identical gate one step later in
+  // the Puja Sankalpa Portal (BookNowWizard) — a devotee had to read and
+  // tick the same disclaimer twice for one booking. It now lives once,
+  // inside the Puja Sankalpa Portal's "Devotee Sankalpa" step, which every
+  // Simple Puja routes through regardless of which card it started from.
 
   useEffect(() => {
     return () => {
@@ -590,11 +590,6 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
 
   const handleSubmit = () => {
     if (!isActive) { onActivate(); return; }
-    if (!disclaimerChecked) {
-      setShowDisclaimerError(true);
-      document.getElementById(`simple-puja-disclaimer-${offering.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
     if (isCustomSelected && !customAmountValid) { alert("Custom sankalp amount starts from ₹100."); return; }
 
     const pincodeErr = pincode.trim() ? validatePincode(pincode) : null;
@@ -652,8 +647,6 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
     setCustomAmount("");
     setSelectedPriestId("");
     setSelectedTempleId("");
-    setDisclaimerChecked(false);
-    setShowDisclaimerError(false);
     setJustBooked(true);
     if (justBookedTimeoutRef.current) clearTimeout(justBookedTimeoutRef.current);
     justBookedTimeoutRef.current = setTimeout(() => setJustBooked(false), 6000);
@@ -896,18 +889,9 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           <span>{offering.certificateTimeline}</span>
         </div>
 
-        {/* Contribution disclaimer — lives inside this card, right above its
-            own CTA, same pattern as SevaOfferingCard.tsx / BazaarOfferingCard.tsx. */}
-        <div id={`simple-puja-disclaimer-${offering.id}`} className="mb-3" onClick={(e) => e.stopPropagation()}>
-          <DisclaimerAcknowledge
-            summary="Pujas are performed with devotion as per temple process and priest availability — timings can vary and no specific outcome is guaranteed."
-            details={PUJA_DISCLAIMER}
-            checked={disclaimerChecked}
-            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
-            checkboxLabel="I understand how this puja is performed and confirm before booking."
-            showRequiredError={showDisclaimerError}
-          />
-        </div>
+        {/* Disclaimer acknowledgement now lives once, in the Puja Sankalpa
+            Portal's "Devotee Sankalpa" step (BookNowWizard) that opens
+            next — not duplicated here. */}
 
         <button
           id={`simple-puja-cta-${offering.id}`}

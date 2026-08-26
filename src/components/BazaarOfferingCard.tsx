@@ -171,7 +171,11 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
 
   const handlePrimary = () => {
     if (!isActive) { onActivate(); return; }
-    if (!disclaimerChecked) {
+    // ✅ DISCLAIMER RELOCATION: Bhog Offerings (product.isService === true)
+    // now show their disclaimer once inside the Puja Sankalpa Portal
+    // (TemplateBazaar.tsx) instead of here, so this card-level gate only
+    // applies to physical products, which still confirm here as before.
+    if (!product.isService && !disclaimerChecked) {
       setShowDisclaimerError(true);
       document.getElementById(`bazaar-offering-disclaimer-${product.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -189,7 +193,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
 
   const handleAddToCart = () => {
     if (!isActive) { onActivate(); return; }
-    if (!disclaimerChecked) {
+    if (!product.isService && !disclaimerChecked) {
       setShowDisclaimerError(true);
       document.getElementById(`bazaar-offering-disclaimer-${product.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -510,18 +514,22 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
 
         <div className="flex-1" />
 
-        <div id={`bazaar-offering-disclaimer-${product.id}`} className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <DisclaimerAcknowledge
-            summary={product.isService
-              ? "This offering is performed with devotion as per temple process — timings can vary and no specific outcome is guaranteed."
-              : "This item is dispatched with care after payment confirmation — delivery timelines can vary by location."}
-            details={BAZAAR_DISCLAIMER}
-            checked={disclaimerChecked}
-            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
-            checkboxLabel="I understand and confirm before proceeding."
-            showRequiredError={showDisclaimerError}
-          />
-        </div>
+        {/* Bhog Offerings (product.isService) no longer show a disclaimer
+            here — it's shown once, inside the Puja Sankalpa Portal step
+            that follows, instead of on every card. Physical products keep
+            their own disclaimer here as before. */}
+        {!product.isService && (
+          <div id={`bazaar-offering-disclaimer-${product.id}`} className="mt-4" onClick={(e) => e.stopPropagation()}>
+            <DisclaimerAcknowledge
+              summary="This item is dispatched with care after payment confirmation — delivery timelines can vary by location."
+              details={BAZAAR_DISCLAIMER}
+              checked={disclaimerChecked}
+              onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
+              checkboxLabel="I understand and confirm before proceeding."
+              showRequiredError={showDisclaimerError}
+            />
+          </div>
+        )}
 
         <div className="flex items-center justify-between pt-3 border-t border-white/10 mb-3 mt-3 gap-4">
           <span className="text-[12px] text-white/50">Total</span>

@@ -272,9 +272,35 @@ export function createSupabaseDataPort(): CertificateDataPort {
   const db = getSupabaseAdmin();
   return {
     async getActivityByRefId(refId) {
-      const { data, error } = await db.from("activities").select("*").eq("ref_id", refId).maybeSingle();
+      // ✅ ROOT-CAUSE FIX (2026-08-26): was .eq("ref_id", refId).maybeSingle().
+      // activities.ref_id only has a plain index, not a uniqueness
+      // constraint (see supabase_schema.sql) — so if more than one row
+      // ever ends up sharing a ref_id (e.g. a retried/duplicated client
+      // write), .maybeSingle() doesn't return one of them, it throws
+      // PGRST116 "JSON object requested, multiple (or no) rows returned".
+      // That 500 was showing up repeatedly in the ops log
+      // (scanForNewlyConfirmedPayments → this endpoint), and every time it
+      // fired, that booking's PDF certificate and confirmation email never
+      // went out — the pipeline errored before it got that far.
+      // order + limit(1) below mirrors the exact pattern
+      // getFormSubmissionByRefId already uses two lines down: if duplicate
+      // rows exist, take the most recently created one (the most likely to
+      // reflect the real, final state of the booking) instead of failing
+      // the whole request. A console.warn is logged so duplicate ref_ids
+      // stay visible as a data-quality signal worth investigating, without
+      // blocking the devotee's PDF/email on that investigation happening
+      // first.
+      const { data, error } = await db
+        .from("activities")
+        .select("*")
+        .eq("ref_id", refId)
+        .order("created_at", { ascending: false })
+        .limit(2);
       if (error) throw new CertificateError(`Failed reading activities: ${error.message}`, "db_error");
-      return (data as ActivityRow) ?? null;
+      if (data && data.length > 1) {
+        console.warn(`[certificateService] Multiple activities rows share ref_id "${refId}" (${data.length}+) — using the most recent. This ref_id should be investigated for a duplicate write.`);
+      }
+      return (data && data[0]) ? (data[0] as ActivityRow) : null;
     },
     async getFormSubmissionByRefId(refId) {
       const { data } = await db

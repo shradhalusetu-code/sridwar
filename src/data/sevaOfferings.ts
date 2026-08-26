@@ -118,12 +118,14 @@ export const SEVA_OCCASIONS: SevaDropdownOption[] = [
   { value: "other", label: "Other" },
 ];
 
-// Section-level disclaimer shown once beneath the Seva Offerings grid —
-// same wording pattern as BAZAAR_DISCLAIMER (data/bazaarOfferings.ts) and
-// the Simple Pujas disclaimer (components/OnlinePuja.tsx), kept honest and
-// non-promissory: no guaranteed outcomes, just process transparency.
+// Full disclaimer text shown once, inside the Seva Sankalp Portal's "Seva
+// Sankalp Details" step (components/BookNowWizard.tsx) — kept devotional
+// and welcoming while preserving every original safeguard: process/timing
+// transparency and no promise of a specific spiritual outcome. Previously
+// duplicated at the card level (SevaOfferingCard.tsx) as well; that copy
+// has been removed so a devotee reads this once, not on every step.
 export const SEVA_DISCLAIMER =
-  "Sevas are performed with devotion as per temple/Gaushala process. Timings may vary depending on temple schedule, festival rush, priest/Gaushala availability, and local logistics. A seva is an act of devotion and does not guarantee any specific outcome.";
+  "With श्रद्धा and devotion, every Seva is lovingly offered according to the sacred traditions of the temple or Gaushala. The timing may follow the natural rhythm of temple activities, festivals and local arrangements. May your offering be received as a heartfelt prayer, allowing each devotee's journey to unfold in its own meaningful and personal way.";
 
 // Reference tier system (₹100 → ₹2,100+) that every seva's priceOptions
 // are drawn from. Shown as badges/labels across the seva cards.

@@ -26,7 +26,7 @@ import MobileCarousel from "./shared/MobileCarousel";
 import { sectionTopPadding } from "../utils/androidSpacing";
 import {
   BAZAAR_PRODUCTS, BAZAAR_CATEGORIES, BAZAAR_DELIVERY_NOTE, BAZAAR_TRUST_COPY,
-  BAZAAR_DISCLAIMER, BazaarProduct,
+  BAZAAR_DISCLAIMER, BAZAAR_BHOG_OFFERING_SUMMARY, BazaarProduct,
 } from "../data/bazaarOfferings";
 
 // ─── Devotional Shopping promo visibility ──────────────────────────────────
@@ -173,6 +173,14 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // Sankalpa Portal (step 1) state
   const [showSankalpa, setShowSankalpa] = useState(false);
   const [selectedItem, setSelectedItem] = useState<BazaarItem | null>(null);
+  // ✅ DISCLAIMER RELOCATION: the Bhog Offering disclaimer (previously shown
+  // on every Devotional Shopping card) now lives once here, inside the
+  // Sankalpa Portal, only when the selected item is a Bhog Offering
+  // (selectedItem.isService — see isBhogOffering() in
+  // BazaarOfferingCard.tsx, the only Devotional Shopping product performed
+  // at a temple rather than shipped).
+  const [sankalpaDisclaimerChecked, setSankalpaDisclaimerChecked] = useState(false);
+  const [showSankalpaDisclaimerError, setShowSankalpaDisclaimerError] = useState(false);
 
   // Form fields
   const [devoteeName, setDevoteeName]       = useState("");
@@ -237,6 +245,8 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     setSelectedItem(item);
     setRefId((item.isService ? "SDV-" : "SDB-") + randomRefSuffix());
     if (prefillPincode) setDevoteePincode(prefillPincode);
+    setSankalpaDisclaimerChecked(false);
+    setShowSankalpaDisclaimerError(false);
     setShowSankalpa(true);
   };
 
@@ -312,6 +322,11 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     }
     if (!selectedItem?.isService && (!devoteeAddress.trim() || !devoteePincode.trim())) {
       alert("Please enter your delivery address and PIN code.");
+      return;
+    }
+    if (selectedItem?.isService && !sankalpaDisclaimerChecked) {
+      setShowSankalpaDisclaimerError(true);
+      document.getElementById("sankalpa-bhog-disclaimer")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -524,7 +539,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 <div id={`bazaar-legacy-disclaimer-${item.id}`} className="mt-2 pt-3">
                   <DisclaimerAcknowledge
                     summary={item.isService
-                      ? "This seva is performed with devotion as per temple process — timings can vary and no specific outcome is guaranteed."
+                      ? "May this seva be a heartfelt expression of your श्रद्धा, lovingly performed according to the sacred traditions of the temple, with each devotee's experience unfolding in its own unique way."
                       : "This item is dispatched with care after payment confirmation — delivery timelines can vary by location."}
                     details={BAZAAR_DISCLAIMER}
                     checked={!!legacyDisclaimerChecked[item.id]}
@@ -947,6 +962,21 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 <div className="flex items-start gap-2 bg-emerald-950/30 border border-emerald-500/20 px-3 py-2.5 rounded-xl text-[12px] text-emerald-300 font-mono">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>Live photo proof + WhatsApp confirmation sent within 2 hours of seva completion. 🙏</span>
+                </div>
+              )}
+
+              {/* Bhog Offerings disclaimer — shown once, here in the
+                  Sankalpa Portal, instead of repeating on every card. */}
+              {selectedItem.isService && (
+                <div id="sankalpa-bhog-disclaimer">
+                  <DisclaimerAcknowledge
+                    summary={BAZAAR_BHOG_OFFERING_SUMMARY}
+                    details={BAZAAR_DISCLAIMER}
+                    checked={sankalpaDisclaimerChecked}
+                    onCheckedChange={(v) => { setSankalpaDisclaimerChecked(v); if (v) setShowSankalpaDisclaimerError(false); }}
+                    checkboxLabel="I understand and confirm before proceeding."
+                    showRequiredError={showSankalpaDisclaimerError}
+                  />
                 </div>
               )}
 

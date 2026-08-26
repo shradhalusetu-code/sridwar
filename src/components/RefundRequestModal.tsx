@@ -316,8 +316,8 @@ export default function RefundRequestModal({
 
                 <div id="refund-request-disclaimer">
                   <DisclaimerAcknowledge
-                    summary="Submitting this doesn't cancel the booking automatically — our team reviews and confirms every request in writing."
-                    details="This is a request, not an automated refund. Our team reviews and confirms every cancellation/refund request in writing, per the Refund & Cancellation Policy, before it takes effect. Approved refunds are typically initiated within 7–15 business days of confirmation."
+                    summary="With gratitude for letting us know — this is a request, and our team lovingly reviews and confirms it in writing before it takes effect."
+                    details="Thank you for letting us know, with care. This is a request, and our team reviews and confirms every cancellation/refund request in writing, in line with our Refund & Cancellation Policy, before it takes effect. Once approved, refunds are typically initiated within 7–15 business days of that confirmation."
                     checked={policyChecked}
                     onCheckedChange={(v) => { setPolicyChecked(v); if (v) setShowPolicyError(false); }}
                     checkboxLabel="I understand this request is subject to team review and confirm before submitting."

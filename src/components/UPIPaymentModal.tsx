@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
-import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles } from "lucide-react";
-import { buildUpiQrImageUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
+import { useState, useEffect } from "react";
+import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles, AlertTriangle } from "lucide-react";
+import { buildUpiQrDataUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
 import CollapsibleSection from "./CollapsibleSection";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 
@@ -45,7 +45,7 @@ function getContributionBenefits(amount: number): string[] {
 // sure no payment path is ever missing an acknowledgement, no matter which
 // page or form led here.
 const PAYMENT_DISCLAIMER =
-  "This payment is submitted for manual verification — nobody has checked yet that it landed, so your booking is only confirmed once our team verifies it, usually within 2 hours. Sevas, pujas and offerings are performed with devotion as per temple/priest process; timings may vary. Contribution benefits (cashback, milestones, pilgrimage eligibility, campaign entries) are genuine platform benefits linked to real, paid bookings — not a guarantee of any spiritual outcome, and not an investment or money-circulation scheme.";
+  "With gratitude, your payment is received and submitted for gentle verification by our team — your booking is confirmed once this is complete, usually within 2 hours. Sevas, pujas and offerings are lovingly performed with devotion as per temple/priest process; timings may naturally vary. Contribution benefits (cashback, milestones, pilgrimage eligibility, campaign entries) are heartfelt platform benefits linked to real, paid bookings, offered warmly as encouragement — not a guarantee of any spiritual outcome, and not an investment or money-circulation scheme.";
 
 interface UPIPaymentModalProps {
   isOpen: boolean;
@@ -83,6 +83,15 @@ interface UPIPaymentModalProps {
   payeeLabel?: string;
   /** Optional value shown next to payeeLabel (e.g. "3 item(s)") */
   payeeValue?: string;
+  /** ✅ DISCLAIMER CONSOLIDATION: set true when the calling flow already
+   *  showed and gated its own disclaimer one step earlier (e.g. Puja/Seva/
+   *  Guidance/Wellness all gate at BookNowWizard's "Details" step before
+   *  ever reaching this payment modal). Prevents a devotee from reading and
+   *  ticking the same acknowledgement twice for one booking. Defaults to
+   *  false so every caller that doesn't have an earlier gate (Divine
+   *  Contributions, Subscriptions, Testimony/Prayer Wall, etc.) keeps this
+   *  modal's disclaimer as its sole, required safety net — unchanged. */
+  skipDisclaimer?: boolean;
 }
 
 export default function UPIPaymentModal({
@@ -98,6 +107,7 @@ export default function UPIPaymentModal({
   maxAmount = 1000,
   payeeLabel,
   payeeValue,
+  skipDisclaimer = false,
 }: UPIPaymentModalProps) {
   const [copied, setCopied] = useState(false);
   // NOTE: "submitted" means the devotee tapped "I Have Paid" or opened
@@ -116,8 +126,12 @@ export default function UPIPaymentModal({
   // state (isOpen guard below).
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [showDisclaimerError, setShowDisclaimerError] = useState(false);
-
-  if (!isOpen) return null;
+  // ✅ FIX (2026-08-26): QR is now generated locally (see upiConfig.ts) —
+  // this holds the resulting data: URL. Starts null so the modal can show
+  // a brief loading placeholder instead of a blank gap while it's
+  // generated (generation is fast/synchronous-feeling, but still async).
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrGenerationFailed, setQrGenerationFailed] = useState(false);
 
   const WHATSAPP_NUMBER = "919777645062";
   const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
@@ -131,7 +145,7 @@ export default function UPIPaymentModal({
   // `activities` row except by amount + rough timestamp — unreliable
   // whenever two devotees pay a similar amount around the same time.
   // refId is put FIRST, not appended after bookingName, because
-  // buildUpiLink()/buildUpiQrImageUrl() (upiConfig.ts) truncate the note to
+  // buildUpiLink()/buildUpiQrDataUrl() (upiConfig.ts) truncate the note to
   // 50 characters — a long service name could otherwise push the ref ID
   // past that limit and drop the one piece of text that actually matters
   // for reconciliation. This ONLY changes what appears in the UPI app's
@@ -139,6 +153,27 @@ export default function UPIPaymentModal({
   // and every other use of `bookingName` elsewhere in this file (both
   // still reference the original, unprefixed value) are unchanged.
   const upiTransactionNote = `Ref:${refId} - ${bookingName}`;
+
+  // ✅ FIX (2026-08-26): generate the QR locally whenever the amount/note
+  // it encodes changes (e.g. devotee edits a custom contribution amount).
+  // Must run unconditionally on every render (React hook rules), which is
+  // why the `if (!isOpen) return null` guard below sits AFTER every hook
+  // in this component, not before — moving it earlier would call hooks
+  // conditionally and break re-renders once the modal opens more than once.
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setQrGenerationFailed(false);
+    buildUpiQrDataUrl(effectiveAmount, upiTransactionNote)
+      .then((url) => { if (!cancelled) setQrDataUrl(url); })
+      .catch((err) => {
+        console.error("UPI QR generation failed:", err);
+        if (!cancelled) setQrGenerationFailed(true);
+      });
+    return () => { cancelled = true; };
+  }, [isOpen, effectiveAmount, upiTransactionNote]);
+
+  if (!isOpen) return null;
 
   // "Pay via WhatsApp" is a real payment-intent action, not just an
   // informational link — opening it means the devotee has committed to
@@ -151,7 +186,7 @@ export default function UPIPaymentModal({
       alert("Minimum divine contribution is ₹" + minAmount);
       return;
     }
-    if (!disclaimerAccepted) {
+    if (!skipDisclaimer && !disclaimerAccepted) {
       setShowDisclaimerError(true);
       document.getElementById("upi-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -197,7 +232,7 @@ export default function UPIPaymentModal({
       alert("Minimum divine contribution is ₹" + minAmount);
       return;
     }
-    if (!disclaimerAccepted) {
+    if (!skipDisclaimer && !disclaimerAccepted) {
       setShowDisclaimerError(true);
       document.getElementById("upi-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -307,7 +342,7 @@ export default function UPIPaymentModal({
                     ))}
                   </ul>
                   <p className="text-[10px] text-white/35 leading-snug pt-1.5">
-                    Genuine platform benefits, not a guarantee of any spiritual outcome. Higher contributions unlock more — see Refer & Earn for full details.
+                    These are heartfelt platform blessings, offered in appreciation of your generosity — not a promise of any specific spiritual outcome, guaranteed income, or investment return. The more you're moved to offer, the more of these humble blessings unfold — see Refer & Earn for full details.
                   </p>
                 </CollapsibleSection>
               </div>
@@ -315,34 +350,55 @@ export default function UPIPaymentModal({
 
             {/* Required acknowledgement — gates both "I Have Paid" and "Pay
                 via WhatsApp" below. This is the safety-net checkbox for any
-                flow that reaches payment without its own earlier card-level
-                disclaimer (Puja, Counselling, Testimony contributions,
-                Subscriptions, etc.) — Seva/Bazaar already gate earlier, at
-                their own card, which stays the more convenient place for
-                those two flows specifically. */}
-            <div id="upi-disclaimer-acknowledge">
-              <DisclaimerAcknowledge
-                summary="This payment is submitted for manual verification, not confirmed instantly — read the full terms before proceeding."
-                details={PAYMENT_DISCLAIMER}
-                checked={disclaimerAccepted}
-                onCheckedChange={(v) => { setDisclaimerAccepted(v); if (v) setShowDisclaimerError(false); }}
-                checkboxLabel="I understand and accept the above before completing payment."
-                showRequiredError={showDisclaimerError}
-              />
-            </div>
+                flow that reaches payment without its own earlier disclaimer
+                gate (Divine Contributions, Subscriptions, Testimony/Prayer
+                Wall, etc.). Flows that already gate one step earlier — Puja,
+                Seva, Counselling & Guidance, and Holistic Wellness, all at
+                BookNowWizard's "Details" step — pass skipDisclaimer so a
+                devotee isn't asked to read and tick the same acknowledgement
+                twice for one booking. */}
+            {!skipDisclaimer && (
+              <div id="upi-disclaimer-acknowledge">
+                <DisclaimerAcknowledge
+                  summary="With gratitude, your payment is received and gently verified by our team before your booking is confirmed — kindly read the full details before proceeding."
+                  details={PAYMENT_DISCLAIMER}
+                  checked={disclaimerAccepted}
+                  onCheckedChange={(v) => { setDisclaimerAccepted(v); if (v) setShowDisclaimerError(false); }}
+                  checkboxLabel="I understand and accept the above before completing payment."
+                  showRequiredError={showDisclaimerError}
+                />
+              </div>
+            )}
 
-            {/* Dynamic UPI QR Code */}
+            {/* Dynamic UPI QR Code — generated locally in-browser (see
+                upiConfig.ts), no external image service to fail. */}
             <div className="flex flex-col items-center space-y-2">
               <span className="text-[12px] text-white/50 font-mono uppercase tracking-wider">📱 Scan QR with PhonePe · GPay · Paytm · BHIM</span>
-              <div className="bg-white p-3 rounded-2xl shadow-xl border-4 border-[#FFB347]">
-                <img
-                  src={buildUpiQrImageUrl(effectiveAmount, upiTransactionNote)}
-                  alt={`UPI QR code to pay ₹${effectiveAmount}`}
-                  width={192}
-                  height={192}
-                  className="w-48 h-48 object-contain select-none"
-                  draggable={false}
-                />
+              <div className="bg-white p-3 rounded-2xl shadow-xl border-4 border-[#FFB347] w-48 h-48 flex items-center justify-center">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt={`UPI QR code to pay ₹${effectiveAmount}`}
+                    width={192}
+                    height={192}
+                    className="w-full h-full object-contain select-none"
+                    draggable={false}
+                  />
+                ) : qrGenerationFailed ? (
+                  // Extremely unlikely (generation is local, no network) —
+                  // but if it ever happens, don't leave a blank box: point
+                  // the devotee straight at the two working alternatives
+                  // already on this screen (direct pay link, WhatsApp, Copy
+                  // UPI ID below) instead of a dead end.
+                  <div className="text-center px-2">
+                    <AlertTriangle className="w-6 h-6 text-[#F27D26] mx-auto mb-1" />
+                    <span className="text-[11px] text-[#021816]/70 font-mono leading-snug block">
+                      QR couldn't load — use "tap here to pay" below or Copy UPI ID
+                    </span>
+                  </div>
+                ) : (
+                  <RefreshCw className="w-6 h-6 text-[#021816]/30 animate-spin" />
+                )}
               </div>
               <p className="text-[13px] text-white/55 text-center leading-relaxed">
                 On a phone you can also{" "}

@@ -65,8 +65,21 @@ const config: CapacitorConfig = {
     // Android app, instead of trying to play an unreliable embedded
     // iframe player. These two domains are what let that link actually
     // open instead of the WebView silently refusing to navigate to it.
-    // Nothing else about this list changed.
-    allowNavigation: ['sridwar.com', '*.sridwar.com', '*.supabase.co', 'www.youtube.com', 'youtube.com'],
+    //
+    // ✅ BROKEN-HEADER-VIDEO FIX (2026-08-26): Hero.tsx was later changed
+    // (2026-08-16 update, see Hero.tsx) to play its PRIMARY video inline
+    // via an <iframe> pointed at youtube-nocookie.com, instead of the old
+    // "open a youtube.com link" behavior described above — but this
+    // allowNavigation list was never updated to match. Android's WebView
+    // treats assigning an iframe's src as a navigation event, exactly like
+    // a tapped link; any domain not listed here is silently blocked. That
+    // is exactly why the Hero video showed as empty/broken space on the
+    // Redmi Pad app while working fine on the website (a browser tab isn't
+    // restricted by this Capacitor-only setting). Adding the two
+    // youtube-nocookie.com entries below fixes it. www.youtube.com /
+    // youtube.com are left in place, unchanged, since other/secondary
+    // videos elsewhere in the app may still link out to a real YouTube URL.
+    allowNavigation: ['sridwar.com', '*.sridwar.com', '*.supabase.co', 'www.youtube.com', 'youtube.com', 'www.youtube-nocookie.com', 'youtube-nocookie.com'],
   },
 
   plugins: {

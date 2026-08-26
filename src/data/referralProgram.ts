@@ -926,12 +926,12 @@ export const REFERRAL_PAYOUT_THRESHOLD = 1000; // ₹ — minimum accumulated ca
 
 // Displayed wherever referral or subscription cashback terms are shown.
 export const REFERRAL_CASHBACK_DISCLAIMER: ReferralDisclaimer = {
-  title: "Cashback Eligibility & Redemption Disclaimer",
+  title: "A Gentle Note on Cashback Eligibility & Redemption",
   points: [
-    `Cashback is redeemable only after the applicable eligibility period for that booking has passed, and only once your total accumulated cashback balance reaches at least ₹${REFERRAL_PAYOUT_THRESHOLD.toLocaleString("en-IN")}.`,
-    `Referral cashback is earned only up to each referred devotee's ${REFERRAL_CASHBACK_BOOKING_CAP}th successful booking. No further cashback accrues on that devotee's bookings after the ${REFERRAL_CASHBACK_BOOKING_CAP}th booking.`,
-    "Cashback amounts, tiers, and campaign rewards are promotional in nature, may be revised, modified, or discontinued at Sri Dwar's discretion for future bookings, and do not constitute a guaranteed or contractual entitlement beyond what has already been credited to your account.",
-    "This is a customer referral, cashback, and membership program tied to genuine, paid bookings on the Sri Dwar platform — it is not an investment, deposit, or money-circulation scheme, and cashback is never paid for recruiting new paying participants into the program itself.",
+    `With thanks for your patience, cashback becomes redeemable once the eligibility period for that booking has passed, and once your total accumulated cashback balance reaches at least ₹${REFERRAL_PAYOUT_THRESHOLD.toLocaleString("en-IN")}.`,
+    `Referral cashback is earned with joy on each referred devotee's bookings up to their ${REFERRAL_CASHBACK_BOOKING_CAP}th successful booking; our heartfelt thanks continue beyond that, though further cashback on that devotee's bookings doesn't accrue.`,
+    "Cashback amounts, tiers and campaign rewards are offered warmly as promotional gestures of appreciation. They may be revised or updated at Sri Dwar's discretion for future bookings, and are not a guaranteed or contractual entitlement beyond what has already been credited to your account.",
+    "This is simply a heartfelt way of thanking devotees who share Sri Dwar with others, tied to genuine, paid bookings on the platform — it is not an investment, deposit, or money-circulation scheme, and cashback is never given for recruiting new paying participants into the program itself.",
   ],
 };
 

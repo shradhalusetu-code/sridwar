@@ -7,6 +7,8 @@ import { useState, useEffect, useRef, FormEvent } from "react";
 import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
+import { SEVA_DISCLAIMER } from "../data/sevaOfferings";
+import { PUJA_DISCLAIMER } from "../data/spiritualData";
 import UPIPaymentModal from "./UPIPaymentModal";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import SriDwarLogo from "./SriDwarLogo";
@@ -595,17 +597,21 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <DisclaimerAcknowledge
                       summary={
                         isGuidance
-                          ? "This session is guidance and support, not medical or legal advice, and no specific outcome is guaranteed — read the full terms before continuing."
+                          ? "This session is a humble offering of guidance and support, shared with care and sincere intention. As every individual's journey and circumstances are unique, we invite you to receive the guidance thoughtfully and seek appropriate professional advice when needed. Kindly take a moment to read the full terms before continuing."
                           : isWellness
-                          ? "This enrollment is a wellness/learning offering, not a medical treatment, and no specific outcome is guaranteed — read the full terms before continuing."
-                          : "This puja/seva is performed with devotion as per temple/priest process — timings can vary and no specific outcome is guaranteed."
+                          ? "This session is lovingly offered as a guided wellness practice, creating a gentle space for reflection, balance and well-being. Timings may naturally vary, and each person's experience may unfold in its own unique way."
+                          : isSeva
+                          ? "Every Seva is offered with श्रद्धा, devotion and care, following the sacred traditions of the temple/puja mandap/Gausala. The timing may follow the natural rhythm of the day, while each devotee's experience remains beautifully personal."
+                          : "Your Puja/Seva is lovingly offered with श्रद्धा and devotion, following the sacred traditions and guidance of the temple and priest. The timing may naturally follow the rhythm of temple activities, while each devotee's experience unfolds in its own unique way."
                       }
                       details={
                         isGuidance
-                          ? "Counselling & Guidance sessions offer supportive listening and general spiritual/life guidance from our team — they are not a substitute for professional medical, psychiatric, or legal advice, and do not diagnose or treat any condition. Your booking is confirmed once payment is verified, typically within 2 hours. Session timing is coordinated after booking and may vary by counsellor availability."
+                          ? "With compassion and sincere intention, our Counselling & Guidance sessions offer a quiet space to be heard, reflect and receive general spiritual or life guidance from our experts. Every individual journey is unique, and where deeper medical, psychiatric or legal guidance is needed, we humbly encourage you to seek the appropriate professional care. Your booking is confirmed upon payment verification, generally within 2 hours, and the session is then lovingly coordinated around the counsellor's availability."
                           : isWellness
-                          ? "Holistic Wellness enrollments (yoga, Ayurveda-inspired practices, healing sessions) are educational/wellness offerings, not a substitute for professional medical treatment — consult a doctor for any medical condition. Your enrollment is confirmed once payment is verified, typically within 2 hours. Schedule and format are coordinated after enrollment and may vary."
-                          : "This puja/seva is performed by our temple priests as per traditional process; exact timing and specific rituals can vary by temple and priest availability. Your booking is confirmed once payment is verified, typically within 2 hours. A digital certificate/evidence is shared as described for this offering — no specific spiritual outcome is guaranteed."
+                          ? "With care, श्रद्धा and mindful intention, Sri Dwar offers Holistic Wellness practices such as yoga, meditation, pranayama and related practices, guided by experienced practitioners. These sessions are offered as a gentle support for wellbeing and inner balance, while personal medical or clinical needs may be best supported by the appropriate healthcare professional. As each individual journey is unique, the experience may unfold differently for everyone. If you are living with an existing health condition, we humbly invite you to consult your qualified doctor before beginning a new practice. Your enrollment is confirmed once payment is verified, typically within 2 hours, and the schedule is then coordinated with care and may vary."
+                          : isSeva
+                          ? SEVA_DISCLAIMER
+                          : PUJA_DISCLAIMER
                       }
                       checked={wizardDisclaimerChecked}
                       onCheckedChange={(v) => { setWizardDisclaimerChecked(v); if (v) setShowWizardDisclaimerError(false); }}
@@ -766,6 +772,12 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         bookingName={pujaName}
         devoteeName={devoteeName}
         refId={refId}
+        // ✅ DISCLAIMER CONSOLIDATION: this wizard already gated the
+        // disclaimer once, back at Step 1 ("Details"), for every category it
+        // serves (Puja, Seva, Counselling & Guidance, Holistic Wellness) —
+        // so the payment step here doesn't ask the devotee to read and tick
+        // the same acknowledgement a second time.
+        skipDisclaimer
       />
     </>
   );

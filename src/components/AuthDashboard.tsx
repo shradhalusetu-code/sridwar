@@ -1086,7 +1086,7 @@ export default function AuthDashboard({
                   </div>
                   <h4 className="font-serif text-lg font-bold text-[#5EEAD4]">Your Dharmic ID is Ready!</h4>
                   <p className="text-xs text-white/60">
-                    Would you like to contribute towards temple redevelopment before entering your dashboard? Your divine contribution helps preserve our heritage, temples, and Sridwar's mission to build India's trusted devotee community platform and connect devotees worldwide to sacred temples, trusted priests, and dharmic services.
+                    Before entering your dashboard, would you like to make a heartfelt contribution towards temple redevelopment? With gratitude, your divine contribution helps care for our heritage and our temples — especially the smaller ones that quietly serve with limited resources or visibility.
                   </p>
                 </div>
 
@@ -1168,7 +1168,7 @@ export default function AuthDashboard({
 
                 <div className="flex items-start space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                  <span>A specific puja will be performed in your name at your ista devta temple, and the certificate for that puja will be shared with you on WhatsApp & Email within 3 working days of your divine contribution.</span>
+                  <span>As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall. Once it finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within 3 working days of your divine contribution.</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
@@ -1551,7 +1551,7 @@ export default function AuthDashboard({
                 {!showPostLoginContribute ? (
                   <>
                     <p className="text-[12px] text-white/70 leading-relaxed font-sans">
-                      One Divine Contribution. Countless Blessings. Be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas Through Sri Dwar. Together, let's build trust, serve devotees, and strengthen our sacred heritage. Your valuable divine contribution empowers our culture, community service, and our mission to make every act of devotion meaningful and transparent.
+                      One Divine Contribution. Countless Blessings. With gratitude, be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas through Sri Dwar — especially for smaller temples that quietly serve with limited resources or visibility. As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall, and once a puja is performed in your name, we lovingly share photographs of that moment with you. Together, let's gently strengthen our sacred heritage, one heartfelt offering at a time.
                     </p>
                     <button
                       id="profile-contribute-open-btn"

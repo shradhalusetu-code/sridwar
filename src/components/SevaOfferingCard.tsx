@@ -8,11 +8,10 @@ import {
   Heart, Utensils, Flame, Wind, Flower2, Landmark, Bell,
   Check, ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, CheckCircle2, AlertCircle, MapPin,
 } from "lucide-react";
-import { SevaOffering, SevaPriceOption, SEVA_OCCASIONS, SEVA_DISCLAIMER } from "../data/sevaOfferings";
+import { SevaOffering, SevaPriceOption, SEVA_OCCASIONS } from "../data/sevaOfferings";
 import { getPriestById, getPriestsByKeywords } from "../data/priests";
 import { TEMPLES_LIST } from "../data/temples";
 import OptimizedImage from "./OptimizedImage";
-import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { validatePincode, validateBookingDate, getMinBookableDateISO } from "../utils/formValidation";
 
 const renderOfferingIcon = (id: string) => {
@@ -63,16 +62,16 @@ interface SevaOfferingCardProps {
 }
 
 export default function SevaOfferingCard({ offering, isActive, onActivate, onOffer }: SevaOfferingCardProps) {
-  // ✅ DISCLAIMER PLACEMENT FIX: the acknowledgement checkbox previously
-  // lived once, below the entire Seva Offerings grid — a devotee offering
-  // the 4th card had to scroll away from what they were doing to find it.
-  // It now lives inside each card, right above that card's own CTA, and
-  // gates only that card's submit. "This seva includes" / "You will
-  // receive" are also merged into one collapsed-by-default block here
-  // (same "What's Included · What You Receive" pattern already used by
-  // BazaarOfferingCard) so the card isn't lengthened by adding this.
-  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
-  const [showDisclaimerError, setShowDisclaimerError] = useState(false);
+  // ✅ DISCLAIMER CONSOLIDATION (single-source-of-truth): the acknowledgement
+  // checkbox previously lived here, on every card, in addition to an
+  // identical gate one step later in the Seva Sankalp Portal (BookNowWizard)
+  // — a devotee had to read and tick the same disclaimer twice for one
+  // booking. It now lives once, inside the Seva Sankalp Portal's "Seva
+  // Sankalp Details" step, which every offering routes through regardless
+  // of which card it started from. "This seva includes" / "You will
+  // receive" stay merged into one collapsed-by-default block here (same
+  // "What's Included · What You Receive" pattern already used by
+  // BazaarOfferingCard).
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   // ─── Compact-by-default card (mobile/tablet) ─────────────────────────
   // Mobile-first Seva audit (Stage 2): this card used to always render
@@ -165,11 +164,6 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
 
   const handleSubmit = () => {
     if (!isActive) { onActivate(); return; }
-    if (!disclaimerChecked) {
-      setShowDisclaimerError(true);
-      document.getElementById(`seva-offering-disclaimer-${offering.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
     if (isCustomSelected && !customAmountValid) { alert("Custom seva amount starts from ₹100."); return; }
 
     // Custom Temple Offering — temple name, location, and the temple's
@@ -243,8 +237,6 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
     setCustomTempleName("");
     setCustomTempleLocation("");
     setCustomTempleOffering("");
-    setDisclaimerChecked(false);
-    setShowDisclaimerError(false);
     setJustOffered(true);
     if (justOfferedTimeoutRef.current) clearTimeout(justOfferedTimeoutRef.current);
     justOfferedTimeoutRef.current = setTimeout(() => setJustOffered(false), 6000);
@@ -595,19 +587,10 @@ export default function SevaOfferingCard({ offering, isActive, onActivate, onOff
           <span>{offering.certificateTimeline}</span>
         </div>
 
-        {/* Contribution disclaimer — lives inside this card, right above its
-            own CTA, so a devotee never has to hunt elsewhere to find it. */}
-        <div id={`seva-offering-disclaimer-${offering.id}`} className="mb-3" onClick={(e) => e.stopPropagation()}>
-          <DisclaimerAcknowledge
-            summary="Sevas are performed with devotion as per temple/Gaushala process — timings can vary and no specific outcome is guaranteed."
-            details={SEVA_DISCLAIMER}
-            checked={disclaimerChecked}
-            onCheckedChange={(v) => { setDisclaimerChecked(v); if (v) setShowDisclaimerError(false); }}
-            checkboxLabel="I understand how this seva is performed and confirm before offering."
-            showRequiredError={showDisclaimerError}
-          />
-        </div>
-
+        {/* Disclaimer acknowledgement now lives once, in the Seva Sankalp
+            Portal's "Seva Sankalp Details" step (BookNowWizard) that opens
+            next — see SEVA_DISCLAIMER (data/sevaOfferings.ts) for the exact
+            wording shown there. */}
         <button
           id={`seva-offering-cta-${offering.id}`}
           onClick={(e) => { e.stopPropagation(); handleSubmit(); }}

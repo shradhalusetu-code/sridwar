@@ -689,8 +689,8 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
 
               <div id="report-issues-disclaimer">
                 <DisclaimerAcknowledge
-                  summary="Sri Dwar only facilitates sharing this report — it's not a government body and doesn't guarantee any response or outcome."
-                  details="Sri Dwar only facilitates sharing this report with the recipients you've selected, is not a government body, does not guarantee any response, action, or outcome, and is not responsible for the decisions or actions of any representative, authority, or temple body. By proceeding, you consent to your details being shared with the selected recipients for this purpose."
+                  summary="With good intention, Sri Dwar humbly helps carry this report to your chosen recipients — as a devotee-led initiative rather than a government body, we gently note we can't promise a particular response."
+                  details="With good intention and heartfelt care, Sri Dwar helps share this report with the recipients you've selected. As we are a devotee-led initiative rather than a government body, we're unable to promise any specific response, action or outcome, and the decisions or actions taken by any representative, authority or temple body remain their own. By proceeding, you're kindly agreeing to your details being shared with the recipients you've chosen, simply for this purpose."
                   checked={consent}
                   onCheckedChange={(v) => { setConsent(v); if (v) setShowConsentError(false); }}
                   checkboxLabel="I understand and consent to my details being shared with the selected recipients."
@@ -755,11 +755,13 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   <div className="w-12 h-12 bg-[#FFB347]/10 rounded-full flex items-center justify-center mx-auto border border-[#FFB347]/30">
                     <Award className="w-6 h-6 text-[#FFB347]" />
                   </div>
-                  <h3 className="font-serif text-lg font-bold text-white">Report Received — Contribute a Darshan Certificate?</h3>
+                  <h3 className="font-serif text-lg font-bold text-white">Report Received — A Gesture of Support?</h3>
                   <p className="text-xs text-white/60">
-                    Would you like to make a voluntary contribution toward Sri Dwar's temple preservation mission?
-                    In return, a puja is performed in your name at your ista devta temple, and a Darshan Certificate
-                    is shared with you within 3–7 working days.
+                    Would you like to make a voluntary contribution toward Sri Dwar's temple preservation mission — with
+                    special warmth for smaller temples that quietly serve with limited resources or visibility? As a
+                    lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall,
+                    and once a puja is performed in your name, we will lovingly share photographs with you within 3–7
+                    working days.
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     {[51, 101, 251].map((amt) => (
@@ -803,8 +805,8 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                 </div>
                 <div className="flex items-start gap-2 bg-amber-950/20 border border-amber-500/20 px-3 py-2.5 rounded-xl text-[12px] text-amber-200/80 text-left leading-relaxed">
                   <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-300" />
-                  <span>Reminder: Sri Dwar facilitates this communication but is not responsible for the actions or
-                  outcomes of any representative, authority, or temple body.</span>
+                  <span>Gentle reminder: Sri Dwar lovingly facilitates this communication; the actions or
+                  outcomes of any representative, authority, or temple body remain their own.</span>
                 </div>
                 <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -851,11 +853,11 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
              page as well). ──────────────────────────────────────────────── */}
         <div className="max-w-2xl mx-auto mt-14 text-center space-y-3">
           <p className="text-[13px] text-white/40 leading-relaxed">
-            Sri Dwar only facilitates sharing the information you submit with the recipients you choose. We
-            are not a government body, are not responsible for the actions, decisions, or outcomes of any
-            representative, authority, or temple body, and cannot guarantee a response. This initiative
-            simply aims to encourage elected representatives and authorities to actively support temples,
-            culture, and traditions.
+            With good intention, Sri Dwar humbly helps carry the information you submit to the recipients you
+            choose. As a devotee-led initiative rather than a government body, the actions, decisions or outcomes
+            of any representative, authority or temple body remain their own. This initiative simply hopes to
+            gently encourage elected representatives and authorities to actively support temples, culture and
+            traditions.
           </p>
           <p className="text-[13px] text-white/40 leading-relaxed">
             🙏 Together, let's preserve our temples, honour our traditions, and bring local and major temples, festivals,

@@ -6,12 +6,16 @@
 import { Seva, Puja, Product, Mantra, DailyHoroscope } from "../types";
 import { TEMPLES_LIST } from "./temples";
 
-// ✅ DISCLAIMER COVERAGE FIX: Simple Pujas previously had no disclaimer
-// acknowledgement gate before booking, unlike Seva Offerings (SEVA_DISCLAIMER
-// in sevaOfferings.ts) and Bazaar (BAZAAR_DISCLAIMER in bazaarOfferings.ts).
-// Same purpose, worded for a puja/sankalp rather than a seva contribution.
+// Full disclaimer text shown once, inside the Puja Sankalpa Portal's
+// "Devotee Sankalpa" step (components/BookNowWizard.tsx) — kept devotional
+// and welcoming while preserving every original safeguard: process/timing
+// transparency and no promise of a specific spiritual outcome. Previously
+// duplicated at the card level (OnlinePuja.tsx's SimplePujaCard) as well;
+// that copy has been removed so a devotee reads this once, not on every
+// step. Same pattern as SEVA_DISCLAIMER (sevaOfferings.ts) and
+// BAZAAR_DISCLAIMER (bazaarOfferings.ts).
 export const PUJA_DISCLAIMER =
-  "Pujas are performed with devotion as per temple process and priest availability. Timings may vary depending on temple schedule, festival rush, and local logistics. A puja/sankalp is an act of devotion and does not guarantee any specific outcome.";
+  "May your Puja/Seva be a heartfelt offering of श्रद्धा, lovingly performed by our temple priests in accordance with the sacred traditions of the temple. The timing and specific rituals may follow the temple's natural rhythm and the availability of the priest. Once your payment is verified, generally within 2 hours, your Seva is confirmed. A digital certificate or Seva evidence is shared as described with the offering, as a humble remembrance of your prayer and devotion, while each devotee's spiritual journey unfolds in its own unique way.";
 
 // Reuses each temple's own already-imported deity image — no external URLs.
 const getTempleImage = (templeId: string): string => {
