@@ -35,7 +35,10 @@ interface OfferPopupProps {
 }
 
 // EDIT ME — set this to your real campaign closing date/time (IST).
-const CAMPAIGN_END = new Date("2026-08-31T23:59:59+05:30");
+// ✅ EXTENDED (2026-08-26): was 2026-08-31 (5 days from today, about to
+// lapse) — pushed out 6 months per request, to 2027-02-28. 2027 is not a
+// leap year, so February ends on the 28th.
+const CAMPAIGN_END = new Date("2027-02-28T23:59:59+05:30");
 
 const WHATSAPP_NUMBER = "919777645062";
 

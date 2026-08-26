@@ -128,3 +128,10 @@ android/app/src/main/assets/public
 android/app/src/main/assets/capacitor.config.json
 android/app/src/main/assets/capacitor.plugins.json
 android/app/src/main/res/xml/config.xml
+
+# ── Local reference material — not deployed, not pushed to GitHub ───────
+# Old-files archive + Google Apps Script source copies, kept locally for
+# your own reference (and so I can read them accurately in future chats).
+# Never touched by `vite build` or the Render build command either way —
+# this line just keeps it out of git/GitHub too.
+docs/
