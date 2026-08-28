@@ -72,7 +72,13 @@ export type DevotionalServiceCategory =
   | "temple_contribution"
   | "bazaar_order"
   | "subscription"
-  | "support_contribution";
+  | "support_contribution"
+  // ✅ ADDED 2026-08-27: dedicated category for a successful Stone-Name
+  // Engraving contribution (the voluntary add-on described in
+  // StoneEngravingNote.tsx), so its confirmation reads as the humble
+  // devotional offering it is — never generic "seva" copy, and never
+  // implying it was a fixed-price purchase.
+  | "stone_name_engraving";
 
 interface DevotionalMessageInput {
   category: DevotionalServiceCategory;
@@ -101,6 +107,8 @@ const OPENING_BY_CATEGORY: Record<DevotionalServiceCategory, (serviceName: strin
     `Your ${s} contribution has been lovingly received by our team of devoted priests and seva coordinators.`,
   support_contribution: (s) =>
     `Your offering for ${s} has been lovingly received by our team of devoted priests and seva coordinators.`,
+  stone_name_engraving: (s) =>
+    `Your humble contribution toward ${s} has been received with folded hands by our team.`,
 };
 
 const BLESSING_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
@@ -122,6 +130,8 @@ const BLESSING_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
     "Like a diya lit with pure intention, your membership welcome letter is being prepared with sacred blessings and will be delivered to you within 3–7 working days — straight to your email or WhatsApp.",
   support_contribution:
     "Like a diya lit with pure intention, your acknowledgement is being handcrafted with sacred blessings and will be delivered to you within 3–7 working days — straight to your email or WhatsApp.",
+  stone_name_engraving:
+    "This is a voluntary act of devotion, not a purchase — your name will be lovingly inscribed on a stone slab and placed within a temple we serve, and we'll share real photographs (and, where possible, a short video) once it is placed.",
 };
 
 // ─── Service-specific PDF disclaimers ───────────────────────────────────────
@@ -151,22 +161,135 @@ const DISCLAIMER_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
     "This document confirms your membership contribution only. Your welcome letter and any associated benefits are sent separately, with care.",
   support_contribution:
     "This document confirms your offering only. A separate acknowledgement is lovingly sent by our team; no specific outcome is implied or guaranteed.",
+  stone_name_engraving:
+    "This document confirms your voluntary Stone-Name Engraving contribution only. Placement timing depends on the temple's construction/masonry schedule; a shared slab carries 50+ names, and slabs for contributions above Rs. 1,000 carry only 10 names.",
 };
+
+// ─── Sanskrit shloka + related-services note + Stone-Name Engraving line ────
+// Mirrors the same additions made to the Google Apps Script email templates
+// (see emailtemplates.gs's SHLOKA / _relatedServicesNote_ /
+// _stoneEngravingFooterNote_) so the in-app downloadable confirmation
+// (text + PDF) carries the same devotional footer as the emailed
+// confirmation for the same event. One curated shloka per category, not one
+// quote reused everywhere.
+const SHLOKA_BY_CATEGORY: Record<
+  DevotionalServiceCategory,
+  { sa: string; translit: string; translitAscii: string; en: string }
+> = {
+  darshan_certificate: {
+    sa: "यो मां पश्यति सर्वत्र सर्वं च मयि पश्यति",
+    translit: "Yo māṁ paśyati sarvatra sarvaṁ ca mayi paśyati",
+    translitAscii: "Yo mam pashyati sarvatra sarvam cha mayi pashyati",
+    en: '"One who sees Me everywhere, and sees everything in Me." — Bhagavad Gita 6.30',
+  },
+  puja_seva: {
+    sa: "पत्रं पुष्पं फलं तोयं यो मे भक्त्या प्रयच्छति",
+    translit: "Patraṁ puṣpaṁ phalaṁ toyaṁ yo me bhaktyā prayācchati",
+    translitAscii: "Patram pushpam phalam toyam yo me bhaktya prayachchati",
+    en: '"Whoever offers Me a leaf, a flower, a fruit, or water with devotion, I accept it." — Bhagavad Gita 9.26',
+  },
+  counselling_guidance: {
+    sa: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत्",
+    translit: "Uddhared ātmanātmānaṁ nātmānam avasādayet",
+    translitAscii: "Uddhared atmanatmanam natmanam avasadayet",
+    en: '"Lift yourself by your own self; do not let yourself be weighed down." — Bhagavad Gita 6.5',
+  },
+  holistic_wellness: {
+    sa: "उद्धरेदात्मनात्मानं नात्मानमवसादयेत्",
+    translit: "Uddhared ātmanātmānaṁ nātmānam avasādayet",
+    translitAscii: "Uddhared atmanatmanam natmanam avasadayet",
+    en: '"Lift yourself by your own self; do not let yourself be weighed down." — Bhagavad Gita 6.5',
+  },
+  seva_offering: {
+    sa: "तस्मादसक्तः सततं कार्यं कर्म समाचर",
+    translit: "Tasmād asaktaḥ satataṁ kāryaṁ karma samācara",
+    translitAscii: "Tasmad asaktah satatam karyam karma samachara",
+    en: '"Therefore, without attachment, perform your duty at all times." — Bhagavad Gita 3.19',
+  },
+  temple_contribution: {
+    sa: "वसुधैव कुटुम्बकम्",
+    translit: "Vasudhaiva Kuṭumbakam",
+    translitAscii: "Vasudhaiva Kutumbakam",
+    en: '"The whole world is one family." — Maha Upanishad',
+  },
+  bazaar_order: {
+    sa: "शुभस्य शीघ्रम्",
+    translit: "Śubhasya śīghram",
+    translitAscii: "Shubhasya shighram",
+    en: '"An auspicious act should be done swiftly." — traditional Sanskrit subhashita',
+  },
+  subscription: {
+    sa: "शुभस्य शीघ्रम्",
+    translit: "Śubhasya śīghram",
+    translitAscii: "Shubhasya shighram",
+    en: '"An auspicious act should be done swiftly." — traditional Sanskrit subhashita',
+  },
+  support_contribution: {
+    sa: "असतो मा सद्गमय",
+    translit: "Asato mā sad gamaya",
+    translitAscii: "Asato ma sad gamaya",
+    en: '"Lead me from the unreal to the real." — Brihadaranyaka Upanishad 1.3.28',
+  },
+  stone_name_engraving: {
+    sa: "परोपकाराय सतां विभूतयः",
+    translit: "Paropakārāya satāṁ vibhūtayaḥ",
+    translitAscii: "Paropakaraya satam vibhutayah",
+    en: '"The prosperity of the virtuous exists for the welfare of others." — Kalidasa, Raghuvamsha',
+  },
+};
+
+/**
+ * Short, non-promotional note naming three of Sri Dwar's primary offerings.
+ * Shared verbatim in spirit with emailtemplates.gs's _relatedServicesNote_.
+ */
+const RELATED_SERVICES_NOTE =
+  "Whenever your heart calls you back, Sri Dwar is also here for the Veer Raksha Kavach Puja (a rite of protection and courage), the Traditional Red-Cloth & Coconut Offering at the temple of your choice, and the Stone-Name Engraving Seva — each offered with the same care as this one.";
+
+/**
+ * Subtle, always-voluntary Stone-Name Engraving mention for the confirmation
+ * text/PDF, matching the site's own wording (STONE_ENGRAVING_COMPACT_TEXT in
+ * StoneEngravingNote.tsx). Not shown when the category IS
+ * stone_name_engraving itself — the main blessing text already covers it in
+ * full there, and repeating it would read as redundant, not devotional.
+ */
+function stoneEngravingFooterLine(category: DevotionalServiceCategory): string {
+  if (category === "stone_name_engraving") return "";
+  return "Separately, and entirely by choice, some devotees also take part in our Stone-Name Engraving Seva: contributions above Rs. 200 include the opportunity for a name to be lovingly inscribed on a stone slab placed within a temple we serve. This is never a condition of anything above — sridwar.com has the full details.";
+}
 
 /** Structured pieces, for screens that render the message with their own styling (e.g. Hero.tsx's card layout). */
 export function getDevotionalConfirmation({ category, serviceName, devoteeName, refId }: DevotionalMessageInput) {
+  const shloka = SHLOKA_BY_CATEGORY[category];
   return {
     greeting: `Dear ${devoteeName},`,
     opening: OPENING_BY_CATEGORY[category](serviceName),
     blessing: BLESSING_BY_CATEGORY[category],
     refLine: `Reference ID: ${refId}`,
+    // ✅ ADDED 2026-08-27 — additive fields only; existing callers that
+    // destructure just {greeting, opening, blessing, refLine} are unaffected.
+    shlokaSanskrit: shloka.sa,
+    shlokaTranslit: shloka.translit,
+    shlokaTranslitAscii: shloka.translitAscii,
+    shlokaEnglish: shloka.en,
+    relatedServicesNote: RELATED_SERVICES_NOTE,
+    stoneEngravingNote: stoneEngravingFooterLine(category),
   };
 }
 
 /** Plain-text version, for the downloadable confirmation file and the clipboard-copy fallback. */
 export function getDevotionalConfirmationText(input: DevotionalMessageInput): string {
-  const { greeting, opening, blessing, refLine } = getDevotionalConfirmation(input);
-  return [
+  const {
+    greeting,
+    opening,
+    blessing,
+    refLine,
+    shlokaSanskrit,
+    shlokaTranslit,
+    shlokaEnglish,
+    relatedServicesNote,
+    stoneEngravingNote,
+  } = getDevotionalConfirmation(input);
+  const lines = [
     "🙏 Sri Dwar — Sacred Confirmation 🙏",
     "",
     refLine,
@@ -179,8 +302,17 @@ export function getDevotionalConfirmationText(input: DevotionalMessageInput): st
     "",
     "Om Namah Shivaya. May Lord Jagannath bless your home.",
     "",
-    "— Sri Dwar (Shradhalu Private Limited)",
-  ].join("\n");
+    shlokaSanskrit,
+    shlokaTranslit,
+    shlokaEnglish,
+    "",
+    relatedServicesNote,
+  ];
+  if (stoneEngravingNote) {
+    lines.push("", stoneEngravingNote);
+  }
+  lines.push("", "— Sri Dwar (Shradhalu Private Limited)");
+  return lines.join("\n");
 }
 
 // ─── Small self-contained toast (no dependency on any app-wide toast system) ─
@@ -340,7 +472,16 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   page.drawRectangle({ x: margin, y, width: 40, height: 2, color: saffron });
   y -= 26;
 
-  const { greeting, opening, blessing, refLine } = getDevotionalConfirmation(input);
+  const {
+    greeting,
+    opening,
+    blessing,
+    refLine,
+    shlokaTranslitAscii,
+    shlokaEnglish,
+    relatedServicesNote,
+    stoneEngravingNote,
+  } = getDevotionalConfirmation(input);
 
   function wrapText(text: string, size: number, useFont = font): string[] {
     const words = text.split(" ");
@@ -375,6 +516,27 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   drawParagraph(blessing, 11, 16, font, textMuted);
   y -= 16;
   drawParagraph("Om Namah Shivaya. May Lord Jagannath bless your home.", 11, 16, bold, darkGreen);
+
+  // Sanskrit shloka — PDF-safe: pdf-lib's StandardFonts use WinAnsi
+  // encoding, which CANNOT render Devanagari glyphs or IAST diacritics
+  // (verified: throws at render time, same class of bug as the ₹ symbol
+  // documented in certificateService.ts's formatRupees). So the PDF prints
+  // an ASCII-only transliteration + the English meaning; the full
+  // Devanagari + IAST transliteration is still shown in the plain-text
+  // confirmation (getDevotionalConfirmationText) and any in-app card that
+  // renders shlokaSanskrit/shlokaTranslit directly as normal Unicode text.
+  y -= 14;
+  page.drawRectangle({ x: margin, y: y + 10, width: 3, height: 30, color: saffron });
+  drawParagraph(shlokaTranslitAscii, 10, 14, italic, darkGreen);
+  drawParagraph(shlokaEnglish, 9, 13, font, textMuted);
+
+  y -= 8;
+  drawParagraph(relatedServicesNote, 9, 13, font, textMuted);
+
+  if (stoneEngravingNote) {
+    y -= 4;
+    drawParagraph(stoneEngravingNote, 9, 13, italic, textMuted);
+  }
 
   // Service-specific disclaimer — placed just above the footer band, small
   // and italic so it's clearly legible but doesn't compete visually with

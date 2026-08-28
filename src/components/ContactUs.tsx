@@ -9,6 +9,7 @@ import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
 import UPIPaymentModal from "./UPIPaymentModal";
+import StoneEngravingNote from "./StoneEngravingNote";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { validateName, validateEmail, validatePhone } from "../utils/formValidation";
 import { gaContactFormStart, gaContactFormSubmit, gaDonationInitiate, gaWhatsAppClick } from "../utils/analytics";
@@ -258,6 +259,7 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 allowCustomAmount={true}
                 minAmount={5}
                 maxAmount={1000}
+                isVoluntaryContribution={true}
               />
             )}
 
@@ -267,7 +269,9 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                   <span className="text-2xl">🙏</span>
                 </div>
                 <h4 className="font-serif text-lg font-bold text-white">Message Received!</h4>
-                <p className="text-xs text-white/60">Would you like to make a voluntary divine contribution to help care for our heritage and our temples — especially the smaller ones that quietly serve their devotees with limited resources or visibility? As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall, and once a puja is performed in your name, we'll lovingly share photographs of that moment with you.</p>
+                <p className="text-xs text-white/60">Would you like to make a voluntary divine contribution to help care for our heritage and our temples — especially the smaller ones that quietly serve their devotees with limited resources or visibility?</p>
+
+                <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
 
                 <div className="grid grid-cols-3 gap-2">
                   {[51, 101, 251].map((amt) => (

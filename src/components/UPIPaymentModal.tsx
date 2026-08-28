@@ -8,6 +8,7 @@ import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles, AlertTriangle }
 import { buildUpiQrDataUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
 import CollapsibleSection from "./CollapsibleSection";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
+import StoneEngravingNote, { STONE_ENGRAVING_COMPACT_TEXT, STONE_ENGRAVING_REPEAT_TEXT } from "./StoneEngravingNote";
 
 // ─────────────────────────────────────────────────────────────────────────
 // ✅ CONTRIBUTION-BENEFITS UPDATE: this modal is the single shared payment
@@ -19,6 +20,16 @@ import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 // non-exaggerated and cumulative — every tier keeps what the tier below it
 // already offers. Never blocks payment and never implies a guaranteed
 // spiritual outcome; only describes real platform-side benefits.
+//
+// ✅ STONE-NAME ENGRAVING (2026-08-27): deliberately NOT listed here. This
+// function's output is shared by every caller of this modal — including
+// fixed-price Puja/Seva/Counselling/Wellness bookings (BookNowWizard),
+// Subscriptions, and Bazaar/Bhog product orders — none of which are a
+// voluntary contribution. The stone-name engraving is only shown via the
+// gated `isVoluntaryContribution` prop below (see StoneEngravingNote),
+// never folded into this generic benefits list, so a devotee simply paying
+// for a puja or a bazaar item is never told their fixed-price payment
+// earns an engraving.
 // ─────────────────────────────────────────────────────────────────────────
 function getContributionBenefits(amount: number): string[] {
   const benefits: string[] = [];
@@ -44,8 +55,20 @@ function getContributionBenefits(amount: number): string[] {
 // convenient place a devotee ticks this; this is the backstop that makes
 // sure no payment path is ever missing an acknowledgement, no matter which
 // page or form led here.
+//
 const PAYMENT_DISCLAIMER =
   "With gratitude, your payment is received and submitted for gentle verification by our team — your booking is confirmed once this is complete, usually within 2 hours. Sevas, pujas and offerings are lovingly performed with devotion as per temple/priest process; timings may naturally vary. Contribution benefits (cashback, milestones, pilgrimage eligibility, campaign entries) are heartfelt platform benefits linked to real, paid bookings, offered warmly as encouragement — not a guarantee of any spiritual outcome, and not an investment or money-circulation scheme.";
+
+// ✅ STONE-NAME ENGRAVING (2026-08-27): a short addendum appended to the
+// disclaimer ONLY when `isVoluntaryContribution` is true (see below) —
+// the base PAYMENT_DISCLAIMER above stays exactly as it was, since it is
+// shown for every payment through this modal, including fixed-price
+// Puja/Seva/Bazaar/Subscription purchases that must never mention the
+// engraving. Wording is shared with the rest of the site via
+// StoneEngravingNote so it can never drift out of sync. Includes the
+// repeat-participation/duplicate-avoidance line too, since this disclaimer
+// is itself a payment-related area a devotee may see more than once.
+const STONE_ENGRAVING_DISCLAIMER_ADDENDUM = " " + STONE_ENGRAVING_COMPACT_TEXT + " " + STONE_ENGRAVING_REPEAT_TEXT;
 
 interface UPIPaymentModalProps {
   isOpen: boolean;
@@ -92,6 +115,20 @@ interface UPIPaymentModalProps {
    *  Contributions, Subscriptions, Testimony/Prayer Wall, etc.) keeps this
    *  modal's disclaimer as its sole, required safety net — unchanged. */
   skipDisclaimer?: boolean;
+  /** ✅ STONE-NAME ENGRAVING (2026-08-27): set true ONLY when this specific
+   *  call is a voluntary contribution with no fixed price attached (e.g.
+   *  DevoteeExperiences' optional post-testimony contribution, which has
+   *  no earlier pre-screen of its own and relies on this modal's own
+   *  amount picker). Defaults to false so every fixed-price caller — Puja/
+   *  Seva/Counselling/Wellness (BookNowWizard), Subscriptions
+   *  (SubscriptionSignup), and Bazaar/Bhog orders (TemplateBazaar) — never
+   *  shows stone-engraving content for what is simply a paid purchase.
+   *  Flows that already show their own dedicated contribution screen with
+   *  this same content before ever opening this modal (ContactUs,
+   *  ReportTempleIssues, AuthDashboard, TempleRegister, Hero's Darshan
+   *  Membership contribution) intentionally leave this false too, so the
+   *  content isn't shown twice for one contribution. */
+  isVoluntaryContribution?: boolean;
 }
 
 export default function UPIPaymentModal({
@@ -108,6 +145,7 @@ export default function UPIPaymentModal({
   payeeLabel,
   payeeValue,
   skipDisclaimer = false,
+  isVoluntaryContribution = false,
 }: UPIPaymentModalProps) {
   const [copied, setCopied] = useState(false);
   // NOTE: "submitted" means the devotee tapped "I Have Paid" or opened
@@ -348,6 +386,15 @@ export default function UPIPaymentModal({
               </div>
             )}
 
+            {/* ✅ STONE-NAME ENGRAVING (2026-08-27): only shown when this
+                specific call is a genuine voluntary contribution with no
+                fixed price of its own (see isVoluntaryContribution prop
+                doc above) — never for a fixed-price Puja/Seva/Bazaar/
+                Subscription purchase. Reuses the shared StoneEngravingNote
+                component so the wording/thresholds can never drift out of
+                sync with the rest of the site. */}
+            {isVoluntaryContribution && <StoneEngravingNote variant="compact" showRepeatNote />}
+
             {/* Required acknowledgement — gates both "I Have Paid" and "Pay
                 via WhatsApp" below. This is the safety-net checkbox for any
                 flow that reaches payment without its own earlier disclaimer
@@ -360,8 +407,12 @@ export default function UPIPaymentModal({
             {!skipDisclaimer && (
               <div id="upi-disclaimer-acknowledge">
                 <DisclaimerAcknowledge
-                  summary="With gratitude, your payment is received and gently verified by our team before your booking is confirmed — kindly read the full details before proceeding."
-                  details={PAYMENT_DISCLAIMER}
+                  summary={
+                    isVoluntaryContribution
+                      ? "With gratitude, your payment is gently verified by our team before your booking is confirmed, and — for contributions above ₹200 — your name is engraved in stone at a temple as a lasting mark of devotion; kindly read the full details before proceeding."
+                      : "With gratitude, your payment is received and gently verified by our team before your booking is confirmed — kindly read the full details before proceeding."
+                  }
+                  details={isVoluntaryContribution ? PAYMENT_DISCLAIMER + STONE_ENGRAVING_DISCLAIMER_ADDENDUM : PAYMENT_DISCLAIMER}
                   checked={disclaimerAccepted}
                   onCheckedChange={(v) => { setDisclaimerAccepted(v); if (v) setShowDisclaimerError(false); }}
                   checkboxLabel="I understand and accept the above before completing payment."

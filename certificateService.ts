@@ -161,6 +161,70 @@ const BRAND = {
   white: rgb(1, 1, 1),
 } as const;
 
+// ─── Devotional footer content (shloka + 3-services note + Stone-Name
+// Engraving mention) ──────────────────────────────────────────────────────
+// ✅ ADDED 2026-08-28 — mirrors the same additions made to the GAS email
+// templates (emailtemplates.gs) and the client-side confirmation
+// (devotionalMessages.ts), so every Sri Dwar document/email — the sheet-
+// driven ones, the in-app receipt, and this file's certificate/invoice PDF +
+// webhook email — carries the same warm, tailored closing. One curated
+// shloka per template kind, never one quote reused everywhere.
+//
+// PDF-SAFETY NOTE: pdf-lib's StandardFonts (WinAnsi encoding) cannot render
+// Devanagari glyphs or IAST diacritics (ā, ṁ, ḥ, ṭ, ś, ṇ, …) — verified,
+// throws at render time, same class of bug formatRupees() above already
+// works around for the ₹ symbol. So every PDF-drawn line below uses
+// `translitAscii` (no diacritics) + the English meaning only; the HTML
+// email in buildEmailPayload has no such limitation and uses the full
+// Devanagari + IAST transliteration.
+const SHLOKA_BY_KIND: Record<
+  TemplateKind,
+  { sa: string; translit: string; translitAscii: string; meaning: string; attribution: string }
+> = {
+  booking_confirmation: {
+    sa: "यत्करोषि यदश्नासि यज्जुहोषि ददासि यत्",
+    translit: "Yat karoṣi yad aśnāsi yaj juhoṣi dadāsi yat",
+    translitAscii: "Yat karoshi yad ashnasi yaj juhoshi dadasi yat",
+    meaning: "Whatever you do, whatever you eat, whatever you offer, whatever you give, do it as an offering.",
+    attribution: "Bhagavad Gita 9.27",
+  },
+  puja: {
+    sa: "पत्रं पुष्पं फलं तोयं यो मे भक्त्या प्रयच्छति",
+    translit: "Patraṁ puṣpaṁ phalaṁ toyaṁ yo me bhaktyā prayācchati",
+    translitAscii: "Patram pushpam phalam toyam yo me bhaktya prayachchati",
+    meaning: "Whoever offers Me a leaf, a flower, a fruit, or water with devotion, I accept it.",
+    attribution: "Bhagavad Gita 9.26",
+  },
+  seva: {
+    sa: "तस्मादसक्तः सततं कार्यं कर्म समाचर",
+    translit: "Tasmād asaktaḥ satataṁ kāryaṁ karma samācara",
+    translitAscii: "Tasmad asaktah satatam karyam karma samachara",
+    meaning: "Therefore, without attachment, perform your duty at all times.",
+    attribution: "Bhagavad Gita 3.19",
+  },
+  darshan: {
+    sa: "यो मां पश्यति सर्वत्र सर्वं च मयि पश्यति",
+    translit: "Yo māṁ paśyati sarvatra sarvaṁ ca mayi paśyati",
+    translitAscii: "Yo mam pashyati sarvatra sarvam cha mayi pashyati",
+    meaning: "One who sees Me everywhere, and sees everything in Me.",
+    attribution: "Bhagavad Gita 6.30",
+  },
+};
+
+/** Short, non-promotional note naming three of Sri Dwar's primary offerings — shared wording with emailtemplates.gs / devotionalMessages.ts. */
+const RELATED_SERVICES_LINE =
+  "Also open to devotees: the Veer Raksha Kavach Puja, the Traditional Red-Cloth & Coconut Offering, and the voluntary Stone-Name Engraving Seva.";
+const RELATED_SERVICES_LINE_HTML =
+  "Whenever your heart calls you back, Sri Dwar is also here for the <strong>Veer Raksha Kavach Puja</strong> (a rite of protection and courage), the <strong>Traditional Red-Cloth &amp; Coconut Offering</strong> at the temple of your choice, and the <strong>Stone-Name Engraving Seva</strong> — each offered with the same care as this one.";
+
+/** Subtle, always-voluntary Stone-Name Engraving mention — compact for the PDF, fuller for the email. */
+const STONE_ENGRAVING_LINE_PDF =
+  "Separately, and by choice, some devotees also take part in our Stone-Name Engraving Seva: contributions above Rs. 200 may include a name lovingly engraved on a stone slab placed within a temple we serve. Entirely voluntary — sridwar.com.";
+const STONE_ENGRAVING_LINE_PDF_COMPACT =
+  "Some devotees also choose our voluntary Stone-Name Engraving Seva — a name engraved in stone, entirely by choice. sridwar.com";
+const STONE_ENGRAVING_LINE_HTML =
+  "&#128591; Separately, and entirely by choice, some devotees also take part in our Stone-Name Engraving Seva: contributions above &#8377;200 include the opportunity for a name to be lovingly inscribed on a stone slab placed within a temple we serve; contributions above &#8377;1,000 are placed on a more exclusive slab. This remains entirely voluntary, and never a condition of anything above. Read more at <a href=\"https://sridwar.com\" style=\"color:#e8a33d;\">sridwar.com</a>.";
+
 // ─── Event / template types ─────────────────────────────────────────────────
 export type EventType = "booking_confirmed" | "certificate_ready";
 export type TemplateKind = "booking_confirmation" | "puja" | "seva" | "darshan";
@@ -526,6 +590,17 @@ async function renderCertificatePdf(kind: TemplateKind, fields: MergedFields): P
       : `was performed with devotion on ${fields.date}.`;
   centeredText(page, bodyLine2, height - 240, serifRegular, 13);
 
+  // ✅ ADDED 2026-08-28 — compact devotional footer: shloka (ASCII-safe —
+  // see SHLOKA_BY_KIND comment) + a one-line mention of three other
+  // offerings + a subtle, always-voluntary Stone-Name Engraving note. Kept
+  // to three short single lines (no wrapping) so the certificate's premium,
+  // uncluttered A5 layout is preserved — the fuller versions of this same
+  // wording live in the email (buildEmailPayload) and invoice (below).
+  const shloka = SHLOKA_BY_KIND[kind];
+  centeredText(page, `"${shloka.translitAscii}" — ${shloka.attribution}`, height - 262, serifItalic, 7.5, BRAND.textMuted);
+  centeredText(page, RELATED_SERVICES_LINE, height - 275, serifRegular, 6.5, BRAND.textMuted);
+  centeredText(page, STONE_ENGRAVING_LINE_PDF_COMPACT, height - 286, serifItalic, 6, BRAND.textMuted);
+
   centeredText(page, `Reference: ${fields.referenceId}`, 70, serifRegular, 10, BRAND.textMuted);
   centeredText(page, "sridwar.com", 55, serifItalic, 9, BRAND.textMuted);
 
@@ -648,23 +723,42 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
     "schedule, festival rush, priest availability, and temple rituals. This document confirms receipt of payment as " +
     "recorded above and serves as your official proof of booking/payment. For queries, contact puja@sridwar.com.";
   const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
-  const words = disclaimer.split(" ");
-  let line = "";
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    if (italic.widthOfTextAtSize(candidate, 8) > contentWidth) {
-      text(line, margin, y, { size: 8, font: italic, color: BRAND.textMuted });
-      y -= 11;
-      line = word;
-    } else {
-      line = candidate;
+
+  const drawWrapped = (t: string, size: number, useFont: PDFFont, color: RGB, lineGap: number) => {
+    const words = t.split(" ");
+    let line = "";
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (useFont.widthOfTextAtSize(candidate, size) > contentWidth) {
+        text(line, margin, y, { size, font: useFont, color });
+        y -= lineGap;
+        line = word;
+      } else {
+        line = candidate;
+      }
     }
-  }
-  if (line) {
-    text(line, margin, y, { size: 8, font: italic, color: BRAND.textMuted });
-    y -= 11;
-  }
-  y -= 10;
+    if (line) {
+      text(line, margin, y, { size, font: useFont, color });
+      y -= lineGap;
+    }
+  };
+
+  drawWrapped(disclaimer, 8, italic, BRAND.textMuted, 11);
+
+  // ✅ ADDED 2026-08-28 — devotional footer: shloka (ASCII-safe transliteration
+  // + English meaning — see SHLOKA_BY_KIND comment for why no Devanagari is
+  // drawn here), the 3-other-offerings note, and the voluntary Stone-Name
+  // Engraving mention. This invoice always uses the "booking_confirmation"
+  // shloka (payment/offering-themed), since it's the only kind rendered here.
+  y -= 6;
+  const invoiceShloka = SHLOKA_BY_KIND.booking_confirmation;
+  drawWrapped(`"${invoiceShloka.translitAscii}" — ${invoiceShloka.attribution}. "${invoiceShloka.meaning}"`, 8, italic, BRAND.darkGreen, 11);
+  y -= 4;
+  drawWrapped(RELATED_SERVICES_LINE, 8, sans, BRAND.textMuted, 11);
+  y -= 4;
+  drawWrapped(STONE_ENGRAVING_LINE_PDF, 8, italic, BRAND.textMuted, 11);
+
+  y -= 6;
   text("Shradhalu Private Limited · sridwar.com · puja@sridwar.com", margin, y, { size: 8, font: sans, color: BRAND.textMuted });
 
   return doc.save();
@@ -724,6 +818,24 @@ function buildEmailPayload(
       <p style="color:#6b7a76;font-size:13px;">Reference: ${fields.referenceId}${
     fields.invoiceNumber ? ` · Invoice: ${fields.invoiceNumber}` : ""
   }<br/>Sri Dwar — Connect. Contribute. Preserve.</p>
+      ${(() => {
+        // ✅ ADDED 2026-08-28 — same devotional footer added to the GAS email
+        // templates (emailtemplates.gs) and the client-side confirmation
+        // (devotionalMessages.ts): a shloka matched to what this email is
+        // actually about, a brief non-promotional 3-services note, and a
+        // subtle, always-voluntary Stone-Name Engraving mention. No font
+        // constraint here (this is HTML, not pdf-lib), so the full
+        // Devanagari + IAST transliteration is shown, unlike the PDF above.
+        const s = SHLOKA_BY_KIND[kind];
+        return `
+      <div style="margin-top:18px;padding:14px 16px;background:#fbf6ec;border-left:3px solid #e8a33d;border-radius:0 8px 8px 0;">
+        <div style="font-size:15px;color:#0c2b26;font-weight:bold;">${s.sa}</div>
+        <div style="font-size:11px;color:#6b7a76;font-style:italic;margin-top:2px;">${s.translit}</div>
+        <div style="font-size:12px;color:#444;margin-top:6px;line-height:1.6;">&#8220;${s.meaning}&#8221; — ${s.attribution}</div>
+      </div>
+      <div style="font-size:12px;color:#444;line-height:1.7;margin-top:16px;">${RELATED_SERVICES_LINE_HTML}</div>
+      <div style="font-size:11px;color:#6b7a76;line-height:1.7;margin-top:14px;padding-top:12px;border-top:1px dashed #e7ddc7;">${STONE_ENGRAVING_LINE_HTML}</div>`;
+      })()}
     </div>`;
 
   return {

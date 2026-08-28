@@ -38,6 +38,7 @@ import { activateSubscriptionTier, type SubscriptionTierId } from "../lib/referr
 import { isDevoteeTier, type PlanCategoryId, type DevoteeReferralTier, type ProviderCategoryTier } from "../data/referralProgram";
 import { validateName, validateEmail, validatePhone, validatePincode, firstError } from "../utils/formValidation";
 import { gaEvent } from "../utils/analytics";
+import { STONE_ENGRAVING_REPEAT_TEXT } from "./StoneEngravingNote";
 
 const OWNER_WHATSAPP_NUMBER = "919777645062";
 
@@ -199,8 +200,8 @@ export default function SubscriptionSignup({
         syncToGoogleForm("subscription_signup", {
           name, email, phone,
           details: pendingDetails,
-          type: `Subscription - ${categoryLabel} - ${tier.name}`,
-          city, fee: amount,
+          type: `${categoryLabel} - ${tier.name} | Services: ${servicesLine}`,
+          city: geoLine, fee: amount,
         }),
       ]);
     } catch (err) {
@@ -254,8 +255,8 @@ export default function SubscriptionSignup({
       await syncToGoogleForm("subscription_signup", {
         name, email, phone,
         details: finalDetails,
-        type: `Subscription - ${categoryLabel} - ${tier.name}`,
-        city, fee: details.amount,
+        type: `${categoryLabel} - ${tier.name} | Services: ${servicesLine}`,
+        city: geoLine, fee: details.amount,
       });
     } catch (err) {
       console.error(err);
@@ -495,6 +496,16 @@ export default function SubscriptionSignup({
                   <p className="text-[12px] text-white/40 font-mono">
                     Our team confirms and activates every plan within 2 hours via WhatsApp & Email. 🙏
                   </p>
+
+                  {/* Stone-Name Engraving — subtle, text-only mention. This is a
+                      fixed-price plan purchase, not a voluntary contribution, so
+                      per StoneEngravingNote.tsx's usage note the image is
+                      intentionally NOT shown here — only a gentle pointer toward
+                      where the real engraving initiative can be found. */}
+                  <p className="text-[11px] text-white/40 leading-relaxed max-w-sm mx-auto">
+                    🙏 {STONE_ENGRAVING_REPEAT_TEXT}
+                  </p>
+
                   <button
                     id="download-confirmation-btn"
                     onClick={() =>

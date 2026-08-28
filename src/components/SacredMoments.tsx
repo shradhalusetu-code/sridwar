@@ -15,9 +15,15 @@
  */
 
 import { useState, useEffect, FormEvent } from "react";
-import { Send } from "lucide-react";
+import { Send, Heart, Download } from "lucide-react";
 import OptimizedImage from "./OptimizedImage";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
+import { recordActivity } from "../lib/activities";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { validateName, validateEmail, validatePhone, firstError } from "../utils/formValidation";
+import { gaDonationInitiate } from "../utils/analytics";
+import StoneEngravingNote from "./StoneEngravingNote";
+import UPIPaymentModal from "./UPIPaymentModal";
 import { DEVOTEE_REVIEWS, DevoteeReview } from "../data/devoteeReviews";
 
 // ─── Temporary feature flag ─────────────────────────────────────────────────
@@ -87,6 +93,67 @@ export default function SacredMoments() {
   // while the user is on the page (won't re-shuffle on every keystroke or
   // re-render) but varies between visits/page loads.
   const [shuffledReviews] = useState(() => shuffleReviews(DEVOTEE_REVIEWS));
+
+  // ✅ PRAYER WALL VOLUNTARY CONTRIBUTION (2026-08-27): the Prayer Wall
+  // previously had no payment/contribution step at all — a devotee could
+  // offer a prayer but had no way to also support Sri Dwar's temples from
+  // this card, unlike Contact, Report an Issue, Testimony and the Diya
+  // Circle. Adds the same voluntary-contribution experience (amount tiers,
+  // custom amount, Stone-Name Engraving note, UPI modal) used elsewhere.
+  // The prayer input above stays fully anonymous/unchanged; only this
+  // separate, optional contribution sub-flow collects a name/email/phone,
+  // since Google Forms sync requires them. Reuses the existing "prayer_wall"
+  // Google Form sync category already used for prayer offerings above — no
+  // new backend category created.
+  const [showPrayerContribute, setShowPrayerContribute] = useState(false);
+  const [prayerContribName, setPrayerContribName] = useState("");
+  const [prayerContribEmail, setPrayerContribEmail] = useState("");
+  const [prayerContribPhone, setPrayerContribPhone] = useState("");
+  const [prayerContribAmount, setPrayerContribAmount] = useState<number | null>(null);
+  const [showPrayerUPI, setShowPrayerUPI] = useState(false);
+  const [prayerContributed, setPrayerContributed] = useState<{ amount: number; method: string } | null>(null);
+  const [prayerContribRefId, setPrayerContribRefId] = useState("");
+
+  const handlePrayerContributeStart = () => {
+    const err = firstError(
+      validateName(prayerContribName),
+      validateEmail(prayerContribEmail),
+      validatePhone(prayerContribPhone)
+    );
+    if (err) { alert(err); return; }
+    if (!prayerContribAmount || prayerContribAmount < 5) { alert("Minimum divine contribution is ₹5"); return; }
+
+    gaDonationInitiate(prayerContribAmount);
+    const newRefId = makeSubmissionRef("PRAY");
+    setPrayerContribRefId(newRefId);
+
+    syncToGoogleForm("prayer_wall", {
+      name: prayerContribName, email: prayerContribEmail, phone: prayerContribPhone,
+      type: "Prayer Wall Divine Contribution",
+      details: `Prayer Wall devotee wishes to support Sri Dwar's temples. [Contribution: Pending — Awaiting Decision, Amount: ₹${prayerContribAmount}] [Ref: ${newRefId}]`,
+    }).catch((err) => console.error("Prayer Wall contribution pending sync error:", err));
+
+    setShowPrayerUPI(true);
+  };
+
+  const handlePrayerContributionPaid = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
+    syncToGoogleForm("prayer_wall", {
+      name: prayerContribName, email: prayerContribEmail, phone: prayerContribPhone,
+      type: "Prayer Wall Divine Contribution",
+      details: `Prayer Wall devotee wishes to support Sri Dwar's temples. [Contribution: ₹${details.amount} via ${details.method}] [Ref: ${prayerContribRefId}]`,
+    }).catch((err) => console.error("Prayer Wall contribution final sync error:", err));
+
+    recordActivity({
+      activityType: "contribution",
+      itemName: "Prayer Wall Voluntary Contribution",
+      amount: details.amount,
+      refId: prayerContribRefId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
+    });
+    setShowPrayerUPI(false);
+    setPrayerContributed({ amount: details.amount, method: details.method });
+  };
 
   useEffect(() => {
     const t = setInterval(() => setSlideIndex((p) => (p + 1) % JAGANNATH_SLIDES.length), 5000);
@@ -237,6 +304,126 @@ export default function SacredMoments() {
               <Send className="w-4 h-4" />
             </button>
           </form>
+
+          {/* Optional voluntary divine contribution — same experience used
+              on Contact, Report an Issue, and the Diya Circle. */}
+          {showPrayerUPI && (
+            <UPIPaymentModal
+              isOpen={showPrayerUPI}
+              onClose={() => setShowPrayerUPI(false)}
+              onPaymentConfirmed={handlePrayerContributionPaid}
+              amount={prayerContribAmount}
+              bookingName="Prayer Wall Voluntary Contribution"
+              devoteeName={prayerContribName || "Devotee"}
+              refId={prayerContribRefId}
+              allowCustomAmount={true}
+              minAmount={5}
+              maxAmount={1000}
+              isVoluntaryContribution={true}
+            />
+          )}
+
+          {prayerContributed ? (
+            <div className="mt-3 space-y-2 text-center">
+              <p className="text-[12px] text-[#5EEAD4] font-semibold leading-snug">
+                🙏 Contribution of ₹{prayerContributed.amount} noted — thank you for your devotion.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  downloadConfirmationMessage({
+                    category: "support_contribution",
+                    serviceName: "Prayer Wall Voluntary Contribution",
+                    devoteeName: prayerContribName,
+                    refId: prayerContribRefId,
+                  })
+                }
+                className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2 rounded-lg text-[11px] transition-all tracking-wide uppercase cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" /> Download Confirmation
+              </button>
+            </div>
+          ) : showPrayerContribute ? (
+            <div className="mt-3 space-y-2.5 animate-slideUp">
+              <p className="text-[11px] text-white/55 leading-relaxed">
+                Wish to also support Sri Dwar's temples with a voluntary divine contribution?
+              </p>
+
+              <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
+
+              <input
+                type="text"
+                placeholder="Full Name *"
+                value={prayerContribName}
+                onChange={(e) => setPrayerContribName(e.target.value)}
+                className="w-full text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+              />
+              <div className="grid grid-cols-2 gap-1.5">
+                <input
+                  type="email"
+                  placeholder="Email *"
+                  value={prayerContribEmail}
+                  onChange={(e) => setPrayerContribEmail(e.target.value)}
+                  className="text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone *"
+                  value={prayerContribPhone}
+                  onChange={(e) => setPrayerContribPhone(e.target.value)}
+                  className="text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5">
+                {[51, 101, 251].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setPrayerContribAmount(amt)}
+                    className={`text-[11px] py-2 rounded-lg border font-bold transition-all ${
+                      prayerContribAmount === amt ? "bg-white/10 border-[#FFB347] text-[#FFB347]" : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"
+                    }`}
+                  >₹{amt}</button>
+                ))}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-white/50 text-[11px]">₹</span>
+                <input
+                  type="number"
+                  min={5}
+                  max={1000}
+                  placeholder="Custom amount (₹5–₹1000)"
+                  value={prayerContribAmount || ""}
+                  onChange={(e) => setPrayerContribAmount(Math.min(1000, Math.max(5, Number(e.target.value))))}
+                  className="flex-1 text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowPrayerContribute(false); setPrayerContribAmount(null); }}
+                  className="bg-white/5 hover:bg-white/10 text-white/70 font-semibold py-2 rounded-lg text-[11px] border border-white/10 transition-all"
+                >Cancel</button>
+                <button
+                  type="button"
+                  onClick={handlePrayerContributeStart}
+                  disabled={!prayerContribAmount}
+                  className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-2 rounded-lg text-[11px] uppercase tracking-wide transition-all"
+                >Contribute 🙏</button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowPrayerContribute(true)}
+              className="mt-3 w-full flex items-center justify-center gap-1.5 text-[12px] font-semibold text-[#FFB347]/90 hover:text-[#FFB347] py-1.5"
+            >
+              <Heart className="w-3.5 h-3.5" /> Wish to contribute voluntarily?
+            </button>
+          )}
         </div>
 
       </div>

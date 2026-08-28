@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Wallet, ShieldCheck, Sparkles, ChevronRight, ChevronLeft, Trophy,
-  Gift, TrendingUp, Check, Flame, Landmark, BookOpen, HeartHandshake, Users, Lock,
+  Gift, TrendingUp, Check, Flame, Landmark, BookOpen, HeartHandshake, Users, Lock, Heart,
 } from "lucide-react";
 import {
   COMMISSION_STRUCTURE, PLAN_CATEGORIES, PLAN_TIERS_BY_CATEGORY, isDevoteeTier,
@@ -16,9 +16,15 @@ import {
   type PlanCategoryId, type DevoteeReferralTier, type ProviderCategoryTier, type ProviderCategoryId,
 } from "../data/referralProgram";
 import { fetchReferralList } from "../lib/referrals";
-import { fetchActivities } from "../lib/activities";
+import { fetchActivities, recordActivity, recordFormSubmission } from "../lib/activities";
+import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
+import { downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { validateName, validateEmail, validatePhone, firstError } from "../utils/formValidation";
+import { gaDonationInitiate } from "../utils/analytics";
 import SubscriptionSignup from "./SubscriptionSignup";
 import CollapsibleSection from "./CollapsibleSection";
+import StoneEngravingNote from "./StoneEngravingNote";
+import UPIPaymentModal from "./UPIPaymentModal";
 
 const CATEGORY_ICONS = { Users, Flame, Landmark, Sparkles, BookOpen, HeartHandshake } as const;
 
@@ -40,6 +46,11 @@ interface PlanTierCardProps {
   onSelect: () => void;
   unlocked: boolean;
   unlockRequirement: string;
+  /** Only used by the Diya Circle voluntary-contribution block below, to
+   *  attribute a logged-in devotee's name on the UPI payment screen — the
+   *  contribution itself works fine for guests too (devoteeName falls back
+   *  to "Devotee"). */
+  userProfile?: { name: string; email: string };
 }
 
 // Uniform-height card for the 3 "Your Cashback, Every Time They Book"
@@ -55,7 +66,7 @@ function CashbackTierCard({ tier }: { tier: import("../data/referralProgram").Co
   );
 }
 
-function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: PlanTierCardProps) {
+function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement, userProfile }: PlanTierCardProps) {
   const isFree = tier.monthlyPrice === 0;
   const priceLabel = billing === "monthly" ? tier.monthlyPriceLabel : tier.annualPriceLabel;
   // ─── Compact-by-default card (mobile/tablet) — Stage 5 ──────────────────
@@ -71,6 +82,89 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
   // Single "key highlight" line for the collapsed view — the same first
   // fact already used in the full feature list below, never new copy.
   const keyHighlight = isDevoteeTier(tier) ? tier.referralCapacity : tier.servicesIncluded;
+
+  // ✅ DIYA CIRCLE VOLUNTARY CONTRIBUTION (2026-08-27): a lightweight,
+  // self-contained "wish to contribute voluntarily?" option — same amount
+  // tiers, custom-amount input, and Stone-Name Engraving note used on the
+  // Contact page — added ONLY to the Diya Circle card (see the gated
+  // render block below).
+  //
+  // ✅ GOOGLE FORM SYNC PARITY (2026-08-27): now wired into the exact same
+  // Google Forms/Apps Script sync every other voluntary-contribution flow
+  // on the site uses — reusing the existing "customer_contact" sync
+  // category (the same one ContactUs.tsx's own "Divine Contribution"
+  // block already syncs through) rather than inventing a new form/sheet
+  // category, exactly as requested. That keeps the Apps Script message
+  // content, email notifications, and sheet mapping identical to Contact's
+  // — no separate backend change needed. A "Pending" row is sent the
+  // instant a devotee taps "Contribute" (name/email/phone + amount, before
+  // payment), and the ONE Final row (sharing the same Ref ID) is sent once
+  // the payment intent is submitted — same pending→final convention used
+  // by Contact, Report an Issue, and Auth Dashboard's contribution flows.
+  // recordFormSubmission (Supabase form_submissions ledger) and
+  // recordActivity (Supabase activities ledger, drives
+  // certificateService.ts's confirmation/PDF pipeline) both fire
+  // alongside the sync, matching every other contribution flow.
+  const [showDiyaContribute, setShowDiyaContribute] = useState(false);
+  const [diyaName, setDiyaName] = useState(userProfile?.name || "");
+  const [diyaEmail, setDiyaEmail] = useState(userProfile?.email || "");
+  const [diyaPhone, setDiyaPhone] = useState("");
+  const [diyaAmount, setDiyaAmount] = useState<number | null>(null);
+  const [showDiyaUPI, setShowDiyaUPI] = useState(false);
+  const [diyaContributed, setDiyaContributed] = useState<{ amount: number; method: string } | null>(null);
+  const diyaRefIdRef = useRef(makeSubmissionRef("DIYA"));
+
+  // Step 1 — "Contribute" tapped: validate details, sync the Pending row to
+  // Google Forms + Supabase (same as every other contribution flow), then
+  // open the UPI payment portal.
+  const handleDiyaContributeStart = () => {
+    const err = firstError(validateName(diyaName), validateEmail(diyaEmail), validatePhone(diyaPhone));
+    if (err) { alert(err); return; }
+    if (!diyaAmount || diyaAmount < 5) { alert("Minimum divine contribution is ₹5"); return; }
+
+    gaDonationInitiate(diyaAmount);
+
+    syncToGoogleForm("customer_contact", {
+      name: diyaName, email: diyaEmail, phone: diyaPhone,
+      type: "Diya Circle Voluntary Contribution",
+      details: `Diya Circle devotee wishes to support Sri Dwar's temples. [Contribution: Pending — Awaiting Decision, Amount: ₹${diyaAmount}] [Ref: ${diyaRefIdRef.current}]`,
+    }).catch((err) => console.error("Diya Circle pending sync error:", err));
+
+    recordFormSubmission({
+      formType: "contact_us",
+      name: diyaName, email: diyaEmail, phone: diyaPhone,
+      refId: diyaRefIdRef.current,
+      payload: { source: "diya_circle", amount: diyaAmount, contribution: "pending", status: "pending" },
+    });
+
+    setShowDiyaUPI(true);
+  };
+
+  const handleDiyaContributionPaid = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
+    syncToGoogleForm("customer_contact", {
+      name: diyaName, email: diyaEmail, phone: diyaPhone,
+      type: "Diya Circle Voluntary Contribution",
+      details: `Diya Circle devotee wishes to support Sri Dwar's temples. [Contribution: ₹${details.amount} via ${details.method}] [Ref: ${diyaRefIdRef.current}]`,
+    }).catch((err) => console.error("Diya Circle final sync error:", err));
+
+    recordFormSubmission({
+      formType: "contact_us",
+      name: diyaName, email: diyaEmail, phone: diyaPhone,
+      refId: diyaRefIdRef.current,
+      payload: { source: "diya_circle", amount: details.amount, contribution: `₹${details.amount} via ${details.method}` },
+    });
+
+    recordActivity({
+      activityType: "contribution",
+      itemName: "Diya Circle Voluntary Contribution",
+      amount: details.amount,
+      refId: diyaRefIdRef.current,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
+    });
+    setShowDiyaUPI(false);
+    setDiyaContributed({ amount: details.amount, method: details.method });
+  };
 
   // Locked tiers are still listed by name, with a real preview of what's
   // included — so devotees and providers can see the full 5-tier ladder
@@ -229,6 +323,136 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement }: 
       >
         {tier.ctaLabel}
       </button>
+
+      {/* ✅ DIYA CIRCLE VOLUNTARY CONTRIBUTION (2026-08-27): only for the
+          free, entry-level Diya Circle devotee tier — same voluntary-
+          contribution amounts, custom-amount input, and Stone-Name
+          Engraving note as the Contact page, so a devotee who wants to
+          support Sri Dwar's temples right away (before ever booking
+          anything) can do so from here too. */}
+      {isDevoteeTier(tier) && tier.id === "diya" && (
+        <div className="mt-3 pt-3 border-t border-white/5">
+          {showDiyaUPI && (
+            <UPIPaymentModal
+              isOpen={showDiyaUPI}
+              onClose={() => setShowDiyaUPI(false)}
+              onPaymentConfirmed={handleDiyaContributionPaid}
+              amount={diyaAmount}
+              bookingName="Diya Circle Voluntary Contribution"
+              devoteeName={diyaName || "Devotee"}
+              refId={diyaRefIdRef.current}
+              allowCustomAmount={true}
+              minAmount={5}
+              maxAmount={1000}
+              isVoluntaryContribution={true}
+            />
+          )}
+
+          {diyaContributed ? (
+            <div className="space-y-2 text-center">
+              <p className="text-[12px] text-[#5EEAD4] font-semibold leading-snug">
+                🙏 Contribution of ₹{diyaContributed.amount} noted — thank you for lighting this diya.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  downloadConfirmationMessage({
+                    category: "support_contribution",
+                    serviceName: "Diya Circle Voluntary Contribution",
+                    devoteeName: diyaName,
+                    refId: diyaRefIdRef.current,
+                  })
+                }
+                className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2 rounded-lg text-[11px] transition-all tracking-wide uppercase"
+              >Download Confirmation</button>
+            </div>
+          ) : showDiyaContribute ? (
+            <div className="space-y-2.5 animate-slideUp">
+              <p className="text-[11px] text-white/55 leading-relaxed">
+                Wish to support Sri Dwar's temples right away, even before your first booking? Every diya lit here helps.
+              </p>
+
+              <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
+
+              {/* Name / Email / Phone — required so this contribution can sync
+                  to Google Forms exactly like every other contribution flow
+                  on the site (Contact, Report an Issue, Auth Dashboard),
+                  even for a guest devotee with no logged-in profile. */}
+              <input
+                type="text"
+                placeholder="Full Name *"
+                value={diyaName}
+                onChange={(e) => setDiyaName(e.target.value)}
+                className="w-full text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+              />
+              <div className="grid grid-cols-2 gap-1.5">
+                <input
+                  type="email"
+                  placeholder="Email *"
+                  value={diyaEmail}
+                  onChange={(e) => setDiyaEmail(e.target.value)}
+                  className="text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone *"
+                  value={diyaPhone}
+                  onChange={(e) => setDiyaPhone(e.target.value)}
+                  className="text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5">
+                {[51, 101, 251].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setDiyaAmount(amt)}
+                    className={`text-[11px] py-2 rounded-lg border font-bold transition-all ${
+                      diyaAmount === amt ? "bg-white/10 border-[#FFB347] text-[#FFB347]" : "bg-black/20 border-white/10 text-white/70 hover:bg-black/30"
+                    }`}
+                  >₹{amt}</button>
+                ))}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-white/50 text-[11px]">₹</span>
+                <input
+                  type="number"
+                  min={5}
+                  max={1000}
+                  placeholder="Custom amount (₹5–₹1000)"
+                  value={diyaAmount || ""}
+                  onChange={(e) => setDiyaAmount(Math.min(1000, Math.max(5, Number(e.target.value))))}
+                  className="flex-1 text-[11px] px-2.5 py-2 rounded-lg border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#FFB347] placeholder-white/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowDiyaContribute(false); setDiyaAmount(null); }}
+                  className="bg-white/5 hover:bg-white/10 text-white/70 font-semibold py-2 rounded-lg text-[11px] border border-white/10 transition-all"
+                >Cancel</button>
+                <button
+                  type="button"
+                  onClick={handleDiyaContributeStart}
+                  disabled={!diyaAmount}
+                  className="bg-[#FFB347] hover:bg-[#F27D26] disabled:bg-white/10 disabled:text-white/30 text-[#021816] font-extrabold py-2 rounded-lg text-[11px] uppercase tracking-wide transition-all"
+                >Contribute 🙏</button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowDiyaContribute(true)}
+              className="w-full flex items-center justify-center gap-1.5 text-[12px] font-semibold text-[#FFB347]/90 hover:text-[#FFB347] py-1.5"
+            >
+              <Heart className="w-3.5 h-3.5" /> Wish to contribute voluntarily?
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Collapse back — phone/tablet only */}
       <button
@@ -429,6 +653,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                       onSelect={() => setActiveSignup({ tier, billing })}
                       unlocked={isTierUnlocked(activeCategory, index, qualifiedCount)}
                       unlockRequirement={tierUnlockRequirementLabel(activeCategory, index)}
+                      userProfile={userProfile}
                     />
                   </div>
                 );
@@ -446,6 +671,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                   onSelect={() => setActiveSignup({ tier, billing })}
                   unlocked={isTierUnlocked(activeCategory, index, qualifiedCount)}
                   unlockRequirement={tierUnlockRequirementLabel(activeCategory, index)}
+                  userProfile={userProfile}
                 />
               );
             })}

@@ -11,6 +11,12 @@ interface SyncConfig {
     phoneKey: string;
     detailsKey: string;
     typeKey: string;
+    // ✅ ADDED 2026-08-28 — optional, only used by forms that have their own
+    // dedicated geography/location column (currently just subscription_signup's
+    // real "Referral & Cashback" form below). Left undefined for every other
+    // config; those forms keep folding location into detailsKey exactly as
+    // before, so nothing about them changes.
+    geographyKey?: string;
   };
   isEnabled: boolean;
 }
@@ -143,37 +149,47 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
     },
     isEnabled: true
   },
-  // ✅ Refer & Earn subscription signups (SubscriptionSignup.tsx) — services,
-  // geography, expertise + plan/billing details, captured before the devotee
-  // is routed to the payment gateway. No dedicated Google Form/Sheet exists
-  // for this yet, so it intentionally reuses the same form/entry IDs as
-  // devotee_support for now (its "details" field already carries the full
-  // plan/services/geography/expertise summary, so nothing is lost — it just
-  // lands in the same sheet as general inquiries until a dedicated Google
-  // Form is created).
-  // 👉 IMPORTANT: Once you create a dedicated Google Form for this, replace
-  //    formUrl and the entry.XXXXXXXXX values below with the real ones.
+  // ✅ Refer & Earn subscription signups (SubscriptionSignup.tsx) — now wired
+  // to its own real, dedicated Google Form ("Referral & Cashback"), replacing
+  // the devotee_support placeholder used previously. Confirmed by fetching
+  // the live form on 2026-08-28 — its 6 fields, in order, are exactly Full
+  // Name → Phone/WhatsApp → Email Address → "What will you mainly refer or
+  // share? and Services You'll Offer." → Your Geography → "Tell us a bit
+  // about yourself (optional) and Your experience & specializations", and
+  // the entry IDs below were decoded from the user-supplied prefilled link
+  // against that same field order:
+  //   entry.120829422   = Full Name
+  //   entry.1829417908  = Phone / WhatsApp
+  //   entry.1428290966  = Email Address
+  //   entry.1137469736  = What will you mainly refer/share + Services
+  //   entry.135532925   = Your Geography
+  //   entry.2708787     = About yourself + experience & specializations
+  // The form has no dedicated column for Plan/Billing/Price/Payment Status/
+  // Ref ID, so — same "one true catch-all column" convention already used
+  // above for Sankalpa/Seva Intent — those keep landing in detailsKey
+  // (data.details already composes all of them into one readable line; see
+  // SubscriptionSignup.tsx). Nothing here is a placeholder anymore.
   subscription_signup: {
-    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfrZN8TNl4_qG8Q1ijVqG8oFUIgtm7AtF4Uib04KwZT9tD86Q/formResponse",
     mappedFields: {
-      nameKey: "entry.898437491",
-      emailKey: "entry.969380068",
-      phoneKey: "entry.1486488215",
-      detailsKey: "entry.1306645637",
-      typeKey: "entry.943423993"
+      nameKey: "entry.120829422",
+      emailKey: "entry.1428290966",
+      phoneKey: "entry.1829417908",
+      typeKey: "entry.1137469736",
+      geographyKey: "entry.135532925",
+      detailsKey: "entry.2708787"
     },
     isEnabled: true
   },
   // ✅ Refund / Cancellation requests (RefundRequestModal.tsx, triggered from
-  // the "All Account Activity" ledger in AuthDashboard.tsx). No dedicated
-  // Google Form/Sheet exists for this yet, so — same pattern already used
-  // above for subscription_signup — it reuses the devotee_support form for
-  // now. Nothing is lost: the `details` field always includes the booking
-  // ref, item, amount, and reason, and the `type` field is fixed to
-  // "Refund/Cancellation Request" so these rows are easy to filter out from
-  // general inquiries in the sheet.
-  // 👉 IMPORTANT: Once you create a dedicated Google Form for refund
-  //    requests, replace formUrl and the entry.XXXXXXXXX values below.
+  // the "All Account Activity" ledger in AuthDashboard.tsx). DECISION
+  // (2026-08-27): this stays sharing the devotee_support "Support" form/
+  // sheet on purpose — refund/cancellation requests are a kind of devotee
+  // support inquiry, and it already records them fully: the `details` field
+  // always includes the booking ref, item, amount, and reason, and the
+  // `type` field is fixed to "Refund/Cancellation Request" so these rows
+  // are easy to filter out from general inquiries in the same sheet. Not a
+  // placeholder awaiting a dedicated form — no separate form is planned.
   refund_cancellation_request: {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
     mappedFields: {
@@ -186,28 +202,47 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
     isEnabled: true
   },
   // ✅ Temple/Culture Issue Reports (ReportTempleIssues.tsx — "Raise Temple
-  // Issues With Elected Representatives"). Previously this formType had NO
-  // entry here at all, so every submission silently fell through to
-  // getSyncConfig's `DEFAULT_CONFIGS.devotee_support` fallback — it still
-  // worked, but that fallback was implicit and would have silently changed
-  // behaviour for temple issue reports the moment devotee_support's own
-  // config was ever edited for an unrelated reason. Giving it its own named
-  // entry makes the destination explicit and independently editable. It
-  // reuses the devotee_support form/sheet for now (same reuse pattern as
-  // subscription_signup and refund_cancellation_request above) — nothing is
-  // lost, since `details` always carries the full category/location/issue/
-  // recipients block and `type` is fixed to "Temple/Culture Issue Report —
-  // <category>" so these rows are easy to filter out from general inquiries.
-  // 👉 IMPORTANT: Once you create a dedicated Google Form for temple/culture
-  //    issue reports, replace formUrl and the entry.XXXXXXXXX values below.
+  // Issues With Elected Representatives") — now wired to its own real,
+  // dedicated "Raise Temple Issues" Google Form, replacing the
+  // devotee_support placeholder used previously. Confirmed 2026-08-28 by
+  // fetching the live form directly (https://docs.google.com/forms/d/18R3sESoTCuTD2G6HYpGFROk_mtqlqE3PInnqEn9EZ1Q/edit) —
+  // its 14 fields, in order, are exactly:
+  //   What are you reporting on? → Temple/Committee/Pandal/Mandal/Festival
+  //   Name → Village/Town/City → District → State → Type of Issue →
+  //   Describe the issue, concern, or suggestion → Local MLA (Optional) →
+  //   Local MP (Optional) → Devotee Name → Devotee Contact Number →
+  //   Devotee WhatsApp Number (Optional) → Devotee Email ID →
+  //   Local/Block/Taluka/District/State/National/Other relevant authority
+  // and the entry IDs below were decoded from the user-supplied prefilled
+  // link against that same field order:
+  //   entry.2098149808 = What are you reporting on?
+  //   entry.1758561377 = Temple/Committee/Pandal/Mandal/Festival Name
+  //   entry.36575273   = Village/Town/City
+  //   entry.1728181807 = District
+  //   entry.1636330115 = State
+  //   entry.1504870399 = Type of Issue
+  //   entry.1626123290 = Describe the issue, concern, or suggestion
+  //   entry.750912903  = Local MLA (Optional)
+  //   entry.280451135  = Local MP (Optional)
+  //   entry.546878301  = Devotee Name
+  //   entry.380127497  = Devotee Contact Number
+  //   entry.1512691482 = Devotee WhatsApp Number (Optional)
+  //   entry.716923336  = Devotee Email ID
+  //   entry.1074610489 = Local/Block/.../Other relevant authority
+  // mappedFields below carries the base 5 (name/email/phone/details/type —
+  // same convention as every other form); the remaining 9 fields this form
+  // has that no other form does are appended directly in the dedicated
+  // temple_issue_report branch further down in syncToGoogleForm, the same
+  // pattern already used for darshan_certificate's extra columns. Nothing
+  // here is a placeholder anymore.
   temple_issue_report: {
-    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfBl9CoaY-CLlEhbsNZkiJTBfmyEGj23yLDAo_LpvADfOsKqQ/formResponse",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScplYxleQ0A8SGJwPc_A8ZVkJqFxSWtpYAgPlsWe0xTTEi3kA/formResponse",
     mappedFields: {
-      nameKey: "entry.898437491",
-      emailKey: "entry.969380068",
-      phoneKey: "entry.1486488215",
-      detailsKey: "entry.1306645637",
-      typeKey: "entry.943423993"
+      nameKey: "entry.546878301",
+      emailKey: "entry.716923336",
+      phoneKey: "entry.380127497",
+      detailsKey: "entry.1626123290",
+      typeKey: "entry.2098149808"
     },
     isEnabled: true
   }
@@ -566,6 +601,15 @@ export async function syncToGoogleForm(
     gotra?: string;
     rashi?: string;
     intent?: string;
+    // ✅ ADDED 2026-08-28 — optional, only used by temple_issue_report's
+    // now-real, dedicated "Raise Temple Issues" Google Form below, which has
+    // District/State/MLA/MP/authority-level columns no other form has. Left
+    // undefined for every other caller; nothing about them changes.
+    district?: string;
+    state?: string;
+    mla?: string;
+    mp?: string;
+    authorityLevel?: string;
   }
 ) {
   // Deduplication: drop the same submission if fired again within 5 seconds
@@ -790,6 +834,21 @@ export async function syncToGoogleForm(
         }
       }
 
+    } else if (formType === "subscription_signup") {
+      // Referral & Cashback dedicated form (see DEFAULT_CONFIGS.subscription_signup
+      // above for the real column mapping, decoded 2026-08-28). Geography now has
+      // its own column via geographyKey; everything with no dedicated column
+      // (plan, billing, price, payment status, ref ID) still lands in detailsKey,
+      // same "one true catch-all column" convention used elsewhere in this file.
+      formData.append(config.mappedFields.nameKey, data.name);
+      formData.append(config.mappedFields.emailKey, data.email || "");
+      formData.append(config.mappedFields.phoneKey, data.phone || "");
+      if (config.mappedFields.typeKey) formData.append(config.mappedFields.typeKey, data.type || "");
+      if (config.mappedFields.geographyKey && data.city) {
+        formData.append(config.mappedFields.geographyKey, data.city);
+      }
+      formData.append(config.mappedFields.detailsKey, data.details || "");
+
     } else if (formType === "prasad_testimony") {
       // Testimony: name, location, service/puja, story, rating
       formData.append(config.mappedFields.nameKey, data.name);
@@ -797,6 +856,40 @@ export async function syncToGoogleForm(
       formData.append(config.mappedFields.phoneKey, data.phone || "");
       formData.append(config.mappedFields.detailsKey, data.details);
       formData.append(config.mappedFields.typeKey, data.type || "5");
+
+    } else if (formType === "temple_issue_report") {
+      // Dedicated "Raise Temple Issues" Google Form (see DEFAULT_CONFIGS.
+      // temple_issue_report above for the full field-order derivation,
+      // decoded 2026-08-28). The base 5 (name/email/phone/details/type) use
+      // config.mappedFields exactly like every other form; the 9 fields
+      // this form has that no other form does (temple/committee name,
+      // city, district, state, issue type, MLA, MP, WhatsApp, and
+      // authority level) are appended directly below using their own
+      // entry IDs — same pattern as darshan_certificate's extra columns.
+      const templeKey = "entry.1758561377";
+      const cityKey = "entry.36575273";
+      const districtKey = "entry.1728181807";
+      const stateKey = "entry.1636330115";
+      const issueTypeKey = "entry.1504870399";
+      const mlaKey = "entry.750912903";
+      const mpKey = "entry.280451135";
+      const whatsappKey = "entry.1512691482";
+      const authorityKey = "entry.1074610489";
+
+      formData.append(config.mappedFields.nameKey, data.name);
+      formData.append(config.mappedFields.emailKey, data.email || "");
+      formData.append(config.mappedFields.phoneKey, data.phone || "");
+      formData.append(config.mappedFields.detailsKey, data.details || "");
+      if (config.mappedFields.typeKey) formData.append(config.mappedFields.typeKey, data.type || "");
+      if (data.temple) formData.append(templeKey, data.temple);
+      if (data.city) formData.append(cityKey, data.city);
+      if (data.district) formData.append(districtKey, data.district);
+      if (data.state) formData.append(stateKey, data.state);
+      if (data.feedback) formData.append(issueTypeKey, data.feedback);
+      if (data.mla) formData.append(mlaKey, data.mla);
+      if (data.mp) formData.append(mpKey, data.mp);
+      if (data.whatsapp) formData.append(whatsappKey, data.whatsapp);
+      if (data.authorityLevel) formData.append(authorityKey, data.authorityLevel);
 
     } else if (formType === "devotee_support" || formType === "customer_contact") {
       const nameKey = formatEntryKey(env.ENTRY_INQUIRY_NAME) || formatEntryKey(env.ENTRY_SUPPORT_NAME) || config.mappedFields.nameKey;

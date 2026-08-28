@@ -17,6 +17,7 @@ import sridwarQR from "../assets/images/SridwarQR.jpg";
 // @ts-ignore
 import sridwarQRWebp from "../assets/images/SridwarQR.webp";
 import UPIPaymentModal from "./UPIPaymentModal";
+import StoneEngravingNote, { STONE_ENGRAVING_REPEAT_TEXT } from "./StoneEngravingNote";
 import ReferralDashboardPanel from "./ReferralDashboardPanel";
 import MobileCarousel from "./shared/MobileCarousel";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
@@ -1168,8 +1169,10 @@ export default function AuthDashboard({
 
                 <div className="flex items-start space-x-2 text-[12px] font-mono text-[#5EEAD4] bg-white/5 px-3 py-2 rounded-lg border border-white/10">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                  <span>As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall. Once it finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within 3 working days of your divine contribution.</span>
+                  <span>Once a puja is performed in your name for this contribution, we will lovingly share photographs — and where possible, a short video — of that moment with you, within 3 working days.</span>
                 </div>
+
+                <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <button
@@ -1551,8 +1554,11 @@ export default function AuthDashboard({
                 {!showPostLoginContribute ? (
                   <>
                     <p className="text-[12px] text-white/70 leading-relaxed font-sans">
-                      One Divine Contribution. Countless Blessings. With gratitude, be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas through Sri Dwar — especially for smaller temples that quietly serve with limited resources or visibility. As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall, and once a puja is performed in your name, we lovingly share photographs of that moment with you. Together, let's gently strengthen our sacred heritage, one heartfelt offering at a time.
+                      One Divine Contribution. Countless Blessings. With gratitude, be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas through Sri Dwar — especially for smaller temples that quietly serve with limited resources or visibility. Together, let's gently strengthen our sacred heritage, one heartfelt offering at a time.
                     </p>
+
+                    <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
+
                     <button
                       id="profile-contribute-open-btn"
                       type="button"
@@ -1677,6 +1683,10 @@ export default function AuthDashboard({
                   <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
                     <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
                     <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
+                    <span>{STONE_ENGRAVING_REPEAT_TEXT}</span>
                   </div>
                   <p className="text-[12px] text-[#FFB347] italic leading-relaxed pt-1">
                     Every offering becomes a blessing. Every blessing creates a difference.
@@ -1990,6 +2000,7 @@ export default function AuthDashboard({
         }`}
         devoteeName={pendingLogin?.name || "Devotee"}
         refId={contributionRefId}
+        isVoluntaryContribution={true}
       />
 
       {/* ── Delete My Account — self-service confirmation modal ───────────── */}

@@ -13,6 +13,7 @@ import TempleExperience from "./components/TempleExperience";
 import ReferAndEarn from "./components/ReferAndEarn";
 import TrustBar from "./components/TrustBar";
 import DevoteeExperiences from "./components/DevoteeExperiences";
+import { StoneEngravingHomeSection } from "./components/StoneEngravingNote";
 import SriDwarLogo from "./components/SriDwarLogo";
 import OptimizedImage from "./components/OptimizedImage";
 
@@ -711,6 +712,12 @@ export default function App() {
               }}
               onNavigate={handleNavigate}
             />
+
+            {/* Stone-Name Engraving — real, already-happening initiative;
+                shown once here, above Devotee Experiences, so every visitor
+                understands it before they ever reach a contribution screen
+                elsewhere on the site. See StoneEngravingNote.tsx. */}
+            <StoneEngravingHomeSection />
 
             <DevoteeExperiences />
 

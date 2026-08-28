@@ -733,10 +733,19 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
     // the actual certificate is handcrafted and shared on WhatsApp/Email
     // within 3–7 working days. The devotee can download this confirmation
     // message instead.
+    // ✅ STONE-NAME ENGRAVING (2026-08-28): contributions of ₹200 or more
+    // qualify for the Stone-Name Engraving Seva (see StoneEngravingNote.tsx
+    // / TempleRegister.tsx's own copy above), so the confirmation now uses
+    // devotionalMessages.ts's dedicated "stone_name_engraving" category —
+    // its own opening/blessing/disclaimer/shloka, framed as a humble
+    // devotional offering rather than generic contribution copy — instead
+    // of "temple_contribution" whenever the actual amount paid clears that
+    // threshold. Below ₹200, nothing changes.
+    const donationIsStoneEngravingEligible = Number(form.donationAmount) >= 200;
     const confirmation = donationConfirmed
       ? getDevotionalConfirmation({
-          category: "temple_contribution",
-          serviceName: "Devotee Registration Divine Contribution",
+          category: donationIsStoneEngravingEligible ? "stone_name_engraving" : "temple_contribution",
+          serviceName: donationIsStoneEngravingEligible ? "Devotee Registration" : "Devotee Registration Divine Contribution",
           devoteeName: form.name,
           refId,
         })
@@ -828,9 +837,21 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
               <p className="text-xs font-semibold text-[#FFB347]">With gratitude, your divine contribution helps care for our heritage, our temples, and Sri Dwar's mission:</p>
               <p className="text-[13px] text-white/55 leading-relaxed">
                 Every offering helps us gently connect devotees worldwide with sacred temples, trusted priests, and dharmic services — with special warmth for the smaller temples that quietly continue their seva with very limited resources or visibility.
-                <br />As a lasting token of your devotion, a small marble slab bearing your name is placed on the wall of the temple your contribution supports. Once it finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation.
+                <br />As a lasting token of your devotion, contributions of ₹200 or more are engraved in stone and placed with care on a temple's premises — of any deity, and including temples still under construction — most often shared warmly among 50 or more devotees' names on one slab, so this support can reach as many quiet corners of seva as possible; ₹1,000 or more finds a smaller, dedicated slab holding just 10 names in total. Once your slab finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation.
               </p>
             </div>
+          </div>
+
+          {/* ✅ STONE-NAME ENGRAVING (2026-08-27): real reference photo of
+              engraved stone slabs at a temple, placed right where a devotee
+              is choosing (or about to skip) a contribution amount. */}
+          <div className="rounded-2xl overflow-hidden border border-white/10">
+            <OptimizedImage
+              src={import.meta.env.BASE_URL + "images/Stone_Name_Engraving.jpg"}
+              alt="Devotees' names engraved in stone slabs along a temple wall, softly lit at dusk"
+              className="w-full h-auto object-cover"
+              loading="lazy"
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -872,8 +893,14 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
                     <li className="text-[13px] text-white/60 leading-snug">✦ Progress recorded toward milestone rewards</li>
                   </>
                 )}
-                {Number(form.donationAmount) >= 100 && (
-                  <li className="text-[13px] text-white/60 leading-snug">✦ Eligibility toward pilgrimage-related opportunities offered to regular devotees</li>
+                {Number(form.donationAmount) >= 200 && (
+                  <>
+                    <li className="text-[13px] text-white/60 leading-snug">✦ Your name engraved in stone and placed on a temple's premises, alongside fellow devotees, as a lasting mark of devotion</li>
+                    <li className="text-[13px] text-white/60 leading-snug">✦ Eligibility toward pilgrimage-related opportunities offered to regular devotees</li>
+                  </>
+                )}
+                {Number(form.donationAmount) >= 1000 && (
+                  <li className="text-[13px] text-white/60 leading-snug">✦ Your name placed on a dedicated stone slab holding just 10 names in total, rather than a larger shared slab</li>
                 )}
               </ul>
               <p className="text-[11px] text-white/30 leading-snug pt-0.5">These are heartfelt platform blessings, offered in appreciation of your generosity — not a promise of any specific spiritual outcome, guaranteed income, or investment return. The more you're moved to offer, the more of these humble blessings unfold.</p>
@@ -918,6 +945,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           bookingName={`Sri Dwar Devotee Registration Divine Contribution — ${form.name}${form.donationNote ? ` (${form.donationNote})` : ""}`}
           devoteeName={form.name}
           refId={upiRefId}
+          isVoluntaryContribution={true}
         />
       )}
       </>
@@ -1506,10 +1534,15 @@ function DharmicExpertSection() {
     // the actual certificate is handcrafted and shared on WhatsApp/Email
     // within 3–7 working days. The expert can download this confirmation
     // message instead.
+    // ✅ STONE-NAME ENGRAVING (2026-08-28): same threshold switch as the
+    // Devotee Registration confirmation above — see that comment for why.
+    const expertDonationIsStoneEngravingEligible = Number(form.donationAmount) >= 200;
     const confirmation = donationConfirmed
       ? getDevotionalConfirmation({
-          category: "temple_contribution",
-          serviceName: `Dharmic Expert Registration Divine Contribution — ${form.category || "Dharmic Directory"}`,
+          category: expertDonationIsStoneEngravingEligible ? "stone_name_engraving" : "temple_contribution",
+          serviceName: expertDonationIsStoneEngravingEligible
+            ? `Dharmic Expert Registration — ${form.category || "Dharmic Directory"}`
+            : `Dharmic Expert Registration Divine Contribution — ${form.category || "Dharmic Directory"}`,
           devoteeName: form.fullName,
           refId: expertRefIdRef.current,
         })
@@ -1597,9 +1630,21 @@ function DharmicExpertSection() {
               <p className="text-xs font-semibold text-[#FFB347]">With gratitude, your divine contribution helps care for our heritage, our temples, and Sri Dwar's mission:</p>
               <p className="text-[13px] text-white/55 leading-relaxed">
                 Every offering helps us gently connect devotees worldwide with sacred temples, trusted priests, and dharmic services — including this dharmic directory of local pujaris, pandits, gurus, sants, sadhus, purohits, and seers.
-                <br />As a lasting token of your devotion, a small marble slab bearing your name is placed on the wall of the temple your contribution supports. Once it finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation.
+                <br />As a lasting token of your devotion, contributions of ₹200 or more are engraved in stone and placed with care on a temple's premises — of any deity, and including temples still under construction — most often shared warmly among 50 or more devotees' names on one slab; ₹1,000 or more finds a smaller, dedicated slab holding just 10 names in total. Once your slab finds its place and a puja is performed in your name, we will lovingly share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation.
               </p>
             </div>
+          </div>
+
+          {/* ✅ STONE-NAME ENGRAVING (2026-08-27): real reference photo of
+              engraved stone slabs at a temple, placed right where a devotee
+              is choosing (or about to skip) a contribution amount. */}
+          <div className="rounded-2xl overflow-hidden border border-white/10">
+            <OptimizedImage
+              src={import.meta.env.BASE_URL + "images/Stone_Name_Engraving.jpg"}
+              alt="Devotees' names engraved in stone slabs along a temple wall, softly lit at dusk"
+              className="w-full h-auto object-cover"
+              loading="lazy"
+            />
           </div>
 
           {/* Presets */}
@@ -1680,6 +1725,7 @@ function DharmicExpertSection() {
           bookingName={`Dharmic Expert Directory Divine Contribution — ${form.fullName}${form.donationNote ? ` (${form.donationNote})` : ""}`}
           devoteeName={form.fullName}
           refId={upiRefId}
+          isVoluntaryContribution={true}
         />
       )}
       </>
@@ -2541,10 +2587,15 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
             // is offered here: the actual certificate is handcrafted and
             // shared on WhatsApp/Email within 3–7 working days. The contact
             // can download this confirmation message instead.
+            // ✅ STONE-NAME ENGRAVING (2026-08-28): same threshold switch as
+            // the Devotee Registration confirmation above — see that comment.
+            const templeRegDonationIsStoneEngravingEligible = Number(templeRegDonationAmount) >= 200;
             const confirmation = templeRegDonationConfirmed
               ? getDevotionalConfirmation({
-                  category: "temple_contribution",
-                  serviceName: `Temple Registration Divine Contribution — ${templeReg.templeName}`,
+                  category: templeRegDonationIsStoneEngravingEligible ? "stone_name_engraving" : "temple_contribution",
+                  serviceName: templeRegDonationIsStoneEngravingEligible
+                    ? templeReg.templeName
+                    : `Temple Registration Divine Contribution — ${templeReg.templeName}`,
                   devoteeName: templeReg.contactName,
                   refId: templeRegRefIdRef.current,
                 })
@@ -2635,8 +2686,21 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 <div className="flex items-start space-x-3 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-3">
                   <Heart className="w-3.5 h-3.5 text-[#FFB347] shrink-0 mt-0.5" />
                   <p className="text-[13px] text-white/55 leading-relaxed">
-                    With gratitude, your contribution is lovingly forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>, helping care for temples like this one — especially those that quietly serve their devotees with limited resources or visibility. As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall, and once it finds its place and a puja is performed in your name, we will share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/80">3 working days</strong> of payment confirmation.
+                    With gratitude, your contribution is lovingly forwarded to <strong className="text-white/80">{templeReg.templeName}</strong>, helping care for temples like this one — especially those that quietly serve their devotees with limited resources or visibility. As a lasting token of your devotion, contributions of ₹200 or more are engraved in stone and placed with care on the temple's premises, most often shared among 50 or more devotees' names on one slab; ₹1,000 or more finds a smaller, dedicated slab holding just 10 names in total. Once your slab finds its place and a puja is performed in your name, we will share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/80">3 working days</strong> of payment confirmation.
                   </p>
+                </div>
+
+                {/* ✅ STONE-NAME ENGRAVING (2026-08-27): real reference
+                    photo of engraved stone slabs at a temple, placed right
+                    where a devotee is choosing (or about to skip) a
+                    contribution amount. */}
+                <div className="rounded-2xl overflow-hidden border border-white/10">
+                  <OptimizedImage
+                    src={import.meta.env.BASE_URL + "images/Stone_Name_Engraving.jpg"}
+                    alt="Devotees' names engraved in stone slabs along a temple wall, softly lit at dusk"
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
                 </div>
 
                 <div className="grid grid-cols-4 gap-2">
@@ -2860,6 +2924,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           bookingName={`Temple Registration Divine Contribution — ${templeReg.templeName}${templeRegDonationNote ? ` (${templeRegDonationNote})` : ""}`}
           devoteeName={templeReg.contactName}
           refId={templeRegRefIdRef.current}
+          isVoluntaryContribution={true}
         />
       )}
       </>
@@ -2873,10 +2938,15 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
     // is offered here: the actual certificate is handcrafted and shared on
     // WhatsApp/Email within 3–7 working days. The devotee can download this
     // confirmation message instead.
+    // ✅ STONE-NAME ENGRAVING (2026-08-28): same threshold switch as the
+    // Devotee Registration confirmation above — see that comment.
+    const devoteeDonationIsStoneEngravingEligible = Number(donationAmount) >= 200;
     const confirmation = devoteeDonationConfirmed
       ? getDevotionalConfirmation({
-          category: "temple_contribution",
-          serviceName: `Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}`,
+          category: devoteeDonationIsStoneEngravingEligible ? "stone_name_engraving" : "temple_contribution",
+          serviceName: devoteeDonationIsStoneEngravingEligible
+            ? selectedTemple.split("—")[0].trim()
+            : `Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}`,
           devoteeName: devotee.name,
           refId: donationRefId || devoteeFlowRefIdRef.current,
         })
@@ -3015,9 +3085,23 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 <p className="text-xs font-semibold text-[#FFB347]">With gratitude, your divine contribution will be lovingly forwarded to:</p>
                 <p className="text-sm font-bold text-white leading-snug">{selectedTemple.split("—")[0].trim()}</p>
                 <p className="text-[13px] text-white/50 leading-relaxed">
-                  As a lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall. Once it finds its place and a puja is performed in your name, we will share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation and the temple/puja committee's response.
+                  As a lasting token of your devotion, contributions of ₹200 or more are engraved in stone and placed with care on the temple's premises, most often shared among 50 or more devotees' names on one slab; ₹1,000 or more finds a smaller, dedicated slab holding just 10 names in total. Once your slab finds its place and a puja is performed in your name, we will share photographs — and where possible, a short video — of that moment with you, within <strong className="text-white/75">3 working days</strong> of payment confirmation and the temple/puja committee's response.
                 </p>
               </div>
+            </div>
+
+            {/* ✅ STONE-NAME ENGRAVING (2026-08-27): real reference photo of
+                engraved stone slabs at a temple — this is the flagship
+                "Support {temple}" contribution page, so the image sits
+                prominently right where the devotee chooses (or skips) an
+                amount. */}
+            <div className="rounded-2xl overflow-hidden border border-white/10">
+              <OptimizedImage
+                src={import.meta.env.BASE_URL + "images/Stone_Name_Engraving.jpg"}
+                alt="Devotees' names engraved in stone slabs along a temple wall, softly lit at dusk"
+                className="w-full h-auto object-cover"
+                loading="lazy"
+              />
             </div>
 
             <div className="grid grid-cols-3 gap-2">
@@ -3093,6 +3177,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           bookingName={`Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}${donationNote ? ` (${donationNote})` : ""}`}
           devoteeName={devotee.name}
           refId={donationRefId}
+          isVoluntaryContribution={true}
         />
       )}
       </>

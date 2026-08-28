@@ -32,6 +32,7 @@ import { gaTempleIssueFormStart, gaTempleIssueSubmit, gaTempleIssueContribution 
 import OptimizedImage from "./OptimizedImage";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import UPIPaymentModal from "./UPIPaymentModal";
+import StoneEngravingNote from "./StoneEngravingNote";
 import MobileCarousel from "./shared/MobileCarousel";
 // @ts-ignore
 import reportHero from "../assets/images/ReportTempleIssuesHero.jpg";
@@ -325,20 +326,29 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
     ].filter(Boolean).join(" | ");
 
     try {
-      // NOTE: the Google Form behind "temple_issue_report" only has
-      // name/email/phone/details/type entry IDs mapped (see
-      // googleFormSync.ts) — there's no dedicated WhatsApp column yet, so
-      // the WhatsApp number travels inside `details` above (same pattern
-      // already used here for MLA/MP) rather than being silently dropped.
-      // `phone` continues to map to the sheet's phone column and now
-      // represents the Devotee Contact Number field below.
+      // ✅ 2026-08-28: "temple_issue_report" now syncs to its own real,
+      // dedicated "Raise Temple Issues" Google Form (see googleFormSync.ts),
+      // which has its own separate District/State/MLA/MP/WhatsApp/authority-
+      // level columns — so those now travel as their own fields below
+      // instead of only being folded into `details`. `details` (detailsBlock)
+      // is still sent in full too, so nothing is lost even if a future
+      // Sheet column gets renamed or removed. `city` is just the Village/
+      // Town/City field now that District and State have their own columns
+      // (previously it carried all three combined, before this form had
+      // dedicated columns of its own for each).
       await syncToGoogleForm("temple_issue_report", {
         name, email, phone,
         type: `Temple/Culture Issue Report — ${category}`,
         details: detailsBlock,
         temple: itemName,
-        city: locationStr,
+        city: village,
         feedback: issueType,
+        district: district || undefined,
+        state: state || undefined,
+        mla: mlaName.trim() || undefined,
+        mp: mpName.trim() || undefined,
+        whatsapp: whatsapp.trim() || undefined,
+        authorityLevel: recipientNames || undefined,
       });
 
       recordFormSubmission({
@@ -749,6 +759,7 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                     allowCustomAmount={true}
                     minAmount={5}
                     maxAmount={1000}
+                    isVoluntaryContribution={true}
                   />
                 )}
                 <div className="text-center space-y-5">
@@ -758,11 +769,11 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                   <h3 className="font-serif text-lg font-bold text-white">Report Received — A Gesture of Support?</h3>
                   <p className="text-xs text-white/60">
                     Would you like to make a voluntary contribution toward Sri Dwar's temple preservation mission — with
-                    special warmth for smaller temples that quietly serve with limited resources or visibility? As a
-                    lasting token of your devotion, a small marble slab bearing your name is placed on the temple's wall,
-                    and once a puja is performed in your name, we will lovingly share photographs with you within 3–7
-                    working days.
+                    special warmth for smaller temples that quietly serve with limited resources or visibility?
                   </p>
+
+                  <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
+
                   <div className="grid grid-cols-3 gap-2">
                     {[51, 101, 251].map((amt) => (
                       <button

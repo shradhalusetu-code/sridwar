@@ -16,6 +16,7 @@ import { recordFormSubmission, recordActivity } from "../lib/activities";
 // every visitor — even devotees who never open it. Loaded on demand instead,
 // matching the lazy() pattern already used for every page in App.tsx.
 const UPIPaymentModal = lazy(() => import("./UPIPaymentModal"));
+const StoneEngravingNote = lazy(() => import("./StoneEngravingNote"));
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
@@ -622,6 +623,9 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       With gratitude, contributions of ₹100 or more also carry eligibility toward pilgrimage-related opportunities offered periodically to regular devotees — heartfelt platform benefits, offered warmly as encouragement rather than a guarantee of any outcome.
                     </p>
                   )}
+                  <Suspense fallback={null}>
+                    <StoneEngravingNote variant="compact" showRepeatNote className="mt-3 text-left" />
+                  </Suspense>
                 </div>
 
                 {/* Real-time sync tracker banner representation */}
@@ -728,6 +732,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         bookingName="Darshan Certificate Divine Contribution"
         devoteeName={name}
         refId={refId}
+        isVoluntaryContribution={true}
       />
     </Suspense>
     </div>

@@ -28,6 +28,7 @@ import {
   BAZAAR_PRODUCTS, BAZAAR_CATEGORIES, BAZAAR_DELIVERY_NOTE, BAZAAR_TRUST_COPY,
   BAZAAR_DISCLAIMER, BAZAAR_BHOG_OFFERING_SUMMARY, BazaarProduct,
 } from "../data/bazaarOfferings";
+import { STONE_ENGRAVING_REPEAT_TEXT } from "./StoneEngravingNote";
 
 // ─── Devotional Shopping promo visibility ──────────────────────────────────
 // Mirrors the category flag in utils/discount.ts (Devotional Shopping/
@@ -821,6 +822,15 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 {selectedItem.isService
                   ? "🙏 Please enter your Sankalpa details so our pandits can perform this seva in your name and Gotra."
                   : "🙏 Please share your details so we can prepare and dispatch your sacred order with care."}
+              </p>
+
+              {/* Stone-Name Engraving — subtle, text-only mention. This item
+                  has a fixed price of its own (not a voluntary contribution),
+                  so per StoneEngravingNote.tsx's usage note the image is
+                  intentionally NOT shown here — only a gentle pointer toward
+                  where the real engraving initiative can be found. */}
+              <p className="text-[11px] text-white/40 leading-relaxed">
+                🙏 {STONE_ENGRAVING_REPEAT_TEXT}
               </p>
 
               {/* Full Name */}

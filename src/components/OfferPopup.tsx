@@ -89,19 +89,28 @@ export default function OfferPopup({ isOpen, onClose, onNavigate, storageKey }: 
     }
     onClose();
 
-    if (page === "temple-register") {
-      // This is a real top-level page App.tsx knows how to render.
-      onNavigate(page);
-      return;
-    }
-
-    // "dharmic-expert-register" and "devotee-register" aren't top-level
-    // pages — they're sections/steps INSIDE the Dharmic Expert registration
-    // block that lives on the homepage. Navigate home, then tell that block
-    // (via a lightweight event, since it isn't lifted into App state) which
-    // sub-flow to open.
-    onNavigate("home");
-    window.dispatchEvent(new CustomEvent("sridwar:open-registration", { detail: { page } }));
+    // ✅ NAVIGATION FIX (2026-08-27): "temple-register", "dharmic-expert-
+    // register" and "devotee-register" are ALL real top-level `currentPage`
+    // values App.tsx already knows how to render (see the
+    // `currentPage === "add-temple" || currentPage === "devotee-register" ||
+    // currentPage === "dharmic-expert-register"` block that mounts
+    // TempleRegister) — so every one of these CTAs can just navigate
+    // straight there, exactly like the Temple CTA below always has.
+    //
+    // The previous code path for the Priest/Devotee CTAs instead navigated
+    // to "home" and dispatched a "sridwar:open-registration" custom event
+    // for TempleRegister to pick up — but TempleRegister (and its listener
+    // for that event) is only ever mounted on the add-temple/devotee-
+    // register/dharmic-expert-register pages, NOT on "home". Navigating
+    // home first meant nothing was listening for the event, so both
+    // "Add a Priest / Dharmic Expert" and "Add Myself as a Devotee" simply
+    // landed the devotee on the homepage instead of the intended
+    // registration section. Navigating directly to the real page instead
+    // mounts TempleRegister immediately, whose own deep-link-routing effect
+    // (reading this same page from the URL, the same way a shared
+    // temple-register/devotee-register link already works) opens the
+    // correct section and scrolls to it — no custom event needed.
+    onNavigate(page);
   };
 
   const confirmOnWhatsApp = () => {
