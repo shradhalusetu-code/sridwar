@@ -34,6 +34,16 @@ interface FamilyMember {
   relation: string;
 }
 
+// ─── Password policy ────────────────────────────────────────────────────────
+// One rule, one message, used everywhere a devotee sets/changes a password
+// (Signup, and "Save New Password" during forgot-password recovery). Kept
+// deliberately short per product requirement — no long character-class
+// checklist shown to the devotee, just this single sentence.
+const PASSWORD_ERROR_MESSAGE = "Password must be 8–14 characters and include letters and numbers.";
+function isValidPassword(pw: string): boolean {
+  return pw.length >= 8 && pw.length <= 14 && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw);
+}
+
 interface AuthDashboardProps {
   currentLanguage: Language;
   isLoggedIn: boolean;
@@ -82,6 +92,16 @@ export default function AuthDashboard({
   // True once we've asked a brand-new devotee to confirm their email —
   // shown instead of the form until they switch back to "Log In".
   const [signupNeedsConfirmation, setSignupNeedsConfirmation] = useState(false);
+  // "Resend verification email" — the safety net that guarantees a devotee
+  // is never permanently blocked out of their Dharmic ID just because one
+  // particular email attempt didn't land in their inbox (spam filters,
+  // corporate mail gateways, or a first send that genuinely got lost).
+  // Works on every platform since it calls the same Supabase endpoint the
+  // website already uses.
+  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
+  const [resendCooldownActive, setResendCooldownActive] = useState(false);
+  const [resendConfirmationMessage, setResendConfirmationMessage] = useState("");
+  const [resendConfirmationError, setResendConfirmationError] = useState("");
 
   // Self-service account deletion (danger zone) — works for any logged-in
   // devotee, on both the website and the Android app, since both run this
@@ -259,6 +279,96 @@ export default function AuthDashboard({
     }
   }, []);
 
+  // ─── Why verification emails "worked on desktop but not on the app/mobile" ─
+  //
+  // Two separate root causes, both fixed here:
+  //
+  //   1. Supabase's ANTI-ENUMERATION behaviour: calling signUp() with an
+  //      email that is already registered AND already confirmed returns a
+  //      "fake" user object (empty identities[]) with NO error and NO
+  //      session — and, critically, Supabase does NOT send any email for
+  //      that case. The old code here couldn't tell this apart from a real
+  //      first-time signup and showed "check your inbox" regardless. In
+  //      practice this is exactly what happens when the same devotee (or a
+  //      tester) signs up successfully once on one device, then later
+  //      "signs up" again with the same email from a different
+  //      platform — no email is ever sent for that second attempt, on ANY
+  //      platform, desktop included, which reads exactly like "the app
+  //      doesn't send emails." See handleGoogleLogin below for the fix
+  //      (checking data.user.identities.length === 0).
+  //
+  //   2. The SAME hosted-redirect gotcha already fixed above for password
+  //      recovery also affects the default "Confirm signup" email
+  //      template: {{ .ConfirmationURL }} routes through Supabase's own
+  //      hosted verification page before landing back on the app, and that
+  //      extra hop is far more likely to fail inside an in-app/WebView
+  //      browser (Android app, links opened from Gmail/Outlook mobile
+  //      apps, WhatsApp's in-app browser, etc.) than in an ordinary desktop
+  //      tab.
+  //
+  //      👉 REQUIRED Dashboard step (mirrors the Reset Password template
+  //         change already made): in Supabase → Authentication → Email
+  //         Templates → "Confirm signup", change the link to point to
+  //         {{ .SiteURL }}?token_hash={{ .TokenHash }}&type=signup instead
+  //         of {{ .ConfirmationURL }}. The useEffect below is the code half
+  //         of that fix — it verifies the token directly with
+  //         supabase.auth.verifyOtp(), the same deterministic approach used
+  //         for password recovery, instead of depending on the hosted
+  //         redirect chain to survive every mobile mail client/WebView.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+    if (tokenHash && (type === "signup" || type === "email")) {
+      supabase.auth
+        .verifyOtp({ token_hash: tokenHash, type: type === "email" ? "email" : "signup" })
+        .then(async ({ data, error }) => {
+          if (error) {
+            console.error("[AuthDashboard] Signup verification failed:", error.message);
+            setAuthErrorMessage(
+              "This confirmation link is invalid or has expired. Please log in below — if your Dharmic ID still shows as unverified, switch to the Signup tab and use \"Resend verification email.\""
+            );
+            setAuthFormMode("signin");
+          } else if (data.user) {
+            // A real session now exists — App.tsx's own onAuthStateChange
+            // listener picks this up and logs the devotee straight into
+            // their dashboard. The "profiles" row was never written at
+            // signup time (no session existed yet then, and RLS correctly
+            // blocks an unauthenticated insert), so create it now that we
+            // have one.
+            const { data: existingProfile } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("id", data.user.id)
+              .maybeSingle();
+            if (!existingProfile) {
+              const { error: profileError } = await supabase.from("profiles").insert({
+                id: data.user.id,
+                name: (data.user.user_metadata?.name as string) || data.user.email || "Devotee",
+                email: data.user.email || "",
+                gotra: userGotra,
+                rashi: userRashi,
+                phone: userPhone || null,
+              });
+              if (profileError) {
+                console.error("Could not save profile after email verification:", profileError.message);
+              }
+            }
+          }
+          const cleanParams = new URLSearchParams(window.location.search);
+          cleanParams.delete("token_hash");
+          cleanParams.delete("type");
+          const cleanSearch = cleanParams.toString();
+          window.history.replaceState(
+            window.history.state,
+            "",
+            window.location.pathname + (cleanSearch ? `?${cleanSearch}` : "")
+          );
+        });
+    }
+  }, []);
+
   // Fallback #1: some older/default Supabase email templates deliver the
   // recovery token as a URL hash fragment (#...type=recovery...) instead
   // of the query-string token_hash above. Harmless to keep checking for
@@ -318,8 +428,8 @@ export default function AuthDashboard({
     e.preventDefault();
     setNewPasswordError("");
 
-    if (newPasswordField.length < 6) {
-      setNewPasswordError("Password must be at least 6 characters.");
+    if (!isValidPassword(newPasswordField)) {
+      setNewPasswordError(PASSWORD_ERROR_MESSAGE);
       return;
     }
     if (newPasswordField !== confirmNewPasswordField) {
@@ -473,24 +583,60 @@ export default function AuthDashboard({
       setAuthErrorMessage("Please specify an Email and Password.");
       return;
     }
-    if (passwordField.length < 6) {
-      setAuthErrorMessage("Password must be at least 6 characters.");
+    if (authFormMode === "signup" && !isValidPassword(passwordField)) {
+      setAuthErrorMessage(PASSWORD_ERROR_MESSAGE);
       return;
     }
 
     setIsLoggingIn(true);
 
     if (authFormMode === "signup") {
-      // Create the account in Supabase Auth
+      // Create the account in Supabase Auth. emailRedirectTo is passed
+      // explicitly (rather than relying on the project's default Site URL)
+      // so the confirmation link always points at wherever this signup
+      // actually happened from — website, Android app, or an in-app
+      // browser — all of which resolve to the real https://sridwar.com
+      // origin (see capacitor.config.ts's `server.url` note).
       const { data, error } = await supabase.auth.signUp({
         email: userEmailField,
         password: passwordField,
-        options: { data: { name: userNameField } },
+        options: {
+          data: { name: userNameField },
+          emailRedirectTo: `${window.location.origin}/?page=login`,
+        },
       });
 
       if (error) {
-        setAuthErrorMessage(error.message);
+        // Older Supabase projects with "Confirm email" turned OFF return
+        // this as a direct error instead of the silent empty-identities
+        // response handled below — guide the devotee to log in either way.
+        if (/already registered|already exists|user already/i.test(error.message || "")) {
+          setAuthErrorMessage(
+            "An account with this email already exists. Please log in instead — use \"Forgot password?\" below if you don't remember your password."
+          );
+          setAuthFormMode("signin");
+          setPasswordField("");
+        } else {
+          setAuthErrorMessage(error.message);
+        }
         setIsLoggingIn(false);
+        return;
+      }
+
+      // Supabase's anti-enumeration behaviour: signing up with an email
+      // that's already registered AND already confirmed returns success
+      // with NO error, NO session, and an EMPTY identities array — and no
+      // email is actually sent for this case. Without this check, that
+      // silence looked identical to a real new signup, which is exactly
+      // what made it seem like "the confirmation email never arrives" —
+      // no email was ever sent for that attempt on any platform.
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        setIsLoggingIn(false);
+        setAuthErrorMessage(
+          "An account with this email already exists. Please log in instead — use \"Forgot password?\" below if you don't remember your password."
+        );
+        setAuthFormMode("signin");
+        setPasswordField("");
         return;
       }
 
@@ -503,6 +649,8 @@ export default function AuthDashboard({
       if (!data.session) {
         setIsLoggingIn(false);
         setSignupNeedsConfirmation(true);
+        setResendConfirmationMessage("");
+        setResendConfirmationError("");
         return;
       }
 
@@ -566,6 +714,41 @@ export default function AuthDashboard({
     setIsLoggingIn(false);
     setAuthStep("contribute");
     gaRegistrationSubmit("devotee_registration");
+  };
+
+  // Resend a fresh confirmation link — the safety net so a devotee is never
+  // permanently blocked out of their Dharmic ID over one email that didn't
+  // arrive, on any platform. A short client-side cooldown (not a hard
+  // block) keeps a devotee from accidentally hitting Supabase's own email
+  // rate limit by tapping the button repeatedly.
+  const handleResendConfirmation = async () => {
+    if (!userEmailField || isResendingConfirmation || resendCooldownActive) return;
+    setIsResendingConfirmation(true);
+    setResendConfirmationError("");
+    setResendConfirmationMessage("");
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: userEmailField,
+      options: { emailRedirectTo: `${window.location.origin}/?page=login` },
+    });
+
+    setIsResendingConfirmation(false);
+
+    if (error) {
+      setResendConfirmationError(
+        /rate limit|only request this|too many/i.test(error.message || "")
+          ? "Please wait a minute before requesting another confirmation email."
+          : error.message
+      );
+      return;
+    }
+
+    setResendConfirmationMessage(
+      `A fresh confirmation link has been sent to ${userEmailField}. Please check your inbox (and spam/junk folder).`
+    );
+    setResendCooldownActive(true);
+    setTimeout(() => setResendCooldownActive(false), 30000);
   };
 
   // Self-service account deletion — permanently removes this devotee's
@@ -804,14 +987,16 @@ export default function AuthDashboard({
                         <input
                           type="password"
                           required
-                          minLength={6}
-                          placeholder="At least 6 characters"
+                          minLength={8}
+                          maxLength={14}
+                          placeholder="8–14 characters, letters & numbers"
                           value={newPasswordField}
                           onChange={(e) => setNewPasswordField(e.target.value)}
                           className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
                         />
                         <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
                       </div>
+                      <p className="mt-1.5 text-[12px] text-white/40">{PASSWORD_ERROR_MESSAGE}</p>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-white/80 mb-1">Confirm New Password *</label>
@@ -819,7 +1004,8 @@ export default function AuthDashboard({
                         <input
                           type="password"
                           required
-                          minLength={6}
+                          minLength={8}
+                          maxLength={14}
                           placeholder="Re-enter new password"
                           value={confirmNewPasswordField}
                           onChange={(e) => setConfirmNewPasswordField(e.target.value)}
@@ -921,9 +1107,39 @@ export default function AuthDashboard({
                   <Mail className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>
                     We've sent a confirmation link to <strong>{userEmailField}</strong>. Please check your inbox
-                    and verify your email, then log in below to continue.
+                    (and spam/junk folder) and verify your email, then log in below to continue.
                   </span>
                 </div>
+
+                {resendConfirmationMessage && (
+                  <div className="flex items-start space-x-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs rounded-xl px-3 py-2.5 text-left">
+                    <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{resendConfirmationMessage}</span>
+                  </div>
+                )}
+                {resendConfirmationError && (
+                  <div className="flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-xs rounded-xl px-3 py-2.5 text-left">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{resendConfirmationError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={isResendingConfirmation || resendCooldownActive}
+                  className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 font-bold py-3 rounded-xl text-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isResendingConfirmation ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <span className="tracking-wider">RESEND VERIFICATION EMAIL</span>
+                  )}
+                </button>
+
                 <button
                   type="button"
                   onClick={() => { setAuthFormMode("signin"); setSignupNeedsConfirmation(false); }}
@@ -1018,14 +1234,18 @@ export default function AuthDashboard({
                     id="login-field-password"
                     type="password"
                     required
-                    minLength={6}
-                    placeholder="At least 6 characters"
+                    minLength={authFormMode === "signup" ? 8 : undefined}
+                    maxLength={authFormMode === "signup" ? 14 : undefined}
+                    placeholder={authFormMode === "signup" ? "8–14 characters, letters & numbers" : "Enter your password"}
                     value={passwordField}
                     onChange={(e) => setPasswordField(e.target.value)}
                     className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
                   />
                   <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/40" />
                 </div>
+                {authFormMode === "signup" && (
+                  <p className="mt-1.5 text-[12px] text-white/40">{PASSWORD_ERROR_MESSAGE}</p>
+                )}
                 {authFormMode === "signin" && (
                   <button
                     type="button"
