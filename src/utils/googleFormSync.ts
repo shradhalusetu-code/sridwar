@@ -63,8 +63,21 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
   // to match reality. ⚠️ Please re-verify with one more real test booking
   // after deploying — that is the only reliable way to confirm a Google
   // Form's entry-ID mapping, and it's what actually caught this bug.
+  // ✅ FORM MIGRATION (2026-08-28): the old live Puja Google Form became
+  // corrupted and was replaced with a fresh copy of the same form (made via
+  // "Make a copy", which is why every entry.XXXXXXXXX ID below is unchanged —
+  // Google preserves question IDs on a duplicated form). Only the endpoint
+  // below changed, to the new copy's formResponse URL
+  // (docs.google.com/forms/d/e/1FAIpQLSdhI2Vc6zhqdHzSUkzRo9ZfIpt7vmVqY8j_vXZzHHHpLKOvmQ/edit).
+  // The new form's response destination was pointed at the SAME existing
+  // spreadsheet already configured in config.gs's PUJA_BOOKING.spreadsheetId
+  // (1Xrz9voxD8zsKDCfyHCgi6RJRtfa-nlp-BRWvfSiusNw) — so no Apps Script,
+  // trigger, or spreadsheet ID changes were needed; see the migration notes
+  // delivered alongside this file for the one manual check still required
+  // (confirming the new form's response tab in that spreadsheet is named
+  // "PUJA").
   puja_booking: {
-    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSedSW7HeakeLf1uHMBmu7VU94q26HdjL44rFXkPse8yqGrPKw/formResponse",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSdhI2Vc6zhqdHzSUkzRo9ZfIpt7vmVqY8j_vXZzHHHpLKOvmQ/formResponse",
     mappedFields: {
       nameKey: "entry.1507238374",   // Devotee Full Name
       emailKey: "entry.21123129",    // Email Address — proven by real submitted row (2026-08-14)

@@ -144,6 +144,8 @@
  *                          invoice total is simply the booking amount.
  */
 
+import fs from "fs";
+import path from "path";
 import { PDFDocument, StandardFonts, rgb, degrees, PDFFont, PDFPage, RGB } from "pdf-lib";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
@@ -490,10 +492,48 @@ function mergeFields(
 }
 
 // ═════════════════════════════════ RENDERING ════════════════════════════════
-// Pure vector drawing (no external image assets to go missing at deploy time).
 // A restrained repeating-petal mandala corner motif + thin gold hairline
 // border keeps it premium and uncluttered — generous margins, one accent
 // color family, one display face, one body face.
+
+// ✅ ADDED 2026-08-28 — brand icon (temple mark only, no wordmark) on every
+// certificate + invoice PDF, per request. Deliberately the icon-only crop of
+// sridwar-logo.png, not the full logo-with-wordmark: the full logo's navy
+// "SRI DWAR" text has poor contrast against the invoice's dark green header
+// band, while the gold/saffron temple icon alone reads clearly on BOTH the
+// certificate's cream background and the invoice's dark green band — so one
+// asset works correctly in both templates without recoloring anything. The
+// existing "SRI DWAR" text headers are left in place, unchanged; the icon is
+// added alongside them, not a replacement.
+//
+// PNG alpha transparency (unlike the raster proxy used for outbound email)
+// is fully respected by pdf-lib / every PDF viewer, so no baked-background
+// compositing is needed here the way it was for emailtemplates.gs.
+//
+// Read once from disk, mirroring the exact dev/prod path pattern server.ts
+// already uses for other static assets (STATIC_LEGAL_PAGES above). Never a
+// hard requirement: if the file is missing or fails to embed, PDFs still
+// generate exactly as they did before this feature existed — a missing logo
+// must never block a devotee's certificate or invoice.
+let cachedBrandIconBytes: Buffer | null | undefined;
+function loadBrandIconBytes(): Buffer | null {
+  if (cachedBrandIconBytes !== undefined) return cachedBrandIconBytes;
+  try {
+    const iconPath = path.join(
+      process.cwd(),
+      process.env.NODE_ENV === "production" ? "dist" : "public",
+      "images",
+      "sridwar-icon.png"
+    );
+    cachedBrandIconBytes = fs.readFileSync(iconPath);
+  } catch {
+    console.warn(
+      "[certificateService] Brand icon not found at public/images/sridwar-icon.png (or dist/images/ in prod) — PDFs will render without it."
+    );
+    cachedBrandIconBytes = null;
+  }
+  return cachedBrandIconBytes;
+}
 
 async function drawMandalaCorner(page: PDFPage, x: number, y: number, scale = 1) {
   // A restrained eight-petal lotus flourish, not a full starburst — reads as
@@ -568,8 +608,20 @@ async function renderCertificatePdf(kind: TemplateKind, fields: MergedFields): P
   page.drawRectangle({ x: 0, y: 0, width, height, color: BRAND.cream });
   await drawFrame(page);
 
-  centeredText(page, BRAND.name.toUpperCase(), height - 70, serif, 14, BRAND.darkGreen);
-  centeredText(page, BRAND.tagline, height - 87, serifItalic, 9, BRAND.textMuted);
+  const iconBytes = loadBrandIconBytes();
+  if (iconBytes) {
+    try {
+      const iconImage = await doc.embedPng(iconBytes);
+      const iconH = 24;
+      const iconW = iconImage.width * (iconH / iconImage.height);
+      page.drawImage(iconImage, { x: (width - iconW) / 2, y: height - 36 - iconH, width: iconW, height: iconH });
+    } catch {
+      // Corrupt/unexpected asset — never let a bad logo file break certificate generation.
+    }
+  }
+
+  centeredText(page, BRAND.name.toUpperCase(), height - 76, serif, 14, BRAND.darkGreen);
+  centeredText(page, BRAND.tagline, height - 93, serifItalic, 9, BRAND.textMuted);
 
   centeredText(page, TEMPLATE_TITLES[kind], height - 140, serif, 22, BRAND.saffron);
 
@@ -642,8 +694,27 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
 
   // ── Header band: brand + document title ──────────────────────────────────
   page.drawRectangle({ x: 0, y: height - 96, width, height: 96, color: BRAND.darkGreen });
-  text(BRAND.name.toUpperCase(), margin, height - 42, { size: 20, font: sansBold, color: BRAND.white });
-  text(BRAND.tagline, margin, height - 60, { size: 9, font: sans, color: BRAND.gold });
+
+  // ✅ ADDED 2026-08-28 — brand icon beside the existing wordmark text (see
+  // loadBrandIconBytes comment above for why it's the icon-only crop).
+  // headerTextX only shifts right of `margin` when the icon actually draws,
+  // so a missing/failed asset falls back to the exact original layout.
+  let headerTextX = margin;
+  const iconBytes = loadBrandIconBytes();
+  if (iconBytes) {
+    try {
+      const iconImage = await doc.embedPng(iconBytes);
+      const iconH = 34;
+      const iconW = iconImage.width * (iconH / iconImage.height);
+      page.drawImage(iconImage, { x: margin, y: height - 62, width: iconW, height: iconH });
+      headerTextX = margin + iconW + 12;
+    } catch {
+      // Corrupt/unexpected asset — never let a bad logo file break invoice generation.
+    }
+  }
+
+  text(BRAND.name.toUpperCase(), headerTextX, height - 42, { size: 20, font: sansBold, color: BRAND.white });
+  text(BRAND.tagline, headerTextX, height - 60, { size: 9, font: sans, color: BRAND.gold });
   text("PAYMENT CONFIRMATION / INVOICE", width - margin, height - 42, {
     size: 13,
     font: sansBold,
