@@ -116,7 +116,23 @@ async function insertAccountItem(userId: string, item: Omit<ServiceCartItem, "id
       .select("id, category, item_name, amount, details, created_at")
       .single();
     if (error) {
-      console.error("insertAccountItem failed:", error.message);
+      // ✅ FIX (2026-08-29 — reported bug: "Add to Cart" failing with no
+      // clue why, for multiple different item categories): the previous
+      // log line only printed error.message, which for a genuinely missing
+      // table read as a generic, unhelpful string. Now logs the Postgres
+      // error CODE and hint too — "42P01" specifically means the
+      // cart_items table itself doesn't exist yet (run
+      // supabase_fix_cart_items_complete.sql), "23514" means a category
+      // value isn't in the CHECK constraint, and anything under RLS
+      // policy violation points at auth/session, not the schema. This is
+      // exactly the fastest way to tell those apart from the browser
+      // console next time, instead of guessing blind.
+      console.error("insertAccountItem failed:", {
+        message: error.message,
+        code: (error as { code?: string }).code,
+        hint: (error as { hint?: string }).hint,
+        details: (error as { details?: string }).details,
+      });
       return null;
     }
     return rowToItem(data);

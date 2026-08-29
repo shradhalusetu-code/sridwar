@@ -394,19 +394,23 @@ export default function DevoteeExperiences() {
   const [isDownloadingTestimonyCert, setIsDownloadingTestimonyCert] = useState(false);
   const [testimonyCertError, setTestimonyCertError] = useState("");
 
+  // ✅ FIX (2026-08-29 — per confirmation): testimonials don't collect a
+  // real email address, so there's no email to send here — PDF download
+  // (in-app or browser) is the only delivery this flow needs, and is now
+  // the only thing this button offers.
   const handleDownloadTestimonyCertificate = async () => {
     if (!testimonyRefId) return;
     setTestimonyCertError("");
     setIsDownloadingTestimonyCert(true);
     try {
-      const res = await fetch(`/api/certificates/general/${encodeURIComponent(testimonyRefId)}`);
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(testimonyRefId)}/pdf`);
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const safeName = (newName || "Devotee").trim().replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      link.download = `Sri-Dwar-Certificate-${safeName}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

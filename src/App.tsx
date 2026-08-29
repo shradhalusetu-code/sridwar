@@ -747,6 +747,36 @@ export default function App() {
         date: new Date().toLocaleDateString()
       };
 
+      // ✅ FIX (2026-08-29 — reported gap): this branch (the original,
+      // legacy Temple Bazaar cart — separate from the serviceCart items
+      // synced just below) used to call recordActivity only. It never
+      // synced to Google Sheets at all, so a devotee checking out a plain
+      // Bazaar order got NO confirmation of any kind until an admin
+      // manually confirmed payment in Supabase — potentially hours or
+      // days later, and even then only a generic PDF invoice, never the
+      // immediate "payment received, under review" email every other
+      // booking type already gets the instant "I Have Paid" is tapped.
+      // Adding this one sync call routes a Bazaar order through the exact
+      // same, already-working pipeline every Puja/Seva/cart-service item
+      // already uses (Triggers.gs's _handleBookingSheetSubmit_) — no new
+      // server-side or Apps Script code needed, since that pipeline
+      // already handles a "product"-type booking correctly. Checkout
+      // already requires being logged in (see handleCartGPayCheckout
+      // above), so the devotee's own account name/email are used here —
+      // never fabricated.
+      try {
+        await syncToGoogleForm("puja_booking", {
+          name: userProfile.name || "Devotee",
+          email: userProfile.email || "",
+          phone: "",
+          details: `Item: ${cartSummaryStr} | Amount: ₹${bazaarAmount} | Payment Status: Payment Submitted — Pending Verification | Payment Method: UPI | Ref: ${refId} | Cart/Order Ref: ${groupRef}`,
+          type: "Temple Bazaar Order",
+          fee: bazaarAmount, dob: "N/A", gotra: "N/A", rashi: "N/A", intent: "",
+        });
+      } catch (err) {
+        console.error("Bazaar cart Google Sheets sync error:", err);
+      }
+
       const updatedBookings = [newBooking, ...bookedItems];
       setBookedItems(updatedBookings);
       localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
