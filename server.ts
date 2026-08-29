@@ -914,6 +914,117 @@ app.get("/api/email/inquiry-banner", async (req, res) => {
   }
 });
 
+// 2f. Temple Visit Certificate — composites the devotee's name, the temple
+// they visited, and the date of issue onto the real Temple_Visit_Certificate.jpg
+// artwork, server-side, on request.
+//
+// Coordinates below were measured directly against the artwork (not
+// guessed): name and temple each sit on their own blank line under "This
+// is to certify that" / "was performed with devotion on", and the date
+// sits on the short blank line under "DATE OF ISSUE" in the bottom strip.
+// Each is shrink-to-fit + truncated with the same helpers the inquiry
+// banner above uses, so a long temple name can never run into the deity
+// artwork on either side.
+//
+// SECURITY: this never trusts client-supplied name/temple/date — it looks
+// the devotee's own submitted data up server-side from form_submissions by
+// ref_id (service-role key), exactly like certificateService.ts already
+// does for the payment/certificate pipeline. The URL only ever contains a
+// ref_id, the same "know the link" access level every other ref_id in this
+// app already carries (WhatsApp alerts, email subject lines, etc.) — there
+// is no separate secret because no separate secret is needed for a
+// devotional record of a temple visit.
+const TEMPLE_CERT_NAME_SLOT = { x: 550, y: 398, maxWidth: 550, maxSize: 34, minSize: 16 };
+const TEMPLE_CERT_TEMPLE_SLOT = { x: 550, y: 518, maxWidth: 550, maxSize: 30, minSize: 14 };
+const TEMPLE_CERT_DATE_SLOT = { x: 90, y: 855, maxWidth: 260, maxSize: 20, minSize: 11 };
+const TEMPLE_CERT_FIELD_COLOR = "#2b1806";
+
+async function renderTempleVisitCertificateJpeg(name: string, temple: string, dateOfIssue: string): Promise<Buffer> {
+  const sharp = (await import("sharp")).default;
+
+  const imagePath = path.join(
+    process.cwd(),
+    process.env.NODE_ENV === "production" ? "dist" : "public",
+    "images",
+    "Temple_Visit_Certificate.jpg"
+  );
+
+  const base = sharp(imagePath);
+  const meta = await base.metadata();
+  const width = meta.width || 1536;
+  const height = meta.height || 1024;
+
+  const nameEl = fittedTextElement(
+    name, TEMPLE_CERT_NAME_SLOT.x, TEMPLE_CERT_NAME_SLOT.y, TEMPLE_CERT_NAME_SLOT.maxWidth,
+    TEMPLE_CERT_NAME_SLOT.maxSize, TEMPLE_CERT_NAME_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
+  );
+  const templeEl = fittedTextElement(
+    temple, TEMPLE_CERT_TEMPLE_SLOT.x, TEMPLE_CERT_TEMPLE_SLOT.y, TEMPLE_CERT_TEMPLE_SLOT.maxWidth,
+    TEMPLE_CERT_TEMPLE_SLOT.maxSize, TEMPLE_CERT_TEMPLE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
+  );
+  const dateEl = fittedTextElement(
+    dateOfIssue, TEMPLE_CERT_DATE_SLOT.x, TEMPLE_CERT_DATE_SLOT.y, TEMPLE_CERT_DATE_SLOT.maxWidth,
+    TEMPLE_CERT_DATE_SLOT.maxSize, TEMPLE_CERT_DATE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
+  );
+
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${nameEl}
+    ${templeEl}
+    ${dateEl}
+  </svg>`;
+
+  return base.composite([{ input: Buffer.from(svg) }]).jpeg({ quality: 90 }).toBuffer();
+}
+
+app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)." });
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("form_submissions")
+      .select("name, payload, created_at")
+      .eq("form_type", "darshan_certificate")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    if (!data) {
+      res.status(404).json({ error: "No Temple Visit Certificate request found for this reference." });
+      return;
+    }
+
+    const row = data as { name: string | null; payload: Record<string, unknown> | null; created_at: string | null };
+    const devoteeName = (row.name || "").trim() || "Devotee";
+    const temple = ((row.payload?.["temple"] as string) || "").trim() || "the temple";
+    const dateOfIssue = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const jpegBuffer = await renderTempleVisitCertificateJpeg(devoteeName, temple, dateOfIssue);
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.jpg"`);
+    res.send(jpegBuffer);
+  } catch (err: any) {
+    appendAuditLog("temple_visit_certificate_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
 // Community Guidelines, Cookie Policy, Account Deletion).

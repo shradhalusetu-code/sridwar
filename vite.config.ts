@@ -16,9 +16,22 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
-    // ── html2canvas pre-bundling ─────────────────────────────────────────
-    // Without this, Vite only discovers html2canvas the first time a
-    // devotee actually taps "Download Dharmic ID" (AuthDashboard.tsx),
+    // ── html2canvas-pro pre-bundling ────────────────────────────────────
+    // ✅ SWAPPED from "html2canvas" to "html2canvas-pro" (2026-08-29):
+    // html2canvas 1.4.1 throws "Attempting to parse an unsupported color
+    // function 'oklch'" on any element styled with Tailwind CSS v4 (this
+    // project's Tailwind version), because Tailwind v4's default palette is
+    // defined in oklch() — a well-documented, still-unfixed upstream
+    // limitation (niklasvh/html2canvas#3150/#3235/#3269). That's what was
+    // actually behind every "Could not generate the image right now"
+    // failure on the Dharmic ID download button — not a transient/network
+    // issue. html2canvas-pro is a maintained drop-in fork (identical API,
+    // same `html2canvas(node, options)` call signature) that adds oklch/
+    // oklab/lab/lch support, so no other code needed to change beyond the
+    // import path in AuthDashboard.tsx and the two references below.
+    //
+    // Without this include, Vite only discovers html2canvas-pro the first
+    // time a devotee actually taps "Download Your ID" (AuthDashboard.tsx),
     // since that's the first time it's ever imported at runtime. Vite's
     // dev server then has to stop, re-run its dependency optimizer, and
     // restart mid-session — which is what surfaces in the browser console
@@ -27,7 +40,7 @@ export default defineConfig(() => {
     // here makes Vite pre-bundle it once at server startup instead, so it
     // never needs to interrupt an already-running session.
     optimizeDeps: {
-      include: ['html2canvas'],
+      include: ['html2canvas-pro'],
     },
     build: {
       // ── Code splitting ──────────────────────────────────────────────────
@@ -56,10 +69,11 @@ export default defineConfig(() => {
             // Supabase client — only needed for auth/dashboard, not the
             // marketing homepage
             supabase: ['@supabase/supabase-js'],
-            // html2canvas — only needed for the Dharmic ID PNG/JPG download
+            // html2canvas-pro — only needed for the "Download Your ID"
             // button inside AuthDashboard.tsx, not on first paint anywhere
-            // else in the app.
-            html2canvas: ['html2canvas'],
+            // else in the app. See the oklch note above for why this is
+            // "-pro" and not the plain "html2canvas" package.
+            html2canvas: ['html2canvas-pro'],
             // ✅ BUNDLE-SIZE FIX (2026-08-15): priests.ts (~2,100 lines) and
             // temples.ts (~1,600 lines) are each imported by several
             // DIFFERENT lazy-loaded pages (PriestSection, OnlinePuja,

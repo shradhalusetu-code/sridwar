@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, FormEvent } from "react";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
@@ -618,14 +618,29 @@ export default function AuthDashboard({
   };
 
   // Downloads the on-screen Dharmic ID card (#digital-dharmic-id-card) as a
-  // PNG or JPG, pixel-for-pixel as shown — including the temple backdrop,
-  // Gotra/Rashi, dates, and QR code. html2canvas is a normal static import
-  // (top of file) rather than a runtime dynamic import: AuthDashboard.tsx
-  // is already React.lazy-loaded from App.tsx, so this still doesn't touch
-  // the main entry bundle — it just avoids Vite's dev-server having to
-  // "discover" the dependency mid-session and restart its optimizer, which
-  // is what caused the "server connection lost" / 404 errors.
-  const handleDownloadDharmicId = async (format: "png" | "jpg") => {
+  // JPG, pixel-for-pixel as shown — including the temple backdrop,
+  // Gotra/Rashi, dates, and QR code. html2canvas-pro is a normal static
+  // import (top of file) rather than a runtime dynamic import:
+  // AuthDashboard.tsx is already React.lazy-loaded from App.tsx, so this
+  // still doesn't touch the main entry bundle — it just avoids Vite's
+  // dev-server having to "discover" the dependency mid-session and restart
+  // its optimizer, which is what caused the "server connection lost" / 404
+  // errors.
+  //
+  // ✅ FIX (2026-08-29): this used to use plain "html2canvas", which throws
+  // "Attempting to parse an unsupported color function 'oklch'" on any
+  // element styled with Tailwind CSS v4 (this project's Tailwind version —
+  // v4's default colour palette is defined in oklch()). That exception was
+  // caught below and silently swallowed into the generic "Could not
+  // generate the image right now" message every single time — the download
+  // could never have worked while the app used Tailwind v4. Switched to
+  // html2canvas-pro (see vite.config.ts's optimizeDeps/manualChunks, also
+  // updated), a maintained drop-in fork with the exact same API that adds
+  // oklch/oklab/lab/lch support. No other code here needed to change.
+  //
+  // ✅ SIMPLIFIED (2026-08-29): PNG option removed per request — JPG only,
+  // one button ("Download Your ID"), no format choice to make.
+  const handleDownloadDharmicId = async () => {
     setDharmicIdDownloadError("");
     const node = document.getElementById("digital-dharmic-id-card");
     if (!node) return;
@@ -637,12 +652,11 @@ export default function AuthDashboard({
         scale: Math.min(3, (typeof window !== "undefined" && window.devicePixelRatio) || 2),
         useCORS: true,
       });
-      const mimeType = format === "jpg" ? "image/jpeg" : "image/png";
-      const dataUrl = canvas.toDataURL(mimeType, 0.95);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
       const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `Dharmic-ID-${safeName}.${format}`;
+      link.download = `Dharmic-ID-${safeName}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -651,6 +665,43 @@ export default function AuthDashboard({
       setDharmicIdDownloadError("Could not generate the image right now. Please try again, or take a screenshot instead.");
     } finally {
       setIsDownloadingDharmicId(false);
+    }
+  };
+
+  // Downloads the server-composited Temple Visit Certificate for one Darshan
+  // Certificate request (see GET /api/certificates/temple-visit/:refId in
+  // server.ts). A relative fetch — this page is always served by the same
+  // Express server that exposes that route (both on the website and inside
+  // the Capacitor app, which loads the live site directly per
+  // capacitor.config.ts), so no separate API base URL is needed here. Same
+  // blob→object-URL→<a download> pattern as handleDownloadDharmicId above.
+  const [downloadingCertRefId, setDownloadingCertRefId] = useState<string | null>(null);
+  const [certDownloadError, setCertDownloadError] = useState("");
+
+  const handleDownloadTempleCertificate = async (refId: string, devoteeName: string) => {
+    if (!refId) return;
+    setCertDownloadError("");
+    setDownloadingCertRefId(refId);
+    try {
+      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`);
+      if (!res.ok) {
+        throw new Error(`Server responded ${res.status}`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Temple Visit Certificate download failed:", e);
+      setCertDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setDownloadingCertRefId(null);
     }
   };
 
@@ -930,6 +981,19 @@ export default function AuthDashboard({
         onLogout();
       }, 2500);
     } catch (e) {
+      // ✅ FIX (2026-08-29): this catch block only fires when fetch() itself
+      // throws — i.e. the request never got a response at all (server
+      // unreachable, DNS/network failure, or a CORS rejection). It is NOT
+      // the same as the server responding with an error (that's the
+      // `!response.ok` branch above, which already shows the server's own
+      // message). Previously this swallowed the real error completely,
+      // making "Something went wrong" impossible to debug from a bug
+      // report alone. Logging it now means the actual cause (e.g.
+      // "Failed to fetch" if /api/account/delete isn't reachable at all —
+      // check that the site is being served by the same Express server
+      // that defines this route, not a static host with no backend) shows
+      // up in the browser console/DevTools next time this happens.
+      console.error("Account deletion request failed (network/fetch level):", e);
       setDeleteAccountError(
         "Something went wrong deleting your account. Please try again, or email puja@sridwar.com and we'll complete it for you within 30 days."
       );
@@ -1688,8 +1752,8 @@ export default function AuthDashboard({
                 </div>
               </div>
 
-              {/* Download Dharmic ID as an image — captures #digital-dharmic-id-card
-                  exactly as shown, using html2canvas (see package.json). */}
+              {/* Download Dharmic ID as a JPG — captures #digital-dharmic-id-card
+                  exactly as shown, using html2canvas-pro (see package.json). */}
               <div className="w-full max-w-md mt-3">
                 {dharmicIdDownloadError && (
                   <div className="mb-2 flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-[11px] rounded-xl px-3 py-2">
@@ -1697,28 +1761,16 @@ export default function AuthDashboard({
                     <span>{dharmicIdDownloadError}</span>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    id="dharmic-id-download-png-btn"
-                    onClick={() => handleDownloadDharmicId("png")}
-                    disabled={isDownloadingDharmicId}
-                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2.5 rounded-xl text-[11px] uppercase tracking-wide transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>{isDownloadingDharmicId ? "Preparing..." : "Download PNG"}</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="dharmic-id-download-jpg-btn"
-                    onClick={() => handleDownloadDharmicId("jpg")}
-                    disabled={isDownloadingDharmicId}
-                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2.5 rounded-xl text-[11px] uppercase tracking-wide transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>{isDownloadingDharmicId ? "Preparing..." : "Download JPG"}</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  id="dharmic-id-download-btn"
+                  onClick={() => handleDownloadDharmicId()}
+                  disabled={isDownloadingDharmicId}
+                  className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2.5 rounded-xl text-[11px] uppercase tracking-wide transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isDownloadingDharmicId ? "Preparing..." : "Download Your ID"}</span>
+                </button>
               </div>
 
               {/* MY SPIRITUAL TRANSACTIONS LEDGER — moved directly below the ID card */}
@@ -1905,6 +1957,11 @@ export default function AuthDashboard({
                   <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
                     My Requests & Submissions
                   </h3>
+                  {certDownloadError && (
+                    <p className="text-xs text-red-300 bg-red-950/30 border border-red-500/20 rounded-xl px-3 py-2 mb-3">
+                      {certDownloadError}
+                    </p>
+                  )}
                   <div className="space-y-2.5">
                     {formSubmissions.map((sub) => (
                       <div
@@ -1919,6 +1976,22 @@ export default function AuthDashboard({
                             {new Date(sub.createdAt).toLocaleDateString()}{sub.refId ? ` · Ref: ${sub.refId}` : ""}
                           </span>
                         </div>
+                        {/* Temple Visit Certificate download — only shown for
+                            Darshan Certificate requests with a refId. The
+                            endpoint (server.ts) regenerates the certificate
+                            fresh each time from the devotee's own submitted
+                            data, so it's available as soon as the request exists. */}
+                        {sub.formType === "darshan_certificate" && sub.refId && (
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
+                            disabled={downloadingCertRefId === sub.refId}
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{downloadingCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
