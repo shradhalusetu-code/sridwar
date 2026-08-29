@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect, FormEvent } from "react";
-import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck } from "lucide-react";
+import html2canvas from "html2canvas";
+import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import { supabase } from "../lib/supabaseClient";
@@ -39,10 +40,46 @@ interface FamilyMember {
 // (Signup, and "Save New Password" during forgot-password recovery). Kept
 // deliberately short per product requirement — no long character-class
 // checklist shown to the devotee, just this single sentence.
-const PASSWORD_ERROR_MESSAGE = "Password must be 8–14 characters and include letters and numbers.";
+const PASSWORD_ERROR_MESSAGE =
+  "Password must be 8–14 characters and include one capital letter, small letters, and numbers.";
 function isValidPassword(pw: string): boolean {
-  return pw.length >= 8 && pw.length <= 14 && /[A-Za-z]/.test(pw) && /[0-9]/.test(pw);
+  return (
+    pw.length >= 8 &&
+    pw.length <= 14 &&
+    /[A-Z]/.test(pw) &&
+    /[a-z]/.test(pw) &&
+    /[0-9]/.test(pw)
+  );
 }
+
+// ─── Dharmic ID card date helpers ───────────────────────────────────────────
+// "Registered" must be the devotee's REAL Supabase account-creation date
+// (auth.users.created_at — always present, no extra DB column needed), and
+// "Valid Till" is calculated dynamically as the 108th Shiva Monday (Somvar)
+// counting forward from that date — never hard-coded.
+function formatDharmicIdDate(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/**
+ * Returns the date of the Nth Monday counting forward from `start` (the
+ * first Monday on/after `start` counts as Monday #1). Pure calendar
+ * arithmetic — no external library, no fixed offsets — so it stays correct
+ * for any registration date, in any year, leap years included.
+ */
+function nthMondayFrom(start: Date, count: number): Date {
+  const d = new Date(start.getTime());
+  const day = d.getDay(); // 0=Sun, 1=Mon, ... 6=Sat
+  const daysUntilFirstMonday = (8 - day) % 7; // 0 if `start` is already a Monday
+  d.setDate(d.getDate() + daysUntilFirstMonday);
+  d.setDate(d.getDate() + (count - 1) * 7);
+  return d;
+}
+
+const SHIVA_MONDAY_VALIDITY_COUNT = 108;
 
 interface AuthDashboardProps {
   currentLanguage: Language;
@@ -105,7 +142,7 @@ export default function AuthDashboard({
 
   // Self-service account deletion (danger zone) — works for any logged-in
   // devotee, on both the website and the Android app, since both run this
-  // same component. Requires the devotee to type DELETE to confirm, then
+  // same component. Requires the devotee to type "Delete" to confirm, then
   // calls the backend (which uses the Supabase service role to verify the
   // devotee's own session token and permanently remove their account and
   // data) before signing them out locally.
@@ -140,6 +177,21 @@ export default function AuthDashboard({
   const [newMemberRelation, setNewMemberRelation] = useState("Spouse");
   const [saveProfileSuccess, setSaveProfileSuccess] = useState(false);
   const [userPhone, setUserPhone] = useState("");
+  // Editable copy of the devotee's display name — the card shows
+  // userProfile.name (owned by App.tsx), but "My Sacred Profile" lets the
+  // devotee correct a typo'd name and push the fix back up via
+  // onLoginSuccess (safe to call again while already logged in — it just
+  // refreshes name/email state, matching how it's already used elsewhere).
+  const [editableName, setEditableName] = useState(userProfile.name);
+  useEffect(() => {
+    setEditableName(userProfile.name);
+  }, [userProfile.name]);
+  // Real Supabase account-creation timestamp (auth.users.created_at) for
+  // the Dharmic ID card's "Registered" date and the dynamically-calculated
+  // "Valid Till" (108 Shiva Mondays from registration).
+  const [accountCreatedAt, setAccountCreatedAt] = useState<string | null>(null);
+  const [dharmicIdDownloadError, setDharmicIdDownloadError] = useState("");
+  const [isDownloadingDharmicId, setIsDownloadingDharmicId] = useState(false);
 
   // Full synced activity ledger (all pujas/sevas/products/divine contributions/
   // registrations, with real payment status) + non-monetary form
@@ -186,6 +238,14 @@ export default function AuthDashboard({
         }
       }
 
+      // Real account-creation date, straight from Supabase Auth — always
+      // present on every user, no extra migration needed, and identical on
+      // every device/platform since it's read from the server, not cached
+      // locally.
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user?.created_at) setAccountCreatedAt(data.user.created_at);
+      });
+
       // Now reconcile against the real Supabase record.
       Promise.all([
         fetchProfileExtra(),
@@ -220,6 +280,8 @@ export default function AuthDashboard({
       setFormSubmissions([]);
       setShowPostLoginContribute(false);
       setPostLoginContributionSuccess(false);
+      setAccountCreatedAt(null);
+      setDharmicIdDownloadError("");
     }
   }, [isLoggedIn]);
 
@@ -461,10 +523,11 @@ export default function AuthDashboard({
     }, 2500);
   };
 
-  const handleSaveProfile = (e: FormEvent) => {
+  const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault();
+    const correctedName = editableName.trim() || userProfile.name;
     const profile = {
-      name: userProfile.name,
+      name: correctedName,
       email: userProfile.email,
       gotra: userGotra,
       rashi: userRashi,
@@ -478,11 +541,24 @@ export default function AuthDashboard({
     saveProfileExtra({ gotra: userGotra, rashi: userRashi, phone: userPhone });
     syncFamilyMembers(familyMembers);
 
+    // If the devotee corrected their name, push it to Supabase (both the
+    // profiles row and the auth user's own metadata) and refresh what's
+    // shown immediately — onLoginSuccess is safe to call again while
+    // already logged in, it only updates the displayed name/email.
+    if (correctedName !== userProfile.name) {
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        await supabase.from("profiles").update({ name: correctedName }).eq("id", userData.user.id);
+        await supabase.auth.updateUser({ data: { name: correctedName } });
+      }
+      onLoginSuccess(correctedName, userProfile.email);
+    }
+
     // Also sync to Google Forms/Sheets, same as every other form on the
     // site, so My Sacred Profile updates land in the devotee records sheet
     // too — not just in Supabase.
     syncToGoogleForm("devotee_support", {
-      name: userProfile.name,
+      name: correctedName,
       email: userProfile.email,
       phone: userPhone,
       type: "Sacred Profile Update",
@@ -539,6 +615,43 @@ export default function AuthDashboard({
     };
     localStorage.setItem("sridwar_sacred_profile", JSON.stringify(profile));
     syncFamilyMembers(updated);
+  };
+
+  // Downloads the on-screen Dharmic ID card (#digital-dharmic-id-card) as a
+  // PNG or JPG, pixel-for-pixel as shown — including the temple backdrop,
+  // Gotra/Rashi, dates, and QR code. html2canvas is a normal static import
+  // (top of file) rather than a runtime dynamic import: AuthDashboard.tsx
+  // is already React.lazy-loaded from App.tsx, so this still doesn't touch
+  // the main entry bundle — it just avoids Vite's dev-server having to
+  // "discover" the dependency mid-session and restart its optimizer, which
+  // is what caused the "server connection lost" / 404 errors.
+  const handleDownloadDharmicId = async (format: "png" | "jpg") => {
+    setDharmicIdDownloadError("");
+    const node = document.getElementById("digital-dharmic-id-card");
+    if (!node) return;
+
+    setIsDownloadingDharmicId(true);
+    try {
+      const canvas = await html2canvas(node as HTMLElement, {
+        backgroundColor: "#092320",
+        scale: Math.min(3, (typeof window !== "undefined" && window.devicePixelRatio) || 2),
+        useCORS: true,
+      });
+      const mimeType = format === "jpg" ? "image/jpeg" : "image/png";
+      const dataUrl = canvas.toDataURL(mimeType, 0.95);
+      const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `Dharmic-ID-${safeName}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error("Dharmic ID download failed:", e);
+      setDharmicIdDownloadError("Could not generate the image right now. Please try again, or take a screenshot instead.");
+    } finally {
+      setIsDownloadingDharmicId(false);
+    }
   };
 
   const t = TRANSLATIONS[currentLanguage];
@@ -675,6 +788,18 @@ export default function AuthDashboard({
       });
 
       if (error) {
+        if (/email not confirmed/i.test(error.message || "")) {
+          // Existing account, correct-looking credentials, but the devotee
+          // never verified their email — send them to the same "resend
+          // verification" panel used right after signup, instead of a
+          // dead-end error message.
+          setAuthFormMode("signup");
+          setSignupNeedsConfirmation(true);
+          setResendConfirmationMessage("");
+          setResendConfirmationError("");
+          setIsLoggingIn(false);
+          return;
+        }
         setAuthErrorMessage(error.message);
         setIsLoggingIn(false);
         return;
@@ -760,8 +885,8 @@ export default function AuthDashboard({
   const handleDeleteAccount = async () => {
     setDeleteAccountError("");
 
-    if (deleteAccountConfirmText.trim().toUpperCase() !== "DELETE") {
-      setDeleteAccountError('Please type "DELETE" in the box to confirm.');
+    if (deleteAccountConfirmText.trim() !== "Delete") {
+      setDeleteAccountError('Please type "Delete" exactly (capital D) in the box to confirm.');
       return;
     }
 
@@ -989,7 +1114,7 @@ export default function AuthDashboard({
                           required
                           minLength={8}
                           maxLength={14}
-                          placeholder="8–14 characters, letters & numbers"
+                          placeholder="8–14 characters (A-Z, a-z, 0-9)"
                           value={newPasswordField}
                           onChange={(e) => setNewPasswordField(e.target.value)}
                           className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
@@ -1236,7 +1361,7 @@ export default function AuthDashboard({
                     required
                     minLength={authFormMode === "signup" ? 8 : undefined}
                     maxLength={authFormMode === "signup" ? 14 : undefined}
-                    placeholder={authFormMode === "signup" ? "8–14 characters, letters & numbers" : "Enter your password"}
+                    placeholder={authFormMode === "signup" ? "8–14 characters (A-Z, a-z, 0-9)" : "Enter your password"}
                     value={passwordField}
                     onChange={(e) => setPasswordField(e.target.value)}
                     className="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
@@ -1257,14 +1382,50 @@ export default function AuthDashboard({
                 )}
               </div>
 
-              {/* Gotra Ancestry / Moon Sign (Rashi) are intentionally NOT
-                  collected here anymore — asking for them at signup (and
-                  again at signin) duplicated what "My Sacred Profile"
-                  already collects once a devotee is logged in. The Dharmic
-                  ID panel now only ever asks for Name (signup only), Email,
-                  and Password. userGotra/userRashi keep their sensible
-                  defaults until the devotee sets their real values from
-                  My Sacred Profile. */}
+              {/* Gotra / Rashi — collected once, up front, at account
+                  creation, so the Dharmic ID card is complete from the
+                  moment it's generated. These bind to the same
+                  userGotra/userRashi state "My Sacred Profile" already
+                  edits later, so nothing is duplicated — a devotee can
+                  still correct either value any time from their Profile
+                  page. */}
+              {authFormMode === "signup" && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-white/80 mb-1">Gotra / Lineage</label>
+                    <input
+                      id="login-field-gotra"
+                      type="text"
+                      placeholder="e.g. Vatsasa Gotra"
+                      value={userGotra}
+                      onChange={(e) => setUserGotra(e.target.value)}
+                      className="w-full text-xs px-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-white font-semibold placeholder-white/30 text-left"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-white/80 mb-1">Rashi / Moon Sign</label>
+                    <select
+                      id="login-field-rashi"
+                      value={userRashi}
+                      onChange={(e) => setUserRashi(e.target.value)}
+                      className="w-full text-xs px-4 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#5EEAD4] bg-[#021816] text-[#5EEAD4] font-semibold"
+                    >
+                      <option value="Mesh (Aries)">Mesh (Aries)</option>
+                      <option value="Vrishabh (Taurus)">Vrishabh (Taurus)</option>
+                      <option value="Mithun (Gemini)">Mithun (Gemini)</option>
+                      <option value="Kark (Cancer)">Kark (Cancer)</option>
+                      <option value="Simha (Leo)">Simha (Leo)</option>
+                      <option value="Kanya (Virgo)">Kanya (Virgo)</option>
+                      <option value="Tula (Libra)">Tula (Libra)</option>
+                      <option value="Vrishchik (Scorpio)">Vrishchik (Scorpio)</option>
+                      <option value="Dhanu (Sagittarius)">Dhanu (Sagittarius)</option>
+                      <option value="Makar (Capricorn)">Makar (Capricorn)</option>
+                      <option value="Kumbh (Aquarius)">Kumbh (Aquarius)</option>
+                      <option value="Meen (Pisces)">Meen (Pisces)</option>
+                    </select>
+                  </div>
+                </>
+              )}
 
               {/* Plain registration submit button — no Google branding or
                   colors, since this form does not use real Google Sign-In/
@@ -1423,8 +1584,20 @@ export default function AuthDashboard({
             
             {/* Left Box: Professional Dharmic ID Card + Transactions Ledger (cols 5) */}
             <div className="lg:col-span-5 flex flex-col items-center">
-              <h3 className="font-serif text-xl font-bold text-white mb-4 text-center">My Dharmic ID</h3>
-              
+              <div className="w-full max-w-md flex items-center justify-between mb-4">
+                <h3 className="font-serif text-xl font-bold text-white text-center">My Dharmic ID</h3>
+                <button
+                  type="button"
+                  id="dharmic-id-edit-btn"
+                  onClick={() => document.getElementById("my-sacred-profile-card")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className="flex items-center gap-1 text-[11px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide cursor-pointer"
+                  title="Edit your Dharmic ID details"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+              </div>
+
               {/* PROFESSIONAL DHARMIC ID CARD — corporate-ID-inspired layout on the Dharmic_ID.jpg backdrop */}
               <div 
                 id="digital-dharmic-id-card"
@@ -1490,8 +1663,13 @@ export default function AuthDashboard({
                 <div className="relative flex items-center gap-2.5 text-[10px] font-mono bg-[#021816]/60 p-2 rounded-xl mt-2.5">
                   <div className="flex-1 flex flex-col gap-1 min-w-0">
                     <div className="flex justify-between items-center">
-                      <span>Registered: June 2026</span>
-                      <span>Valid Till: June 2027</span>
+                      <span>Registered: {formatDharmicIdDate(accountCreatedAt)}</span>
+                      <span>
+                        Valid Till:{" "}
+                        {accountCreatedAt
+                          ? formatDharmicIdDate(nthMondayFrom(new Date(accountCreatedAt), SHIVA_MONDAY_VALIDITY_COUNT).toISOString())
+                          : "—"}
+                      </span>
                     </div>
                     <div className="flex justify-center items-center text-emerald-350 pt-1 border-t border-white/5">
                       <ShieldCheck className="w-3 h-3 text-emerald-400 mr-1" />
@@ -1507,6 +1685,39 @@ export default function AuthDashboard({
                     height={48}
                     className="shrink-0 w-12 h-12 rounded-md object-cover border border-white/10"
                   />
+                </div>
+              </div>
+
+              {/* Download Dharmic ID as an image — captures #digital-dharmic-id-card
+                  exactly as shown, using html2canvas (see package.json). */}
+              <div className="w-full max-w-md mt-3">
+                {dharmicIdDownloadError && (
+                  <div className="mb-2 flex items-start space-x-2 bg-red-950/40 border border-red-500/30 text-red-300 text-[11px] rounded-xl px-3 py-2">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <span>{dharmicIdDownloadError}</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    id="dharmic-id-download-png-btn"
+                    onClick={() => handleDownloadDharmicId("png")}
+                    disabled={isDownloadingDharmicId}
+                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2.5 rounded-xl text-[11px] uppercase tracking-wide transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{isDownloadingDharmicId ? "Preparing..." : "Download PNG"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="dharmic-id-download-jpg-btn"
+                    onClick={() => handleDownloadDharmicId("jpg")}
+                    disabled={isDownloadingDharmicId}
+                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2.5 rounded-xl text-[11px] uppercase tracking-wide transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{isDownloadingDharmicId ? "Preparing..." : "Download JPG"}</span>
+                  </button>
                 </div>
               </div>
 
@@ -1927,6 +2138,22 @@ export default function AuthDashboard({
                 </div>
 
                 <form onSubmit={handleSaveProfile} className="space-y-3.5">
+                  {/* Full Name — corrects the name shown on the Dharmic ID card itself */}
+                  <div>
+                    <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
+                      Shradhalu Name (as shown on your Dharmic ID) *
+                    </label>
+                    <input
+                      id="profile-name"
+                      type="text"
+                      required
+                      placeholder="Full name"
+                      value={editableName}
+                      onChange={(e) => setEditableName(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2 rounded-xl border border-white/10 bg-[#021816] text-white focus:outline-none focus:border-[#5EEAD4] text-left font-semibold"
+                    />
+                  </div>
+
                   {/* Phone number */}
                   <div>
                     <label className="block text-[12px] font-bold text-white/80 uppercase tracking-wide mb-1 text-left">
@@ -2273,13 +2500,13 @@ export default function AuthDashboard({
             )}
 
             <label className="block text-xs font-bold text-white/80 mb-1">
-              Type <span className="text-red-300">DELETE</span> to confirm
+              Type <span className="text-red-300">Delete</span> to confirm
             </label>
             <input
               type="text"
               value={deleteAccountConfirmText}
               onChange={(e) => setDeleteAccountConfirmText(e.target.value)}
-              placeholder="DELETE"
+              placeholder="Delete"
               className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-red-500/20 focus:outline-none focus:border-red-400 text-white placeholder-white/25 mb-4"
             />
 

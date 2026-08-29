@@ -765,6 +765,155 @@ app.post(
   }
 );
 
+// 2e. Inquiry-acknowledgement email banner — composites the devotee's
+// first name, Reference ID, and form-type label onto the static
+// Email_Design_Templete.jpg artwork, server-side, before the email is sent.
+//
+// WHY THIS EXISTS: the previous email design (google_appscripts/
+// EmailTemplates.gs) tried to draw "SRI DWAR" / the greeting / the
+// Reference+Submitted-As values as HTML text absolutely-positioned on top
+// of several cropped background images. That technique is not reliably
+// supported by Gmail (or Outlook) — hence the garbled/overlapping header
+// text and solid-colour blank emails devotees were seeing. Baking the
+// dynamic fields directly into the JPEG pixels here removes that entire
+// class of bug: the email just embeds one finished picture, no CSS
+// positioning involved at send time.
+//
+// NAME PLACEMENT — measured directly against the artwork: after "Jai
+// Jagannath," (ends ~x=568) there is only clear wood until the folded-hands
+// emoji begins (~x=628) before the Shiva illustration. NAME_MAX_WIDTH_PX
+// below is deliberately kept inside that gap with a small safety margin —
+// the devotee's first name (only) is shrunk to fit inside it and, if it
+// still can't fit at the minimum readable size, truncated with an ellipsis.
+// It must never be widened without re-measuring the artwork, or the name
+// will start crossing into the folded-hands icon again.
+const NAME_SLOT_X = 574;
+const NAME_SLOT_Y = 258;
+const NAME_SLOT_MAX_WIDTH_PX = 50; // x=574 to x=624 — stops well before the folded-hands icon (~x=628)
+const NAME_SLOT_MAX_SIZE = 24;
+const NAME_SLOT_MIN_SIZE = 9;
+const NAME_SLOT_COLOR = "#1f150a"; // matches the darker "Jai Jagannath," ink
+
+const INQUIRY_BANNER_VALUE_MAX_WIDTH_PX = 340; // x=400 to x=740 on the 941px-wide artwork
+const INQUIRY_BANNER_FIELD_COLOR = "#2b1806"; // matches the ink tone used elsewhere on this artwork
+const INQUIRY_BANNER_FONT_FAMILY = "Georgia, 'Times New Roman', serif";
+
+function escapeSvgText(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+/** First whitespace-delimited token of a full name — "Leo Fernandes" -> "Leo". Falls back to "Devotee". */
+function firstNameOnly(fullName: string): string {
+  const trimmed = (fullName || "").trim();
+  if (!trimmed) return "Devotee";
+  return trimmed.split(/\s+/)[0];
+}
+
+// Rough average glyph-width heuristic for a bold serif face at a given
+// size — there's no headless font-metrics library in this project, so
+// this is a deliberately conservative estimate (slightly over-wide),
+// good enough for shrink-to-fit against this one fixed-layout artwork.
+const AVG_BOLD_SERIF_CHAR_WIDTH_RATIO = 0.56;
+
+function fitFontSizeToWidth(text: string, maxWidth: number, startSize: number, minSize: number): number {
+  let size = startSize;
+  while (size > minSize && text.length * size * AVG_BOLD_SERIF_CHAR_WIDTH_RATIO > maxWidth) {
+    size -= 1;
+  }
+  return size;
+}
+
+function truncateToWidth(text: string, maxWidth: number, size: number): string {
+  const maxChars = Math.max(3, Math.floor(maxWidth / (size * AVG_BOLD_SERIF_CHAR_WIDTH_RATIO)));
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars - 1).trimEnd() + "…";
+}
+
+/**
+ * Builds one <text> element pre-shrunk (and, only if still necessary at the
+ * floor size, truncated) to physically fit inside maxWidth — used for the
+ * name slot so it can NEVER visually cross into the folded-hands icon,
+ * regardless of how long a devotee's first name is.
+ */
+function fittedTextElement(
+  rawText: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  maxSize: number,
+  minSize: number,
+  color: string
+): string {
+  const size = fitFontSizeToWidth(rawText, maxWidth, maxSize, minSize);
+  const text = escapeSvgText(truncateToWidth(rawText, maxWidth, size));
+  return `<text x="${x}" y="${y}" font-family="${INQUIRY_BANNER_FONT_FAMILY}" font-weight="700" font-size="${size}" fill="${color}">${text}</text>`;
+}
+
+async function renderInquiryBannerJpeg(name: string, refId: string, label: string): Promise<Buffer> {
+  // Dynamically imported, exactly like pdf-lib/certificateService.ts
+  // elsewhere in this file — a missing/broken sharp install can only ever
+  // fail this one route, never server startup or any other request.
+  const sharp = (await import("sharp")).default;
+
+  const imagePath = path.join(
+    process.cwd(),
+    process.env.NODE_ENV === "production" ? "dist" : "public",
+    "images",
+    "Email_Design_Templete.jpg"
+  );
+
+  const base = sharp(imagePath);
+  const meta = await base.metadata();
+  const width = meta.width || 941;
+  const height = meta.height || 1672;
+
+  const nameEl = fittedTextElement(
+    firstNameOnly(name),
+    NAME_SLOT_X,
+    NAME_SLOT_Y,
+    NAME_SLOT_MAX_WIDTH_PX,
+    NAME_SLOT_MAX_SIZE,
+    NAME_SLOT_MIN_SIZE,
+    NAME_SLOT_COLOR
+  );
+  const refEl = fittedTextElement(refId, 400, 420, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
+  const labelEl = fittedTextElement(label, 400, 500, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
+
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${nameEl}
+    ${refEl}
+    ${labelEl}
+  </svg>`;
+
+  return base.composite([{ input: Buffer.from(svg) }]).jpeg({ quality: 88 }).toBuffer();
+}
+
+app.get("/api/email/inquiry-banner", async (req, res) => {
+  const name = String(req.query.name || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 40);
+  const refId = String(req.query.ref || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 40);
+  const label = String(req.query.label || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 60);
+
+  if (!refId || !label) {
+    res.status(400).json({ error: "Both 'ref' and 'label' query parameters are required." });
+    return;
+  }
+
+  try {
+    const jpegBuffer = await renderInquiryBannerJpeg(name, refId, label);
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "public, max-age=300");
+    res.send(jpegBuffer);
+  } catch (err: any) {
+    appendAuditLog("inquiry_banner_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not render the acknowledgement banner image." });
+  }
+});
+
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
 // Community Guidelines, Cookie Policy, Account Deletion).

@@ -16,6 +16,19 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
+    // ── html2canvas pre-bundling ─────────────────────────────────────────
+    // Without this, Vite only discovers html2canvas the first time a
+    // devotee actually taps "Download Dharmic ID" (AuthDashboard.tsx),
+    // since that's the first time it's ever imported at runtime. Vite's
+    // dev server then has to stop, re-run its dependency optimizer, and
+    // restart mid-session — which is what surfaces in the browser console
+    // as "server connection lost... Polling for restart" and a transient
+    // 404 on whatever module was mid-request at that moment. Listing it
+    // here makes Vite pre-bundle it once at server startup instead, so it
+    // never needs to interrupt an already-running session.
+    optimizeDeps: {
+      include: ['html2canvas'],
+    },
     build: {
       // ── Code splitting ──────────────────────────────────────────────────
       // manualChunks alone only groups vendor code — it can NOT split your
@@ -43,6 +56,10 @@ export default defineConfig(() => {
             // Supabase client — only needed for auth/dashboard, not the
             // marketing homepage
             supabase: ['@supabase/supabase-js'],
+            // html2canvas — only needed for the Dharmic ID PNG/JPG download
+            // button inside AuthDashboard.tsx, not on first paint anywhere
+            // else in the app.
+            html2canvas: ['html2canvas'],
             // ✅ BUNDLE-SIZE FIX (2026-08-15): priests.ts (~2,100 lines) and
             // temples.ts (~1,600 lines) are each imported by several
             // DIFFERENT lazy-loaded pages (PriestSection, OnlinePuja,
