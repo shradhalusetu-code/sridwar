@@ -465,10 +465,12 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     // Record into the Supabase activity ledger (no-ops for guests who
     // aren't logged in) — previously this Sankalpa Portal flow never wrote
     // anywhere the devotee's own Profile page could read from.
-    // ✅ FIX (2026-08-29 — same "BILL TO: Devotee" bug as BookNowWizard.tsx):
-    // this never recorded the devotee's typed name anywhere Supabase could
-    // read it back from for the transaction receipt. See the matching fix
-    // in BookNowWizard.tsx for the full root-cause explanation.
+    // ✅ FIX (2026-08-29 — same devoteeName fix as BookNowWizard.tsx):
+    // metadata.devoteeName is what certificateService.ts now checks first
+    // for the "Bill To"/greeting name on certificates and confirmation
+    // emails — without it, that lookup silently fell back to a less
+    // reliable source. See the fix note in BookNowWizard.tsx for the full
+    // explanation.
     if (selectedItem) {
       recordActivity({
         activityType: selectedItem.isService ? "seva" : "product",

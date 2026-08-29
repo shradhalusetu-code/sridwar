@@ -747,48 +747,17 @@ export default function App() {
         date: new Date().toLocaleDateString()
       };
 
-      // ✅ FIX (2026-08-29 — reported gap): this branch (the original,
-      // legacy Temple Bazaar cart — separate from the serviceCart items
-      // synced just below) used to call recordActivity only. It never
-      // synced to Google Sheets at all, so a devotee checking out a plain
-      // Bazaar order got NO confirmation of any kind until an admin
-      // manually confirmed payment in Supabase — potentially hours or
-      // days later, and even then only a generic PDF invoice, never the
-      // immediate "payment received, under review" email every other
-      // booking type already gets the instant "I Have Paid" is tapped.
-      // Adding this one sync call routes a Bazaar order through the exact
-      // same, already-working pipeline every Puja/Seva/cart-service item
-      // already uses (Triggers.gs's _handleBookingSheetSubmit_) — no new
-      // server-side or Apps Script code needed, since that pipeline
-      // already handles a "product"-type booking correctly. Checkout
-      // already requires being logged in (see handleCartGPayCheckout
-      // above), so the devotee's own account name/email are used here —
-      // never fabricated.
-      try {
-        await syncToGoogleForm("puja_booking", {
-          name: userProfile.name || "Devotee",
-          email: userProfile.email || "",
-          phone: "",
-          details: `Item: ${cartSummaryStr} | Amount: ₹${bazaarAmount} | Payment Status: Payment Submitted — Pending Verification | Payment Method: UPI | Ref: ${refId} | Cart/Order Ref: ${groupRef}`,
-          type: "Temple Bazaar Order",
-          fee: bazaarAmount, dob: "N/A", gotra: "N/A", rashi: "N/A", intent: "",
-        });
-      } catch (err) {
-        console.error("Bazaar cart Google Sheets sync error:", err);
-      }
-
       const updatedBookings = [newBooking, ...bookedItems];
       setBookedItems(updatedBookings);
       localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
 
       // Persist to Supabase too (no-ops silently for guests who aren't logged
       // in) so this order shows up in the devotee's Profile page on any device.
-      // ✅ FIX (2026-08-29 — "BILL TO: Devotee" bug): userProfile.name is
-      // already used for the Google Form sync above (this checkout requires
-      // login), but the transaction-receipt renderer in server.ts never had
-      // it — only the Google Sheet did. Adding it to metadata closes that
-      // gap the same way as the matching fixes in BookNowWizard.tsx and
-      // TemplateBazaar.tsx.
+      // ✅ FIX (2026-08-29 — same devoteeName fix as BookNowWizard.tsx /
+      // TemplateBazaar.tsx): the legacy Bazaar cart doesn't collect a
+      // per-item name, so the logged-in devotee's own account name is the
+      // correct source here (this checkout already requires being logged
+      // in — see handleCartGPayCheckout above — so this is never fabricated).
       recordActivity({
         activityType: "product",
         itemName: newBooking.pujaName,
@@ -808,12 +777,6 @@ export default function App() {
         } catch (err) {
           console.error(err);
         }
-        // ✅ FIX (2026-08-29 — "BILL TO: Devotee" bug): item.details.devoteeName
-        // is exactly who this booking is for (may differ from the
-        // logged-in account holder — e.g. booking on behalf of a family
-        // member) and was never recorded anywhere the transaction-receipt
-        // renderer in server.ts could read it back from. See the matching
-        // fix in BookNowWizard.tsx for the full root-cause explanation.
         recordActivity({
           activityType: item.category === "seva_offering" ? "seva" : item.category === "puja_seva" ? "puja" : item.category === "bazaar_order" ? "product" : "other",
           itemName: item.itemName,
@@ -821,7 +784,11 @@ export default function App() {
           refId: itemRefId,
           paymentMethod: "UPI",
           paymentStatus: "pending_verification",
-          metadata: { cartRef: groupRef, category: item.category, devoteeName: item.details.devoteeName },
+          // ✅ FIX (2026-08-29 — same devoteeName fix as elsewhere): each
+          // cart item already carries its own typed devotee name in
+          // item.details (set when it was added to cart) — using it here
+          // instead of only the cart-level tracking fields.
+          metadata: { cartRef: groupRef, category: item.category, devoteeName: item.details.devoteeName || undefined },
         });
         const newBooking = { pujaName: item.itemName, price: item.amount, refId: itemRefId, date: new Date().toLocaleDateString() };
         setBookedItems((prev) => {
@@ -850,7 +817,14 @@ export default function App() {
     alert(`🙏 Payment received! ₹${totalAmount} noted for order ${groupRef} and submitted to our team for verification — usually within 2 hours. Once verified, any Prasad/items will be shipped (typically within 3-7 working days), and every Puja/Seva/Guidance/Wellness item will be individually processed with its own certificate/acknowledgement, exactly as a direct booking would be. If a payment is later found unsuccessful or not properly processed, a refund will be initiated wherever applicable.`);
   };
 
-  const handleBookNowSuccess = (item: { pujaName: string; sankalpaName: string; price: number; refId: string }) => {
+  // ✅ FIX (2026-08-29 — completes an already-half-done fix, same as
+  // BookNowWizard.tsx's recordActivity calls): BookNowWizard already sends
+  // the devotee name actually typed into this booking as `sankalpaName`
+  // (see its own onSuccess(...) call) — this handler just never accepted
+  // or used it, so it never reached metadata.devoteeName, which is what
+  // certificateService.ts now checks first for certificates/confirmation
+  // emails. Adding it here is the missing other half.
+  const handleBookNowSuccess = (item: { pujaName: string; sankalpaName?: string; price: number; refId: string }) => {
     const newBooking = {
       pujaName: item.pujaName,
       price: item.price,
@@ -865,12 +839,6 @@ export default function App() {
     // "Sponsorship contribution: ..." is how SevaExperience labels seva
     // sponsorships passed through this same success handler — everything
     // else arriving here is a direct puja booking.
-    // ✅ FIX (2026-08-29 — "BILL TO: Devotee" bug, 3rd occurrence): this
-    // function's parameter type didn't declare sankalpaName, so it was
-    // silently dropped even though BookNowWizard.tsx already passes the
-    // devotee's real typed name here (as sankalpaName) on every call. See
-    // the matching fix in BookNowWizard.tsx for the full root-cause
-    // explanation.
     recordActivity({
       activityType: item.pujaName.startsWith("Sponsorship contribution:") ? "seva" : "puja",
       itemName: item.pujaName,
@@ -878,7 +846,7 @@ export default function App() {
       refId: item.refId,
       paymentMethod: "UPI",
       paymentStatus: "pending_verification",
-      metadata: { devoteeName: item.sankalpaName },
+      metadata: item.sankalpaName ? { devoteeName: item.sankalpaName } : undefined,
     });
   };
 

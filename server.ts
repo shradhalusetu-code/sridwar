@@ -800,15 +800,6 @@ app.post(
 // (reported directly against a live email). Every number below has now
 // been re-measured end-to-end through the exact renderer that generates
 // production images.
-const NAME_SLOT_X = 574;
-const NAME_SLOT_Y = 272;
-const NAME_SLOT_MAX_WIDTH_PX = 50; // x=574 to x=624 — stops well before the folded-hands icon (~x=628)
-const NAME_SLOT_MAX_SIZE = 24;
-const NAME_SLOT_MIN_SIZE = 9;
-const NAME_SLOT_COLOR = "#1f150a"; // matches the darker "Jai Jagannath," ink
-
-const INQUIRY_BANNER_VALUE_MAX_WIDTH_PX = 340; // x=400 to x=740 on the 941px-wide artwork
-const INQUIRY_BANNER_FIELD_COLOR = "#2b1806"; // matches the ink tone used elsewhere on this artwork
 
 // ─── Deterministic text rendering ───────────────────────────────────────
 // ✅ ROOT-CAUSE FIX (2026-08-29): this used to render text with sharp's
@@ -914,7 +905,115 @@ async function renderTextLayerPng(width: number, height: number, textElements: s
   return resvg.render().asPng();
 }
 
-async function renderInquiryBannerJpeg(name: string, refId: string, label: string): Promise<Buffer> {
+/**
+ * ─── Shared PDF composer ─────────────────────────────────────────────────
+ * ✅ ADDED (2026-08-29 — requested consolidation): every certificate/receipt
+ * PDF in this project used to build its own PDFDocument from scratch, with
+ * the image-on-top-plus-footer-band layout copy-pasted between the
+ * Transaction and general-certificate routes (and about to be copy-pasted
+ * a third time for the new Darshan Certificate PDF below). This is the one
+ * place that logic now lives — every PDF route calls this, passing only
+ * the already-composited JPEG buffer (which already has the correct
+ * service-specific palm-leaf artwork with the devotee's real details baked
+ * in) and a few footer lines. This is also what guarantees a PDF can never
+ * go out with a stale/wrong/missing image: there's no second code path
+ * that could independently forget to embed one.
+ *
+ * Layout: the JPEG fills the full page width, unmodified, at the top.
+ * Below it, plain PDF text — company name/address, an optional one-line
+ * disclaimer, optional extra info lines (billing/transaction specifics
+ * that don't belong baked into the certificate artwork itself), website,
+ * and social links. Never inside the image, exactly as specified.
+ */
+async function composeCertificatePdf(opts: {
+  jpegBuffer: Buffer;
+  refId: string;
+  pdfTitle: string;
+  disclaimer?: string;
+  extraInfoLines?: string[];
+}): Promise<Buffer> {
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const sharp = (await import("sharp")).default;
+
+  const meta = await sharp(opts.jpegBuffer).metadata();
+  const pxWidth = meta.width || 1024;
+  const pxHeight = meta.height || 1536;
+  // 96 CSS px-per-inch, 72 PDF-points-per-inch — the standard conversion so
+  // the page comes out at the artwork's own real printed proportions
+  // instead of an arbitrarily stretched/letterboxed A4/Letter page.
+  const imageWidthPt = (pxWidth / 96) * 72;
+  const imageHeightPt = (pxHeight / 96) * 72;
+
+  const extraLines = opts.extraInfoLines || [];
+  const disclaimerLines = opts.disclaimer ? 2 : 0; // disclaimer text wraps to ~2 lines at this width
+  const footerHeightPt = 70 + extraLines.length * 15 + disclaimerLines * 12;
+  const marginPt = 28;
+  const pageWidth = imageWidthPt;
+  const pageHeight = imageHeightPt + footerHeightPt;
+
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.setTitle(`Sri Dwar — ${opts.pdfTitle} (Ref ${opts.refId})`);
+  pdfDoc.setProducer("Sri Dwar");
+  const jpgImage = await pdfDoc.embedJpg(opts.jpegBuffer);
+  const page = pdfDoc.addPage([pageWidth, pageHeight]);
+  // Image on top, footer text band below it — never inside the artwork.
+  page.drawImage(jpgImage, { x: 0, y: footerHeightPt, width: imageWidthPt, height: imageHeightPt });
+
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const ink = rgb(0.11, 0.16, 0.14); // matches CONFIG.BRAND.darkGreen tone used across every email
+  const muted = rgb(0.35, 0.38, 0.36);
+
+  let cursorY = footerHeightPt - 22;
+  page.drawText("Shradhalu Private Limited · Jajpur Road, Odisha, India", {
+    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
+  });
+  cursorY -= 16;
+
+  if (opts.disclaimer) {
+    page.drawText(opts.disclaimer, {
+      x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted, maxWidth: pageWidth - marginPt * 2, lineHeight: 11,
+    });
+    cursorY -= 12 * disclaimerLines + 4;
+  }
+
+  for (const line of extraLines) {
+    page.drawText(line, { x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted });
+    cursorY -= 15;
+  }
+
+  cursorY -= 6;
+  page.drawText("sridwar.com  ·  puja@sridwar.com", {
+    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
+  });
+  cursorY -= 16;
+  page.drawText("Facebook: facebook.com/SridwarSetu  ·  YouTube: @SriDwar  ·  LinkedIn: sri-dwar", {
+    x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted,
+  });
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
+}
+
+// ✅ UPDATED (2026-08-29 — new artwork replaces Email_Design_Templete.jpg):
+// email_template.jpg has a different layout — a boxed "REFERENCE :" /
+// "DEVOTEE :" field pair instead of the old inline "Jai Jagannath, {name}"
+// + separate "Submitted As" line. There is no blank space near "Jai
+// Jagannath" in this design at all (that line is now fully static text),
+// so the devotee's name goes in the DEVOTEE field instead — with much
+// more room than the old cramped slot had, the FULL name is used here now,
+// not just the first name (that constraint existed specifically because of
+// the old design's tight space, which no longer applies). "Submitted As"
+// has no field in this artwork any more; callers now show that as plain
+// text below the image instead (see buildAcknowledgementEmail_ etc. in
+// EmailTemplates.gs) — this function's `label` parameter is kept only so
+// existing call sites don't need to change their own signatures, but it is
+// no longer baked into the image itself.
+const EMAIL_TEMPLATE_REFERENCE_SLOT = { x: 520, y: 525, maxWidth: 330, maxSize: 22, minSize: 13 };
+const EMAIL_TEMPLATE_DEVOTEE_SLOT = { x: 520, y: 572, maxWidth: 330, maxSize: 22, minSize: 13 };
+const EMAIL_TEMPLATE_FIELD_COLOR = "#2b1806";
+
+async function renderInquiryBannerJpeg(name: string, refId: string, _label: string): Promise<Buffer> {
   // Dynamically imported, exactly like pdf-lib/certificateService.ts
   // elsewhere in this file — a missing/broken sharp install can only ever
   // fail this one route, never server startup or any other request.
@@ -924,27 +1023,24 @@ async function renderInquiryBannerJpeg(name: string, refId: string, label: strin
     process.cwd(),
     process.env.NODE_ENV === "production" ? "dist" : "public",
     "images",
-    "Email_Design_Templete.jpg"
+    "email_template.jpg"
   );
 
   const base = sharp(imagePath);
   const meta = await base.metadata();
-  const width = meta.width || 941;
-  const height = meta.height || 1672;
+  const width = meta.width || 1024;
+  const height = meta.height || 1536;
 
-  const nameEl = fittedTextElement(
-    firstNameOnly(name),
-    NAME_SLOT_X,
-    NAME_SLOT_Y,
-    NAME_SLOT_MAX_WIDTH_PX,
-    NAME_SLOT_MAX_SIZE,
-    NAME_SLOT_MIN_SIZE,
-    NAME_SLOT_COLOR
+  const refEl = fittedTextElement(
+    refId, EMAIL_TEMPLATE_REFERENCE_SLOT.x, EMAIL_TEMPLATE_REFERENCE_SLOT.y, EMAIL_TEMPLATE_REFERENCE_SLOT.maxWidth,
+    EMAIL_TEMPLATE_REFERENCE_SLOT.maxSize, EMAIL_TEMPLATE_REFERENCE_SLOT.minSize, EMAIL_TEMPLATE_FIELD_COLOR
   );
-  const refEl = fittedTextElement(refId, 400, 443, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
-  const labelEl = fittedTextElement(label, 400, 523, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
+  const devoteeEl = fittedTextElement(
+    (name || "").trim() || "Devotee", EMAIL_TEMPLATE_DEVOTEE_SLOT.x, EMAIL_TEMPLATE_DEVOTEE_SLOT.y, EMAIL_TEMPLATE_DEVOTEE_SLOT.maxWidth,
+    EMAIL_TEMPLATE_DEVOTEE_SLOT.maxSize, EMAIL_TEMPLATE_DEVOTEE_SLOT.minSize, EMAIL_TEMPLATE_FIELD_COLOR
+  );
 
-  const textLayer = await renderTextLayerPng(width, height, `${nameEl}${refEl}${labelEl}`);
+  const textLayer = await renderTextLayerPng(width, height, `${refEl}${devoteeEl}`);
 
   return base.composite([{ input: textLayer }]).jpeg({ quality: 88 }).toBuffer();
 }
@@ -992,9 +1088,15 @@ app.get("/api/email/inquiry-banner", async (req, res) => {
 // app already carries (WhatsApp alerts, email subject lines, etc.) — there
 // is no separate secret because no separate secret is needed for a
 // devotional record of a temple visit.
-const TEMPLE_CERT_NAME_SLOT = { x: 550, y: 398, maxWidth: 550, maxSize: 34, minSize: 16 };
-const TEMPLE_CERT_TEMPLE_SLOT = { x: 550, y: 518, maxWidth: 550, maxSize: 30, minSize: 14 };
-const TEMPLE_CERT_DATE_SLOT = { x: 90, y: 855, maxWidth: 260, maxSize: 20, minSize: 11 };
+// ✅ UPDATED (2026-08-29 — new artwork replaces Temple_Visit_Certificate.jpg):
+// darshan_certificate.jpg — re-measured fresh against the new artwork
+// (name and temple sit stacked in one shared blank area below "This is to
+// certify that", date sits below "DATE OF ISSUE" in the bottom strip; all
+// three rendered and visually verified, not assumed carried over from the
+// old file's coordinates, which do not apply to a different design).
+const TEMPLE_CERT_NAME_SLOT = { x: 530, y: 385, maxWidth: 500, maxSize: 30, minSize: 16 };
+const TEMPLE_CERT_TEMPLE_SLOT = { x: 530, y: 435, maxWidth: 550, maxSize: 26, minSize: 14 };
+const TEMPLE_CERT_DATE_SLOT = { x: 95, y: 880, maxWidth: 260, maxSize: 15, minSize: 10 };
 const TEMPLE_CERT_FIELD_COLOR = "#2b1806";
 
 async function renderTempleVisitCertificateJpeg(name: string, temple: string, dateOfIssue: string): Promise<Buffer> {
@@ -1004,7 +1106,7 @@ async function renderTempleVisitCertificateJpeg(name: string, temple: string, da
     process.cwd(),
     process.env.NODE_ENV === "production" ? "dist" : "public",
     "images",
-    "Temple_Visit_Certificate.jpg"
+    "darshan_certificate.jpg"
   );
 
   const base = sharp(imagePath);
@@ -1031,13 +1133,11 @@ async function renderTempleVisitCertificateJpeg(name: string, temple: string, da
 }
 
 /**
- * Shared lookup + render for the Temple Visit (Darshan) Certificate, used by
- * both the JPG route and the PDF route below, so they can never quietly
- * drift apart — mirrors the same shared-helper pattern already used for the
- * Transaction receipt (loadAndRenderTransactionJpeg) and the General
- * certificate (loadAndRenderGeneralCertificateJpeg).
+ * Shared lookup + render for Temple Visit / Darshan Certificate — used by
+ * both the JPG route and the new PDF route below, so both are always built
+ * from the exact same devotee data and never drift apart.
  */
-async function loadAndRenderTempleVisitCertificateJpeg(refId: string): Promise<Buffer> {
+async function loadAndRenderTempleVisitJpeg(refId: string): Promise<Buffer> {
   const supabaseAdmin = getSupabaseAdminClient();
   if (!supabaseAdmin) throw new Error("Supabase is not configured on the server.");
 
@@ -1072,7 +1172,7 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
     return;
   }
   try {
-    const jpegBuffer = await loadAndRenderTempleVisitCertificateJpeg(refId);
+    const jpegBuffer = await loadAndRenderTempleVisitJpeg(refId);
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.jpg"`);
@@ -1084,12 +1184,16 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
   }
 });
 
-// 2f-pdf. Temple Visit (Darshan) Certificate — PDF. Per spec, every
-// certificate PDF uses the same "image on top, Sri Dwar disclaimer/website/
-// social links band below it — never drawn over or inside the artwork"
-// layout, via the shared composeCertificatePdf() helper below (also used by
-// the General, Service, and Transaction PDFs), so there is exactly one PDF
-// layout implementation in the codebase.
+// 2f-pdf. Temple Visit / Darshan Certificate — PDF. ✅ ADDED (2026-08-29 —
+// explicitly reported: "the Darshan download must not generate the current
+// generic PDF"). Before this, there was no dedicated Darshan PDF endpoint
+// at all — any PDF a devotee got for a Darshan booking could only have
+// come from the separate, older certificateService.ts pipeline, which
+// draws its own generic layout from scratch and has no darshan_certificate.jpg
+// artwork in it whatsoever. This is the real fix: an actual PDF that embeds
+// the same populated darshan_certificate.jpg as the JPG endpoint above,
+// via the shared composeCertificatePdf() helper — never a stale/generic
+// substitute.
 app.get("/api/certificates/temple-visit/:refId/pdf", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
@@ -1097,12 +1201,17 @@ app.get("/api/certificates/temple-visit/:refId/pdf", async (req, res) => {
     return;
   }
   try {
-    const jpegBuffer = await loadAndRenderTempleVisitCertificateJpeg(refId);
-    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Temple Visit Certificate" });
+    const jpegBuffer = await loadAndRenderTempleVisitJpeg(refId);
+    const pdfBytes = await composeCertificatePdf({
+      jpegBuffer,
+      refId,
+      pdfTitle: "Temple Visit / Darshan Certificate",
+      disclaimer: "This certificate is a devotional record of your sacred temple visit, prepared with care by Sri Dwar. It is not a government document or legal certificate.",
+    });
     res.set("Content-Type", "application/pdf");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.pdf"`);
-    res.send(Buffer.from(pdfBytes));
+    res.send(pdfBytes);
   } catch (err: any) {
     const notFound = err?.message === "not_found";
     appendAuditLog("temple_visit_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
@@ -1110,72 +1219,11 @@ app.get("/api/certificates/temple-visit/:refId/pdf", async (req, res) => {
   }
 });
 
-/**
- * Shared image-on-top + Sri Dwar footer-band PDF composer. Every
- * certificate/transaction PDF endpoint in this file renders through this one
- * function, so there is exactly one PDF layout implementation, not several
- * that could quietly drift apart. Image on top, disclaimer/website/social
- * links band below it — never drawn over or inside the certificate artwork
- * itself, per spec.
- */
-async function composeCertificatePdf(
-  jpegBuffer: Buffer,
-  opts: { refId: string; title: string }
-): Promise<Uint8Array> {
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-  const sharp = (await import("sharp")).default;
-
-  const meta = await sharp(jpegBuffer).metadata();
-  const pxWidth = meta.width || 1492;
-  const pxHeight = meta.height || 1054;
-  // 96 CSS px-per-inch, 72 PDF-points-per-inch — the standard conversion so
-  // the page comes out at the artwork's own real printed proportions
-  // instead of an arbitrarily stretched/letterboxed A4/Letter page.
-  const imageWidthPt = (pxWidth / 96) * 72;
-  const imageHeightPt = (pxHeight / 96) * 72;
-
-  const footerHeightPt = 130;
-  const marginPt = 28;
-  const pageWidth = imageWidthPt;
-  const pageHeight = imageHeightPt + footerHeightPt;
-
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.setTitle(`Sri Dwar — ${opts.title} (Ref ${opts.refId})`);
-  pdfDoc.setProducer("Sri Dwar");
-  const jpgImage = await pdfDoc.embedJpg(jpegBuffer);
-  const page = pdfDoc.addPage([pageWidth, pageHeight]);
-  // Image on top, footer text band below it — never drawn over or inside
-  // the certificate/invoice artwork.
-  page.drawImage(jpgImage, { x: 0, y: footerHeightPt, width: imageWidthPt, height: imageHeightPt });
-
-  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const ink = rgb(0.11, 0.16, 0.14); // matches CONFIG.BRAND.darkGreen tone used across every email
-  const muted = rgb(0.35, 0.38, 0.36);
-
-  let cursorY = footerHeightPt - 22;
-  page.drawText("Shradhalu Private Limited · Jajpur Road, Odisha, India", {
-    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
-  });
-  cursorY -= 16;
-  page.drawText(
-    "This document is a devotional record prepared with care by Sri Dwar. It is not a government document or legal certificate.",
-    { x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted, maxWidth: pageWidth - marginPt * 2, lineHeight: 11 }
-  );
-  cursorY -= 28;
-  page.drawText("sridwar.com  ·  puja@sridwar.com", {
-    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
-  });
-  cursorY -= 16;
-  page.drawText("Facebook: facebook.com/SridwarSetu  ·  YouTube: @SriDwar  ·  LinkedIn: sri-dwar", {
-    x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted,
-  });
-
-  return pdfDoc.save();
-}
-
 // 2g. Service Certificate — composites the devotee's name, the puja/seva/
-// service, and the performed date onto Service_Certificate.jpg, server-side.
+// service, and the performed date onto the correct certificate artwork —
+// puja_certificate.jpg for puja bookings, seva_certificate.jpg for seva
+// bookings (two separate designs now; the old shared Service_Certificate.jpg
+// no longer exists). Selected by activities.activity_type.
 //
 // Per spec: this certificate is NOT available until Sri Dwar's team has
 // actually confirmed the service was performed — payment alone is never
@@ -1185,117 +1233,61 @@ async function composeCertificatePdf(
 // enforces that itself: it refuses to render — 403, not a blank/placeholder
 // image — until activities.completion_status = 'completed'. Even someone
 // who already knows the URL gets nothing until then.
-const SERVICE_CERT_NAME_SLOT = { x: 530, y: 402, maxWidth: 520, maxSize: 26, minSize: 14 };
-// ✅ FIX (2026-08-29 — reported overlap, reproduced and re-measured):
-// y was 500 with maxSize 24 — close enough to the "has received divine
-// blessings through" caption above it (baseline ~460) that any value using
-// close to the full font size visibly overlapped the caption text, exactly
-// as reported. Pushed down to y=525 and maxSize capped at 20; re-verified
-// clean against four real cases (short service name, a long combined
-// service description, a bare field-of-expertise word, and the exact
-// "Gotra: X — Ref Y" fallback text from the report) — see the render
-// checks performed before this fix was written, not assumed after.
-const SERVICE_CERT_SERVICE_SLOT = { x: 480, y: 525, maxWidth: 520, maxSize: 20, minSize: 13 };
-const SERVICE_CERT_DATE_SLOT = { x: 760, y: 568, maxWidth: 220, maxSize: 18, minSize: 11 };
+//
+// ✅ UPDATED (2026-08-29 — new artwork): puja_certificate.jpg shares the
+// exact same layout/coordinates as darshan_certificate.jpg (verified by
+// direct visual comparison, not assumed) — name and service stacked below
+// "This is to certify that", date below "DATE OF ISSUE". seva_certificate.jpg
+// is a different, smaller image with no date field printed on it at all —
+// only name + service are baked in; the performed date is not lost, it just
+// moves to plain text in the email/PDF footer instead, same "only what's
+// actually on the artwork goes in the image" principle used everywhere else.
+const PUJA_CERT_NAME_SLOT = { x: 530, y: 385, maxWidth: 500, maxSize: 30, minSize: 16 };
+const PUJA_CERT_SERVICE_SLOT = { x: 530, y: 435, maxWidth: 550, maxSize: 26, minSize: 14 };
+const PUJA_CERT_DATE_SLOT = { x: 95, y: 880, maxWidth: 260, maxSize: 15, minSize: 10 };
+const SEVA_CERT_NAME_SLOT = { x: 510, y: 440, maxWidth: 480, maxSize: 28, minSize: 15 };
+const SEVA_CERT_SERVICE_SLOT = { x: 480, y: 490, maxWidth: 500, maxSize: 24, minSize: 13 };
 const SERVICE_CERT_FIELD_COLOR = "#2b1806";
 
-async function renderServiceCertificateJpeg(name: string, serviceName: string, performedDate: string): Promise<Buffer> {
+async function renderServiceCertificateJpeg(
+  name: string,
+  serviceName: string,
+  performedDate: string,
+  activityType: string
+): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
+  const isSeva = activityType === "seva";
+  const imageFile = isSeva ? "seva_certificate.jpg" : "puja_certificate.jpg";
   const imagePath = path.join(
     process.cwd(),
     process.env.NODE_ENV === "production" ? "dist" : "public",
     "images",
-    "Service_Certificate.jpg"
+    imageFile
   );
   const base = sharp(imagePath);
   const meta = await base.metadata();
-  const width = meta.width || 1492;
-  const height = meta.height || 1054;
+  const width = meta.width || (isSeva ? 1492 : 1536);
+  const height = meta.height || (isSeva ? 1054 : 1024);
+
+  const nameSlot = isSeva ? SEVA_CERT_NAME_SLOT : PUJA_CERT_NAME_SLOT;
+  const serviceSlot = isSeva ? SEVA_CERT_SERVICE_SLOT : PUJA_CERT_SERVICE_SLOT;
 
   const nameEl = fittedTextElement(
-    name, SERVICE_CERT_NAME_SLOT.x, SERVICE_CERT_NAME_SLOT.y, SERVICE_CERT_NAME_SLOT.maxWidth,
-    SERVICE_CERT_NAME_SLOT.maxSize, SERVICE_CERT_NAME_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+    name, nameSlot.x, nameSlot.y, nameSlot.maxWidth, nameSlot.maxSize, nameSlot.minSize, SERVICE_CERT_FIELD_COLOR
   );
   const serviceEl = fittedTextElement(
-    serviceName, SERVICE_CERT_SERVICE_SLOT.x, SERVICE_CERT_SERVICE_SLOT.y, SERVICE_CERT_SERVICE_SLOT.maxWidth,
-    SERVICE_CERT_SERVICE_SLOT.maxSize, SERVICE_CERT_SERVICE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+    serviceName, serviceSlot.x, serviceSlot.y, serviceSlot.maxWidth, serviceSlot.maxSize, serviceSlot.minSize, SERVICE_CERT_FIELD_COLOR
   );
-  const dateEl = fittedTextElement(
-    performedDate, SERVICE_CERT_DATE_SLOT.x, SERVICE_CERT_DATE_SLOT.y, SERVICE_CERT_DATE_SLOT.maxWidth,
-    SERVICE_CERT_DATE_SLOT.maxSize, SERVICE_CERT_DATE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+  // seva_certificate.jpg has no printed date field — date is simply not
+  // baked in for that design, per the "only what's actually on the
+  // artwork" rule.
+  const dateEl = isSeva ? "" : fittedTextElement(
+    performedDate, PUJA_CERT_DATE_SLOT.x, PUJA_CERT_DATE_SLOT.y, PUJA_CERT_DATE_SLOT.maxWidth,
+    PUJA_CERT_DATE_SLOT.maxSize, PUJA_CERT_DATE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
   );
 
   const textLayer = await renderTextLayerPng(width, height, `${nameEl}${serviceEl}${dateEl}`);
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
-}
-
-/**
- * Shared lookup + render for the Service (Puja/Seva) Certificate, used by
- * both the JPG route and the PDF route below. Throws "not_found" when there
- * is no booking, or "not_completed" when payment exists but Sri Dwar's team
- * hasn't yet confirmed the service was performed — the same distinction the
- * original route enforced, now shared so the PDF route enforces it too
- * instead of duplicating (and risking drifting from) this logic.
- */
-async function loadAndRenderServiceCertificateJpeg(refId: string): Promise<Buffer> {
-  const supabaseAdmin = getSupabaseAdminClient();
-  if (!supabaseAdmin) throw new Error("Supabase is not configured on the server.");
-
-  const { data: activity, error: activityError } = await supabaseAdmin
-    .from("activities")
-    .select("item_name, completion_status, performed_at, created_at, user_id, metadata")
-    .eq("ref_id", refId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (activityError) throw new Error(activityError.message);
-  if (!activity) throw new Error("not_found");
-
-  const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null; metadata: Record<string, unknown> | null };
-  if (row.completion_status !== "completed" || !row.performed_at) {
-    // Not a rendering failure — a deliberate refusal. Matches
-    // certificateService.ts's own "not_completed" business rule.
-    throw new Error("not_completed");
-  }
-
-  // Same devoteeName precedence as the Transaction receipt / General
-  // certificate: activities.metadata.devoteeName (the name typed for this
-  // specific booking) first, then form_submissions, then profiles.name,
-  // then "Devotee" as an absolute last resort.
-  let devoteeName: string | null =
-    (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
-
-  if (!devoteeName) {
-    const { data: submission } = await supabaseAdmin
-      .from("form_submissions")
-      .select("name")
-      .eq("ref_id", refId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    devoteeName = (submission as { name: string | null } | null)?.name || null;
-  }
-
-  if (!devoteeName && row.user_id) {
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("name")
-      .eq("id", row.user_id)
-      .maybeSingle();
-    devoteeName = (profile as { name: string | null } | null)?.name || null;
-  }
-
-  const serviceName = (row.item_name || "").trim() || "Sacred Offering";
-  const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
-  return renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, performedDate);
-}
-
-function serviceCertificateErrorResponse(err: any): { status: number; error: string } {
-  if (err?.message === "not_found") return { status: 404, error: "No booking found for this reference." };
-  if (err?.message === "not_completed") return { status: 403, error: "This certificate isn't available yet — it's issued once Sri Dwar's team confirms the service was performed." };
-  return { status: 500, error: "Could not generate the certificate right now. Please try again shortly." };
 }
 
 app.get("/api/certificates/service/:refId", async (req, res) => {
@@ -1304,40 +1296,73 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
     res.status(400).json({ error: "A reference ID is required." });
     return;
   }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)." });
+    return;
+  }
+
   try {
-    const jpegBuffer = await loadAndRenderServiceCertificateJpeg(refId);
+    const { data: activity, error: activityError } = await supabaseAdmin
+      .from("activities")
+      .select("item_name, completion_status, performed_at, created_at, user_id, activity_type")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (activityError) throw new Error(activityError.message);
+    if (!activity) {
+      res.status(404).json({ error: "No booking found for this reference." });
+      return;
+    }
+
+    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null; activity_type?: string | null };
+    if (row.completion_status !== "completed" || !row.performed_at) {
+      // Not a rendering failure — a deliberate refusal. Matches
+      // certificateService.ts's own "not_completed" business rule.
+      res.status(403).json({ error: "This certificate isn't available yet — it's issued once Sri Dwar's team confirms the service was performed." });
+      return;
+    }
+
+    // ✅ FIX (2026-08-29 — same root cause as the Transaction receipt bug):
+    // regular Puja/Seva bookings (BookNowWizard.tsx) never create a
+    // form_submissions row either — only a Google Sheet sync + an
+    // `activities` row — so this lookup was silently empty for genuine
+    // paid bookings too, not just Bazaar orders. Falls back to the
+    // devotee's own account profile (activities.user_id -> profiles.name)
+    // before giving up and showing "Devotee".
+    let devoteeName: string | null = null;
+    const { data: submission } = await supabaseAdmin
+      .from("form_submissions")
+      .select("name")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    devoteeName = (submission as { name: string | null } | null)?.name || null;
+
+    if (!devoteeName && row.user_id) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("name")
+        .eq("id", row.user_id)
+        .maybeSingle();
+      devoteeName = (profile as { name: string | null } | null)?.name || null;
+    }
+
+    const serviceName = (row.item_name || "").trim() || "Sacred Offering";
+    const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+    const jpegBuffer = await renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, performedDate, row.activity_type || "puja");
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Service-Certificate-${refId}.jpg"`);
     res.send(jpegBuffer);
   } catch (err: any) {
     appendAuditLog("service_certificate_render_failed", { refId, message: err?.message || "unknown error" });
-    const { status, error } = serviceCertificateErrorResponse(err);
-    res.status(status).json({ error });
-  }
-});
-
-// 2g-pdf. Service (Puja/Seva) Certificate — PDF. Same shared
-// composeCertificatePdf() layout as every other certificate PDF: the
-// dedicated Service_Certificate.jpg artwork on top, disclaimer/website/
-// social links band below it.
-app.get("/api/certificates/service/:refId/pdf", async (req, res) => {
-  const refId = String(req.params.refId || "").trim().slice(0, 60);
-  if (!refId) {
-    res.status(400).json({ error: "A reference ID is required." });
-    return;
-  }
-  try {
-    const jpegBuffer = await loadAndRenderServiceCertificateJpeg(refId);
-    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Certificate of Service" });
-    res.set("Content-Type", "application/pdf");
-    res.set("Cache-Control", "private, max-age=300");
-    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Service-Certificate-${refId}.pdf"`);
-    res.send(Buffer.from(pdfBytes));
-  } catch (err: any) {
-    appendAuditLog("service_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
-    const { status, error } = serviceCertificateErrorResponse(err);
-    res.status(status).json({ error });
+    res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
   }
 });
 
@@ -1409,7 +1434,13 @@ async function loadAndRenderGeneralCertificateJpeg(refId: string): Promise<Buffe
   const blessedThrough = resolveBlessedThroughText(row.form_type, row.payload, refId);
   const dateOfIssue = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-  return renderServiceCertificateJpeg(devoteeName, blessedThrough, dateOfIssue);
+  // ✅ FIX (2026-08-29 — puja_certificate.jpg/seva_certificate.jpg split):
+  // this general-purpose lookup (devotee/expert/temple registrations,
+  // testimonials, inquiries — records with no dedicated artwork of their
+  // own) uses the puja design as the general-purpose devotional fallback,
+  // matching the closest available visual match now that the old single
+  // shared Service_Certificate.jpg is gone.
+  return renderServiceCertificateJpeg(devoteeName, blessedThrough, dateOfIssue, "puja");
 }
 
 app.get("/api/certificates/general/:refId", async (req, res) => {
@@ -1433,8 +1464,10 @@ app.get("/api/certificates/general/:refId", async (req, res) => {
 
 // 2k. General-purpose certificate — PDF. Per spec: the embedded image is
 // followed by a real text footer inside the PDF (disclaimer, Sri Dwar
-// website, social links) — via the shared composeCertificatePdf() helper,
-// same as every other certificate/transaction PDF in this file.
+// website, social links) — unlike the plain Transaction invoice PDF above,
+// which is only ever a full-bleed image, since a transaction/invoice has
+// no equivalent "footer content" requirement of its own beyond what's
+// already printed on that artwork.
 app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
@@ -1443,11 +1476,16 @@ app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
   }
   try {
     const jpegBuffer = await loadAndRenderGeneralCertificateJpeg(refId);
-    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Certificate" });
+    const pdfBytes = await composeCertificatePdf({
+      jpegBuffer,
+      refId,
+      pdfTitle: "Certificate",
+      disclaimer: "This certificate is a devotional record prepared with care by Sri Dwar. It is not a government document or legal certificate.",
+    });
     res.set("Content-Type", "application/pdf");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Certificate-${refId}.pdf"`);
-    res.send(Buffer.from(pdfBytes));
+    res.send(pdfBytes);
   } catch (err: any) {
     const notFound = err?.message === "not_found";
     appendAuditLog("general_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
@@ -1463,24 +1501,23 @@ app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
 // otherwise it shows "Payment is still pending" in an amber tone (matching
 // the "Under Review" badge colour already used in the emails) instead of
 // fabricating a method that hasn't actually been verified yet.
-const TXN_BILLTO_SLOT = { x: 130, y: 415, maxWidth: 420, maxSize: 20, minSize: 12 };
-const TXN_INVOICE_SLOT = { x: 750, y: 381, maxWidth: 260, maxSize: 16, minSize: 10 };
-const TXN_REFERENCE_SLOT = { x: 750, y: 414, maxWidth: 260, maxSize: 16, minSize: 10 };
-const TXN_DATE_SLOT = { x: 750, y: 449, maxWidth: 260, maxSize: 16, minSize: 10 };
-// ✅ FIX (2026-08-29 — re-verification found this too): maxWidth was 640,
-// letting a long Description run far enough right to collide with the
-// right-aligned Amount value on the same row once both were long
-// simultaneously (a realistic combination — a long puja name with a large
-// contribution amount). Reduced to 500 so Description's right edge can
-// never reach Amount's column regardless of length; re-verified clean with
-// both fields at their longest realistic length together.
-const TXN_DESC_SLOT = { x: 140, y: 580, maxWidth: 500, maxSize: 18, minSize: 11 };
-const TXN_AMOUNT_SLOT = { x: 850, y: 580, maxWidth: 180, maxSize: 18, minSize: 12 };
-const TXN_SUBTOTAL_SLOT = { x: 745, y: 770, maxWidth: 180, maxSize: 16, minSize: 11 };
-const TXN_TOTAL_SLOT = { x: 745, y: 825, maxWidth: 180, maxSize: 20, minSize: 13 };
-const TXN_PAYMENT_SLOT = { x: 335, y: 875, maxWidth: 400, maxSize: 16, minSize: 11 };
+// ✅ UPDATED (2026-08-29 — new artwork replaces Trasancation_Completed.jpg):
+// transaction_details.jpg — completely re-measured against the new design,
+// which also has a different field set: no separate Subtotal line anymore
+// (Total Paid only), and Total Paid sits inside a dark green band so its
+// value needs a light gold colour to actually be readable there, not the
+// usual dark ink used everywhere else on the wood background.
+const TXN_BILLTO_SLOT = { x: 100, y: 325, maxWidth: 260, maxSize: 19, minSize: 10 };
+const TXN_INVOICE_SLOT = { x: 700, y: 288, maxWidth: 120, maxSize: 15, minSize: 9 };
+const TXN_REFERENCE_SLOT = { x: 700, y: 328, maxWidth: 120, maxSize: 15, minSize: 9 };
+const TXN_DATE_SLOT = { x: 670, y: 368, maxWidth: 150, maxSize: 15, minSize: 9 };
+const TXN_DESC_SLOT = { x: 140, y: 500, maxWidth: 550, maxSize: 17, minSize: 11 };
+const TXN_AMOUNT_SLOT = { x: 970, y: 500, maxWidth: 220, maxSize: 17, minSize: 12 };
+const TXN_PAYMENT_SLOT = { x: 280, y: 735, maxWidth: 300, maxSize: 16, minSize: 11 };
+const TXN_TOTAL_SLOT = { x: 940, y: 735, maxWidth: 150, maxSize: 17, minSize: 12 };
 const TXN_FIELD_COLOR = "#2b1806";
 const TXN_PENDING_COLOR = "#8a5a12";
+const TXN_TOTAL_PAID_COLOR = "#f4c563"; // light gold — Total Paid sits on a dark green band, dark ink would be unreadable there
 
 function formatInr(amount: number): string {
   return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -1493,7 +1530,7 @@ const PAYMENT_METHOD_DISPLAY_LABELS: Record<string, string> = {
 
 async function renderTransactionJpeg(fields: {
   billTo: string; invoice: string; reference: string; date: string;
-  description: string; amount: number; subtotal: number; totalPaid: number;
+  description: string; amount: number; totalPaid: number;
   paymentMethod: string; isPaid: boolean;
 }): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
@@ -1501,12 +1538,12 @@ async function renderTransactionJpeg(fields: {
     process.cwd(),
     process.env.NODE_ENV === "production" ? "dist" : "public",
     "images",
-    "Trasancation_Completed.jpg"
+    "transaction_details.jpg"
   );
   const base = sharp(imagePath);
   const meta = await base.metadata();
-  const width = meta.width || 1055;
-  const height = meta.height || 1491;
+  const width = meta.width || 1087;
+  const height = meta.height || 1447;
 
   const els = [
     fittedTextElement(fields.billTo, TXN_BILLTO_SLOT.x, TXN_BILLTO_SLOT.y, TXN_BILLTO_SLOT.maxWidth, TXN_BILLTO_SLOT.maxSize, TXN_BILLTO_SLOT.minSize, TXN_FIELD_COLOR),
@@ -1515,9 +1552,8 @@ async function renderTransactionJpeg(fields: {
     fittedTextElement(fields.date, TXN_DATE_SLOT.x, TXN_DATE_SLOT.y, TXN_DATE_SLOT.maxWidth, TXN_DATE_SLOT.maxSize, TXN_DATE_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.description, TXN_DESC_SLOT.x, TXN_DESC_SLOT.y, TXN_DESC_SLOT.maxWidth, TXN_DESC_SLOT.maxSize, TXN_DESC_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(formatInr(fields.amount), TXN_AMOUNT_SLOT.x, TXN_AMOUNT_SLOT.y, TXN_AMOUNT_SLOT.maxWidth, TXN_AMOUNT_SLOT.maxSize, TXN_AMOUNT_SLOT.minSize, TXN_FIELD_COLOR, "end"),
-    fittedTextElement(formatInr(fields.subtotal), TXN_SUBTOTAL_SLOT.x, TXN_SUBTOTAL_SLOT.y, TXN_SUBTOTAL_SLOT.maxWidth, TXN_SUBTOTAL_SLOT.maxSize, TXN_SUBTOTAL_SLOT.minSize, TXN_FIELD_COLOR),
-    fittedTextElement(formatInr(fields.totalPaid), TXN_TOTAL_SLOT.x, TXN_TOTAL_SLOT.y, TXN_TOTAL_SLOT.maxWidth, TXN_TOTAL_SLOT.maxSize, TXN_TOTAL_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.paymentMethod, TXN_PAYMENT_SLOT.x, TXN_PAYMENT_SLOT.y, TXN_PAYMENT_SLOT.maxWidth, TXN_PAYMENT_SLOT.maxSize, TXN_PAYMENT_SLOT.minSize, fields.isPaid ? TXN_FIELD_COLOR : TXN_PENDING_COLOR),
+    fittedTextElement(formatInr(fields.totalPaid), TXN_TOTAL_SLOT.x, TXN_TOTAL_SLOT.y, TXN_TOTAL_SLOT.maxWidth, TXN_TOTAL_SLOT.maxSize, TXN_TOTAL_SLOT.minSize, TXN_TOTAL_PAID_COLOR, "end"),
   ].join("");
 
   const textLayer = await renderTextLayerPng(width, height, els);
@@ -1539,7 +1575,7 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
 
   const { data: activity, error: activityError } = await supabaseAdmin
     .from("activities")
-    .select("item_name, amount, payment_method, payment_status, created_at, user_id, metadata")
+    .select("item_name, amount, payment_method, payment_status, created_at, user_id")
     .eq("ref_id", refId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -1551,33 +1587,27 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
   const row = activity as {
     item_name: string | null; amount: number | null; payment_method: string | null;
     payment_status: string | null; created_at: string | null; user_id: string | null;
-    metadata: Record<string, unknown> | null;
   };
 
-  // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Puja
-  // receipt where the devotee had filled in their real name): every
-  // booking flow (BookNowWizard.tsx, TemplateBazaar.tsx, App.tsx's cart
-  // checkouts) now stores the devotee's typed name in
-  // activities.metadata.devoteeName at the moment of booking — see the
-  // matching fixes in those files. That's the most trustworthy source
-  // (it's exactly who this specific booking is for, which can differ from
-  // the logged-in account holder — e.g. booking on behalf of a family
-  // member) so it's checked first, ahead of the pre-existing
-  // form_submissions/profiles fallbacks below (kept as-is for older rows
-  // recorded before this fix, which won't have metadata.devoteeName).
-  let devoteeName: string | null =
-    (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
+  // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Bazaar
+  // order that should have shown the devotee's real name): a plain Bazaar
+  // cart checkout (App.tsx's finalizeCartCheckout, the `cart.length > 0`
+  // branch) calls recordActivity directly and never creates a matching
+  // form_submissions row — so this lookup always came back empty for that
+  // one specific checkout path, even though the devotee's real name was
+  // sitting right there on their own account the whole time. Puja/Seva
+  // bookings (which DO sync through a form first) are unaffected — this is
+  // an added fallback, not a change to how those already worked.
+  let devoteeName: string | null = null;
 
-  if (!devoteeName) {
-    const { data: submission } = await supabaseAdmin
-      .from("form_submissions")
-      .select("name")
-      .eq("ref_id", refId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    devoteeName = (submission as { name: string | null } | null)?.name || null;
-  }
+  const { data: submission } = await supabaseAdmin
+    .from("form_submissions")
+    .select("name")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  devoteeName = (submission as { name: string | null } | null)?.name || null;
 
   if (!devoteeName && row.user_id) {
     const { data: profile } = await supabaseAdmin
@@ -1602,7 +1632,6 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
     date: new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }),
     description: row.item_name || "Sacred Offering",
     amount,
-    subtotal: amount,
     totalPaid: amount,
     paymentMethod: paymentMethodDisplay,
     isPaid,
@@ -1628,22 +1657,15 @@ app.get("/api/certificates/transaction/:refId", async (req, res) => {
   }
 });
 
-// 2i. Transaction Completed — PDF invoice. Per spec, every certificate/
-// transaction PDF in this app uses the same layout: the dedicated
-// Trasancation_Completed.jpg artwork (with the same prefilled Bill To /
-// Invoice / Reference / Date / Description / Amount / Subtotal / Total
-// Paid / Payment Method data as the JPG endpoint above) on top, with the
-// Sri Dwar disclaimer, website, and social links printed in a real text
-// footer band BELOW the artwork — never drawn over or inside it. Shares
-// the composeCertificatePdf() helper with every other certificate PDF
-// route, so there is exactly one PDF-construction pattern in the codebase.
-//
-// ✅ FIX (2026-08-29 — audit finding): this route previously embedded the
-// receipt JPEG as a single full-bleed page image with NO footer band at
-// all, unlike the General certificate PDF beside it — inconsistent, and
-// missing the disclaimer/website/social-links requirement entirely for
-// every Puja/Seva/Bazaar/Contribution transaction. Now routed through the
-// same composeCertificatePdf() helper as every other certificate PDF.
+// 2i. Transaction Completed — PDF invoice. Per spec: payment/transaction
+// documents are the one record type downloadable as a PDF, and that PDF
+// must embed the same Trasancation_Completed.jpg artwork (with the same
+// prefilled data) as the JPG endpoint above — not a separately-designed
+// invoice layout. This wraps loadAndRenderTransactionJpeg's output as a
+// single full-page image inside a PDF via pdf-lib, exactly the same
+// embed-an-image-in-a-page technique certificateService.ts already uses
+// elsewhere in this project, so there is only one PDF-construction pattern
+// in the codebase, not two.
 app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
@@ -1652,11 +1674,16 @@ app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
   }
   try {
     const jpegBuffer = await loadAndRenderTransactionJpeg(refId);
-    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Transaction Confirmation" });
+    const pdfBytes = await composeCertificatePdf({
+      jpegBuffer,
+      refId,
+      pdfTitle: "Transaction Confirmation",
+      disclaimer: "If any payment is found to be unsuccessful, duplicate, or not properly processed, a refund will be initiated wherever applicable — please review our Disclaimer and Refund Policy at sridwar.com.",
+    });
     res.set("Content-Type", "application/pdf");
     res.set("Cache-Control", "private, max-age=120");
     res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Invoice-${refId}.pdf"`);
-    res.send(Buffer.from(pdfBytes));
+    res.send(pdfBytes);
   } catch (err: any) {
     const notFound = err?.message === "not_found";
     appendAuditLog("transaction_invoice_pdf_failed", { refId, message: err?.message || "unknown error" });

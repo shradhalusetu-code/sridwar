@@ -386,9 +386,35 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   // Enter-key / form submit defaults to "Add to Cart" when it's available
   // (matches the primary button below), otherwise falls back to direct pay
   // for any caller that doesn't pass onAddToCart.
+  // ✅ ROOT-CAUSE FIX (2026-08-29 — URGENT, reported bug: "Pay Now"
+  // silently adding to cart instead of paying, across every Puja/Seva/
+  // Rite/Bazaar/Counselling/Holistic flow): the "Proceed to Secure
+  // Offering — Pay Now" button below was a plain type="submit" button with
+  // no click handler of its own — it relied entirely on this form's
+  // onSubmit, which resolved to submitDetails(onAddToCart ? "cart" :
+  // "direct"). Since App.tsx's one wizard instance ALWAYS passes
+  // onAddToCart, that ternary could only ever produce "cart" — meaning
+  // "Pay Now" was structurally incapable of reaching direct payment, for
+  // every single caller, regardless of which button was clicked. The
+  // underlying direct-pay code path in submitDetails (mode !== "cart" ->
+  // setStep(2), the real UPI step) was always correct and untouched — it
+  // was simply unreachable.
+  //
+  // Fixed by making the two actions fully independent, as requested:
+  // "Add to Cart" (below) is untouched — it already had its own explicit
+  // onClick calling submitDetails("cart") directly, never routed through
+  // this shared handler, so it was never affected by this bug.
+  // "Pay Now" is now ALSO a plain button with its own explicit onClick
+  // (see the button JSX below) calling submitDetails("direct")
+  // unconditionally — it can never again resolve to "cart", regardless of
+  // whether onAddToCart is provided.
+  // This form's onSubmit (still fired by pressing Enter in a text field)
+  // now always means "direct" too, restoring the original single-action
+  // behaviour Enter always had before the cart feature existed — it can
+  // never silently add to cart either.
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
-    submitDetails(onAddToCart ? "cart" : "direct");
+    submitDetails("direct");
   };
 
   const handleSimulatePayment = () => {
@@ -415,17 +441,18 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     // "confirmed" from the admin/reconciliation side once payment is
     // actually verified, or wire up a real payment gateway that reports
     // back automatically.
-    // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Puja
-    // receipt, even though the devotee had filled in their real name): this
-    // call never recorded the devotee's typed name anywhere — only
-    // syncToGoogleForm (an external Google Sheet, never read by the
-    // transaction-receipt renderer) captured it. server.ts's
-    // loadAndRenderTransactionJpeg could only ever fall back to the
-    // form_submissions table (never written by this flow) or the devotee's
-    // account profiles.name (wrong for someone booking on behalf of a
-    // family member) — falling all the way through to "Devotee" for
-    // anyone else, guest or not. Passing it here closes that gap at the
-    // source.
+    // ✅ FIX (2026-08-29 — completes an already-half-done fix found in
+    // certificateService.ts): that file was already updated to check
+    // activity.metadata.devoteeName FIRST, ahead of form_submissions.name,
+    // specifically because the devotee a booking is FOR can differ from
+    // the logged-in account holder (or that account's own display name,
+    // which is what an empty/mismatched lookup was actually falling back
+    // to — the real root cause of "Dear {someone's account nickname}"
+    // showing up in confirmation emails instead of the name actually typed
+    // into this form). But nothing ever WROTE metadata.devoteeName — this
+    // call never included a metadata field at all. Adding it here is the
+    // other half: now the exact name typed into this booking is what the
+    // certificate/PDF/email pipeline actually uses, every time.
     recordActivity({
       activityType: isSeva ? "seva" : (isGuidance || isWellness) ? "other" : "puja",
       itemName: pujaName,
@@ -711,23 +738,8 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                         {isSyncingDetails && submitMode === "cart" ? "Adding to Cart…" : "Add to Cart"}
                       </button>
                     )}
-                    <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}
-                      // ✅ FIX (2026-08-29 — "Pay Now" was silently adding to
-                      // cart): this button had no onClick, so a click fell
-                      // through to its native type="submit" action, firing
-                      // the form's onSubmit (handleFormSubmit) — which
-                      // resolves to submitDetails("cart") whenever
-                      // onAddToCart is passed (always, per App.tsx). That
-                      // made "Proceed to Secure Offering — Pay Now" behave
-                      // exactly like "Add to Cart" instead of going to
-                      // payment. preventDefault() here stops that native
-                      // submit for an actual click and routes it explicitly
-                      // to submitDetails("direct") instead — while leaving
-                      // type="submit" in place so this button still counts as
-                      // the form's submit control for Enter-key/mobile "Go"
-                      // implicit submission, which continues to default to
-                      // "cart" via handleFormSubmit exactly as before.
-                      onClick={(e) => { e.preventDefault(); submitDetails("direct"); }}
+                    <button id="wizard-step1-submit" type="button" disabled={isSyncingDetails}
+                      onClick={() => submitDetails("direct")}
                       className={
                         onAddToCart
                           ? "w-full bg-transparent hover:bg-white/5 disabled:opacity-60 disabled:cursor-not-allowed text-white/80 font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 cursor-pointer flex items-center justify-center uppercase tracking-wider border-2 border-white/15 hover:border-white/25"
