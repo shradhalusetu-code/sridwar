@@ -707,6 +707,87 @@ export default function AuthDashboard({
 
   const t = TRANSLATIONS[currentLanguage];
 
+  // ✅ ADDED — shared download handler for the "All Account Activity" ledger's
+  // Receipt/Invoice/Certificate buttons below. Same fetch→blob→<a download>
+  // pattern as handleDownloadTempleCertificate above; kept separate (not
+  // merged into that one) so the already-working certificate download can't
+  // be affected by this change.
+  const [downloadingDocKey, setDownloadingDocKey] = useState<string | null>(null);
+  const [activityDownloadError, setActivityDownloadError] = useState("");
+
+  const handleDownloadActivityDocument = async (url: string, filename: string, docKey: string) => {
+    setActivityDownloadError("");
+    setDownloadingDocKey(docKey);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+      console.error("Activity document download failed:", e);
+      setActivityDownloadError("Could not download this document right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setDownloadingDocKey(null);
+    }
+  };
+
+  /** Renders the Receipt/Invoice/Certificate download row for one activity record — shared by both the carousel and "show more" list below so they never drift apart. */
+  const renderActivityDownloadButtons = (rec: ActivityRecord) => {
+    const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
+    const isPaid = rec.paymentStatus === "confirmed";
+    // Certificate only for genuine puja/seva bookings, only once Sri Dwar's
+    // team has actually confirmed the rite was performed — matches the
+    // server's own refusal to render before then (see
+    // /api/certificates/service/:refId in server.ts).
+    const showCertificate = (rec.activityType === "puja" || rec.activityType === "seva") && rec.completionStatus === "completed";
+    if (!isPaid && !showCertificate) return null;
+    return (
+      <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/5">
+        {isPaid && (
+          <>
+            <button
+              type="button"
+              onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
+              disabled={downloadingDocKey === `${rec.id}-jpg`}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            >
+              <Download className="w-3 h-3" />
+              {downloadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}/pdf`, `Sri-Dwar-Invoice-${safeName}.pdf`, `${rec.id}-pdf`)}
+              disabled={downloadingDocKey === `${rec.id}-pdf`}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            >
+              <Download className="w-3 h-3" />
+              {downloadingDocKey === `${rec.id}-pdf` ? "..." : "Invoice PDF"}
+            </button>
+          </>
+        )}
+        {showCertificate && (
+          <button
+            type="button"
+            onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
+            disabled={downloadingDocKey === `${rec.id}-cert`}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+          >
+            <Download className="w-3 h-3" />
+            {downloadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+
   // Display helpers for the synced activity ledger below.
   const ACTIVITY_TYPE_LABELS: Record<string, string> = {
     puja: "Puja Booking",
@@ -1861,6 +1942,11 @@ export default function AuthDashboard({
                 <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
                   All Account Activity
                 </h3>
+                {activityDownloadError && (
+                  <p className="text-xs text-red-300 bg-red-950/30 border border-red-500/20 rounded-xl px-3 py-2 mb-3">
+                    {activityDownloadError}
+                  </p>
+                )}
                 {activityRecords.length > 0 ? (
                   <>
                     {/* Latest 6, as a swipeable carousel on mobile/app */}
@@ -1889,6 +1975,7 @@ export default function AuthDashboard({
                                 {badge.label}
                               </span>
                             </div>
+                            {renderActivityDownloadButtons(rec)}
                           </div>
                         );
                       }}
@@ -1919,6 +2006,7 @@ export default function AuthDashboard({
                                   {badge.label}
                                 </span>
                               </div>
+                              {renderActivityDownloadButtons(rec)}
                             </div>
                           );
                         })}

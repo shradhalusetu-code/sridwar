@@ -1323,6 +1323,54 @@ app.get("/api/certificates/transaction/:refId", async (req, res) => {
   }
 });
 
+// 2i. Transaction Completed — PDF invoice. Per spec: payment/transaction
+// documents are the one record type downloadable as a PDF, and that PDF
+// must embed the same Trasancation_Completed.jpg artwork (with the same
+// prefilled data) as the JPG endpoint above — not a separately-designed
+// invoice layout. This wraps loadAndRenderTransactionJpeg's output as a
+// single full-page image inside a PDF via pdf-lib, exactly the same
+// embed-an-image-in-a-page technique certificateService.ts already uses
+// elsewhere in this project, so there is only one PDF-construction pattern
+// in the codebase, not two.
+app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderTransactionJpeg(refId);
+    const { PDFDocument } = await import("pdf-lib");
+    const sharp = (await import("sharp")).default;
+
+    const meta = await sharp(jpegBuffer).metadata();
+    const pxWidth = meta.width || 1055;
+    const pxHeight = meta.height || 1491;
+    // 96 CSS px-per-inch, 72 PDF-points-per-inch — the standard conversion
+    // so the page comes out at the artwork's own real printed proportions
+    // instead of an arbitrarily stretched/letterboxed A4/Letter page.
+    const pageWidth = (pxWidth / 96) * 72;
+    const pageHeight = (pxHeight / 96) * 72;
+
+    const pdfDoc = await PDFDocument.create();
+    pdfDoc.setTitle(`Sri Dwar — Transaction Confirmation (Ref ${refId})`);
+    pdfDoc.setProducer("Sri Dwar");
+    const jpgImage = await pdfDoc.embedJpg(jpegBuffer);
+    const page = pdfDoc.addPage([pageWidth, pageHeight]);
+    page.drawImage(jpgImage, { x: 0, y: 0, width: pageWidth, height: pageHeight });
+
+    const pdfBytes = await pdfDoc.save();
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=120");
+    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Invoice-${refId}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (err: any) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("transaction_invoice_pdf_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No transaction found for this reference." : "Could not generate the invoice right now." });
+  }
+});
+
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,
 // Community Guidelines, Cookie Policy, Account Deletion).

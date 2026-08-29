@@ -38,6 +38,15 @@ export interface ActivityRecord {
   paymentMethod?: string | null;
   paymentStatus: PaymentStatus;
   createdAt: string;
+  // ✅ ADDED — powers the profile page's "Receipt"/"Certificate" download
+  // buttons: a Transaction receipt only makes sense once paymentStatus is
+  // 'confirmed', and a Service Certificate is only ever available once
+  // Sri Dwar's team has marked the booking completionStatus = 'completed'
+  // (see certificate_migration.sql / /api/certificates/service/:refId in
+  // server.ts, which itself refuses to render before then regardless of
+  // what the client shows). Optional so nothing breaks if this column is
+  // ever missing from a given row.
+  completionStatus?: "not_performed" | "completed" | null;
 }
 
 export interface RecordActivityInput {
@@ -158,7 +167,7 @@ export async function fetchActivities(): Promise<ActivityRecord[]> {
 
     const { data, error } = await supabase
       .from("activities")
-      .select("id, activity_type, item_name, amount, ref_id, payment_method, payment_status, created_at")
+      .select("id, activity_type, item_name, amount, ref_id, payment_method, payment_status, created_at, completion_status")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(30);
@@ -177,6 +186,7 @@ export async function fetchActivities(): Promise<ActivityRecord[]> {
       paymentMethod: row.payment_method,
       paymentStatus: row.payment_status,
       createdAt: row.created_at,
+      completionStatus: row.completion_status,
     }));
   } catch (e) {
     console.error("fetchActivities failed", e);
