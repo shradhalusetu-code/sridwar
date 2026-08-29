@@ -783,6 +783,12 @@ export default function App() {
 
       // Persist to Supabase too (no-ops silently for guests who aren't logged
       // in) so this order shows up in the devotee's Profile page on any device.
+      // ✅ FIX (2026-08-29 — "BILL TO: Devotee" bug): userProfile.name is
+      // already used for the Google Form sync above (this checkout requires
+      // login), but the transaction-receipt renderer in server.ts never had
+      // it — only the Google Sheet did. Adding it to metadata closes that
+      // gap the same way as the matching fixes in BookNowWizard.tsx and
+      // TemplateBazaar.tsx.
       recordActivity({
         activityType: "product",
         itemName: newBooking.pujaName,
@@ -790,7 +796,7 @@ export default function App() {
         refId,
         paymentMethod: "UPI",
         paymentStatus: "pending_verification",
-        metadata: { cartRef: groupRef },
+        metadata: { cartRef: groupRef, devoteeName: userProfile.name || undefined },
       });
     }
 
@@ -802,6 +808,12 @@ export default function App() {
         } catch (err) {
           console.error(err);
         }
+        // ✅ FIX (2026-08-29 — "BILL TO: Devotee" bug): item.details.devoteeName
+        // is exactly who this booking is for (may differ from the
+        // logged-in account holder — e.g. booking on behalf of a family
+        // member) and was never recorded anywhere the transaction-receipt
+        // renderer in server.ts could read it back from. See the matching
+        // fix in BookNowWizard.tsx for the full root-cause explanation.
         recordActivity({
           activityType: item.category === "seva_offering" ? "seva" : item.category === "puja_seva" ? "puja" : item.category === "bazaar_order" ? "product" : "other",
           itemName: item.itemName,
@@ -809,7 +821,7 @@ export default function App() {
           refId: itemRefId,
           paymentMethod: "UPI",
           paymentStatus: "pending_verification",
-          metadata: { cartRef: groupRef, category: item.category },
+          metadata: { cartRef: groupRef, category: item.category, devoteeName: item.details.devoteeName },
         });
         const newBooking = { pujaName: item.itemName, price: item.amount, refId: itemRefId, date: new Date().toLocaleDateString() };
         setBookedItems((prev) => {
@@ -838,7 +850,7 @@ export default function App() {
     alert(`🙏 Payment received! ₹${totalAmount} noted for order ${groupRef} and submitted to our team for verification — usually within 2 hours. Once verified, any Prasad/items will be shipped (typically within 3-7 working days), and every Puja/Seva/Guidance/Wellness item will be individually processed with its own certificate/acknowledgement, exactly as a direct booking would be. If a payment is later found unsuccessful or not properly processed, a refund will be initiated wherever applicable.`);
   };
 
-  const handleBookNowSuccess = (item: { pujaName: string; price: number; refId: string }) => {
+  const handleBookNowSuccess = (item: { pujaName: string; sankalpaName: string; price: number; refId: string }) => {
     const newBooking = {
       pujaName: item.pujaName,
       price: item.price,
@@ -853,6 +865,12 @@ export default function App() {
     // "Sponsorship contribution: ..." is how SevaExperience labels seva
     // sponsorships passed through this same success handler — everything
     // else arriving here is a direct puja booking.
+    // ✅ FIX (2026-08-29 — "BILL TO: Devotee" bug, 3rd occurrence): this
+    // function's parameter type didn't declare sankalpaName, so it was
+    // silently dropped even though BookNowWizard.tsx already passes the
+    // devotee's real typed name here (as sankalpaName) on every call. See
+    // the matching fix in BookNowWizard.tsx for the full root-cause
+    // explanation.
     recordActivity({
       activityType: item.pujaName.startsWith("Sponsorship contribution:") ? "seva" : "puja",
       itemName: item.pujaName,
@@ -860,6 +878,7 @@ export default function App() {
       refId: item.refId,
       paymentMethod: "UPI",
       paymentStatus: "pending_verification",
+      metadata: { devoteeName: item.sankalpaName },
     });
   };
 

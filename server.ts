@@ -1150,7 +1150,7 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
   try {
     const { data: activity, error: activityError } = await supabaseAdmin
       .from("activities")
-      .select("item_name, completion_status, performed_at, created_at, user_id")
+      .select("item_name, completion_status, performed_at, created_at, user_id, metadata")
       .eq("ref_id", refId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -1162,7 +1162,7 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
       return;
     }
 
-    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null };
+    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null; metadata: Record<string, unknown> | null };
     if (row.completion_status !== "completed" || !row.performed_at) {
       // Not a rendering failure — a deliberate refusal. Matches
       // certificateService.ts's own "not_completed" business rule.
@@ -1170,22 +1170,26 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
       return;
     }
 
-    // ✅ FIX (2026-08-29 — same root cause as the Transaction receipt bug):
-    // regular Puja/Seva bookings (BookNowWizard.tsx) never create a
-    // form_submissions row either — only a Google Sheet sync + an
-    // `activities` row — so this lookup was silently empty for genuine
-    // paid bookings too, not just Bazaar orders. Falls back to the
-    // devotee's own account profile (activities.user_id -> profiles.name)
-    // before giving up and showing "Devotee".
-    let devoteeName: string | null = null;
-    const { data: submission } = await supabaseAdmin
-      .from("form_submissions")
-      .select("name")
-      .eq("ref_id", refId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    devoteeName = (submission as { name: string | null } | null)?.name || null;
+    // ✅ FIX (2026-08-29 — same "BILL TO: Devotee" bug as the Transaction
+    // receipt): every booking flow now stores the devotee's typed name in
+    // activities.metadata.devoteeName at the moment of booking — see the
+    // matching fixes in BookNowWizard.tsx, TemplateBazaar.tsx, App.tsx, and
+    // this same fix on the Transaction receipt endpoint above. Checked
+    // first, ahead of the pre-existing form_submissions/profiles fallbacks
+    // (kept as-is for older rows recorded before this fix).
+    let devoteeName: string | null =
+      (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
+
+    if (!devoteeName) {
+      const { data: submission } = await supabaseAdmin
+        .from("form_submissions")
+        .select("name")
+        .eq("ref_id", refId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      devoteeName = (submission as { name: string | null } | null)?.name || null;
+    }
 
     if (!devoteeName && row.user_id) {
       const { data: profile } = await supabaseAdmin
@@ -1457,7 +1461,7 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
 
   const { data: activity, error: activityError } = await supabaseAdmin
     .from("activities")
-    .select("item_name, amount, payment_method, payment_status, created_at, user_id")
+    .select("item_name, amount, payment_method, payment_status, created_at, user_id, metadata")
     .eq("ref_id", refId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -1469,27 +1473,33 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
   const row = activity as {
     item_name: string | null; amount: number | null; payment_method: string | null;
     payment_status: string | null; created_at: string | null; user_id: string | null;
+    metadata: Record<string, unknown> | null;
   };
 
-  // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Bazaar
-  // order that should have shown the devotee's real name): a plain Bazaar
-  // cart checkout (App.tsx's finalizeCartCheckout, the `cart.length > 0`
-  // branch) calls recordActivity directly and never creates a matching
-  // form_submissions row — so this lookup always came back empty for that
-  // one specific checkout path, even though the devotee's real name was
-  // sitting right there on their own account the whole time. Puja/Seva
-  // bookings (which DO sync through a form first) are unaffected — this is
-  // an added fallback, not a change to how those already worked.
-  let devoteeName: string | null = null;
+  // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Puja
+  // receipt where the devotee had filled in their real name): every
+  // booking flow (BookNowWizard.tsx, TemplateBazaar.tsx, App.tsx's cart
+  // checkouts) now stores the devotee's typed name in
+  // activities.metadata.devoteeName at the moment of booking — see the
+  // matching fixes in those files. That's the most trustworthy source
+  // (it's exactly who this specific booking is for, which can differ from
+  // the logged-in account holder — e.g. booking on behalf of a family
+  // member) so it's checked first, ahead of the pre-existing
+  // form_submissions/profiles fallbacks below (kept as-is for older rows
+  // recorded before this fix, which won't have metadata.devoteeName).
+  let devoteeName: string | null =
+    (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
 
-  const { data: submission } = await supabaseAdmin
-    .from("form_submissions")
-    .select("name")
-    .eq("ref_id", refId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  devoteeName = (submission as { name: string | null } | null)?.name || null;
+  if (!devoteeName) {
+    const { data: submission } = await supabaseAdmin
+      .from("form_submissions")
+      .select("name")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    devoteeName = (submission as { name: string | null } | null)?.name || null;
+  }
 
   if (!devoteeName && row.user_id) {
     const { data: profile } = await supabaseAdmin

@@ -465,6 +465,10 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     // Record into the Supabase activity ledger (no-ops for guests who
     // aren't logged in) — previously this Sankalpa Portal flow never wrote
     // anywhere the devotee's own Profile page could read from.
+    // ✅ FIX (2026-08-29 — same "BILL TO: Devotee" bug as BookNowWizard.tsx):
+    // this never recorded the devotee's typed name anywhere Supabase could
+    // read it back from for the transaction receipt. See the matching fix
+    // in BookNowWizard.tsx for the full root-cause explanation.
     if (selectedItem) {
       recordActivity({
         activityType: selectedItem.isService ? "seva" : "product",
@@ -473,6 +477,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         refId,
         paymentMethod: details.method,
         paymentStatus: "pending_verification",
+        metadata: { devoteeName: devoteeName.trim() },
       });
     }
     const msg = selectedItem?.isService

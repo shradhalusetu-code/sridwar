@@ -52,6 +52,45 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // ✅ FIX (2026-08-29 — Darshan Certificate showed "3–7 Days" and only
+  // offered a generic text confirmation, never the real certificate): the
+  // server already composites the real Temple_Visit_Certificate.jpg with
+  // the devotee's name, temple, and issue date the instant a request is
+  // submitted — see GET /api/certificates/temple-visit/:refId in server.ts,
+  // gated only on the submission existing (no completion wait, unlike the
+  // Service Certificate). AuthDashboard.tsx's Profile page already fetches
+  // this correctly (handleDownloadTempleCertificate there). This mirrors
+  // that exact same relative-fetch → blob → object-URL → <a download>
+  // pattern here, so the certificate is downloadable the moment the form is
+  // submitted, not just later from the Profile page.
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+
+  const handleDownloadTempleVisitCertificate = async () => {
+    if (!refId) return;
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Temple Visit Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
   
   // Form fields
   const [name, setName] = useState("");
@@ -680,8 +719,15 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                       <span className="block font-bold text-[#5EEAD4]">Email</span>
                     </div>
                     <div>
-                      <span className="block text-base">⏱</span>
-                      <span className="block font-bold text-[#FFB347]">3–7 Days</span>
+                      {/* ✅ FIX (2026-08-29): was "⏱ 3–7 Days" — but the
+                          Temple Visit Certificate itself (unlike a Puja/Seva
+                          Service Certificate) is composited by the server the
+                          instant this form is submitted, with no completion
+                          wait. "3–7 Days" only applies to physical/other
+                          items, not to this certificate, and told devotees to
+                          wait for something already ready below. */}
+                      <span className="block text-base">⚡</span>
+                      <span className="block font-bold text-[#FFB347]">Instant</span>
                     </div>
                   </div>
                 </div>
@@ -691,6 +737,26 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Powered by Sri Dwar Technology</span>
                 </div>
+
+                {/* ✅ FIX (2026-08-29): this button was missing entirely —
+                    the confirmation screen only offered a generic text
+                    "Download Confirmation" below, never the real,
+                    server-composited Temple_Visit_Certificate.jpg with the
+                    devotee's actual name/temple/date populated on it, even
+                    though the endpoint for it already exists and already
+                    works from the Profile page (AuthDashboard.tsx). */}
+                {certificateDownloadError && (
+                  <p className="text-[11px] text-red-300 text-center -mb-1">{certificateDownloadError}</p>
+                )}
+                <button
+                  id="download-temple-visit-certificate"
+                  onClick={handleDownloadTempleVisitCertificate}
+                  disabled={isDownloadingCertificate}
+                  className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow"
+                >
+                  <span>🛕</span>
+                  <span>{isDownloadingCertificate ? "Preparing Your Certificate…" : "Download Your Certificate"}</span>
+                </button>
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <button

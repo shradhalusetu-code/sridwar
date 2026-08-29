@@ -454,8 +454,21 @@ function mergeFields(
     (activity.metadata?.["temple_name"] as string | undefined) ??
     undefined;
 
+  // ✅ FIX (2026-08-29 — same "BILL TO: Devotee" bug found and fixed
+  // across BookNowWizard.tsx / TemplateBazaar.tsx / App.tsx / server.ts):
+  // activity.metadata.devoteeName — the exact name typed for this specific
+  // booking, now recorded by every booking flow — is the most trustworthy
+  // source (it's who this booking is actually for, which can differ from
+  // the logged-in account holder), so it's checked before the
+  // form_submissions name this already fell back to. metadata was already
+  // being read two lines above for deity/temple, just never for this.
+  const metadataDevoteeName =
+    typeof activity.metadata?.["devoteeName"] === "string"
+      ? (activity.metadata["devoteeName"] as string).trim()
+      : "";
+
   const base: MergedFields = {
-    devoteeName: (submission?.name ?? "").trim() || "Devotee",
+    devoteeName: metadataDevoteeName || (submission?.name ?? "").trim() || "Devotee",
     serviceName: activity.item_name?.trim() || "Sacred Offering",
     deityOrTempleName: deity?.trim() || undefined,
     date: formatDate(dateSource),

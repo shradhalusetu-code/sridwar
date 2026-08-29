@@ -415,6 +415,17 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     // "confirmed" from the admin/reconciliation side once payment is
     // actually verified, or wire up a real payment gateway that reports
     // back automatically.
+    // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Puja
+    // receipt, even though the devotee had filled in their real name): this
+    // call never recorded the devotee's typed name anywhere — only
+    // syncToGoogleForm (an external Google Sheet, never read by the
+    // transaction-receipt renderer) captured it. server.ts's
+    // loadAndRenderTransactionJpeg could only ever fall back to the
+    // form_submissions table (never written by this flow) or the devotee's
+    // account profiles.name (wrong for someone booking on behalf of a
+    // family member) — falling all the way through to "Devotee" for
+    // anyone else, guest or not. Passing it here closes that gap at the
+    // source.
     recordActivity({
       activityType: isSeva ? "seva" : (isGuidance || isWellness) ? "other" : "puja",
       itemName: pujaName,
@@ -422,6 +433,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       refId,
       paymentMethod: details.method,
       paymentStatus: "pending_verification",
+      metadata: { devoteeName },
     });
     // Same confirmation popup as the Bhog/Bazaar (Sankalpa Portal) flow —
     // no fixed timeline/deadline, just an open-ended "confirmation soon".
@@ -700,6 +712,22 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       </button>
                     )}
                     <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}
+                      // ✅ FIX (2026-08-29 — "Pay Now" was silently adding to
+                      // cart): this button had no onClick, so a click fell
+                      // through to its native type="submit" action, firing
+                      // the form's onSubmit (handleFormSubmit) — which
+                      // resolves to submitDetails("cart") whenever
+                      // onAddToCart is passed (always, per App.tsx). That
+                      // made "Proceed to Secure Offering — Pay Now" behave
+                      // exactly like "Add to Cart" instead of going to
+                      // payment. preventDefault() here stops that native
+                      // submit for an actual click and routes it explicitly
+                      // to submitDetails("direct") instead — while leaving
+                      // type="submit" in place so this button still counts as
+                      // the form's submit control for Enter-key/mobile "Go"
+                      // implicit submission, which continues to default to
+                      // "cart" via handleFormSubmit exactly as before.
+                      onClick={(e) => { e.preventDefault(); submitDetails("direct"); }}
                       className={
                         onAddToCart
                           ? "w-full bg-transparent hover:bg-white/5 disabled:opacity-60 disabled:cursor-not-allowed text-white/80 font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 cursor-pointer flex items-center justify-center uppercase tracking-wider border-2 border-white/15 hover:border-white/25"
