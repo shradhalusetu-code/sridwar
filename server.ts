@@ -1030,54 +1030,149 @@ async function renderTempleVisitCertificateJpeg(name: string, temple: string, da
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
 
+/**
+ * Shared lookup + render for the Temple Visit (Darshan) Certificate, used by
+ * both the JPG route and the PDF route below, so they can never quietly
+ * drift apart — mirrors the same shared-helper pattern already used for the
+ * Transaction receipt (loadAndRenderTransactionJpeg) and the General
+ * certificate (loadAndRenderGeneralCertificateJpeg).
+ */
+async function loadAndRenderTempleVisitCertificateJpeg(refId: string): Promise<Buffer> {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) throw new Error("Supabase is not configured on the server.");
+
+  const { data, error } = await supabaseAdmin
+    .from("form_submissions")
+    .select("name, payload, created_at")
+    .eq("form_type", "darshan_certificate")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("not_found");
+
+  const row = data as { name: string | null; payload: Record<string, unknown> | null; created_at: string | null };
+  const devoteeName = (row.name || "").trim() || "Devotee";
+  const temple = ((row.payload?.["temple"] as string) || "").trim() || "the temple";
+  const dateOfIssue = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  return renderTempleVisitCertificateJpeg(devoteeName, temple, dateOfIssue);
+}
+
 app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
     res.status(400).json({ error: "A reference ID is required." });
     return;
   }
-
-  const supabaseAdmin = getSupabaseAdminClient();
-  if (!supabaseAdmin) {
-    res.status(500).json({ error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)." });
-    return;
-  }
-
   try {
-    const { data, error } = await supabaseAdmin
-      .from("form_submissions")
-      .select("name, payload, created_at")
-      .eq("form_type", "darshan_certificate")
-      .eq("ref_id", refId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) throw new Error(error.message);
-    if (!data) {
-      res.status(404).json({ error: "No Temple Visit Certificate request found for this reference." });
-      return;
-    }
-
-    const row = data as { name: string | null; payload: Record<string, unknown> | null; created_at: string | null };
-    const devoteeName = (row.name || "").trim() || "Devotee";
-    const temple = ((row.payload?.["temple"] as string) || "").trim() || "the temple";
-    const dateOfIssue = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-
-    const jpegBuffer = await renderTempleVisitCertificateJpeg(devoteeName, temple, dateOfIssue);
+    const jpegBuffer = await loadAndRenderTempleVisitCertificateJpeg(refId);
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.jpg"`);
     res.send(jpegBuffer);
   } catch (err: any) {
+    const notFound = err?.message === "not_found";
     appendAuditLog("temple_visit_certificate_render_failed", { refId, message: err?.message || "unknown error" });
-    res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No Temple Visit Certificate request found for this reference." : "Could not generate the certificate right now. Please try again shortly." });
   }
 });
+
+// 2f-pdf. Temple Visit (Darshan) Certificate — PDF. Per spec, every
+// certificate PDF uses the same "image on top, Sri Dwar disclaimer/website/
+// social links band below it — never drawn over or inside the artwork"
+// layout, via the shared composeCertificatePdf() helper below (also used by
+// the General, Service, and Transaction PDFs), so there is exactly one PDF
+// layout implementation in the codebase.
+app.get("/api/certificates/temple-visit/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderTempleVisitCertificateJpeg(refId);
+    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Temple Visit Certificate" });
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (err: any) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("temple_visit_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No Temple Visit Certificate request found for this reference." : "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+
+/**
+ * Shared image-on-top + Sri Dwar footer-band PDF composer. Every
+ * certificate/transaction PDF endpoint in this file renders through this one
+ * function, so there is exactly one PDF layout implementation, not several
+ * that could quietly drift apart. Image on top, disclaimer/website/social
+ * links band below it — never drawn over or inside the certificate artwork
+ * itself, per spec.
+ */
+async function composeCertificatePdf(
+  jpegBuffer: Buffer,
+  opts: { refId: string; title: string }
+): Promise<Uint8Array> {
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const sharp = (await import("sharp")).default;
+
+  const meta = await sharp(jpegBuffer).metadata();
+  const pxWidth = meta.width || 1492;
+  const pxHeight = meta.height || 1054;
+  // 96 CSS px-per-inch, 72 PDF-points-per-inch — the standard conversion so
+  // the page comes out at the artwork's own real printed proportions
+  // instead of an arbitrarily stretched/letterboxed A4/Letter page.
+  const imageWidthPt = (pxWidth / 96) * 72;
+  const imageHeightPt = (pxHeight / 96) * 72;
+
+  const footerHeightPt = 130;
+  const marginPt = 28;
+  const pageWidth = imageWidthPt;
+  const pageHeight = imageHeightPt + footerHeightPt;
+
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.setTitle(`Sri Dwar — ${opts.title} (Ref ${opts.refId})`);
+  pdfDoc.setProducer("Sri Dwar");
+  const jpgImage = await pdfDoc.embedJpg(jpegBuffer);
+  const page = pdfDoc.addPage([pageWidth, pageHeight]);
+  // Image on top, footer text band below it — never drawn over or inside
+  // the certificate/invoice artwork.
+  page.drawImage(jpgImage, { x: 0, y: footerHeightPt, width: imageWidthPt, height: imageHeightPt });
+
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const ink = rgb(0.11, 0.16, 0.14); // matches CONFIG.BRAND.darkGreen tone used across every email
+  const muted = rgb(0.35, 0.38, 0.36);
+
+  let cursorY = footerHeightPt - 22;
+  page.drawText("Shradhalu Private Limited · Jajpur Road, Odisha, India", {
+    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
+  });
+  cursorY -= 16;
+  page.drawText(
+    "This document is a devotional record prepared with care by Sri Dwar. It is not a government document or legal certificate.",
+    { x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted, maxWidth: pageWidth - marginPt * 2, lineHeight: 11 }
+  );
+  cursorY -= 28;
+  page.drawText("sridwar.com  ·  puja@sridwar.com", {
+    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
+  });
+  cursorY -= 16;
+  page.drawText("Facebook: facebook.com/SridwarSetu  ·  YouTube: @SriDwar  ·  LinkedIn: sri-dwar", {
+    x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted,
+  });
+
+  return pdfDoc.save();
+}
 
 // 2g. Service Certificate — composites the devotee's name, the puja/seva/
 // service, and the performed date onto Service_Certificate.jpg, server-side.
@@ -1134,83 +1229,115 @@ async function renderServiceCertificateJpeg(name: string, serviceName: string, p
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
 
+/**
+ * Shared lookup + render for the Service (Puja/Seva) Certificate, used by
+ * both the JPG route and the PDF route below. Throws "not_found" when there
+ * is no booking, or "not_completed" when payment exists but Sri Dwar's team
+ * hasn't yet confirmed the service was performed — the same distinction the
+ * original route enforced, now shared so the PDF route enforces it too
+ * instead of duplicating (and risking drifting from) this logic.
+ */
+async function loadAndRenderServiceCertificateJpeg(refId: string): Promise<Buffer> {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) throw new Error("Supabase is not configured on the server.");
+
+  const { data: activity, error: activityError } = await supabaseAdmin
+    .from("activities")
+    .select("item_name, completion_status, performed_at, created_at, user_id, metadata")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (activityError) throw new Error(activityError.message);
+  if (!activity) throw new Error("not_found");
+
+  const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null; metadata: Record<string, unknown> | null };
+  if (row.completion_status !== "completed" || !row.performed_at) {
+    // Not a rendering failure — a deliberate refusal. Matches
+    // certificateService.ts's own "not_completed" business rule.
+    throw new Error("not_completed");
+  }
+
+  // Same devoteeName precedence as the Transaction receipt / General
+  // certificate: activities.metadata.devoteeName (the name typed for this
+  // specific booking) first, then form_submissions, then profiles.name,
+  // then "Devotee" as an absolute last resort.
+  let devoteeName: string | null =
+    (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
+
+  if (!devoteeName) {
+    const { data: submission } = await supabaseAdmin
+      .from("form_submissions")
+      .select("name")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    devoteeName = (submission as { name: string | null } | null)?.name || null;
+  }
+
+  if (!devoteeName && row.user_id) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("name")
+      .eq("id", row.user_id)
+      .maybeSingle();
+    devoteeName = (profile as { name: string | null } | null)?.name || null;
+  }
+
+  const serviceName = (row.item_name || "").trim() || "Sacred Offering";
+  const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+  return renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, performedDate);
+}
+
+function serviceCertificateErrorResponse(err: any): { status: number; error: string } {
+  if (err?.message === "not_found") return { status: 404, error: "No booking found for this reference." };
+  if (err?.message === "not_completed") return { status: 403, error: "This certificate isn't available yet — it's issued once Sri Dwar's team confirms the service was performed." };
+  return { status: 500, error: "Could not generate the certificate right now. Please try again shortly." };
+}
+
 app.get("/api/certificates/service/:refId", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
     res.status(400).json({ error: "A reference ID is required." });
     return;
   }
-
-  const supabaseAdmin = getSupabaseAdminClient();
-  if (!supabaseAdmin) {
-    res.status(500).json({ error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)." });
-    return;
-  }
-
   try {
-    const { data: activity, error: activityError } = await supabaseAdmin
-      .from("activities")
-      .select("item_name, completion_status, performed_at, created_at, user_id, metadata")
-      .eq("ref_id", refId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (activityError) throw new Error(activityError.message);
-    if (!activity) {
-      res.status(404).json({ error: "No booking found for this reference." });
-      return;
-    }
-
-    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null; metadata: Record<string, unknown> | null };
-    if (row.completion_status !== "completed" || !row.performed_at) {
-      // Not a rendering failure — a deliberate refusal. Matches
-      // certificateService.ts's own "not_completed" business rule.
-      res.status(403).json({ error: "This certificate isn't available yet — it's issued once Sri Dwar's team confirms the service was performed." });
-      return;
-    }
-
-    // ✅ FIX (2026-08-29 — same "BILL TO: Devotee" bug as the Transaction
-    // receipt): every booking flow now stores the devotee's typed name in
-    // activities.metadata.devoteeName at the moment of booking — see the
-    // matching fixes in BookNowWizard.tsx, TemplateBazaar.tsx, App.tsx, and
-    // this same fix on the Transaction receipt endpoint above. Checked
-    // first, ahead of the pre-existing form_submissions/profiles fallbacks
-    // (kept as-is for older rows recorded before this fix).
-    let devoteeName: string | null =
-      (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
-
-    if (!devoteeName) {
-      const { data: submission } = await supabaseAdmin
-        .from("form_submissions")
-        .select("name")
-        .eq("ref_id", refId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      devoteeName = (submission as { name: string | null } | null)?.name || null;
-    }
-
-    if (!devoteeName && row.user_id) {
-      const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("name")
-        .eq("id", row.user_id)
-        .maybeSingle();
-      devoteeName = (profile as { name: string | null } | null)?.name || null;
-    }
-
-    const serviceName = (row.item_name || "").trim() || "Sacred Offering";
-    const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
-    const jpegBuffer = await renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, performedDate);
+    const jpegBuffer = await loadAndRenderServiceCertificateJpeg(refId);
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Service-Certificate-${refId}.jpg"`);
     res.send(jpegBuffer);
   } catch (err: any) {
     appendAuditLog("service_certificate_render_failed", { refId, message: err?.message || "unknown error" });
-    res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+    const { status, error } = serviceCertificateErrorResponse(err);
+    res.status(status).json({ error });
+  }
+});
+
+// 2g-pdf. Service (Puja/Seva) Certificate — PDF. Same shared
+// composeCertificatePdf() layout as every other certificate PDF: the
+// dedicated Service_Certificate.jpg artwork on top, disclaimer/website/
+// social links band below it.
+app.get("/api/certificates/service/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderServiceCertificateJpeg(refId);
+    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Certificate of Service" });
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Service-Certificate-${refId}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (err: any) {
+    appendAuditLog("service_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
+    const { status, error } = serviceCertificateErrorResponse(err);
+    res.status(status).json({ error });
   }
 });
 
@@ -1306,10 +1433,8 @@ app.get("/api/certificates/general/:refId", async (req, res) => {
 
 // 2k. General-purpose certificate — PDF. Per spec: the embedded image is
 // followed by a real text footer inside the PDF (disclaimer, Sri Dwar
-// website, social links) — unlike the plain Transaction invoice PDF above,
-// which is only ever a full-bleed image, since a transaction/invoice has
-// no equivalent "footer content" requirement of its own beyond what's
-// already printed on that artwork.
+// website, social links) — via the shared composeCertificatePdf() helper,
+// same as every other certificate/transaction PDF in this file.
 app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
@@ -1318,54 +1443,7 @@ app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
   }
   try {
     const jpegBuffer = await loadAndRenderGeneralCertificateJpeg(refId);
-    const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-    const sharp = (await import("sharp")).default;
-
-    const meta = await sharp(jpegBuffer).metadata();
-    const pxWidth = meta.width || 1492;
-    const pxHeight = meta.height || 1054;
-    const imageWidthPt = (pxWidth / 96) * 72;
-    const imageHeightPt = (pxHeight / 96) * 72;
-
-    const footerHeightPt = 130;
-    const marginPt = 28;
-    const pageWidth = imageWidthPt;
-    const pageHeight = imageHeightPt + footerHeightPt;
-
-    const pdfDoc = await PDFDocument.create();
-    pdfDoc.setTitle(`Sri Dwar — Certificate (Ref ${refId})`);
-    pdfDoc.setProducer("Sri Dwar");
-    const jpgImage = await pdfDoc.embedJpg(jpegBuffer);
-    const page = pdfDoc.addPage([pageWidth, pageHeight]);
-    // Image on top, footer text band below it — matches every other
-    // "image on top, disclaimer/links below, never inside the artwork"
-    // surface already built this project (emails, JPG downloads).
-    page.drawImage(jpgImage, { x: 0, y: footerHeightPt, width: imageWidthPt, height: imageHeightPt });
-
-    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const ink = rgb(0.11, 0.16, 0.14); // matches CONFIG.BRAND.darkGreen tone used across every email
-    const muted = rgb(0.35, 0.38, 0.36);
-
-    let cursorY = footerHeightPt - 22;
-    page.drawText("Shradhalu Private Limited · Jajpur Road, Odisha, India", {
-      x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
-    });
-    cursorY -= 16;
-    page.drawText(
-      "This certificate is a devotional record prepared with care by Sri Dwar. It is not a government document or legal certificate.",
-      { x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted, maxWidth: pageWidth - marginPt * 2, lineHeight: 11 }
-    );
-    cursorY -= 28;
-    page.drawText("sridwar.com  ·  puja@sridwar.com", {
-      x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
-    });
-    cursorY -= 16;
-    page.drawText("Facebook: facebook.com/SridwarSetu  ·  YouTube: @SriDwar  ·  LinkedIn: sri-dwar", {
-      x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted,
-    });
-
-    const pdfBytes = await pdfDoc.save();
+    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Certificate" });
     res.set("Content-Type", "application/pdf");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Certificate-${refId}.pdf"`);
@@ -1550,15 +1628,22 @@ app.get("/api/certificates/transaction/:refId", async (req, res) => {
   }
 });
 
-// 2i. Transaction Completed — PDF invoice. Per spec: payment/transaction
-// documents are the one record type downloadable as a PDF, and that PDF
-// must embed the same Trasancation_Completed.jpg artwork (with the same
-// prefilled data) as the JPG endpoint above — not a separately-designed
-// invoice layout. This wraps loadAndRenderTransactionJpeg's output as a
-// single full-page image inside a PDF via pdf-lib, exactly the same
-// embed-an-image-in-a-page technique certificateService.ts already uses
-// elsewhere in this project, so there is only one PDF-construction pattern
-// in the codebase, not two.
+// 2i. Transaction Completed — PDF invoice. Per spec, every certificate/
+// transaction PDF in this app uses the same layout: the dedicated
+// Trasancation_Completed.jpg artwork (with the same prefilled Bill To /
+// Invoice / Reference / Date / Description / Amount / Subtotal / Total
+// Paid / Payment Method data as the JPG endpoint above) on top, with the
+// Sri Dwar disclaimer, website, and social links printed in a real text
+// footer band BELOW the artwork — never drawn over or inside it. Shares
+// the composeCertificatePdf() helper with every other certificate PDF
+// route, so there is exactly one PDF-construction pattern in the codebase.
+//
+// ✅ FIX (2026-08-29 — audit finding): this route previously embedded the
+// receipt JPEG as a single full-bleed page image with NO footer band at
+// all, unlike the General certificate PDF beside it — inconsistent, and
+// missing the disclaimer/website/social-links requirement entirely for
+// every Puja/Seva/Bazaar/Contribution transaction. Now routed through the
+// same composeCertificatePdf() helper as every other certificate PDF.
 app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
@@ -1567,26 +1652,7 @@ app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
   }
   try {
     const jpegBuffer = await loadAndRenderTransactionJpeg(refId);
-    const { PDFDocument } = await import("pdf-lib");
-    const sharp = (await import("sharp")).default;
-
-    const meta = await sharp(jpegBuffer).metadata();
-    const pxWidth = meta.width || 1055;
-    const pxHeight = meta.height || 1491;
-    // 96 CSS px-per-inch, 72 PDF-points-per-inch — the standard conversion
-    // so the page comes out at the artwork's own real printed proportions
-    // instead of an arbitrarily stretched/letterboxed A4/Letter page.
-    const pageWidth = (pxWidth / 96) * 72;
-    const pageHeight = (pxHeight / 96) * 72;
-
-    const pdfDoc = await PDFDocument.create();
-    pdfDoc.setTitle(`Sri Dwar — Transaction Confirmation (Ref ${refId})`);
-    pdfDoc.setProducer("Sri Dwar");
-    const jpgImage = await pdfDoc.embedJpg(jpegBuffer);
-    const page = pdfDoc.addPage([pageWidth, pageHeight]);
-    page.drawImage(jpgImage, { x: 0, y: 0, width: pageWidth, height: pageHeight });
-
-    const pdfBytes = await pdfDoc.save();
+    const pdfBytes = await composeCertificatePdf(jpegBuffer, { refId, title: "Transaction Confirmation" });
     res.set("Content-Type", "application/pdf");
     res.set("Cache-Control", "private, max-age=120");
     res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Invoice-${refId}.pdf"`);

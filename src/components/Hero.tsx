@@ -66,20 +66,29 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   // submitted, not just later from the Profile page.
   const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
   const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  // ✅ FIX (2026-08-29 — audit finding): tracks which format is in flight
+  // ("jpg" | "pdf" | null) so both buttons below can show their own
+  // "Preparing..." state independently instead of sharing one boolean.
+  const [downloadingFormat, setDownloadingFormat] = useState<"jpg" | "pdf" | null>(null);
 
-  const handleDownloadTempleVisitCertificate = async () => {
+  // format now selects between the plain JPG route and the /pdf route
+  // (added alongside it in server.ts) — both render from the exact same
+  // devotee/temple/date data, so a PDF download is available immediately,
+  // not just the JPG, matching every other certificate type in the app.
+  const handleDownloadTempleVisitCertificate = async (format: "jpg" | "pdf" = "jpg") => {
     if (!refId) return;
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
+    setDownloadingFormat(format);
     try {
-      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`);
+      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}${format === "pdf" ? "/pdf" : ""}`);
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`;
+      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.${format}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -89,6 +98,7 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
     } finally {
       setIsDownloadingCertificate(false);
+      setDownloadingFormat(null);
     }
   };
   
@@ -748,15 +758,27 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                 {certificateDownloadError && (
                   <p className="text-[11px] text-red-300 text-center -mb-1">{certificateDownloadError}</p>
                 )}
-                <button
-                  id="download-temple-visit-certificate"
-                  onClick={handleDownloadTempleVisitCertificate}
-                  disabled={isDownloadingCertificate}
-                  className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow"
-                >
-                  <span>🛕</span>
-                  <span>{isDownloadingCertificate ? "Preparing Your Certificate…" : "Download Your Certificate"}</span>
-                </button>
+                <div className="w-full flex gap-2">
+                  <button
+                    id="download-temple-visit-certificate"
+                    onClick={() => handleDownloadTempleVisitCertificate("jpg")}
+                    disabled={isDownloadingCertificate}
+                    className="flex-1 bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow"
+                  >
+                    <span>🛕</span>
+                    <span>{isDownloadingCertificate && downloadingFormat === "jpg" ? "Preparing…" : "Download Certificate"}</span>
+                  </button>
+                  {/* ✅ ADDED — PDF option alongside the JPG, matching every
+                      other certificate type's JPG + PDF pair. */}
+                  <button
+                    id="download-temple-visit-certificate-pdf"
+                    onClick={() => handleDownloadTempleVisitCertificate("pdf")}
+                    disabled={isDownloadingCertificate}
+                    className="shrink-0 bg-white/10 hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-4 py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center shadow"
+                  >
+                    {isDownloadingCertificate && downloadingFormat === "pdf" ? "…" : "PDF"}
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <button

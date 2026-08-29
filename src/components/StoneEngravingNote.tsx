@@ -64,7 +64,20 @@ interface StoneEngravingNoteProps {
   /** Optional heading shown above the note (kept short/subtle by design). */
   title?: string;
   className?: string;
+  /** ✅ ADDED (2026-08-29 — Profile page audit): when true, the body text
+   *  starts collapsed behind a one-line teaser + "Read More" toggle instead
+   *  of always rendering in full — for tight spaces like the Profile
+   *  page's "Support Our Mission" panel, where the full devotional
+   *  paragraph (plus the repeat-participation note) was pushing the short,
+   *  scannable summary the rest of that page uses everywhere else.
+   *  Defaults to false so every other existing call site (Contact,
+   *  Report an Issue, UPI modal, Hero, etc.) is completely unaffected. */
+  collapsible?: boolean;
 }
+
+/** Short, single-line teaser shown in place of the full body text when collapsible and collapsed. */
+const STONE_ENGRAVING_TEASER =
+  "Contributions above ₹200 can include your name engraved on a stone slab at a temple we serve.";
 
 /**
  * Compact, image-led card describing the stone-name engraving initiative.
@@ -76,8 +89,11 @@ export default function StoneEngravingNote({
   showRepeatNote = false,
   title,
   className = "",
+  collapsible = false,
 }: StoneEngravingNoteProps) {
   const bodyText = variant === "full" ? STONE_ENGRAVING_FULL_TEXT : STONE_ENGRAVING_COMPACT_TEXT;
+  const [expanded, setExpanded] = useState(false);
+  const showFullBody = !collapsible || expanded;
 
   return (
     <div
@@ -88,9 +104,26 @@ export default function StoneEngravingNote({
           <span className="block text-xs font-bold text-[#FFB347]">{title}</span>
         )}
         <p className="text-[11px] text-white/60 leading-relaxed">
-          {bodyText}
-          {showRepeatNote && <> {STONE_ENGRAVING_REPEAT_TEXT}</>}
+          {showFullBody ? (
+            <>
+              {bodyText}
+              {showRepeatNote && <> {STONE_ENGRAVING_REPEAT_TEXT}</>}
+            </>
+          ) : (
+            STONE_ENGRAVING_TEASER
+          )}
         </p>
+        {collapsible && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FFB347] hover:text-[#FFC97A] transition-colors pt-0.5"
+          >
+            {expanded ? "Show less" : "Read More"}
+            <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
+          </button>
+        )}
       </div>
 
       {/* ✅ IMAGE LAYOUT FIX (2026-08-27): previously sat beside the text in a
