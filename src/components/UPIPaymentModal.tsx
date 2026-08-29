@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles, AlertTriangle } from "lucide-react";
 import { buildUpiQrDataUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
+import { isNativeAndroidApp } from "../utils/shareUrl";
 import CollapsibleSection from "./CollapsibleSection";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import StoneEngravingNote, { STONE_ENGRAVING_COMPACT_TEXT, STONE_ENGRAVING_REPEAT_TEXT } from "./StoneEngravingNote";
@@ -57,7 +58,7 @@ function getContributionBenefits(amount: number): string[] {
 // page or form led here.
 //
 const PAYMENT_DISCLAIMER =
-  "With gratitude, your payment is received and submitted for gentle verification by our team — your booking is confirmed once this is complete, usually within 2 hours. Sevas, pujas and offerings are lovingly performed with devotion as per temple/priest process; timings may naturally vary. Contribution benefits (cashback, milestones, pilgrimage eligibility, campaign entries) are heartfelt platform benefits linked to real, paid bookings, offered warmly as encouragement — not a guarantee of any spiritual outcome, and not an investment or money-circulation scheme.";
+  "With gratitude, your payment/request has been received and submitted for gentle verification by our team — your Seva/Puja will be processed shortly once this is complete, usually within 2 hours. Sevas, pujas and offerings are lovingly performed with devotion as per temple/priest process; timings may naturally vary. Contribution benefits (cashback, milestones, pilgrimage eligibility, campaign entries) are heartfelt platform benefits linked to real, paid bookings, offered warmly as encouragement — not a guarantee of any spiritual outcome, and not an investment or money-circulation scheme. If a payment is later found to be unsuccessful, duplicate, or not properly processed, a refund will be initiated wherever applicable.";
 
 // ✅ STONE-NAME ENGRAVING (2026-08-27): a short addendum appended to the
 // disclaimer ONLY when `isVoluntaryContribution` is true (see below) —
@@ -74,18 +75,23 @@ interface UPIPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   /**
-   * Called once the devotee has SUBMITTED a payment intent — either via
-   * "I Have Paid" (UPI/QR) or "Pay via WhatsApp". This does NOT mean the
-   * payment has been verified — nobody on the Sri Dwar side has checked the
-   * money actually landed yet, only that the devotee tapped the button (or
-   * opened WhatsApp). Callers should record this as a pending/awaiting-
-   * verification state (never "Paid — Confirmed") and only mark a booking
-   * as truly confirmed, and notify the devotee accordingly, once payment is
-   * actually verified on the admin/reconciliation side. Receives the
-   * amount (custom or fixed) and which method was used, so the caller's
-   * Google Sync row can still record an accurate divine
-   * contribution/payment method — never "Skipped" once a real payment
-   * action has happened.
+   * Called once the devotee has SUBMITTED a payment intent via "I Have
+   * Paid" (UPI/QR). This does NOT mean the payment has been verified —
+   * nobody on the Sri Dwar side has checked the money actually landed
+   * yet, only that the devotee tapped the button. Callers should record
+   * this as a pending/awaiting-verification state (never "Paid —
+   * Confirmed") and only mark a booking as truly confirmed, and notify
+   * the devotee accordingly, once payment is actually verified on the
+   * admin/reconciliation side. Receives the amount (custom or fixed) so
+   * the caller's Google Sync row can still record it accurately.
+   *
+   * ✅ WHATSAPP-AS-PAYMENT REMOVED (2026-08-29): WhatsApp is no longer
+   * offered as a way to PAY — it was previously possible to "pay" by
+   * simply opening a WhatsApp chat, which is not an actual payment
+   * method (PhonePe/GPay/Paytm/BHIM via UPI are). WhatsApp is still used
+   * site-wide as a CONFIRMATION channel (the team notifies devotees of
+   * verified bookings over WhatsApp & Email) — that is unchanged and
+   * unrelated to this callback. `method` is therefore now always "UPI".
    *
    * This one component is the shared payment-intent trigger for every
    * payment-structured service on the site — Puja, Seva, Guidance/
@@ -94,7 +100,7 @@ interface UPIPaymentModalProps {
    * "pending verification" behaviour below applies uniformly to all of
    * them without needing to be duplicated per category.
    */
-  onPaymentConfirmed: (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => void;
+  onPaymentConfirmed: (details: { amount: number; method: "UPI" }) => void;
   amount: number | null;
   bookingName: string;
   devoteeName: string;
@@ -148,20 +154,18 @@ export default function UPIPaymentModal({
   isVoluntaryContribution = false,
 }: UPIPaymentModalProps) {
   const [copied, setCopied] = useState(false);
-  // NOTE: "submitted" means the devotee tapped "I Have Paid" or opened
-  // "Pay via WhatsApp" — i.e. a payment-intent notification went out to
-  // the Sri Dwar team. It does NOT mean the payment has been verified.
-  // Do not rename this back to "confirmed" — that wording previously led
-  // the UI (and, downstream, the Google Sheet status text some callers
-  // wrote) to imply the booking/payment was already confirmed the instant
-  // this button was tapped, before anyone had actually checked the money
-  // landed.
+  // NOTE: "submitted" means the devotee tapped "I Have Paid" — i.e. a
+  // payment-intent notification went out to the Sri Dwar team. It does
+  // NOT mean the payment has been verified. Do not rename this back to
+  // "confirmed" — that wording previously led the UI (and, downstream,
+  // the Google Sheet status text some callers wrote) to imply the
+  // booking/payment was already confirmed the instant this button was
+  // tapped, before anyone had actually checked the money landed.
   const [submitted, setSubmitted] = useState(false);
   const [customAmount, setCustomAmount] = useState<number | "">(amount || "");
-  // ✅ CONTRIBUTION-DISCLAIMER SAFETY NET: required before either "I Have
-  // Paid" or "Pay via WhatsApp" can proceed. Resets to unticked each time
-  // the modal opens fresh, same as the rest of this component's local
-  // state (isOpen guard below).
+  // ✅ CONTRIBUTION-DISCLAIMER SAFETY NET: required before "I Have Paid"
+  // can proceed. Resets to unticked each time the modal opens fresh, same
+  // as the rest of this component's local state (isOpen guard below).
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [showDisclaimerError, setShowDisclaimerError] = useState(false);
   // ✅ FIX (2026-08-26): QR is now generated locally (see upiConfig.ts) —
@@ -173,6 +177,21 @@ export default function UPIPaymentModal({
 
   const WHATSAPP_NUMBER = "919777645062";
   const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
+
+  // ✅ DIRECT-PAY GATING (2026-08-29): the "tap here to pay directly" link
+  // below fires a `upi://pay...` deep link, which only does anything
+  // useful where a UPI app (PhonePe/GPay/Paytm/BHIM) can actually catch
+  // it — inside the Android app shell, or a phone/tablet's mobile browser.
+  // On a laptop/desktop browser there is no UPI app to hand the link to,
+  // so it either does nothing or triggers a confusing "how do you want to
+  // open this?" dialog. Reuses the same 1024px desktop breakpoint already
+  // used elsewhere on the site (see ReferralPlans.tsx, SevaOfferingCard.tsx,
+  // CounsellingGuidance.tsx, AboutUs.tsx) so "desktop" means the same thing
+  // everywhere. The QR code above is unaffected by this — scanning a QR
+  // with a phone camera works fine from a desktop screen too.
+  const canUseDirectPayLink =
+    typeof window !== "undefined" &&
+    (isNativeAndroidApp() || !window.matchMedia?.("(min-width: 1024px)")?.matches);
 
   // ✅ FIX (2026-08-16): reconciliation gap. The UPI transaction note (the
   // "tn" field inside upi://pay...) used to be just bookingName ("Rudrabhishek
@@ -213,44 +232,24 @@ export default function UPIPaymentModal({
 
   if (!isOpen) return null;
 
-  // "Pay via WhatsApp" is a real payment-intent action, not just an
-  // informational link — opening it means the devotee has committed to
-  // paying via WhatsApp instead of the QR/UPI button. So it still notifies
-  // the Sri Dwar team (method: "WhatsApp Pay"), same as "I Have Paid" does
-  // for the UPI/QR path — but this is a PENDING notification, not a
-  // confirmation. Nobody has verified the money landed yet.
-  const handleWhatsAppPay = () => {
-    if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
-      alert("Minimum divine contribution is ₹" + minAmount);
-      return;
-    }
-    if (!skipDisclaimer && !disclaimerAccepted) {
-      setShowDisclaimerError(true);
-      document.getElementById("upi-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-    const message = encodeURIComponent(
-      "🙏 Jai Jagannath! I would like to make a UPI payment for:\n\n" +
-      "📿 Service: " + bookingName + "\n" +
-      "👤 Name: " + devoteeName + "\n" +
-      "💰 Amount: ₹" + effectiveAmount + "\n" +
-      "🔖 Ref ID: " + refId + "\n\n" +
-      "Please confirm my booking after payment. 🙏"
-    );
-    window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message, "_blank");
-    setSubmitted(true);
-    sendOwnerWhatsAppAlert("WhatsApp Pay");
-    setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "WhatsApp Pay" }); }, 1500);
-  };
-
-  const sendOwnerWhatsAppAlert = (method: "UPI" | "WhatsApp Pay") => {
+  // ✅ WHATSAPP-AS-PAYMENT REMOVED (2026-08-29): there used to be a "Pay
+  // via WhatsApp" button here that let a devotee "pay" simply by opening
+  // a WhatsApp chat — that is not a real payment method and has been
+  // removed everywhere on the site (this modal is the single shared
+  // payment surface for every payment-structured flow — see the notes at
+  // the top of this file). WhatsApp remains in use below only as an
+  // internal notification channel (alerting the Sri Dwar team that a
+  // payment intent needs verification) and, elsewhere on the site, as a
+  // devotee-facing CONFIRMATION channel once a booking is actually
+  // verified — neither of those is a payment method.
+  const sendOwnerWhatsAppAlert = () => {
     const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     const message = encodeURIComponent(
       "🔔 *PAYMENT PENDING VERIFICATION — Sri Dwar*\n\n" +
       "📿 *Service:* " + bookingName + "\n" +
       "👤 *Devotee:* " + devoteeName + "\n" +
       "💰 *Amount:* ₹" + effectiveAmount + "\n" +
-      "💳 *Method:* " + method + "\n" +
+      "💳 *Method:* UPI\n" +
       "🔖 *Ref ID:* " + refId + "\n" +
       "🕐 *Time:* " + now + " IST\n\n" +
       "Devotee has submitted this payment — please verify it landed before confirming the booking. 🙏"
@@ -276,7 +275,17 @@ export default function UPIPaymentModal({
       return;
     }
     setSubmitted(true);
-    sendOwnerWhatsAppAlert("UPI");
+    sendOwnerWhatsAppAlert();
+    // ✅ IMMEDIATE ACKNOWLEDGEMENT (2026-08-29): fire onPaymentConfirmed
+    // right away instead of waiting on any manual/admin step — this is
+    // what flips the UI below into the "🙏 Payment Noted — Verification
+    // Pending" state and lets every caller (BookNowWizard, Subscription
+    // Signup, Temple Bazaar, Divine Contributions, etc.) show the devotee
+    // an immediate "received" acknowledgement without making them wait
+    // for the team to manually verify the money first. The short delay
+    // is purely a UI beat so the button's own tap animation/state change
+    // is visible before the parent unmounts this modal — it is not a
+    // wait for verification.
     setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "UPI" }); }, 1500);
   };
 
@@ -395,8 +404,8 @@ export default function UPIPaymentModal({
                 sync with the rest of the site. */}
             {isVoluntaryContribution && <StoneEngravingNote variant="compact" showRepeatNote />}
 
-            {/* Required acknowledgement — gates both "I Have Paid" and "Pay
-                via WhatsApp" below. This is the safety-net checkbox for any
+            {/* Required acknowledgement — gates "I Have Paid" below. This
+                is the safety-net checkbox for any
                 flow that reaches payment without its own earlier disclaimer
                 gate (Divine Contributions, Subscriptions, Testimony/Prayer
                 Wall, etc.). Flows that already gate one step earlier — Puja,
@@ -438,25 +447,35 @@ export default function UPIPaymentModal({
                 ) : qrGenerationFailed ? (
                   // Extremely unlikely (generation is local, no network) —
                   // but if it ever happens, don't leave a blank box: point
-                  // the devotee straight at the two working alternatives
-                  // already on this screen (direct pay link, WhatsApp, Copy
-                  // UPI ID below) instead of a dead end.
+                  // the devotee straight at the working alternatives
+                  // already on this screen (direct pay link where shown,
+                  // or Copy UPI ID below) instead of a dead end.
                   <div className="text-center px-2">
                     <AlertTriangle className="w-6 h-6 text-[#F27D26] mx-auto mb-1" />
                     <span className="text-[11px] text-[#021816]/70 font-mono leading-snug block">
-                      QR couldn't load — use "tap here to pay" below or Copy UPI ID
+                      {canUseDirectPayLink
+                        ? 'QR couldn\'t load — use "tap here to pay" below or Copy UPI ID'
+                        : "QR couldn't load — use Copy UPI ID below"}
                     </span>
                   </div>
                 ) : (
                   <RefreshCw className="w-6 h-6 text-[#021816]/30 animate-spin" />
                 )}
               </div>
-              <p className="text-[13px] text-white/55 text-center leading-relaxed">
-                On a phone you can also{" "}
-                <a href={buildUpiLink(effectiveAmount, upiTransactionNote)} className="text-[#5EEAD4] underline font-semibold">
-                  tap here to pay directly
-                </a>.
-              </p>
+              {/* ✅ DIRECT-PAY GATING (2026-08-29): only shown inside the
+                  Android app or a mobile/tablet browser, where a UPI app
+                  is actually present to catch this deep link — see
+                  canUseDirectPayLink above. Hidden on desktop/laptop
+                  browsers, where PhonePe/GPay/Paytm/BHIM aren't available
+                  to open it. */}
+              {canUseDirectPayLink && (
+                <p className="text-[13px] text-white/55 text-center leading-relaxed">
+                  On a phone you can also{" "}
+                  <a href={buildUpiLink(effectiveAmount, upiTransactionNote)} className="text-[#5EEAD4] underline font-semibold">
+                    tap here to pay directly
+                  </a>.
+                </p>
+              )}
             </div>
 
             <div className="flex items-center space-x-3">
@@ -464,15 +483,6 @@ export default function UPIPaymentModal({
               <span className="text-[12px] text-white/30 font-mono">OR</span>
               <div className="flex-1 h-px bg-white/10" />
             </div>
-
-            <button onClick={handleWhatsAppPay}
-              className="w-full flex items-center justify-center space-x-2 bg-[#25D366] hover:bg-[#1ebe59] text-white font-bold py-3.5 rounded-xl text-xs transition-all tracking-wide shadow-lg">
-              <span className="text-lg">💬</span>
-              <div className="text-left">
-                <span className="block font-extrabold">Pay via WhatsApp</span>
-                <span className="block text-[11px] font-normal opacity-80">Opens WhatsApp with payment details</span>
-              </div>
-            </button>
 
             <div className="flex items-center justify-between bg-white/5 px-4 py-3 rounded-xl border border-white/10">
               <div>

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database } from "lucide-react";
+import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database, ShoppingBasket } from "lucide-react";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import { SEVA_DISCLAIMER } from "../data/sevaOfferings";
@@ -38,6 +38,28 @@ interface BookNowWizardProps {
    *  elsewhere. */
   category?: Extract<DevotionalServiceCategory, "puja_seva" | "counselling_guidance" | "holistic_wellness" | "seva_offering">;
   onSuccess: (bookedItem: { pujaName: string; sankalpaName: string; price: number; refId: string }) => void;
+  /**
+   * When provided, the portal's final CTA ("Proceed to Secure Offering" /
+   * "Proceed to Secure Enrollment") becomes an "Add to Cart" action: the
+   * devotee's details are validated and synced exactly as before, then this
+   * item is added to the unified Sankalp Portal cart instead of opening the
+   * UPI payment step inline — payment now happens once, combined with any
+   * other cart items, from the cart drawer. Returns { ok:false, reason } if
+   * the 10-item cap (or a transient error) blocks the add, which is shown
+   * to the devotee instead of silently failing.
+   *
+   * If omitted, the wizard falls back to its original single-item
+   * pay-immediately flow (Step 1 → Step 2 UPI → Step 3 receipt) below, so
+   * no existing caller breaks if it isn't updated to pass this.
+   */
+  onAddToCart?: (item: {
+    itemName: string; amount: number;
+    details: { devoteeName: string; phone: string; email: string; dob?: string; gotra?: string; rashi?: string; sankalpWish?: string; preferredSessionDate?: string };
+  }) => Promise<{ ok: boolean; reason?: string }>;
+  /** Opens the cart drawer — wired from the "View Cart & Checkout" button on
+   *  the post-add confirmation screen (Step 4). Only relevant when
+   *  onAddToCart is provided. */
+  onViewCart?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -169,7 +191,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
   },
 };
 
-export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, category = "puja_seva", onSuccess }: BookNowWizardProps) {
+export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", defaultPrice = 1100, category = "puja_seva", onSuccess, onAddToCart, onViewCart }: BookNowWizardProps) {
   const isGuidance = category === "counselling_guidance";
   const isWellness = category === "holistic_wellness";
   const isSeva = category === "seva_offering";
@@ -177,6 +199,10 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Request Acknowledgement (NOT a completion certificate — see wizard-success-stage below)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
+  // Which of the two Step 1 buttons is currently submitting — drives which
+  // button shows the "…ing" label below, so the devotee isn't left
+  // wondering which action they actually triggered.
+  const [submitMode, setSubmitMode] = useState<"cart" | "direct" | null>(null);
   // ✅ DISCLAIMER COVERAGE: this is the shared Sankalpa Portal behind Puja,
   // Counselling & Guidance, and Holistic Wellness — step 1 (this form)
   // syncs a "Pending" record before the UPI payment step is ever shown, so
@@ -215,6 +241,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
       setPrice(defaultPrice);
       setPreferredSessionDate("");
       setStep(1);
+      setSubmitMode(null);
       gaBookNowOpen(defaultPujaName || "Graha Shanti Maha Puja", defaultPrice);
 
       const savedProfileStr = localStorage.getItem("sridwar_sacred_profile");
@@ -299,8 +326,14 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   // even if the devotee closes the tab before paying. The Final row (same
   // Ref ID) is sent exactly once more, from handlePaymentConfirmed below,
   // with only the payment/divine contribution details corrected — no duplicate rows.
-  const handleNextToPayment = async (e: FormEvent) => {
-    e.preventDefault();
+  // Shared by both Step 1 buttons — "Add to Cart" (mode="cart") saves this
+  // item into the unified Sankalp Portal cart and shows the Step 4
+  // confirmation; "Proceed to Secure Offering/Enrollment" (mode="direct")
+  // skips the cart entirely and goes straight to the UPI payment step, for
+  // a devotee who just wants to pay for this one item right now. Both
+  // paths validate and sync the same "pending" lead row first, so nothing
+  // is lost either way if the devotee closes the tab before paying.
+  const submitDetails = async (mode: "cart" | "direct") => {
     if (isSubmittingRef.current) return;
     const nameErr  = validateName(devoteeName);
     const phoneErr = validatePhone(phone);
@@ -319,17 +352,43 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
     isSubmittingRef.current = true;
     setIsSyncingDetails(true);
+    setSubmitMode(mode);
     const newRefId = `SDP-${randomRefSuffix()}`;
     setRefId(newRefId);
+    const pendingStatusLabel = mode === "cart" ? "Added to Cart — Awaiting Checkout" : "Pending — Awaiting Confirmation";
     try {
-      await syncToGoogleForm("puja_booking", buildSyncPayload(newRefId, "Pending — Awaiting Confirmation", price));
+      await syncToGoogleForm("puja_booking", buildSyncPayload(newRefId, pendingStatusLabel, price));
     } catch (err) {
       console.error(err);
     } finally {
       isSubmittingRef.current = false;
       setIsSyncingDetails(false);
-      setStep(2);
+
+      if (mode === "cart" && onAddToCart) {
+        const result = await onAddToCart({
+          itemName: pujaName,
+          amount: price,
+          details: { devoteeName, phone, email, dob: dob || undefined, gotra: gotra || undefined, rashi: rashi || undefined, sankalpWish: sankalpWish || undefined, preferredSessionDate: preferredSessionDate || undefined },
+        });
+        if (result.ok) {
+          setStep(4); // "Added to Cart" confirmation — see Step 4 below
+        } else {
+          alert(result.reason || "Could not add this item to your cart. Please try again.");
+          setSubmitMode(null);
+        }
+        return;
+      }
+
+      setStep(2); // direct pay: this item only, right now
     }
+  };
+
+  // Enter-key / form submit defaults to "Add to Cart" when it's available
+  // (matches the primary button below), otherwise falls back to direct pay
+  // for any caller that doesn't pass onAddToCart.
+  const handleFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    submitDetails(onAddToCart ? "cart" : "direct");
   };
 
   const handleSimulatePayment = () => {
@@ -477,7 +536,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
 
               {/* ── STEP 1: Sankalpa Details Form ── */}
               {step === 1 && (
-                <form onSubmit={handleNextToPayment} className="space-y-4">
+                <form onSubmit={handleFormSubmit} className="space-y-4">
                   <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-[13px] text-[#5EEAD4] text-left leading-relaxed">
                     <span className="font-bold">{copy.introLabel}</span> {copy.introText}
                   </div>
@@ -620,10 +679,35 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     />
                   </div>
 
-                  <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}
-                    className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center uppercase tracking-wider">
-                    {isSyncingDetails ? "Saving Your Details…" : copy.submitLabel}
-                  </button>
+                  {/* ── Add to Cart + Proceed to Payment ──────────────────
+                      Two distinct choices, same validated/synced details
+                      either way: "Add to Cart" saves this item into the
+                      unified Sankalp Portal cart (see Step 4 below) so more
+                      items can be added before paying once, combined;
+                      "Proceed to Secure Offering/Enrollment" skips the cart
+                      and pays for just this one item right now. Only one
+                      caller (App.tsx) exists today and always passes
+                      onAddToCart, so both buttons render for every
+                      category — Add to Cart is hidden only for a future
+                      caller that doesn't wire it up. */}
+                  <div className="space-y-2.5">
+                    {onAddToCart && (
+                      <button id="wizard-step1-add-to-cart" type="button" disabled={isSyncingDetails}
+                        onClick={() => submitDetails("cart")}
+                        className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center gap-2 uppercase tracking-wider">
+                        <ShoppingBasket className="w-4 h-4" />
+                        {isSyncingDetails && submitMode === "cart" ? "Adding to Cart…" : "Add to Cart"}
+                      </button>
+                    )}
+                    <button id="wizard-step1-submit" type="submit" disabled={isSyncingDetails}
+                      className={
+                        onAddToCart
+                          ? "w-full bg-transparent hover:bg-white/5 disabled:opacity-60 disabled:cursor-not-allowed text-white/80 font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 cursor-pointer flex items-center justify-center uppercase tracking-wider border-2 border-white/15 hover:border-white/25"
+                          : "w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center uppercase tracking-wider"
+                      }>
+                      {isSyncingDetails && submitMode === "direct" ? "Saving Your Details…" : (onAddToCart ? `${copy.submitLabel} — Pay Now` : copy.submitLabel)}
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -754,6 +838,46 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     <button id="close-success-wizard" onClick={handleClose}
                       className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">
                       🙏 Close and Pray
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── STEP 4: Added to Cart (onAddToCart flow only) ──
+                   Reached instead of Step 2/3 whenever a parent passes
+                   onAddToCart. Payment now happens once, combined, from the
+                   cart drawer — this screen just confirms the item was
+                   added and lets the devotee keep adding more (same portal,
+                   fresh Step 1) or jump straight to checkout. */}
+              {step === 4 && (
+                <div className="space-y-6 text-center" id="wizard-added-to-cart-stage">
+                  <div className="w-12 h-12 bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
+                    <Check className="w-6 h-6 text-emerald-400 stroke-[3]" />
+                  </div>
+                  <h4 className="font-serif text-2xl font-black text-[#5EEAD4]">Added to Your Cart!</h4>
+                  <p className="text-sm text-white/70 px-2">
+                    <strong className="text-[#FFB347]">{pujaName}</strong> (₹{price}) has been added to your cart for <strong className="text-white">{devoteeName}</strong>. Add more Pujas, Sevas, or services, or proceed to checkout whenever you're ready.
+                  </p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {onViewCart && (
+                      <button id="wizard-go-to-cart" onClick={() => { onViewCart(); handleClose(); }}
+                        className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-2xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">
+                        View Cart &amp; Checkout
+                      </button>
+                    )}
+                    <button id="wizard-add-another" onClick={() => {
+                        paymentCompletedRef.current = false;
+                        setStep(1);
+                        setPujaName(defaultPujaName || "Graha Shanti Maha Puja");
+                        setPrice(defaultPrice);
+                        setSankalpWish("");
+                      }}
+                      className="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-3.5 rounded-2xl text-xs transition-all border border-white/10 cursor-pointer uppercase tracking-wider">
+                      Add Another Item
+                    </button>
+                    <button id="wizard-close-after-add" onClick={handleClose}
+                      className="w-full text-xs text-white/55 hover:text-white py-2 font-bold cursor-pointer">
+                      Close for Now
                     </button>
                   </div>
                 </div>

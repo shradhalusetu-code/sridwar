@@ -20,6 +20,11 @@ interface NavbarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   cart: CartItem[];
+  /** Count of items in the separate Sankalp Portal (Puja/Seva/Guidance/
+   *  Wellness) cart — added to the Temple Bazaar cart's own count below so
+   *  the badge reflects everything in the unified basket. Optional/defaults
+   *  to 0 so nothing breaks if a caller doesn't pass it. */
+  extraCartCount?: number;
   onOpenCart: () => void;
   onOpenBookNow: () => void;
   onOpenSevaModal: () => void;
@@ -45,6 +50,7 @@ export default function Navbar({
   currentPage,
   onNavigate,
   cart,
+  extraCartCount = 0,
   onOpenCart,
   onOpenBookNow,
   onOpenSevaModal,
@@ -107,7 +113,7 @@ export default function Navbar({
     setIsLangDropdownOpen(false);
   }, [currentPage]);
 
-  const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0) + extraCartCount;
 
   const handleShare = async () => {
     // Always use the public production URL here — inside the Android app,

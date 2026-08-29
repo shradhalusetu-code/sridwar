@@ -58,14 +58,16 @@ interface BazaarOfferingCardProps {
   /** Fires the primary CTA ("Offer in Temple" / "Buy Now") — hands a fully
    *  composed, human-readable item name, final amount, and (for physical
    *  items) the delivery PIN code straight to the existing Puja Sankalpa
-   *  Portal + UPI payment flow in TemplateBazaar. */
+   *  Portal + UPI payment flow in TemplateBazaar.
+   *  ✅ BAZAAR SANKALP PORTAL CART FIX: "Add to Cart" no longer lives on
+   *  this card — it now lives inside the Puja Sankalpa Portal that this
+   *  CTA opens (TemplateBazaar.tsx's showSankalpa modal), right next to
+   *  "Proceed to Checkout", once the devotee has filled in their Sankalp
+   *  details and accepted the disclaimer there. */
   onOffer: (product: BazaarProduct, composedName: string, amount: number, pincode: string) => void;
-  /** Fires "Add to Cart" — adds the composed item to the lightweight
-   *  Devotional Shopping cart in TemplateBazaar. */
-  onAddToCart: (product: BazaarProduct, composedName: string, amount: number, pincode: string) => void;
 }
 
-export default function BazaarOfferingCard({ product, isActive, onActivate, onOffer, onAddToCart }: BazaarOfferingCardProps) {
+export default function BazaarOfferingCard({ product, isActive, onActivate, onOffer }: BazaarOfferingCardProps) {
   const firstNumericOption = product.priceOptions.find((p) => typeof p.value === "number");
   const [selected, setSelected] = useState<string>(firstNumericOption ? String(firstNumericOption.value) : "custom");
   const [customAmount, setCustomAmount] = useState("");
@@ -75,7 +77,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
   );
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({});
   const [addOnText, setAddOnText] = useState<Record<string, string>>({});
-  const [justAdded, setJustAdded] = useState<"offer" | "cart" | null>(null);
+  const [justAdded, setJustAdded] = useState<"offer" | null>(null);
   // ✅ PROGRESSIVE DISCLOSURE: same fix as SevaOfferingCard.tsx — "This
   // includes" / "You will receive" collapsed by default so a devotee can
   // scan the Bazaar grid by photo/title/badges/price first, then open a
@@ -191,24 +193,6 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
     setTimeout(() => setJustAdded(null), 5000);
   };
 
-  const handleAddToCart = () => {
-    if (!isActive) { onActivate(); return; }
-    if (!product.isService && !disclaimerChecked) {
-      setShowDisclaimerError(true);
-      document.getElementById(`bazaar-offering-disclaimer-${product.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-    if (isCustomSelected && !customAmountValid) { alert(BAZAAR_CUSTOM_AMOUNT_NOTE); return; }
-    if (!product.isService) {
-      const err = validatePincode(pincode);
-      if (err) { setPincodeError(err); return; }
-    }
-    onAddToCart(product, buildComposedName(), finalAmount, pincode.trim());
-    resetAfterAction();
-    setJustAdded("cart");
-    setTimeout(() => setJustAdded(null), 5000);
-  };
-
   return (
     <div
       id={`bazaar-offering-${product.id}`}
@@ -259,9 +243,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
             <Check className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             <span>
-              {justAdded === "cart"
-                ? "Added to cart — you can add more items or continue below."
-                : "Details captured — please complete your Sankalpa in the form that just opened."}
+              Details captured — please complete your Sankalpa in the form that just opened.
             </span>
           </div>
         )}
@@ -541,20 +523,13 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           <span>{product.isService ? "Offered as per temple schedule; digital confirmation shared after completion." : "Dispatched after payment confirmation; digital confirmation shared after dispatch."}</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <button
             onClick={(e) => { e.stopPropagation(); handlePrimary(); }}
             className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-2.5 rounded-xl text-[12px] tracking-wider uppercase transition-all shadow flex items-center justify-center gap-1.5"
           >
             {product.isService ? <Flame className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
             {isActive ? product.ctaLabels.primary : "Select"}
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
-            className="w-full bg-white/5 hover:bg-white/10 border border-white/15 text-white font-bold py-2.5 rounded-xl text-[12px] tracking-wider uppercase transition-all flex items-center justify-center gap-1.5"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            {product.ctaLabels.secondary}
           </button>
         </div>
       </div>

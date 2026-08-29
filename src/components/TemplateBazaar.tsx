@@ -158,9 +158,29 @@ interface TemplateBazaarProps {
    *  clear the fixed Navbar + status bar itself — otherwise the "Temple
    *  Bazaar" heading renders partly underneath the fixed header. */
   isAndroidApp?: boolean;
+  /**
+   * ✅ BAZAAR SANKALP PORTAL CART FIX: when provided, the Sankalpa Portal
+   * modal below (used by BOTH the legacy "Current Offerings" catalogue and
+   * every Devotional Shopping Offering — Bhog, Puja Kits, Mala/Beads/Jap,
+   * Diya/Dhoop/Aarti, Prasad & Blessed Items) gets an "Add to Cart" action
+   * next to its existing "Proceed to Checkout/Sacred Offering" button. It
+   * saves this item into the SAME unified, account-synced Sankalp Portal
+   * cart that Pujas/Sevas/Guidance/Wellness already use (App.tsx's
+   * `serviceCart` + src/lib/serviceCart.ts) — never a second, disconnected
+   * cart. Returns { ok:false, reason } if the 10-item cap (or a transient
+   * error) blocks the add, shown to the devotee instead of failing silently.
+   */
+  onAddServiceToCart?: (item: {
+    itemName: string; amount: number;
+    details: { devoteeName: string; phone: string; email: string; gotra?: string; rashi?: string; sankalpWish?: string; address?: string; pincode?: string };
+  }) => Promise<{ ok: boolean; reason?: string }>;
+  /** Opens the shared cart drawer (App.tsx) — offered on the post-add
+   *  confirmation so a devotee can go straight to checkout if they're done
+   *  adding items. Only relevant when onAddServiceToCart is provided. */
+  onViewCart?: () => void;
 }
 
-export default function TemplateBazaar({ onNavigate, initialHighlightId = null, isAndroidApp = false }: TemplateBazaarProps) {
+export default function TemplateBazaar({ onNavigate, initialHighlightId = null, isAndroidApp = false, onAddServiceToCart, onViewCart }: TemplateBazaarProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   // ✅ DISCLAIMER PLACEMENT FIX: the legacy Current Offerings catalogue
@@ -182,6 +202,10 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // at a temple rather than shipped).
   const [sankalpaDisclaimerChecked, setSankalpaDisclaimerChecked] = useState(false);
   const [showSankalpaDisclaimerError, setShowSankalpaDisclaimerError] = useState(false);
+  // ✅ BAZAAR SANKALP PORTAL CART FIX: loading state for the Sankalpa
+  // Portal's "Add to Cart" button (mirrors BookNowWizard's isSyncingDetails
+  // pattern) so a slow Google Form/Supabase sync can't be double-submitted.
+  const [isAddingBazaarToCart, setIsAddingBazaarToCart] = useState(false);
 
   // Form fields
   const [devoteeName, setDevoteeName]       = useState("");
@@ -206,13 +230,6 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // ── Devotional Shopping Offerings (new, structured products) state ──────
   const [newSelectedCategory, setNewSelectedCategory] = useState("All");
   const [activeNewOfferingId, setActiveNewOfferingId] = useState<string | null>(null);
-  // Lightweight, section-local cart for "Add to Cart" — this Temple Bazaar
-  // Store section has never used the site's global cart (it checks out
-  // directly through the Puja Sankalpa Portal below), so this mirrors that
-  // existing pattern rather than introducing a second, inconsistent cart.
-  const [newBazaarCart, setNewBazaarCart] = useState<
-    { id: string; label: string; amount: number; isService: boolean; pincode: string }[]
-  >([]);
 
   const filteredItems = selectedCategory === "All"
     ? BAZAAR_ITEMS
@@ -248,6 +265,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     if (prefillPincode) setDevoteePincode(prefillPincode);
     setSankalpaDisclaimerChecked(false);
     setShowSankalpaDisclaimerError(false);
+    setIsAddingBazaarToCart(false);
     setShowSankalpa(true);
   };
 
@@ -268,44 +286,9 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     }, pincode);
   };
 
-  // ── Devotional Shopping Offerings: "Add to Cart" ─────────────────────────
-  const handleAddToNewCart = (product: BazaarProduct, composedName: string, amount: number, pincode: string) => {
-    if (!amount || amount <= 0) { alert("Please choose a valid amount before adding to cart."); return; }
-    gaAddToCart(composedName, amount, product.id);
-    setNewBazaarCart((prev) => [...prev, { id: product.id, label: composedName, amount, isService: product.isService, pincode }]);
-  };
-
-  const handleClearNewCart = () => setNewBazaarCart([]);
-
-  // Combines every cart line into one composed order and hands it to the
-  // same Sankalpa Portal + UPI flow used everywhere else in this section.
-  const handleCheckoutNewCart = () => {
-    if (newBazaarCart.length === 0) return;
-    const total = newBazaarCart.reduce((sum, i) => sum + i.amount, 0);
-    const combinedName = `Devotional Shopping Cart — ${newBazaarCart.map((i) => i.label).join(" | ")}`;
-    // If everything in the cart is temple-performed (no shipping needed),
-    // skip the delivery address fields; otherwise collect delivery details.
-    const allService = newBazaarCart.every((i) => i.isService);
-    // Carry over a PIN code already captured on one of the cart's cards, if any.
-    const cartPincode = newBazaarCart.find((i) => i.pincode)?.pincode;
-    handleBuyNow({
-      id: "bazaar-new-cart-checkout",
-      name: combinedName,
-      description: "Combined Devotional Shopping cart order.",
-      price: total,
-      mrp: total,
-      category: "Devotional Shopping",
-      imageUrl: null,
-      isService: allService,
-    }, cartPincode);
-    setNewBazaarCart([]);
-  };
-
   const filteredNewProducts = newSelectedCategory === "All"
     ? BAZAAR_PRODUCTS
     : BAZAAR_PRODUCTS.filter((p) => p.category === newSelectedCategory);
-
-  const newCartTotal = newBazaarCart.reduce((sum, i) => sum + i.amount, 0);
 
   // ── Submit Sankalpa Portal → go to payment ──────────────────────────────
   // Sends ONE row immediately with payment status "Pending — Awaiting
@@ -356,6 +339,95 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
 
     setShowSankalpa(false);
     setShowUPI(true);
+  };
+
+  // ── Sankalpa Portal: "Add to Cart" ───────────────────────────────────────
+  // Same validation as "Proceed to Checkout/Sacred Offering" above, PLUS the
+  // disclaimer is required regardless of isService (a physical Devotional
+  // Shopping item can be added to cart too, not just temple-performed
+  // items). Syncs ONE "Added to Cart — Awaiting Checkout" row to the
+  // seva_booking Google Form immediately — mirrors BookNowWizard's own
+  // "Add to Cart" pending-row pattern exactly — then saves the item into
+  // the unified, account-synced Sankalp Portal cart via onAddServiceToCart.
+  // The final "Payment Submitted" row (same data, no duplication) is sent
+  // once from App.tsx's combined-cart checkout, exactly like every other
+  // Sankalp Portal category already does.
+  const handleSankalpaAddToCart = async () => {
+    if (!onAddServiceToCart || isAddingBazaarToCart) return;
+    if (!devoteeName.trim() || !devoteePhone.trim()) {
+      alert("Please enter your name and WhatsApp number to proceed.");
+      return;
+    }
+    if (!selectedItem?.isService && (!devoteeAddress.trim() || !devoteePincode.trim())) {
+      alert("Please enter your delivery address and PIN code.");
+      return;
+    }
+    if (!sankalpaDisclaimerChecked) {
+      setShowSankalpaDisclaimerError(true);
+      document.getElementById("sankalpa-bhog-disclaimer")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (!selectedItem) return;
+
+    setIsAddingBazaarToCart(true);
+    try {
+      // Sync the "Added to Cart" lead row first — guarantees this selection
+      // is captured even if the devotee never reaches "Proceed to Payment".
+      await syncToGoogleForm("seva_booking", {
+        name:         devoteeName.trim(),
+        email:        devoteeEmail.trim(),
+        phone:        devoteePhone.trim(),
+        gotra:        selectedItem.isService ? (devoteeGotra || undefined) : undefined,
+        rashi:        selectedItem.isService ? (devoteeRashi || undefined) : undefined,
+        intent:       selectedItem.isService ? (sankalpaIntent.trim() || undefined) : (orderNote.trim() || undefined),
+        type:         selectedItem.isService
+                        ? `Puja Service — ${selectedItem.name}`
+                        : `Temple Bazaar Order — ${selectedItem.name}`,
+        details:      `Item: ${selectedItem.name} | ` +
+                      `Amount: ₹${selectedItem.price} | ` +
+                      `Payment Status: Added to Cart — Awaiting Checkout | ` +
+                      (selectedItem.isService
+                        ? `Gotra: ${devoteeGotra || "Not provided"} | Rashi: ${devoteeRashi} | Intent: ${sankalpaIntent || "General blessings"}`
+                        : `Order Note: ${orderNote.trim() || "None"} | Address: ${devoteeAddress.trim()} | PIN: ${devoteePincode.trim()}`) +
+                      ` | Ref: ${refId}`,
+        fee:          selectedItem.price,
+        city:         selectedItem.isService ? "Online Devotee" : devoteeAddress.trim(),
+        whatsapp:     devoteePhone.trim(),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    const result = await onAddServiceToCart({
+      itemName: selectedItem.name,
+      amount: selectedItem.price,
+      details: {
+        devoteeName: devoteeName.trim(),
+        phone: devoteePhone.trim(),
+        email: devoteeEmail.trim(),
+        gotra: selectedItem.isService ? (devoteeGotra || undefined) : undefined,
+        rashi: selectedItem.isService ? (devoteeRashi || undefined) : undefined,
+        sankalpWish: selectedItem.isService ? (sankalpaIntent.trim() || undefined) : (orderNote.trim() || undefined),
+        address: !selectedItem.isService ? devoteeAddress.trim() : undefined,
+        pincode: !selectedItem.isService ? devoteePincode.trim() : undefined,
+      },
+    });
+
+    setIsAddingBazaarToCart(false);
+
+    if (result.ok) {
+      alert(`🙏 Added to your cart! ${selectedItem.name} is now saved in your Sankalp Portal cart — add more items or proceed to payment anytime.`);
+      setShowSankalpa(false);
+      // Reset form fields — same reset as a completed booking below.
+      setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");
+      setDevoteeGotra(""); setDevoteeRashi("Mesh (Aries)");
+      setSankalpaIntent(""); setOrderNote(""); setDevoteeAddress(""); setDevoteePincode("");
+      setSankalpaDisclaimerChecked(false);
+      setShowSankalpaDisclaimerError(false);
+      setSelectedItem(null);
+    } else {
+      alert(result.reason || "Could not add this item to your cart. Please try again.");
+    }
   };
 
   // ── After payment intent submitted (NOT yet verified) ───────────────────
@@ -654,31 +726,10 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   isActive={activeNewOfferingId === product.id}
                   onActivate={() => setActiveNewOfferingId(product.id)}
                   onOffer={handleOfferNewProduct}
-                  onAddToCart={handleAddToNewCart}
                 />
               )}
             />
           </div>
-
-          {/* Section-local cart summary — only shown once something's been added */}
-          {newBazaarCart.length > 0 && (
-            <div className="max-w-md mx-auto mb-6 bg-[#092320] border border-[#FFB347]/40 rounded-2xl px-4 py-3 shadow-lg flex items-center justify-between gap-3">
-              <div className="text-xs text-white/80">
-                <span className="font-bold text-[#FFB347]">{newBazaarCart.length} item{newBazaarCart.length > 1 ? "s" : ""}</span> in cart · ₹{newCartTotal.toLocaleString("en-IN")}
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button onClick={handleClearNewCart} className="text-[12px] text-white/50 underline hover:text-white/70">
-                  Clear
-                </button>
-                <button
-                  onClick={handleCheckoutNewCart}
-                  className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] text-[12px] font-extrabold px-3.5 py-2 rounded-xl uppercase tracking-wide"
-                >
-                  Checkout
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Trust copy */}
           <div className="flex items-start space-x-2.5 text-xs text-white/70 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 max-w-3xl mx-auto">
@@ -975,28 +1026,57 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 </div>
               )}
 
-              {/* Bhog Offerings disclaimer — shown once, here in the
-                  Sankalpa Portal, instead of repeating on every card. */}
-              {selectedItem.isService && (
-                <div id="sankalpa-bhog-disclaimer">
-                  <DisclaimerAcknowledge
-                    summary={BAZAAR_BHOG_OFFERING_SUMMARY}
-                    details={BAZAAR_DISCLAIMER}
-                    checked={sankalpaDisclaimerChecked}
-                    onCheckedChange={(v) => { setSankalpaDisclaimerChecked(v); if (v) setShowSankalpaDisclaimerError(false); }}
-                    checkboxLabel="I understand and confirm before proceeding."
-                    showRequiredError={showSankalpaDisclaimerError}
-                  />
-                </div>
-              )}
+              {/* Sankalpa Portal disclaimer — shown once, here, instead of
+                  repeating on every card. Now shown for BOTH temple-
+                  performed offerings AND physical products, since it gates
+                  the "Add to Cart" button below for every paid Bazaar
+                  offering, not only services. */}
+              <div id="sankalpa-bhog-disclaimer">
+                <DisclaimerAcknowledge
+                  summary={selectedItem.isService
+                    ? BAZAAR_BHOG_OFFERING_SUMMARY
+                    : "This item is dispatched with care after payment confirmation — delivery timelines can vary by location."}
+                  details={BAZAAR_DISCLAIMER}
+                  checked={sankalpaDisclaimerChecked}
+                  onCheckedChange={(v) => { setSankalpaDisclaimerChecked(v); if (v) setShowSankalpaDisclaimerError(false); }}
+                  checkboxLabel="I understand and confirm before proceeding."
+                  showRequiredError={showSankalpaDisclaimerError}
+                />
+              </div>
 
-              <button
-                type="submit"
-                className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
-              >
-                <Flame className="w-4 h-4" />
-                {selectedItem.isService ? "Proceed to Sacred Offering →" : "Proceed to Checkout →"}
-              </button>
+              {/* ── Add to Cart + Proceed to Payment ──────────────────────
+                  Same two-choice pattern as the Puja/Seva/Guidance/Wellness
+                  Sankalp Portal (BookNowWizard.tsx): "Add to Cart" saves
+                  this item into the unified cart so more items can be added
+                  before paying once, combined; "Proceed to Checkout/Sacred
+                  Offering" pays for just this one item right now. Add to
+                  Cart only renders when a caller has wired onAddServiceToCart
+                  (App.tsx always does), exactly like BookNowWizard's own
+                  onAddToCart-gated button. */}
+              <div className="space-y-2.5">
+                {onAddServiceToCart && (
+                  <button
+                    type="button"
+                    disabled={isAddingBazaarToCart}
+                    onClick={handleSankalpaAddToCart}
+                    className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-extrabold py-3.5 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    {isAddingBazaarToCart ? "Adding to Cart…" : "Add to Cart"}
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className={
+                    onAddServiceToCart
+                      ? "w-full bg-transparent hover:bg-white/5 text-white/80 font-bold py-3.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 uppercase tracking-widest border-2 border-white/15 hover:border-white/25"
+                      : "w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs tracking-widest uppercase transition-all shadow flex items-center justify-center gap-2"
+                  }
+                >
+                  <Flame className="w-4 h-4" />
+                  {selectedItem.isService ? "Proceed to Sacred Offering →" : "Proceed to Checkout →"}
+                </button>
+              </div>
             </form>
             </div>
           </div>

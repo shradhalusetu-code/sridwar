@@ -175,6 +175,63 @@ export interface CartItem {
   quantity: number;
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Unified Service Cart (Pujas, Sevas, Counselling/Guidance, Holistic
+// Wellness, and any other Sankalp-Portal-driven paid service). Added
+// alongside the existing Product-based CartItem above (Temple Bazaar) —
+// nothing about CartItem/Product changes, this is purely additive so the
+// Bazaar cart keeps working exactly as before. See src/lib/serviceCart.ts
+// for the add/remove/merge/persist logic that produces and consumes these.
+// ─────────────────────────────────────────────────────────────────────────
+// ✅ BAZAAR SANKALP PORTAL CART FIX: added "bazaar_order" so Temple Bazaar
+// Store items (both the legacy "Current Offerings" catalogue and the
+// Devotional Shopping Offerings — Bhog, Puja Kits, Mala/Beads/Jap, Diya/
+// Dhoop/Aarti, Prasad & Blessed Items) can be added to the SAME unified,
+// account-synced, 10-item-capped Sankalp Portal cart that Pujas/Sevas/
+// Guidance/Wellness already use — instead of the old page-local,
+// never-persisted "Devotional Shopping cart" that TemplateBazaar used to
+// keep in its own component state. See TemplateBazaar.tsx's Sankalpa
+// Portal modal for where this is produced.
+export type ServiceCartCategory = "puja_seva" | "counselling_guidance" | "holistic_wellness" | "seva_offering" | "bazaar_order";
+
+export interface ServiceCartItem {
+  /** Stable id for this cart row — used for removal, React keys, and as the
+   *  Supabase cart_items.id once synced (uuid string either way). */
+  id: string;
+  category: ServiceCartCategory;
+  /** Human-readable name of the Puja/Seva/session selected, e.g.
+   *  "Graha Shanti Maha Puja". Shown in the cart drawer and checkout. */
+  itemName: string;
+  /** Final amount for this single item (already reflects any quantity/
+   *  duration/pandit-count pricing computed on the offering card/wizard —
+   *  the cart itself never recomputes pricing). */
+  amount: number;
+  /** Every devotee/Sankalp detail collected in the Sankalp Portal for this
+   *  item, kept together so it round-trips to Google Sheets + Supabase
+   *  unchanged when checkout finally runs. Optional fields are omitted
+   *  per-category exactly as BookNowWizard already only collects a subset
+   *  per category (see WIZARD_CONTENT[category].fields). */
+  details: {
+    devoteeName: string;
+    phone: string;
+    email: string;
+    dob?: string;
+    gotra?: string;
+    rashi?: string;
+    sankalpWish?: string;
+    preferredSessionDate?: string;
+    /** Delivery details — only populated for physical (non-service)
+     *  Temple Bazaar / Devotional Shopping items added via the Sankalpa
+     *  Portal. Omitted for every Puja/Seva/Guidance/Wellness item and for
+     *  temple-performed (isService) Bazaar offerings, exactly like the
+     *  other optional fields above. */
+    address?: string;
+    pincode?: string;
+  };
+  /** When this row was added to the cart (client-generated, ISO string). */
+  addedAt: string;
+}
+
 export interface DevoteeProfile {
   name: string;
   gotra: string;

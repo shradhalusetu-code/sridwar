@@ -53,13 +53,18 @@ import fssaiCertificate from "./assets/images/FSSAI_Certificate.jpg";
 import fssaiCertificateWebp from "./assets/images/FSSAI_Certificate.webp";
 import { hasBackHandlers, invokeTopBackHandler } from "./utils/backHandlerStack";
 import { recordActivity, fetchActivities, ActivityRecord } from "./lib/activities";
+import {
+  loadServiceCart, addServiceCartItem, removeServiceCartItem, clearServiceCart,
+  mergeLocalCartIntoAccount, serviceCartTotal, MAX_CART_ITEMS,
+} from "./lib/serviceCart";
+import { syncToGoogleForm } from "./utils/googleFormSync";
 
 import { Language, TRANSLATIONS } from "./data/translations";
 import {
   COMMISSION_STRUCTURE, REFERRAL_CASHBACK_BOOKING_CAP, REFERRAL_PAYOUT_THRESHOLD,
   REFERRAL_KYC_THRESHOLD, REFERRAL_CASHBACK_DISCLAIMER,
 } from "./data/referralProgram";
-import { Product, Temple, CartItem } from "./types";
+import { Product, Temple, CartItem, ServiceCartItem } from "./types";
 import { getDiscountedPrice, isDiscountPromoVisible, DISCOUNT_TAG } from "./utils/discount";
 import {
   gaPageView, gaBookNowOpen, gaBookingComplete, gaCartCheckout, gaCartPurchase,
@@ -127,6 +132,13 @@ export default function App() {
   
   // Cart, Booking wizards
   const [cart, setCart] = useState<CartItem[]>([]);
+  // Unified Sankalp Portal cart — Pujas, Sevas, Counselling/Guidance, and
+  // Holistic Wellness items added via "Add to Cart" at the bottom of
+  // BookNowWizard. Kept separate from the Temple Bazaar `cart` above (whose
+  // own behaviour is unchanged) but shown together in the same drawer and
+  // paid together at checkout — see the cart drawer JSX and
+  // handleCombinedCartCheckout/finalizeServiceCartCheckout below.
+  const [serviceCart, setServiceCart] = useState<ServiceCartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCartPaymentOpen, setIsCartPaymentOpen] = useState(false);
   const [isBookNowOpen, setIsBookNowOpen] = useState(false);
@@ -173,6 +185,24 @@ export default function App() {
         setBookedItems(mapActivitiesToBookedItems(records));
       }
     });
+  }, [currentUserId]);
+
+  // Load whichever Sankalp Portal cart is authoritative on first mount —
+  // the account cart if a session already exists, otherwise the
+  // guest/localStorage cart — so a returning devotee sees their in-progress
+  // cart immediately, before any login-time merge below even runs.
+  useEffect(() => {
+    loadServiceCart().then(setServiceCart);
+  }, []);
+
+  // Whenever a devotee logs in or creates a Dharmic ID, merge whatever they
+  // had sitting in the guest/localStorage cart into their account cart
+  // (deduped, capped at MAX_CART_ITEMS) so nothing selected before signing
+  // in is ever lost — "restore the user's complete previously selected
+  // cart automatically without losing any items".
+  useEffect(() => {
+    if (!currentUserId) return;
+    mergeLocalCartIntoAccount(currentUserId).then(setServiceCart);
   }, [currentUserId]);
 
   // Active Selected Temple Modal details for full page reviews
@@ -547,6 +577,16 @@ export default function App() {
   }, []);
 
   const handleAddToCart = (product: Product) => {
+    // Combined 10-item cap across the Temple Bazaar cart AND the Sankalp
+    // Portal (Puja/Seva/Guidance/Wellness) cart — "a strict maximum of 10
+    // services/items per user's cart/profile". Bumping the quantity of an
+    // item already in the cart doesn't count as a new item, so that's
+    // still allowed even at the cap.
+    const alreadyInCart = cart.some((item) => item.product.id === product.id);
+    if (!alreadyInCart && cart.length + serviceCart.length >= MAX_CART_ITEMS) {
+      alert(`Your cart can hold a maximum of ${MAX_CART_ITEMS} items. Please remove an item before adding another.`);
+      return;
+    }
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.product.id === product.id);
       if (existing) {
@@ -564,6 +604,96 @@ export default function App() {
     setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
   };
 
+  // Sankalp Portal cart (Puja/Seva/Guidance/Wellness) — wired to
+  // BookNowWizard's onAddToCart/onViewCart props below. Mirrors
+  // handleAddToCart's shape/cap above but persists via serviceCart.ts
+  // (localStorage for guests, Supabase cart_items — isolated per Dharmic
+  // ID via RLS — once logged in).
+  const handleAddServiceToCart = async (item: {
+    itemName: string; amount: number;
+    details: { devoteeName: string; phone: string; email: string; dob?: string; gotra?: string; rashi?: string; sankalpWish?: string; preferredSessionDate?: string };
+  }): Promise<{ ok: boolean; reason?: string }> => {
+    if (cart.length + serviceCart.length >= MAX_CART_ITEMS) {
+      return { ok: false, reason: `Your cart can hold a maximum of ${MAX_CART_ITEMS} items. Please remove an item before adding another.` };
+    }
+    const category = wizardDefaults.category ?? "puja_seva";
+    const result = await addServiceCartItem(serviceCart, { category, itemName: item.itemName, amount: item.amount, details: item.details });
+    if (result.ok) {
+      setServiceCart(result.items);
+      gaAddToCart(item.itemName, item.amount, item.itemName);
+    }
+    return { ok: result.ok, reason: result.reason };
+  };
+
+  const handleRemoveServiceFromCart = async (id: string) => {
+    const updated = await removeServiceCartItem(serviceCart, id);
+    setServiceCart(updated);
+  };
+
+  // ✅ BAZAAR SANKALP PORTAL CART FIX: same shape/cap/persistence as
+  // handleAddServiceToCart above, wired to TemplateBazaar's Sankalpa Portal
+  // modal ("Add to Cart" — see the showSankalpa modal in TemplateBazaar.tsx)
+  // instead of BookNowWizard. Always tags the item "bazaar_order" so it's
+  // clearly identifiable in the cart drawer, Google Sheet, and Supabase
+  // activity ledger, whether it came from the legacy "Current Offerings"
+  // catalogue or a Devotional Shopping Offering (Bhog/Puja Kits/Mala &
+  // Beads/Diya & Dhoop/Prasad & Blessed Items).
+  const handleAddBazaarToCart = async (item: {
+    itemName: string; amount: number;
+    details: { devoteeName: string; phone: string; email: string; gotra?: string; rashi?: string; sankalpWish?: string; address?: string; pincode?: string };
+  }): Promise<{ ok: boolean; reason?: string }> => {
+    if (cart.length + serviceCart.length >= MAX_CART_ITEMS) {
+      return { ok: false, reason: `Your cart can hold a maximum of ${MAX_CART_ITEMS} items. Please remove an item before adding another.` };
+    }
+    const result = await addServiceCartItem(serviceCart, { category: "bazaar_order", itemName: item.itemName, amount: item.amount, details: item.details });
+    if (result.ok) {
+      setServiceCart(result.items);
+      gaAddToCart(item.itemName, item.amount, item.itemName);
+    }
+    return { ok: result.ok, reason: result.reason };
+  };
+
+  const combinedCartTotal = () =>
+    cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0) + serviceCartTotal(serviceCart);
+
+  const SERVICE_CATEGORY_LABELS: Record<ServiceCartItem["category"], string> = {
+    puja_seva: "Puja/Seva Booking",
+    counselling_guidance: "Counselling & Guidance Booking",
+    holistic_wellness: "Holistic Wellness & Yogic Sciences Enrollment",
+    seva_offering: "Seva Sankalp Booking",
+    bazaar_order: "Temple Bazaar Order",
+  };
+
+  // Same Google Sheets payload shape BookNowWizard's own buildSyncPayload
+  // has always sent for each category — kept intact here so a cart-checked-
+  // out item shows up in the same sheet, with the same fields, as one
+  // booked directly. groupRef ties every item from the same checkout
+  // together (also stored in activities.metadata.cartRef) without changing
+  // anything about how a single item is recorded.
+  const buildServiceCartSyncPayload = (item: ServiceCartItem, groupRef: string, paymentStatus: string, paymentMethod: string) => {
+    const d = item.details;
+    const details = [
+      `Item: ${item.itemName}`,
+      `Amount: ₹${item.amount}`,
+      `Payment Status: ${paymentStatus}`,
+      `Payment Method: ${paymentMethod}`,
+      d.dob ? `DOB: ${d.dob}` : null,
+      d.gotra ? `Gotra: ${d.gotra}` : null,
+      d.rashi ? `Rashi: ${d.rashi}` : null,
+      d.preferredSessionDate ? `Preferred Date: ${d.preferredSessionDate}` : null,
+      d.sankalpWish ? `Wish/Need: ${d.sankalpWish}` : null,
+      d.address ? `Delivery Address: ${d.address}` : null,
+      d.pincode ? `PIN Code: ${d.pincode}` : null,
+      `Cart/Order Ref: ${groupRef}`,
+    ].filter(Boolean).join(" | ");
+    return {
+      name: d.devoteeName, email: d.email, phone: d.phone,
+      details,
+      type: `${SERVICE_CATEGORY_LABELS[item.category]} - ${item.itemName}`,
+      fee: item.amount, dob: d.dob || "N/A", gotra: d.gotra || "N/A", rashi: d.rashi || "N/A", intent: d.sankalpWish || "",
+    };
+  };
+
   const handleUpdateQuantity = (productId: string, delta: number) => {
     setCart((prevCart) =>
       prevCart
@@ -578,49 +708,104 @@ export default function App() {
     );
   };
 
-  // Opens the real UPI QR payment popup for the cart total.
+  // Opens the real UPI QR payment popup for the COMBINED cart total (Temple
+  // Bazaar items + Sankalp Portal items together). Requires a Dharmic ID —
+  // "the cart/payment journey must direct the user to create a Dharmic ID
+  // or log in before continuing to payment" — the cart itself is left
+  // completely untouched either way, so nothing is lost while they do that.
   const handleCartGPayCheckout = () => {
-    if (cart.length === 0) return;
-    const total = cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0);
-    gaCartCheckout(total, cart.length);
+    if (cart.length === 0 && serviceCart.length === 0) return;
+    if (!isLoggedIn) {
+      setIsCartOpen(false);
+      alert("Please log in or create your Dharmic ID to continue to secure payment. Your cart has been saved and will be here when you're back.");
+      handleNavigate("login");
+      return;
+    }
+    const total = combinedCartTotal();
+    gaCartCheckout(total, cart.length + serviceCart.length);
     setIsCartPaymentOpen(true);
   };
 
-  // Called after the devotee taps "I Have Paid" in the UPI popup.
+  // Called after the devotee taps "I Have Paid" in the UPI popup. Finalizes
+  // BOTH parts of the combined cart under one payment: the existing Temple
+  // Bazaar path below is untouched; the Sankalp Portal path creates one
+  // activities row PER item (so each keeps its own certificate pipeline,
+  // exactly like a direct single-item booking always has), all tagged with
+  // the same cartRef so they're recognizable as one checkout.
   const finalizeCartCheckout = async () => {
-    const cartSummaryStr = cart.map(item => `${item.product.name} (x${item.quantity})`).join(", ");
-    const totalAmount = cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0);
+    const totalAmount = combinedCartTotal();
+    const groupRef = `SDP-CART-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    const refId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
-    const newBooking = {
-      pujaName: `Cart Orders: ${cartSummaryStr}`,
-      price: totalAmount,
-      refId,
-      date: new Date().toLocaleDateString()
-    };
+    if (cart.length > 0) {
+      const cartSummaryStr = cart.map(item => `${item.product.name} (x${item.quantity})`).join(", ");
+      const bazaarAmount = cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0);
+      const refId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
+      const newBooking = {
+        pujaName: `Cart Orders: ${cartSummaryStr}`,
+        price: bazaarAmount,
+        refId,
+        date: new Date().toLocaleDateString()
+      };
 
-    const updatedBookings = [newBooking, ...bookedItems];
-    setBookedItems(updatedBookings);
-    localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
+      const updatedBookings = [newBooking, ...bookedItems];
+      setBookedItems(updatedBookings);
+      localStorage.setItem("sd_booked_items", JSON.stringify(updatedBookings));
 
-    // Persist to Supabase too (no-ops silently for guests who aren't logged
-    // in) so this order shows up in the devotee's Profile page on any device.
-    recordActivity({
-      activityType: "product",
-      itemName: newBooking.pujaName,
-      amount: totalAmount,
-      refId,
-      paymentMethod: "UPI",
-      paymentStatus: "pending_verification",
-    });
+      // Persist to Supabase too (no-ops silently for guests who aren't logged
+      // in) so this order shows up in the devotee's Profile page on any device.
+      recordActivity({
+        activityType: "product",
+        itemName: newBooking.pujaName,
+        amount: bazaarAmount,
+        refId,
+        paymentMethod: "UPI",
+        paymentStatus: "pending_verification",
+        metadata: { cartRef: groupRef },
+      });
+    }
 
-    gaCartPurchase(totalAmount, refId);
+    if (serviceCart.length > 0) {
+      for (const item of serviceCart) {
+        const itemRefId = `SDP-${Math.floor(100000 + Math.random() * 900000)}`;
+        try {
+          await syncToGoogleForm("puja_booking", buildServiceCartSyncPayload(item, groupRef, "Payment Submitted — Pending Verification", "UPI"));
+        } catch (err) {
+          console.error(err);
+        }
+        recordActivity({
+          activityType: item.category === "seva_offering" ? "seva" : item.category === "puja_seva" ? "puja" : item.category === "bazaar_order" ? "product" : "other",
+          itemName: item.itemName,
+          amount: item.amount,
+          refId: itemRefId,
+          paymentMethod: "UPI",
+          paymentStatus: "pending_verification",
+          metadata: { cartRef: groupRef, category: item.category },
+        });
+        const newBooking = { pujaName: item.itemName, price: item.amount, refId: itemRefId, date: new Date().toLocaleDateString() };
+        setBookedItems((prev) => {
+          const updated = [newBooking, ...prev];
+          localStorage.setItem("sd_booked_items", JSON.stringify(updated));
+          return updated;
+        });
+      }
+      await clearServiceCart();
+    }
+
+    gaCartPurchase(totalAmount, groupRef);
 
     setIsCartPaymentOpen(false);
     setCart([]);
+    setServiceCart([]);
     setIsCartOpen(false);
 
-    alert(`🙏 Payment confirmed! ₹${totalAmount} recorded for order ${refId}. Your blessed Prasad & items will be shipped soon (typically within 3-7 working days). An acknowledgement certificate will be shared with you on WhatsApp and Email within 3-7 working days.`);
+    // ✅ NO-FALSE-SETTLEMENT-CLAIM FIX (2026-08-29): this used to say
+    // "Payment confirmed!" the instant "I Have Paid" was tapped — before
+    // anyone on the Sri Dwar team had actually verified the money landed.
+    // Wording now matches every other payment-confirmation surface on the
+    // site (UPIPaymentModal's own disclaimer/status, the booking-
+    // confirmation emails): received/submitted now, processed once
+    // verified — never "confirmed" prematurely.
+    alert(`🙏 Payment received! ₹${totalAmount} noted for order ${groupRef} and submitted to our team for verification — usually within 2 hours. Once verified, any Prasad/items will be shipped (typically within 3-7 working days), and every Puja/Seva/Guidance/Wellness item will be individually processed with its own certificate/acknowledgement, exactly as a direct booking would be. If a payment is later found unsuccessful or not properly processed, a refund will be initiated wherever applicable.`);
   };
 
   const handleBookNowSuccess = (item: { pujaName: string; price: number; refId: string }) => {
@@ -670,6 +855,7 @@ export default function App() {
         currentPage={currentPage}
         onNavigate={handleNavigate}
         cart={cart}
+        extraCartCount={serviceCart.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenBookNow={() => {
           setWizardDefaults({ pujaName: "Sarvajanik Veda Shanti Puja", price: 550 });
@@ -833,7 +1019,13 @@ export default function App() {
         {currentPage === "products" && (
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
-              <TemplateBazaar onNavigate={handleNavigate} initialHighlightId={offeringDeepLinkId} isAndroidApp={isAndroidApp} />
+              <TemplateBazaar
+                onNavigate={handleNavigate}
+                initialHighlightId={offeringDeepLinkId}
+                isAndroidApp={isAndroidApp}
+                onAddServiceToCart={handleAddBazaarToCart}
+                onViewCart={() => setIsCartOpen(true)}
+              />
             </Suspense>
           </div>
         )}
@@ -1383,6 +1575,8 @@ export default function App() {
           defaultPrice={wizardDefaults.price}
           category={wizardDefaults.category ?? "puja_seva"}
           onSuccess={handleBookNowSuccess}
+          onAddToCart={handleAddServiceToCart}
+          onViewCart={() => setIsCartOpen(true)}
         />
       </Suspense>
 
@@ -1600,6 +1794,34 @@ export default function App() {
             {/* Scrollable body — THE ONLY scroll container */}
             <div className="flex-1 min-h-0 overflow-y-auto px-6 pr-5" style={{ WebkitOverflowScrolling: "touch" }}>
               <div className="space-y-4 pt-6 pb-2">
+                {serviceCart.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="block text-[11px] font-mono uppercase tracking-widest text-white/40">Puja / Seva / Guidance / Wellness / Bazaar</span>
+                    {serviceCart.map((item) => (
+                      <div
+                        key={item.id}
+                        id={`service-cart-item-row-${item.id}`}
+                        className="flex items-start justify-between p-3.5 bg-white/5 border border-white/10 rounded-2xl relative"
+                      >
+                        <div className="truncate text-left">
+                          <span className="block font-bold text-white truncate">{item.itemName}</span>
+                          <span className="block text-[11px] text-white/50 truncate">For: {item.details.devoteeName}</span>
+                          <span className="block text-[12px] text-[#FFB347] font-bold font-serif mt-0.5">₹{item.amount} INR</span>
+                        </div>
+                        <button
+                          id={`service-cart-remove-${item.id}`}
+                          onClick={() => handleRemoveServiceFromCart(item.id)}
+                          className="text-white/40 hover:text-red-400 rounded p-1 shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {cart.length > 0 && serviceCart.length > 0 && (
+                  <span className="block text-[11px] font-mono uppercase tracking-widest text-white/40 pt-2">Temple Bazaar</span>
+                )}
                 {cart.length > 0 ? (
                   cart.map((item) => (
                      <div
@@ -1658,9 +1880,9 @@ export default function App() {
                       </div>
                     </div>
                   ))
-                ) : (
-                  <p className="text-white/50 text-center py-12 italic">Your sacred basket is currently empty. Fill it with purified Prasad & accessories from the Temple Bazaar.</p>
-                )}
+                ) : serviceCart.length === 0 ? (
+                  <p className="text-white/50 text-center py-12 italic">Your sacred basket is currently empty. Fill it with purified Prasad & accessories from the Temple Bazaar, or Pujas/Sevas from the Sankalp Portal.</p>
+                ) : null}
               </div>
             </div>
 
@@ -1678,26 +1900,30 @@ export default function App() {
                 <div className="text-right">
                   {isDiscountPromoVisible("bazaar") && (
                     <span className="block text-[12px] text-white/35 line-through font-mono">
-                      ₹{cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0)} INR
+                      ₹{cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0) + serviceCartTotal(serviceCart)} INR
                     </span>
                   )}
                   <span className="text-lg font-black font-serif text-[#FFB347]">
-                    ₹{cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)} INR
+                    ₹{combinedCartTotal()} INR
                   </span>
+                  <span className="block text-[11px] text-white/40 font-mono">{cart.length + serviceCart.length}/{MAX_CART_ITEMS} items</span>
                 </div>
               </div>
 
               <div className="text-[12px] text-white/70 bg-[#021816]/60 p-3 rounded-2xl border border-white/10 text-left">
                 ⭐ Consecrated Prasad is lovingly hand-packed inside biological protective tubes and wrapped alongside holy threads and divine bindi powder.
+                {!isLoggedIn && (cart.length > 0 || serviceCart.length > 0) && (
+                  <span className="block mt-2 text-[#FFB347]">🔐 You'll be asked to log in or create your Dharmic ID before payment — your cart stays saved either way.</span>
+                )}
               </div>
 
               <button
                 id="cart-checkout-btn"
-                disabled={cart.length === 0}
+                disabled={cart.length === 0 && serviceCart.length === 0}
                 onClick={handleCartGPayCheckout}
                 className="w-full bg-[#1A73E8] hover:bg-[#1557B0] disabled:bg-white/5 disabled:text-white/20 text-white font-extrabold py-4 rounded-xl text-xs tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(26,115,232,0.4)] flex items-center justify-center space-x-2 border border-[#1A73E8]"
               >
-                <span>PAY VIA UPI NOW</span>
+                <span>{isLoggedIn ? "PAY VIA UPI NOW" : "LOG IN & PAY VIA UPI"}</span>
               </button>
             </div>
 
@@ -1711,12 +1937,12 @@ export default function App() {
           isOpen={isCartPaymentOpen}
           onClose={() => setIsCartPaymentOpen(false)}
           onPaymentConfirmed={finalizeCartCheckout}
-          amount={cart.reduce((acc, item) => acc + getDiscountedPrice(item.product.price) * item.quantity, 0)}
-          bookingName="Temple Bazaar Order"
+          amount={combinedCartTotal()}
+          bookingName="Sri Dwar Cart Checkout"
           devoteeName={userProfile.name || "Devotee"}
           refId={`CART-${Date.now()}`}
           payeeLabel="Order Items"
-          payeeValue={`${cart.length} item(s)`}
+          payeeValue={`${cart.length + serviceCart.length} item(s)`}
         />
       </Suspense>
 
