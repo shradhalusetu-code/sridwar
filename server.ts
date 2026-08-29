@@ -883,11 +883,13 @@ function fittedTextElement(
   maxWidth: number,
   maxSize: number,
   minSize: number,
-  color: string
+  color: string,
+  anchor: "start" | "end" = "start"
 ): string {
   const size = fitFontSizeToWidth(rawText, maxWidth, maxSize, minSize);
   const text = escapeSvgText(truncateToWidth(rawText, maxWidth, size));
-  return `<text x="${x}" y="${y}" font-family="${RENDER_FONT_FAMILY}" font-weight="700" font-size="${size}" fill="${color}">${text}</text>`;
+  const anchorAttr = anchor === "end" ? ` text-anchor="end"` : "";
+  return `<text x="${x}" y="${y}" font-family="${RENDER_FONT_FAMILY}" font-weight="700" font-size="${size}" fill="${color}"${anchorAttr}>${text}</text>`;
 }
 
 /**
@@ -1074,6 +1076,250 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
   } catch (err: any) {
     appendAuditLog("temple_visit_certificate_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+
+// 2g. Service Certificate — composites the devotee's name, the puja/seva/
+// service, and the performed date onto Service_Certificate.jpg, server-side.
+//
+// Per spec: this certificate is NOT available until Sri Dwar's team has
+// actually confirmed the service was performed — payment alone is never
+// enough (mirrors the same principle certificateService.ts already
+// enforces for its own certificate pipeline: payment success is proof of
+// money received, never proof of service performed). This endpoint
+// enforces that itself: it refuses to render — 403, not a blank/placeholder
+// image — until activities.completion_status = 'completed'. Even someone
+// who already knows the URL gets nothing until then.
+const SERVICE_CERT_NAME_SLOT = { x: 530, y: 402, maxWidth: 520, maxSize: 26, minSize: 14 };
+const SERVICE_CERT_SERVICE_SLOT = { x: 480, y: 500, maxWidth: 520, maxSize: 24, minSize: 14 };
+const SERVICE_CERT_DATE_SLOT = { x: 760, y: 568, maxWidth: 220, maxSize: 18, minSize: 11 };
+const SERVICE_CERT_FIELD_COLOR = "#2b1806";
+
+async function renderServiceCertificateJpeg(name: string, serviceName: string, performedDate: string): Promise<Buffer> {
+  const sharp = (await import("sharp")).default;
+  const imagePath = path.join(
+    process.cwd(),
+    process.env.NODE_ENV === "production" ? "dist" : "public",
+    "images",
+    "Service_Certificate.jpg"
+  );
+  const base = sharp(imagePath);
+  const meta = await base.metadata();
+  const width = meta.width || 1492;
+  const height = meta.height || 1054;
+
+  const nameEl = fittedTextElement(
+    name, SERVICE_CERT_NAME_SLOT.x, SERVICE_CERT_NAME_SLOT.y, SERVICE_CERT_NAME_SLOT.maxWidth,
+    SERVICE_CERT_NAME_SLOT.maxSize, SERVICE_CERT_NAME_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+  );
+  const serviceEl = fittedTextElement(
+    serviceName, SERVICE_CERT_SERVICE_SLOT.x, SERVICE_CERT_SERVICE_SLOT.y, SERVICE_CERT_SERVICE_SLOT.maxWidth,
+    SERVICE_CERT_SERVICE_SLOT.maxSize, SERVICE_CERT_SERVICE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+  );
+  const dateEl = fittedTextElement(
+    performedDate, SERVICE_CERT_DATE_SLOT.x, SERVICE_CERT_DATE_SLOT.y, SERVICE_CERT_DATE_SLOT.maxWidth,
+    SERVICE_CERT_DATE_SLOT.maxSize, SERVICE_CERT_DATE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+  );
+
+  const textLayer = await renderTextLayerPng(width, height, `${nameEl}${serviceEl}${dateEl}`);
+  return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
+}
+
+app.get("/api/certificates/service/:refId", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)." });
+    return;
+  }
+
+  try {
+    const { data: activity, error: activityError } = await supabaseAdmin
+      .from("activities")
+      .select("item_name, completion_status, performed_at, created_at")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (activityError) throw new Error(activityError.message);
+    if (!activity) {
+      res.status(404).json({ error: "No booking found for this reference." });
+      return;
+    }
+
+    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null };
+    if (row.completion_status !== "completed" || !row.performed_at) {
+      // Not a rendering failure — a deliberate refusal. Matches
+      // certificateService.ts's own "not_completed" business rule.
+      res.status(403).json({ error: "This certificate isn't available yet — it's issued once Sri Dwar's team confirms the service was performed." });
+      return;
+    }
+
+    const { data: submission } = await supabaseAdmin
+      .from("form_submissions")
+      .select("name")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const devoteeName = ((submission as { name: string | null } | null)?.name || "").trim() || "Devotee";
+    const serviceName = (row.item_name || "").trim() || "Sacred Offering";
+    const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+    const jpegBuffer = await renderServiceCertificateJpeg(devoteeName, serviceName, performedDate);
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Service-Certificate-${refId}.jpg"`);
+    res.send(jpegBuffer);
+  } catch (err: any) {
+    appendAuditLog("service_certificate_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+
+// 2h. Transaction Completed — composites Bill To / Invoice / Reference /
+// Date / Description / Amount / Subtotal / Total Paid / Payment Method onto
+// Trasancation_Completed.jpg, server-side, from the real activities row.
+//
+// Payment Method shows the real method once payment_status is 'confirmed';
+// otherwise it shows "Payment is still pending" in an amber tone (matching
+// the "Under Review" badge colour already used in the emails) instead of
+// fabricating a method that hasn't actually been verified yet.
+const TXN_BILLTO_SLOT = { x: 130, y: 415, maxWidth: 420, maxSize: 20, minSize: 12 };
+const TXN_INVOICE_SLOT = { x: 750, y: 381, maxWidth: 260, maxSize: 16, minSize: 10 };
+const TXN_REFERENCE_SLOT = { x: 750, y: 414, maxWidth: 260, maxSize: 16, minSize: 10 };
+const TXN_DATE_SLOT = { x: 750, y: 449, maxWidth: 260, maxSize: 16, minSize: 10 };
+const TXN_DESC_SLOT = { x: 140, y: 580, maxWidth: 640, maxSize: 18, minSize: 12 };
+const TXN_AMOUNT_SLOT = { x: 850, y: 580, maxWidth: 180, maxSize: 18, minSize: 12 };
+const TXN_SUBTOTAL_SLOT = { x: 745, y: 770, maxWidth: 180, maxSize: 16, minSize: 11 };
+const TXN_TOTAL_SLOT = { x: 745, y: 825, maxWidth: 180, maxSize: 20, minSize: 13 };
+const TXN_PAYMENT_SLOT = { x: 335, y: 875, maxWidth: 400, maxSize: 16, minSize: 11 };
+const TXN_FIELD_COLOR = "#2b1806";
+const TXN_PENDING_COLOR = "#8a5a12";
+
+function formatInr(amount: number): string {
+  return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+const PAYMENT_METHOD_DISPLAY_LABELS: Record<string, string> = {
+  upi: "UPI", gpay: "Google Pay (UPI)", phonepe: "PhonePe (UPI)", paytm: "Paytm (UPI)",
+  "whatsapp pay": "WhatsApp Pay", bank_transfer: "Bank Transfer",
+};
+
+async function renderTransactionJpeg(fields: {
+  billTo: string; invoice: string; reference: string; date: string;
+  description: string; amount: number; subtotal: number; totalPaid: number;
+  paymentMethod: string; isPaid: boolean;
+}): Promise<Buffer> {
+  const sharp = (await import("sharp")).default;
+  const imagePath = path.join(
+    process.cwd(),
+    process.env.NODE_ENV === "production" ? "dist" : "public",
+    "images",
+    "Trasancation_Completed.jpg"
+  );
+  const base = sharp(imagePath);
+  const meta = await base.metadata();
+  const width = meta.width || 1055;
+  const height = meta.height || 1491;
+
+  const els = [
+    fittedTextElement(fields.billTo, TXN_BILLTO_SLOT.x, TXN_BILLTO_SLOT.y, TXN_BILLTO_SLOT.maxWidth, TXN_BILLTO_SLOT.maxSize, TXN_BILLTO_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.invoice, TXN_INVOICE_SLOT.x, TXN_INVOICE_SLOT.y, TXN_INVOICE_SLOT.maxWidth, TXN_INVOICE_SLOT.maxSize, TXN_INVOICE_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.reference, TXN_REFERENCE_SLOT.x, TXN_REFERENCE_SLOT.y, TXN_REFERENCE_SLOT.maxWidth, TXN_REFERENCE_SLOT.maxSize, TXN_REFERENCE_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.date, TXN_DATE_SLOT.x, TXN_DATE_SLOT.y, TXN_DATE_SLOT.maxWidth, TXN_DATE_SLOT.maxSize, TXN_DATE_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.description, TXN_DESC_SLOT.x, TXN_DESC_SLOT.y, TXN_DESC_SLOT.maxWidth, TXN_DESC_SLOT.maxSize, TXN_DESC_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(formatInr(fields.amount), TXN_AMOUNT_SLOT.x, TXN_AMOUNT_SLOT.y, TXN_AMOUNT_SLOT.maxWidth, TXN_AMOUNT_SLOT.maxSize, TXN_AMOUNT_SLOT.minSize, TXN_FIELD_COLOR, "end"),
+    fittedTextElement(formatInr(fields.subtotal), TXN_SUBTOTAL_SLOT.x, TXN_SUBTOTAL_SLOT.y, TXN_SUBTOTAL_SLOT.maxWidth, TXN_SUBTOTAL_SLOT.maxSize, TXN_SUBTOTAL_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(formatInr(fields.totalPaid), TXN_TOTAL_SLOT.x, TXN_TOTAL_SLOT.y, TXN_TOTAL_SLOT.maxWidth, TXN_TOTAL_SLOT.maxSize, TXN_TOTAL_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.paymentMethod, TXN_PAYMENT_SLOT.x, TXN_PAYMENT_SLOT.y, TXN_PAYMENT_SLOT.maxWidth, TXN_PAYMENT_SLOT.maxSize, TXN_PAYMENT_SLOT.minSize, fields.isPaid ? TXN_FIELD_COLOR : TXN_PENDING_COLOR),
+  ].join("");
+
+  const textLayer = await renderTextLayerPng(width, height, els);
+  return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
+}
+
+/**
+ * Shared lookup + render, used by both the HTTP route below (profile-page
+ * download) and directly by the GAS-facing email banner route further down
+ * (so an email's embedded image and a devotee's profile-page download are
+ * always built from the exact same code path — never two implementations
+ * that could quietly drift apart).
+ */
+async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    throw new Error("Supabase is not configured on the server.");
+  }
+
+  const { data: activity, error: activityError } = await supabaseAdmin
+    .from("activities")
+    .select("item_name, amount, payment_method, payment_status, created_at")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (activityError) throw new Error(activityError.message);
+  if (!activity) throw new Error("not_found");
+
+  const row = activity as {
+    item_name: string | null; amount: number | null; payment_method: string | null;
+    payment_status: string | null; created_at: string | null;
+  };
+
+  const { data: submission } = await supabaseAdmin
+    .from("form_submissions")
+    .select("name")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const isPaid = row.payment_status === "confirmed";
+  const amount = typeof row.amount === "number" ? row.amount : 0;
+  const methodKey = (row.payment_method || "").trim().toLowerCase();
+  const paymentMethodDisplay = isPaid
+    ? PAYMENT_METHOD_DISPLAY_LABELS[methodKey] || row.payment_method || "UPI"
+    : "Payment is still pending";
+
+  return renderTransactionJpeg({
+    billTo: (submission as { name: string | null } | null)?.name || "Devotee",
+    invoice: `INV-${refId}`,
+    reference: refId,
+    date: new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }),
+    description: row.item_name || "Sacred Offering",
+    amount,
+    subtotal: amount,
+    totalPaid: amount,
+    paymentMethod: paymentMethodDisplay,
+    isPaid,
+  });
+}
+
+app.get("/api/certificates/transaction/:refId", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderTransactionJpeg(refId);
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "private, max-age=120");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Transaction-${refId}.jpg"`);
+    res.send(jpegBuffer);
+  } catch (err: any) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("transaction_receipt_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No transaction found for this reference." : "Could not generate the receipt right now." });
   }
 });
 
