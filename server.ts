@@ -787,8 +787,21 @@ app.post(
 // still can't fit at the minimum readable size, truncated with an ellipsis.
 // It must never be widened without re-measuring the artwork, or the name
 // will start crossing into the folded-hands icon again.
+//
+// ✅ ROOT-CAUSE FIX (2026-08-29): every coordinate below is calibrated
+// against RENDER_FONT_FAMILY via renderTextLayerPng() (resvg-js), not
+// against a different tool. An earlier version of this file mixed two
+// different measurement methods — some coordinates were checked with
+// Python PIL (where a text draw's y is the TOP of the glyph box) and then
+// pasted as-is into this file's SVG <text y="..."> markup (where y means
+// the BASELINE) without correcting for that difference. Same nominal
+// number, two different meanings — that's what made devotee names and
+// values render visibly high/"floating" above their intended lines
+// (reported directly against a live email). Every number below has now
+// been re-measured end-to-end through the exact renderer that generates
+// production images.
 const NAME_SLOT_X = 574;
-const NAME_SLOT_Y = 258;
+const NAME_SLOT_Y = 272;
 const NAME_SLOT_MAX_WIDTH_PX = 50; // x=574 to x=624 — stops well before the folded-hands icon (~x=628)
 const NAME_SLOT_MAX_SIZE = 24;
 const NAME_SLOT_MIN_SIZE = 9;
@@ -796,7 +809,30 @@ const NAME_SLOT_COLOR = "#1f150a"; // matches the darker "Jai Jagannath," ink
 
 const INQUIRY_BANNER_VALUE_MAX_WIDTH_PX = 340; // x=400 to x=740 on the 941px-wide artwork
 const INQUIRY_BANNER_FIELD_COLOR = "#2b1806"; // matches the ink tone used elsewhere on this artwork
-const INQUIRY_BANNER_FONT_FAMILY = "Georgia, 'Times New Roman', serif";
+
+// ─── Deterministic text rendering ───────────────────────────────────────
+// ✅ ROOT-CAUSE FIX (2026-08-29): this used to render text with sharp's
+// built-in SVG support, using `font-family: "Georgia, 'Times New Roman',
+// serif"`. Neither Georgia nor Times New Roman exist on Linux — sharp's
+// SVG renderer silently substitutes whatever the HOST SYSTEM's fontconfig
+// resolves generic "serif" to, which is NOT guaranteed to be the same font
+// on every machine (verified directly: this sandbox resolves it to "DejaVu
+// Serif", but a different/slimmer server image can resolve to a font with
+// different baseline metrics, or none at all). That made rendered text
+// position depend on which server happened to run the request — the exact
+// kind of bug that "worked when I tested it" and then didn't in production.
+//
+// Fixed by rendering text with resvg-js instead, with `loadSystemFonts:
+// false` and one explicit, bundled font file
+// (public/fonts/DejaVuSerif-Bold.ttf, shipped as a real project asset —
+// see RENDER_FONT_PATH below). This makes text rendering 100% deterministic
+// regardless of host OS or installed fonts: the exact same font file is
+// used whether this runs on a laptop, a Docker image, or Render — nothing
+// left to "whatever's installed." sharp is still used for everything it's
+// actually good at (loading the base JPG, compositing, JPEG encoding) —
+// only the text layer itself now comes from resvg-js.
+const RENDER_FONT_FAMILY = "DejaVu Serif";
+const RENDER_FONT_PATH = path.join(process.cwd(), "public", "fonts", "DejaVuSerif-Bold.ttf");
 
 function escapeSvgText(value: string): string {
   return value
@@ -851,7 +887,29 @@ function fittedTextElement(
 ): string {
   const size = fitFontSizeToWidth(rawText, maxWidth, maxSize, minSize);
   const text = escapeSvgText(truncateToWidth(rawText, maxWidth, size));
-  return `<text x="${x}" y="${y}" font-family="${INQUIRY_BANNER_FONT_FAMILY}" font-weight="700" font-size="${size}" fill="${color}">${text}</text>`;
+  return `<text x="${x}" y="${y}" font-family="${RENDER_FONT_FAMILY}" font-weight="700" font-size="${size}" fill="${color}">${text}</text>`;
+}
+
+/**
+ * Renders a set of SVG <text> elements to a transparent PNG using resvg-js
+ * with ONE explicit, bundled font file and system font loading fully
+ * disabled — see the fix note above RENDER_FONT_FAMILY for why. Dynamically
+ * imported, exactly like sharp/pdf-lib elsewhere in this file, so a
+ * missing/broken install can only ever fail a render request, never server
+ * startup.
+ */
+async function renderTextLayerPng(width: number, height: number, textElements: string): Promise<Buffer> {
+  const { Resvg } = await import("@resvg/resvg-js");
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${textElements}</svg>`;
+  const resvg = new Resvg(svg, {
+    font: {
+      fontFiles: [RENDER_FONT_PATH],
+      loadSystemFonts: false,
+      defaultFontFamily: RENDER_FONT_FAMILY,
+    },
+    background: "rgba(0,0,0,0)",
+  });
+  return resvg.render().asPng();
 }
 
 async function renderInquiryBannerJpeg(name: string, refId: string, label: string): Promise<Buffer> {
@@ -881,16 +939,12 @@ async function renderInquiryBannerJpeg(name: string, refId: string, label: strin
     NAME_SLOT_MIN_SIZE,
     NAME_SLOT_COLOR
   );
-  const refEl = fittedTextElement(refId, 400, 420, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
-  const labelEl = fittedTextElement(label, 400, 500, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
+  const refEl = fittedTextElement(refId, 400, 443, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
+  const labelEl = fittedTextElement(label, 400, 523, INQUIRY_BANNER_VALUE_MAX_WIDTH_PX, 20, 13, INQUIRY_BANNER_FIELD_COLOR);
 
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    ${nameEl}
-    ${refEl}
-    ${labelEl}
-  </svg>`;
+  const textLayer = await renderTextLayerPng(width, height, `${nameEl}${refEl}${labelEl}`);
 
-  return base.composite([{ input: Buffer.from(svg) }]).jpeg({ quality: 88 }).toBuffer();
+  return base.composite([{ input: textLayer }]).jpeg({ quality: 88 }).toBuffer();
 }
 
 app.get("/api/email/inquiry-banner", async (req, res) => {
@@ -924,7 +978,9 @@ app.get("/api/email/inquiry-banner", async (req, res) => {
 // sits on the short blank line under "DATE OF ISSUE" in the bottom strip.
 // Each is shrink-to-fit + truncated with the same helpers the inquiry
 // banner above uses, so a long temple name can never run into the deity
-// artwork on either side.
+// artwork on either side. Measured through the same resvg-js pipeline as
+// the inquiry banner above (see the fix note there) — these three were
+// already correct even before that fix, re-confirmed unchanged afterward.
 //
 // SECURITY: this never trusts client-supplied name/temple/date — it looks
 // the devotee's own submitted data up server-side from form_submissions by
@@ -967,13 +1023,9 @@ async function renderTempleVisitCertificateJpeg(name: string, temple: string, da
     TEMPLE_CERT_DATE_SLOT.maxSize, TEMPLE_CERT_DATE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
   );
 
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    ${nameEl}
-    ${templeEl}
-    ${dateEl}
-  </svg>`;
+  const textLayer = await renderTextLayerPng(width, height, `${nameEl}${templeEl}${dateEl}`);
 
-  return base.composite([{ input: Buffer.from(svg) }]).jpeg({ quality: 90 }).toBuffer();
+  return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
 
 app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
