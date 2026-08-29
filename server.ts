@@ -1091,7 +1091,16 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
 // image — until activities.completion_status = 'completed'. Even someone
 // who already knows the URL gets nothing until then.
 const SERVICE_CERT_NAME_SLOT = { x: 530, y: 402, maxWidth: 520, maxSize: 26, minSize: 14 };
-const SERVICE_CERT_SERVICE_SLOT = { x: 480, y: 500, maxWidth: 520, maxSize: 24, minSize: 14 };
+// ✅ FIX (2026-08-29 — reported overlap, reproduced and re-measured):
+// y was 500 with maxSize 24 — close enough to the "has received divine
+// blessings through" caption above it (baseline ~460) that any value using
+// close to the full font size visibly overlapped the caption text, exactly
+// as reported. Pushed down to y=525 and maxSize capped at 20; re-verified
+// clean against four real cases (short service name, a long combined
+// service description, a bare field-of-expertise word, and the exact
+// "Gotra: X — Ref Y" fallback text from the report) — see the render
+// checks performed before this fix was written, not assumed after.
+const SERVICE_CERT_SERVICE_SLOT = { x: 480, y: 525, maxWidth: 520, maxSize: 20, minSize: 13 };
 const SERVICE_CERT_DATE_SLOT = { x: 760, y: 568, maxWidth: 220, maxSize: 18, minSize: 11 };
 const SERVICE_CERT_FIELD_COLOR = "#2b1806";
 
@@ -1141,7 +1150,7 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
   try {
     const { data: activity, error: activityError } = await supabaseAdmin
       .from("activities")
-      .select("item_name, completion_status, performed_at, created_at")
+      .select("item_name, completion_status, performed_at, created_at, user_id")
       .eq("ref_id", refId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -1153,7 +1162,7 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
       return;
     }
 
-    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null };
+    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null };
     if (row.completion_status !== "completed" || !row.performed_at) {
       // Not a rendering failure — a deliberate refusal. Matches
       // certificateService.ts's own "not_completed" business rule.
@@ -1161,6 +1170,14 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
       return;
     }
 
+    // ✅ FIX (2026-08-29 — same root cause as the Transaction receipt bug):
+    // regular Puja/Seva bookings (BookNowWizard.tsx) never create a
+    // form_submissions row either — only a Google Sheet sync + an
+    // `activities` row — so this lookup was silently empty for genuine
+    // paid bookings too, not just Bazaar orders. Falls back to the
+    // devotee's own account profile (activities.user_id -> profiles.name)
+    // before giving up and showing "Devotee".
+    let devoteeName: string | null = null;
     const { data: submission } = await supabaseAdmin
       .from("form_submissions")
       .select("name")
@@ -1168,12 +1185,21 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    devoteeName = (submission as { name: string | null } | null)?.name || null;
 
-    const devoteeName = ((submission as { name: string | null } | null)?.name || "").trim() || "Devotee";
+    if (!devoteeName && row.user_id) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("name")
+        .eq("id", row.user_id)
+        .maybeSingle();
+      devoteeName = (profile as { name: string | null } | null)?.name || null;
+    }
+
     const serviceName = (row.item_name || "").trim() || "Sacred Offering";
     const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-    const jpegBuffer = await renderServiceCertificateJpeg(devoteeName, serviceName, performedDate);
+    const jpegBuffer = await renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, performedDate);
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Service-Certificate-${refId}.jpg"`);
@@ -1181,6 +1207,169 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
   } catch (err: any) {
     appendAuditLog("service_certificate_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+
+// 2j. General-purpose certificate — the SAME Service_Certificate.jpg
+// artwork, reused (per explicit instruction) for every record type that
+// has no transaction and no Darshan Certificate of its own: devotee
+// registrations, Dharmic Expert/Pandit/Guru registrations, temple
+// committee registrations, testimonials, contact inquiries, refund
+// requests, subscription signups — anything living in form_submissions.
+//
+// Field mapping for the "has received divine blessings through" line,
+// exactly as specified:
+//   - Dharmic Expert/Guru registration -> their field of expertise
+//     (payload.category, e.g. "Pandit", "Yoga Guru")
+//   - Temple committee registration -> the temple they registered
+//     (payload.templeName)
+//   - Everything else (devotee registration, testimonial, contact/
+//     inquiry, refund request, subscription signup) -> falls back to
+//     "Gotra: {gotra} — Ref {refId}" when a gotra was supplied (devotee
+//     registration), otherwise just "{form label} — Ref {refId}", per the
+//     instruction to fall back to gotra + the reference ID when there is
+//     no service/expertise field to show.
+// Unlike /api/certificates/service/:refId above, this is never gated on
+// activities.completion_status — a devotee/expert/temple registration or
+// an inquiry has no "performed" concept; the record existing is enough.
+const GENERAL_CERT_FORM_LABELS: Record<string, string> = {
+  contact_us: "Inquiry",
+  testimonial: "Devotion Story Shared",
+  devotee_registration: "Devotee Registration",
+  expert_registration: "Dharmic Expert Registration",
+  temple_committee_registration: "Temple Committee Registration",
+  refund_cancellation_request: "Refund / Cancellation Request",
+  subscription_signup: "Subscription Signup",
+};
+
+function resolveBlessedThroughText(formType: string, payload: Record<string, unknown> | null, refId: string): string {
+  const p = payload || {};
+  if (formType === "expert_registration" && p["category"]) {
+    return String(p["category"]).trim();
+  }
+  if (formType === "temple_committee_registration" && p["templeName"]) {
+    return String(p["templeName"]).trim();
+  }
+  const gotra = typeof p["gotra"] === "string" ? (p["gotra"] as string).trim() : "";
+  if (gotra) {
+    return `Gotra: ${gotra} — Ref ${refId}`;
+  }
+  const label = GENERAL_CERT_FORM_LABELS[formType] || "Devotee Record";
+  return `${label} — Ref ${refId}`;
+}
+
+async function loadAndRenderGeneralCertificateJpeg(refId: string): Promise<Buffer> {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) throw new Error("Supabase is not configured on the server.");
+
+  const { data, error } = await supabaseAdmin
+    .from("form_submissions")
+    .select("name, form_type, payload, created_at")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("not_found");
+
+  const row = data as { name: string | null; form_type: string; payload: Record<string, unknown> | null; created_at: string | null };
+  const devoteeName = (row.name || "").trim() || "Devotee";
+  const blessedThrough = resolveBlessedThroughText(row.form_type, row.payload, refId);
+  const dateOfIssue = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+  return renderServiceCertificateJpeg(devoteeName, blessedThrough, dateOfIssue);
+}
+
+app.get("/api/certificates/general/:refId", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderGeneralCertificateJpeg(refId);
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Certificate-${refId}.jpg"`);
+    res.send(jpegBuffer);
+  } catch (err: any) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("general_certificate_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the certificate right now." });
+  }
+});
+
+// 2k. General-purpose certificate — PDF. Per spec: the embedded image is
+// followed by a real text footer inside the PDF (disclaimer, Sri Dwar
+// website, social links) — unlike the plain Transaction invoice PDF above,
+// which is only ever a full-bleed image, since a transaction/invoice has
+// no equivalent "footer content" requirement of its own beyond what's
+// already printed on that artwork.
+app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderGeneralCertificateJpeg(refId);
+    const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+    const sharp = (await import("sharp")).default;
+
+    const meta = await sharp(jpegBuffer).metadata();
+    const pxWidth = meta.width || 1492;
+    const pxHeight = meta.height || 1054;
+    const imageWidthPt = (pxWidth / 96) * 72;
+    const imageHeightPt = (pxHeight / 96) * 72;
+
+    const footerHeightPt = 130;
+    const marginPt = 28;
+    const pageWidth = imageWidthPt;
+    const pageHeight = imageHeightPt + footerHeightPt;
+
+    const pdfDoc = await PDFDocument.create();
+    pdfDoc.setTitle(`Sri Dwar — Certificate (Ref ${refId})`);
+    pdfDoc.setProducer("Sri Dwar");
+    const jpgImage = await pdfDoc.embedJpg(jpegBuffer);
+    const page = pdfDoc.addPage([pageWidth, pageHeight]);
+    // Image on top, footer text band below it — matches every other
+    // "image on top, disclaimer/links below, never inside the artwork"
+    // surface already built this project (emails, JPG downloads).
+    page.drawImage(jpgImage, { x: 0, y: footerHeightPt, width: imageWidthPt, height: imageHeightPt });
+
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const ink = rgb(0.11, 0.16, 0.14); // matches CONFIG.BRAND.darkGreen tone used across every email
+    const muted = rgb(0.35, 0.38, 0.36);
+
+    let cursorY = footerHeightPt - 22;
+    page.drawText("Shradhalu Private Limited · Jajpur Road, Odisha, India", {
+      x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
+    });
+    cursorY -= 16;
+    page.drawText(
+      "This certificate is a devotional record prepared with care by Sri Dwar. It is not a government document or legal certificate.",
+      { x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted, maxWidth: pageWidth - marginPt * 2, lineHeight: 11 }
+    );
+    cursorY -= 28;
+    page.drawText("sridwar.com  ·  puja@sridwar.com", {
+      x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
+    });
+    cursorY -= 16;
+    page.drawText("Facebook: facebook.com/SridwarSetu  ·  YouTube: @SriDwar  ·  LinkedIn: sri-dwar", {
+      x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted,
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Certificate-${refId}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
+  } catch (err: any) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("general_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the certificate right now." });
   }
 });
 
@@ -1196,7 +1385,14 @@ const TXN_BILLTO_SLOT = { x: 130, y: 415, maxWidth: 420, maxSize: 20, minSize: 1
 const TXN_INVOICE_SLOT = { x: 750, y: 381, maxWidth: 260, maxSize: 16, minSize: 10 };
 const TXN_REFERENCE_SLOT = { x: 750, y: 414, maxWidth: 260, maxSize: 16, minSize: 10 };
 const TXN_DATE_SLOT = { x: 750, y: 449, maxWidth: 260, maxSize: 16, minSize: 10 };
-const TXN_DESC_SLOT = { x: 140, y: 580, maxWidth: 640, maxSize: 18, minSize: 12 };
+// ✅ FIX (2026-08-29 — re-verification found this too): maxWidth was 640,
+// letting a long Description run far enough right to collide with the
+// right-aligned Amount value on the same row once both were long
+// simultaneously (a realistic combination — a long puja name with a large
+// contribution amount). Reduced to 500 so Description's right edge can
+// never reach Amount's column regardless of length; re-verified clean with
+// both fields at their longest realistic length together.
+const TXN_DESC_SLOT = { x: 140, y: 580, maxWidth: 500, maxSize: 18, minSize: 11 };
 const TXN_AMOUNT_SLOT = { x: 850, y: 580, maxWidth: 180, maxSize: 18, minSize: 12 };
 const TXN_SUBTOTAL_SLOT = { x: 745, y: 770, maxWidth: 180, maxSize: 16, minSize: 11 };
 const TXN_TOTAL_SLOT = { x: 745, y: 825, maxWidth: 180, maxSize: 20, minSize: 13 };
@@ -1261,7 +1457,7 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
 
   const { data: activity, error: activityError } = await supabaseAdmin
     .from("activities")
-    .select("item_name, amount, payment_method, payment_status, created_at")
+    .select("item_name, amount, payment_method, payment_status, created_at, user_id")
     .eq("ref_id", refId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -1272,8 +1468,19 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
 
   const row = activity as {
     item_name: string | null; amount: number | null; payment_method: string | null;
-    payment_status: string | null; created_at: string | null;
+    payment_status: string | null; created_at: string | null; user_id: string | null;
   };
+
+  // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Bazaar
+  // order that should have shown the devotee's real name): a plain Bazaar
+  // cart checkout (App.tsx's finalizeCartCheckout, the `cart.length > 0`
+  // branch) calls recordActivity directly and never creates a matching
+  // form_submissions row — so this lookup always came back empty for that
+  // one specific checkout path, even though the devotee's real name was
+  // sitting right there on their own account the whole time. Puja/Seva
+  // bookings (which DO sync through a form first) are unaffected — this is
+  // an added fallback, not a change to how those already worked.
+  let devoteeName: string | null = null;
 
   const { data: submission } = await supabaseAdmin
     .from("form_submissions")
@@ -1282,6 +1489,16 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+  devoteeName = (submission as { name: string | null } | null)?.name || null;
+
+  if (!devoteeName && row.user_id) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("name")
+      .eq("id", row.user_id)
+      .maybeSingle();
+    devoteeName = (profile as { name: string | null } | null)?.name || null;
+  }
 
   const isPaid = row.payment_status === "confirmed";
   const amount = typeof row.amount === "number" ? row.amount : 0;
@@ -1291,7 +1508,7 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
     : "Payment is still pending";
 
   return renderTransactionJpeg({
-    billTo: (submission as { name: string | null } | null)?.name || "Devotee",
+    billTo: devoteeName || "Devotee",
     invoice: `INV-${refId}`,
     reference: refId,
     date: new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }),

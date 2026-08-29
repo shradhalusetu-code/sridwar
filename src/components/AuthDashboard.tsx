@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import html2canvas from "html2canvas-pro";
-import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download } from "lucide-react";
+import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download, Flame, Droplets, Shield, Heart, Sparkles, Sun, Music, BookOpen, Flower2 } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import { supabase } from "../lib/supabaseClient";
@@ -640,6 +640,34 @@ export default function AuthDashboard({
   //
   // ✅ SIMPLIFIED (2026-08-29): PNG option removed per request — JPG only,
   // one button ("Download Your ID"), no format choice to make.
+  // ✅ FIX — devotee report: worked on the phone app and on desktop/laptop
+  // browsers, but not on a 12.1" tablet. Two separate, well-documented
+  // cross-device failure points here, both fixed:
+  //
+  // 1. This used `canvas.toDataURL()` + `<a href="data:...">`. A `data:`
+  //    URL download is NOT reliably honoured by every mobile/tablet
+  //    browser's `download` attribute — some (particularly tablet-class
+  //    WebViews and certain Android browsers) just navigate to/open the
+  //    data URI instead of saving a file, which looks exactly like
+  //    "nothing happens" to the person tapping it. Switched to the same
+  //    blob→URL.createObjectURL()→<a download> pattern already used (and
+  //    already confirmed working) by every other download button on this
+  //    page — one proven mechanism everywhere, not two.
+  // 2. `scale` was uncapped relative to the card's actual on-screen size —
+  //    a large tablet viewport combined with a high devicePixelRatio can
+  //    push the resulting canvas past a browser's maximum canvas area
+  //    (iOS Safari's limit in particular is much lower than desktop
+  //    Chrome's), which fails silently or throws depending on the browser.
+  //    Now capped by the card's real pixel dimensions, not just
+  //    devicePixelRatio, and retries once at a safe fixed scale if the
+  //    first attempt fails for any reason — so a device-specific limit on
+  //    the first try no longer means the download just doesn't work.
+  const MAX_CANVAS_DIMENSION = 4096; // safely under every mainstream browser's canvas area cap, including iOS Safari's
+
+  const renderDharmicIdCanvas = async (node: HTMLElement, scale: number) => {
+    return html2canvas(node, { backgroundColor: "#092320", scale, useCORS: true });
+  };
+
   const handleDownloadDharmicId = async () => {
     setDharmicIdDownloadError("");
     const node = document.getElementById("digital-dharmic-id-card");
@@ -647,19 +675,40 @@ export default function AuthDashboard({
 
     setIsDownloadingDharmicId(true);
     try {
-      const canvas = await html2canvas(node as HTMLElement, {
-        backgroundColor: "#092320",
-        scale: Math.min(3, (typeof window !== "undefined" && window.devicePixelRatio) || 2),
-        useCORS: true,
-      });
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+      const rect = node.getBoundingClientRect();
+      const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 2;
+      const requestedScale = Math.min(3, dpr);
+      // Clamp so width*scale and height*scale can never exceed
+      // MAX_CANVAS_DIMENSION, regardless of how large the card renders on
+      // a given screen/breakpoint.
+      const safeScale = Math.max(
+        1,
+        Math.min(requestedScale, MAX_CANVAS_DIMENSION / Math.max(rect.width, 1), MAX_CANVAS_DIMENSION / Math.max(rect.height, 1))
+      );
+
+      let canvas: HTMLCanvasElement;
+      try {
+        canvas = await renderDharmicIdCanvas(node as HTMLElement, safeScale);
+      } catch (firstError) {
+        // One retry at a conservative fixed scale — covers any
+        // device-specific limit the size-based calculation above didn't
+        // anticipate, rather than giving up on the first failure.
+        console.warn("Dharmic ID render failed at scale", safeScale, "— retrying at scale 1:", firstError);
+        canvas = await renderDharmicIdCanvas(node as HTMLElement, 1);
+      }
+
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.95));
+      if (!blob) throw new Error("Canvas produced an empty image (toBlob returned null)");
+
+      const url = URL.createObjectURL(blob);
       const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
       const link = document.createElement("a");
-      link.href = dataUrl;
+      link.href = url;
       link.download = `Dharmic-ID-${safeName}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (e) {
       console.error("Dharmic ID download failed:", e);
       setDharmicIdDownloadError("Could not generate the image right now. Please try again, or take a screenshot instead.");
@@ -706,6 +755,27 @@ export default function AuthDashboard({
   };
 
   const t = TRANSLATIONS[currentLanguage];
+
+  // ✅ FIX — the same 🐚 emoji, absolutely positioned in the corner, was used
+  // for every single booked ceremony regardless of type, and had no
+  // reserved space of its own — a long puja name (very common; several
+  // names in this app run 15+ words) wrapped to multiple lines and ran
+  // straight under it. Two changes: (1) a real icon per keyword found in
+  // the item's name, so different offerings look different at a glance,
+  // and (2) laid out as a proper flex row with its own column instead of
+  // position:absolute, so the title can never wrap underneath it again —
+  // structurally impossible now, not just visually unlikely.
+  const getPujaIcon = (name: string) => {
+    const n = (name || "").toLowerCase();
+    if (/raksha|kavach|protection|armed forces|shield/.test(n)) return Shield;
+    if (/abhishek|jal\b|water|milk|panchamrit/.test(n)) return Droplets;
+    if (/havan|yagna|yajna|agni|homa/.test(n)) return Flame;
+    if (/aarti|diya|deep\b|lamp/.test(n)) return Sun;
+    if (/seva|donation|contribution|charity|annadan/.test(n)) return Heart;
+    if (/mantra|chant|jaap|japa|recitation/.test(n)) return Music;
+    if (/vedic|scripture|katha|discourse|path\b/.test(n)) return BookOpen;
+    return Flower2;
+  };
 
   // ✅ ADDED — shared download handler for the "All Account Activity" ledger's
   // Receipt/Invoice/Certificate buttons below. Same fetch→blob→<a download>
@@ -1873,14 +1943,20 @@ export default function AuthDashboard({
                         getKey={(item, idx) => `booked-carousel-${idx}`}
                         desktopGridClassName="lg:grid-cols-2"
                         cardWidthClassName="w-[clamp(210px,62vw,360px)]"
-                        renderItem={(item, idx) => (
+                        renderItem={(item, idx) => {
+                          const PujaIcon = getPujaIcon(item.pujaName);
+                          return (
                           <div
                             id={`booked-item-ledg-${idx}`}
-                            className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                            className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left overflow-hidden"
                           >
-                            <div className="absolute right-4 top-4 text-2xl">🐚</div>
-                            <h4 className="font-serif text-sm font-bold text-white">{item.pujaName}</h4>
-                            <span className="text-[12px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
+                            <div className="flex items-start gap-3">
+                              <div className="shrink-0 w-9 h-9 rounded-full bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 flex items-center justify-center">
+                                <PujaIcon className="w-4.5 h-4.5 text-[#5EEAD4]" />
+                              </div>
+                              <h4 className="font-serif text-sm font-bold text-white flex-1 min-w-0">{item.pujaName}</h4>
+                            </div>
+                            <span className="text-[12px] text-white/50 font-mono font-medium block mt-2">Reference Key: {item.refId} | Date: {item.date}</span>
                             <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
                               <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
                               <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase animate-pulse">
@@ -1888,7 +1964,8 @@ export default function AuthDashboard({
                               </span>
                             </div>
                           </div>
-                        )}
+                          );
+                        }}
                       />
 
                       {/* Beyond the latest 6 — collapsed by default, "Show
@@ -1897,15 +1974,20 @@ export default function AuthDashboard({
                         <div className="space-y-3 mt-3">
                           {bookedItems.slice(LEDGER_CAROUSEL_COUNT, bookedLedgerVisible).map((item, i) => {
                             const idx = LEDGER_CAROUSEL_COUNT + i;
+                            const PujaIcon = getPujaIcon(item.pujaName);
                             return (
                               <div
                                 key={idx}
                                 id={`booked-item-ledg-${idx}`}
-                                className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                                className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left overflow-hidden"
                               >
-                                <div className="absolute right-4 top-4 text-2xl">🐚</div>
-                                <h4 className="font-serif text-sm font-bold text-white">{item.pujaName}</h4>
-                                <span className="text-[12px] text-white/50 font-mono font-medium block">Reference Key: {item.refId} | Date: {item.date}</span>
+                                <div className="flex items-start gap-3">
+                                  <div className="shrink-0 w-9 h-9 rounded-full bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 flex items-center justify-center">
+                                    <PujaIcon className="w-4.5 h-4.5 text-[#5EEAD4]" />
+                                  </div>
+                                  <h4 className="font-serif text-sm font-bold text-white flex-1 min-w-0">{item.pujaName}</h4>
+                                </div>
+                                <span className="text-[12px] text-white/50 font-mono font-medium block mt-2">Reference Key: {item.refId} | Date: {item.date}</span>
                                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
                                   <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
                                   <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase animate-pulse">
@@ -2079,6 +2161,37 @@ export default function AuthDashboard({
                             <Download className="w-3.5 h-3.5" />
                             <span>{downloadingCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
                           </button>
+                        )}
+                        {/* ✅ ADDED — every OTHER form record (Contact Us,
+                            Devotion Story, Devotee/Expert/Temple Committee
+                            Registration, etc.) has no transaction and no
+                            Darshan Certificate of its own, so it uses the
+                            same Service_Certificate.jpg artwork instead —
+                            see /api/certificates/general/:refId(/pdf) in
+                            server.ts, which fills in the devotee's field of
+                            expertise, the temple they registered, or their
+                            gotra + reference ID depending on record type. */}
+                        {sub.formType !== "darshan_certificate" && sub.refId && (
+                          <div className="shrink-0 flex flex-wrap gap-1.5 justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
+                              disabled={downloadingDocKey === `${sub.id}-gen-jpg`}
+                              className="flex items-center gap-1 px-2.5 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{downloadingDocKey === `${sub.id}-gen-jpg` ? "..." : "JPG"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}/pdf`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.pdf`, `${sub.id}-gen-pdf`)}
+                              disabled={downloadingDocKey === `${sub.id}-gen-pdf`}
+                              className="flex items-center gap-1 px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{downloadingDocKey === `${sub.id}-gen-pdf` ? "..." : "PDF"}</span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     ))}

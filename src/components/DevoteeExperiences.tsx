@@ -15,10 +15,13 @@ import {
   CheckCircle, 
   X,
   Users,
-  Feather
+  Feather,
+  Download,
+  Gem
 } from "lucide-react";
 import SriDwarLogo from "./SriDwarLogo";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
+import StoneEngravingNote from "./StoneEngravingNote";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
@@ -341,9 +344,6 @@ export default function DevoteeExperiences() {
   // even reach.
   const [reviewDisclaimerChecked, setReviewDisclaimerChecked] = useState(false);
   const [showReviewDisclaimerError, setShowReviewDisclaimerError] = useState(false);
-  const [isSubmitSuccess, setIsSubmitSuccess] = useState(false);
-  const [showUPI, setShowUPI] = useState(false);
-  const [testimonyRefId, setTestimonyRefId] = useState("");
 
   // Load from localStorage or defaults
   useEffect(() => {
@@ -372,9 +372,56 @@ export default function DevoteeExperiences() {
     setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
   };
 
-  // Modal closed without paying — sends the ONE Final row for this
-  // testimony, sharing the same Ref ID, with the divine contribution correctly
-  // recorded as "Skipped".
+  // ✅ FIX (2026-08-29 — added the requested Contribution/Skip screen, and
+  // fixed a real timing bug found while doing it): this used to open the
+  // UPI contribution modal AND show a generic "Sankalpa Review Submitted!"
+  // success flash AT THE SAME TIME, then force-close everything after a
+  // fixed 2 seconds regardless of what the devotee did with the modal in
+  // that window — a genuine race, not by design. Replaced with an explicit
+  // 3-step flow, no auto-close timer:
+  //   "form"     — the testimony form itself (unchanged)
+  //   "decide"   — shown right after submit: thank-you + the Stone-Name
+  //                Engraving note + an explicit "Contribute" button (opens
+  //                the UPI modal) and an explicit "Skip" button (calls
+  //                handleSkipContribution directly — never opens payment)
+  //   "done"     — shown after either path completes: a devotional
+  //                thank-you message plus a Certificate download button
+  //                (the new general-purpose Service_Certificate.jpg
+  //                endpoint, keyed by this testimony's own refId)
+  const [submitStep, setSubmitStep] = useState<"form" | "decide" | "done">("form");
+  const [showUPI, setShowUPI] = useState(false);
+  const [testimonyRefId, setTestimonyRefId] = useState("");
+  const [isDownloadingTestimonyCert, setIsDownloadingTestimonyCert] = useState(false);
+  const [testimonyCertError, setTestimonyCertError] = useState("");
+
+  const handleDownloadTestimonyCertificate = async () => {
+    if (!testimonyRefId) return;
+    setTestimonyCertError("");
+    setIsDownloadingTestimonyCert(true);
+    try {
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(testimonyRefId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (newName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Testimony certificate download failed:", e);
+      setTestimonyCertError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingTestimonyCert(false);
+    }
+  };
+
+  // Skip chosen — sends the ONE Final row for this testimony, sharing the
+  // same Ref ID, with the divine contribution correctly recorded as
+  // "Skipped". Never opens payment — moves straight to the "done" screen.
   const handleSkipContribution = async () => {
     setShowUPI(false);
     try {
@@ -394,6 +441,7 @@ export default function DevoteeExperiences() {
       refId: testimonyRefId,
       payload: { location: newLocation, service: newService, story: newStory, rating: newRating, contribution: "skipped" },
     });
+    setSubmitStep("done");
   };
 
   // Payment confirmed — sends the ONE Final row for this testimony, sharing
@@ -426,16 +474,13 @@ export default function DevoteeExperiences() {
       paymentMethod: details.method,
       paymentStatus: "pending_verification",
     });
-    // No dedicated success screen in this flow (testimony posts straight to
-    // the public wall) — so the confirmation PDF is delivered directly here
-    // instead of behind a button, same underlying function BookNowWizard
-    // uses, which already shows its own toast/share-sheet on completion.
     downloadConfirmationMessage({
       category: "temple_contribution",
       serviceName: `Testimonial Thank-You Divine Contribution — ${newService}`,
       devoteeName: newName,
       refId: testimonyRefId,
     });
+    setSubmitStep("done");
   };
 
   const handleSubmitReview = async (e: FormEvent) => {
@@ -478,8 +523,12 @@ export default function DevoteeExperiences() {
       console.error("Testimony sync error:", err);
     }
 
-    // ✅ Show optional UPI divine contribution after testimony submission
-    setShowUPI(true);
+    // ✅ FIX (2026-08-29): no longer opens the UPI modal here — that used
+    // to race against the success screen (see the fix note above the new
+    // "submitStep" state). Instead moves to the "decide" step, where the
+    // devotee explicitly chooses Contribute or Skip; the modal only opens
+    // if they tap Contribute.
+    setSubmitStep("decide");
 
     const newReview: Testimonial = {
       id: "review_" + Date.now(),
@@ -495,19 +544,24 @@ export default function DevoteeExperiences() {
 
     const updated = [newReview, ...testimonials];
     saveTestimonials(updated);
-    setIsSubmitSuccess(true);
     setCurrentIndex(0); // Show the new experience first
+  };
 
-    // Reset form
-    setTimeout(() => {
-      setNewName("");
-      setNewLocation("");
-      setNewService("");
-      setNewStory("");
-      setNewRating(5);
-      setIsSubmitSuccess(false);
-      setIsModalOpen(false);
-    }, 2000);
+  // Resets the form and returns to a clean slate whenever the devotee
+  // closes the modal, from any step (form, decide, or done) — replaces the
+  // old fixed 2-second auto-close, which could cut the "decide"/"done"
+  // screens off before the devotee had actually read them.
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSubmitStep("form");
+    setNewName("");
+    setNewLocation("");
+    setNewService("");
+    setNewStory("");
+    setNewRating(5);
+    setReviewDisclaimerChecked(false);
+    setShowReviewDisclaimerError(false);
+    setTestimonyCertError("");
   };
 
   if (SHOW_DEVOTEE_TESTIMONIALS && testimonials.length === 0) return null;
@@ -719,11 +773,11 @@ export default function DevoteeExperiences() {
             id="share-story-modal"
             className="fixed inset-0 z-[200] flex flex-col justify-end sm:justify-center sm:items-center sm:p-4 animate-fadeIn"
             style={{ touchAction: "pan-y" }}
-            onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
+            onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}
           >
             <div
               className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
             />
             
             <div
@@ -735,7 +789,7 @@ export default function DevoteeExperiences() {
               <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#5EEAD4] via-[#FFB347] to-[#5EEAD4] z-10" />
               
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={handleCloseModal}
                 className="absolute right-4 text-white/50 hover:text-white transition-colors p-1 z-10"
                 style={{ top: "calc(var(--safe-area-inset-top, env(safe-area-inset-top, 24px)) + 1rem)" }}
                 aria-label="Close modal"
@@ -763,15 +817,69 @@ export default function DevoteeExperiences() {
                 Tell other devotees about the blessings, grace, or sacred resolution you felt. Every story builds faith.
               </p>
 
-              {isSubmitSuccess ? (
-                <div className="py-12 text-center space-y-4 animate-fadeIn">
+              {submitStep === "decide" ? (
+                <div className="py-6 text-center space-y-5 animate-fadeIn">
                   <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40">
                     <CheckCircle className="w-8 h-8" />
                   </div>
-                  <h4 className="font-serif text-xl font-bold text-[#5EEAD4]">Sankalpa Review Submitted!</h4>
+                  <div>
+                    <h4 className="font-serif text-xl font-bold text-[#5EEAD4]">Jai Jagannath, {newName || "Devotee"}! 🙏</h4>
+                    <p className="text-xs text-white/70 max-w-sm mx-auto mt-2">
+                      Thank you for sharing your spiritual testimony from the heart — it has been received with care.
+                    </p>
+                  </div>
+
+                  {/* Stone-Name Engraving — only shown here, exactly per its
+                      own usage guidance: a genuine voluntary contribution
+                      with a Skip option alongside it, not a fixed payment. */}
+                  <div className="text-left bg-[#021816]/60 border border-white/10 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gem className="w-4 h-4 text-[#FFB347]" />
+                      <span className="text-[11px] font-bold text-[#FFB347] uppercase tracking-widest">A Lasting Offering, If You Wish</span>
+                    </div>
+                    <StoneEngravingNote variant="compact" />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowUPI(true)}
+                      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FFB347] to-[#f5a623] text-[#021816] font-bold text-xs tracking-widest uppercase shadow-lg hover:opacity-95 transition-opacity"
+                    >
+                      Contribute a Divine Offering
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSkipContribution}
+                      className="flex-1 py-3 rounded-xl bg-white/5 border border-white/15 text-white/80 font-bold text-xs tracking-widest uppercase hover:bg-white/10 transition-colors"
+                    >
+                      Skip, Just Say Thanks
+                    </button>
+                  </div>
+                </div>
+              ) : submitStep === "done" ? (
+                <div className="py-10 text-center space-y-4 animate-fadeIn">
+                  <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40">
+                    <Heart className="w-8 h-8" />
+                  </div>
+                  <h4 className="font-serif text-xl font-bold text-[#5EEAD4]">With Gratitude, {newName || "Devotee"} 🙏</h4>
                   <p className="text-xs text-white/70 max-w-xs mx-auto">
-                    Thank you for sharing your spiritual testimony. Your story has been added and synchronized securely to your browser storage.
+                    May Prabhu Jagannath and Mahadev bless you and your family always. Your story has been received and lives on this page.
                   </p>
+                  {testimonyCertError && (
+                    <p className="text-xs text-red-300 bg-red-950/30 border border-red-500/20 rounded-xl px-3 py-2 max-w-xs mx-auto">
+                      {testimonyCertError}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleDownloadTestimonyCertificate}
+                    disabled={isDownloadingTestimonyCert}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{isDownloadingTestimonyCert ? "Preparing..." : "Download Your Certificate"}</span>
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitReview} className="space-y-4 text-left">
