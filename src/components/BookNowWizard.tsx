@@ -485,8 +485,16 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     // call never included a metadata field at all. Adding it here is the
     // other half: now the exact name typed into this booking is what the
     // certificate/PDF/email pipeline actually uses, every time.
+    // ✅ FIX (Wellness/Yoga certificate bug): isGuidance and isWellness used
+    // to BOTH map to activityType "other" here, which is exactly why
+    // Wellness bookings' certificates were rendering with the Guidance
+    // artwork (Guidance_Certificate.jpg) instead of their own dedicated
+    // wellness_yoga.jpg — server.ts's renderServiceCertificateJpeg has no
+    // way to tell them apart once they're both "other". Wellness now gets
+    // its own "wellness" activityType (see lib/activities.ts); "other"
+    // means Guidance only from here on.
     recordActivity({
-      activityType: isSeva ? "seva" : (isGuidance || isWellness) ? "other" : "puja",
+      activityType: isSeva ? "seva" : isWellness ? "wellness" : isGuidance ? "other" : "puja",
       itemName: pujaName,
       amount: details.amount,
       refId,

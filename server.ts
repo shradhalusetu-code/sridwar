@@ -884,6 +884,21 @@ function truncateToWidth(text: string, maxWidth: number, size: number): string {
  * floor size, truncated) to physically fit inside maxWidth — used for the
  * name slot so it can NEVER visually cross into the folded-hands icon,
  * regardless of how long a devotee's first name is.
+ *
+ * ✅ FIX (centered-anchor rendering): anchor now also accepts "middle". When
+ * "middle" is used we ALSO set dominant-baseline="central" — not just
+ * text-anchor="middle" — because every measured slot below (x, y) is the
+ * true geometric CENTER of that field's blank artwork area (verified by
+ * cropping the real JPGs and checking pixel bounds of the printed labels
+ * around each blank), not an SVG baseline point. Without
+ * dominant-baseline="central", resvg would still plant the text's baseline
+ * at y, which visually sits the glyph body well ABOVE the intended center
+ * (a bold 30px serif face has ~21px of cap-height above its baseline) —
+ * this was the root cause of "not centered on the actual artwork slot,"
+ * not just a bad x/y guess. "start"/"end" anchors (used only by slots that
+ * have not been re-measured against a true center yet) keep the original
+ * baseline behavior unchanged, so this is additive and does not shift any
+ * text that already renders correctly.
  */
 function fittedTextElement(
   rawText: string,
@@ -893,11 +908,11 @@ function fittedTextElement(
   maxSize: number,
   minSize: number,
   color: string,
-  anchor: "start" | "end" = "start"
+  anchor: "start" | "middle" | "end" = "start"
 ): string {
   const size = fitFontSizeToWidth(rawText, maxWidth, maxSize, minSize);
   const text = escapeSvgText(truncateToWidth(rawText, maxWidth, size));
-  const anchorAttr = anchor === "end" ? ` text-anchor="end"` : "";
+  const anchorAttr = anchor === "end" ? ` text-anchor="end"` : anchor === "middle" ? ` text-anchor="middle" dominant-baseline="central"` : "";
   return `<text x="${x}" y="${y}" font-family="${RENDER_FONT_FAMILY}" font-weight="700" font-size="${size}" fill="${color}"${anchorAttr}>${text}</text>`;
 }
 
@@ -948,8 +963,14 @@ async function renderTextLayerPng(width: number, height: number, textElements: s
 // EmailTemplates.gs) — this function's `label` parameter is kept only so
 // existing call sites don't need to change their own signatures, but it is
 // no longer baked into the image itself.
-const EMAIL_TEMPLATE_REFERENCE_SLOT = { x: 520, y: 525, maxWidth: 330, maxSize: 22, minSize: 13 };
-const EMAIL_TEMPLATE_DEVOTEE_SLOT = { x: 520, y: 572, maxWidth: 330, maxSize: 22, minSize: 13 };
+// ✅ FIX (2026-08-30 — true centered-anchor rendering, re-measured against
+// the real email_template.jpg pixels): the value for each field sits to
+// the right of its colon, inside a boxed row that runs from just past the
+// colon (x≈550) to the box's own inner right edge (x≈905) — true center
+// x≈727, not x:520 (which sat almost exactly ON the colon, too tight for
+// anchor="start" text to breathe). Now centered with anchor="middle".
+const EMAIL_TEMPLATE_REFERENCE_SLOT = { x: 727, y: 515, maxWidth: 340, maxSize: 22, minSize: 13 };
+const EMAIL_TEMPLATE_DEVOTEE_SLOT = { x: 727, y: 572, maxWidth: 340, maxSize: 22, minSize: 13 };
 const EMAIL_TEMPLATE_FIELD_COLOR = "#2b1806";
 
 async function renderInquiryBannerJpeg(name: string, refId: string, _label: string): Promise<Buffer> {
@@ -972,11 +993,11 @@ async function renderInquiryBannerJpeg(name: string, refId: string, _label: stri
 
   const refEl = fittedTextElement(
     refId, EMAIL_TEMPLATE_REFERENCE_SLOT.x, EMAIL_TEMPLATE_REFERENCE_SLOT.y, EMAIL_TEMPLATE_REFERENCE_SLOT.maxWidth,
-    EMAIL_TEMPLATE_REFERENCE_SLOT.maxSize, EMAIL_TEMPLATE_REFERENCE_SLOT.minSize, EMAIL_TEMPLATE_FIELD_COLOR
+    EMAIL_TEMPLATE_REFERENCE_SLOT.maxSize, EMAIL_TEMPLATE_REFERENCE_SLOT.minSize, EMAIL_TEMPLATE_FIELD_COLOR, "middle"
   );
   const devoteeEl = fittedTextElement(
     (name || "").trim() || "Devotee", EMAIL_TEMPLATE_DEVOTEE_SLOT.x, EMAIL_TEMPLATE_DEVOTEE_SLOT.y, EMAIL_TEMPLATE_DEVOTEE_SLOT.maxWidth,
-    EMAIL_TEMPLATE_DEVOTEE_SLOT.maxSize, EMAIL_TEMPLATE_DEVOTEE_SLOT.minSize, EMAIL_TEMPLATE_FIELD_COLOR
+    EMAIL_TEMPLATE_DEVOTEE_SLOT.maxSize, EMAIL_TEMPLATE_DEVOTEE_SLOT.minSize, EMAIL_TEMPLATE_FIELD_COLOR, "middle"
   );
 
   const textLayer = await renderTextLayerPng(width, height, `${refEl}${devoteeEl}`);
@@ -1033,9 +1054,21 @@ app.get("/api/email/inquiry-banner", async (req, res) => {
 // certify that", date sits below "DATE OF ISSUE" in the bottom strip; all
 // three rendered and visually verified, not assumed carried over from the
 // old file's coordinates, which do not apply to a different design).
-const TEMPLE_CERT_NAME_SLOT = { x: 530, y: 385, maxWidth: 500, maxSize: 30, minSize: 16 };
-const TEMPLE_CERT_TEMPLE_SLOT = { x: 530, y: 435, maxWidth: 550, maxSize: 26, minSize: 14 };
-const TEMPLE_CERT_DATE_SLOT = { x: 95, y: 880, maxWidth: 260, maxSize: 15, minSize: 10 };
+// ✅ FIX (2026-08-30 — true centered-anchor rendering, re-measured against
+// the real darshan_certificate.jpg pixels, not guessed): the previous
+// x:530 for name/temple was NOT the center of the blank writable area
+// under "This is to certify that" — measuring the actual glyph bounds of
+// that static line (and both lines of "Has humbly visited...") puts the
+// true horizontal center at x≈767, consistently, across all three
+// reference lines. x:95 for the date was worse: it sits to the LEFT of
+// the "DATE OF ISSUE" label itself (label spans x≈150–360), which is
+// inside the left rope border on this artwork. True center of that
+// column is x≈235. All three now use anchor="middle" with these measured
+// centers; maxWidth is the full centered-text budget (safe distance to
+// the deity/Shiva artwork on either side), not a left-start width.
+const TEMPLE_CERT_NAME_SLOT = { x: 767, y: 392, maxWidth: 560, maxSize: 30, minSize: 16 };
+const TEMPLE_CERT_TEMPLE_SLOT = { x: 767, y: 452, maxWidth: 560, maxSize: 26, minSize: 14 };
+const TEMPLE_CERT_DATE_SLOT = { x: 235, y: 892, maxWidth: 230, maxSize: 15, minSize: 10 };
 const TEMPLE_CERT_FIELD_COLOR = "#2b1806";
 
 async function renderTempleVisitCertificateJpeg(name: string, temple: string, dateOfIssue: string): Promise<Buffer> {
@@ -1055,15 +1088,15 @@ async function renderTempleVisitCertificateJpeg(name: string, temple: string, da
 
   const nameEl = fittedTextElement(
     name, TEMPLE_CERT_NAME_SLOT.x, TEMPLE_CERT_NAME_SLOT.y, TEMPLE_CERT_NAME_SLOT.maxWidth,
-    TEMPLE_CERT_NAME_SLOT.maxSize, TEMPLE_CERT_NAME_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
+    TEMPLE_CERT_NAME_SLOT.maxSize, TEMPLE_CERT_NAME_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR, "middle"
   );
   const templeEl = fittedTextElement(
     temple, TEMPLE_CERT_TEMPLE_SLOT.x, TEMPLE_CERT_TEMPLE_SLOT.y, TEMPLE_CERT_TEMPLE_SLOT.maxWidth,
-    TEMPLE_CERT_TEMPLE_SLOT.maxSize, TEMPLE_CERT_TEMPLE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
+    TEMPLE_CERT_TEMPLE_SLOT.maxSize, TEMPLE_CERT_TEMPLE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR, "middle"
   );
   const dateEl = fittedTextElement(
     dateOfIssue, TEMPLE_CERT_DATE_SLOT.x, TEMPLE_CERT_DATE_SLOT.y, TEMPLE_CERT_DATE_SLOT.maxWidth,
-    TEMPLE_CERT_DATE_SLOT.maxSize, TEMPLE_CERT_DATE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR
+    TEMPLE_CERT_DATE_SLOT.maxSize, TEMPLE_CERT_DATE_SLOT.minSize, TEMPLE_CERT_FIELD_COLOR, "middle"
   );
 
   const textLayer = await renderTextLayerPng(width, height, `${nameEl}${templeEl}${dateEl}`);
@@ -1156,11 +1189,22 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
 // only name + service are baked in; the performed date is not lost, it just
 // moves to plain text in the email/PDF footer instead, same "only what's
 // actually on the artwork goes in the image" principle used everywhere else.
-const PUJA_CERT_NAME_SLOT = { x: 530, y: 385, maxWidth: 500, maxSize: 30, minSize: 16 };
-const PUJA_CERT_SERVICE_SLOT = { x: 530, y: 435, maxWidth: 550, maxSize: 26, minSize: 14 };
-const PUJA_CERT_DATE_SLOT = { x: 95, y: 880, maxWidth: 260, maxSize: 15, minSize: 10 };
-const SEVA_CERT_NAME_SLOT = { x: 510, y: 440, maxWidth: 480, maxSize: 28, minSize: 15 };
-const SEVA_CERT_SERVICE_SLOT = { x: 480, y: 490, maxWidth: 500, maxSize: 24, minSize: 13 };
+// ✅ FIX (2026-08-30 — true centered-anchor rendering, re-measured against
+// the real puja_certificate.jpg pixels): this artwork is pixel-identical in
+// layout to darshan_certificate.jpg (same "This is to certify that"
+// position, same blank writable band, same bottom strip) — measured
+// independently and confirmed the same true center, x≈767 / date column
+// x≈235. The old x:530 / x:95 left-start values are replaced with these
+// measured centers, using anchor="middle".
+const PUJA_CERT_NAME_SLOT = { x: 767, y: 392, maxWidth: 560, maxSize: 30, minSize: 16 };
+const PUJA_CERT_SERVICE_SLOT = { x: 767, y: 452, maxWidth: 560, maxSize: 26, minSize: 14 };
+const PUJA_CERT_DATE_SLOT = { x: 235, y: 892, maxWidth: 230, maxSize: 15, minSize: 10 };
+// seva_certificate.jpg is a different canvas (1492x1054, not 1536x1024) with
+// its own blank-area geometry — measured separately. True center x≈745;
+// blank band runs y≈384–584, so name/service are centered at y=445/515
+// (evenly split, matching the balance of the fixed body-copy lines below).
+const SEVA_CERT_NAME_SLOT = { x: 745, y: 445, maxWidth: 520, maxSize: 28, minSize: 15 };
+const SEVA_CERT_SERVICE_SLOT = { x: 745, y: 515, maxWidth: 520, maxSize: 24, minSize: 13 };
 const SERVICE_CERT_FIELD_COLOR = "#2b1806";
 
 // ✅ ADDED (2026-08-30 — new artwork for Bazaar/Guidance acknowledgements):
@@ -1173,12 +1217,50 @@ const SERVICE_CERT_FIELD_COLOR = "#2b1806";
 // are composited. Coordinates were test-rendered against the actual
 // artwork and visually verified (crosshair overlay, checked for caption
 // overlap) before being written here, not assumed from the puja layout.
-const BAZAAR_CERT_NAME_SLOT = { x: 530, y: 385, maxWidth: 500, maxSize: 30, minSize: 16 };
-const BAZAAR_CERT_DATE_SLOT = { x: 95, y: 915, maxWidth: 220, maxSize: 15, minSize: 10 };
-const BAZAAR_CERT_REF_SLOT = { x: 340, y: 915, maxWidth: 260, maxSize: 15, minSize: 10 };
+// ✅ FIX (2026-08-30 — true centered-anchor rendering, re-measured against
+// the real baazar_certificate.jpg pixels): true center of the name band is
+// x≈768 (not 530). The bottom strip's DATE OF ISSUE / REFERENCE /
+// VERIFICATION CODE columns were measured from the actual label glyph
+// bounds: DATE column center x≈228, REFERENCE column center x≈564, both on
+// the shared blank-value row at y≈937 (not y:915, which sat inside the
+// label text itself rather than the blank space below it).
+const BAZAAR_CERT_NAME_SLOT = { x: 768, y: 419, maxWidth: 560, maxSize: 30, minSize: 16 };
+const BAZAAR_CERT_DATE_SLOT = { x: 228, y: 937, maxWidth: 210, maxSize: 15, minSize: 10 };
+const BAZAAR_CERT_REF_SLOT = { x: 564, y: 937, maxWidth: 330, maxSize: 15, minSize: 10 };
+// Guidance_Certificate.jpg was independently re-measured (not merely
+// assumed to match Bazaar) and confirmed to share the exact same slot
+// geometry, so reusing the Bazaar constants remains correct.
 const GUIDANCE_CERT_NAME_SLOT = BAZAAR_CERT_NAME_SLOT;
 const GUIDANCE_CERT_DATE_SLOT = BAZAAR_CERT_DATE_SLOT;
 const GUIDANCE_CERT_REF_SLOT = BAZAAR_CERT_REF_SLOT;
+
+// ✅ ADDED (Wellness/Yoga certificate fix): Holistic Wellness & Yogic
+// Sciences enrollments were being recorded with the exact same activityType
+// ("other") as Counselling & Guidance bookings, so this endpoint had no way
+// to tell them apart and always rendered Guidance_Certificate.jpg for both
+// — wellness_yoga.jpg (dedicated Wellness artwork) was never referenced
+// anywhere. Wellness now has its own activityType ("wellness" — see
+// lib/activities.ts + BookNowWizard.tsx), so it gets its own branch and its
+// own artwork here.
+//
+// ✅ FIX (2026-08-30 — re-measured against the real wellness_yoga.jpg
+// pixels): the previous comment here claimed this artwork's layout and
+// coordinates had been "pixel-inspected" and was fundamentally different
+// from puja/bazaar/guidance. Re-measuring from scratch shows that claim
+// was wrong on every count: the "This is to certify that" line actually
+// centers at x≈770 (same family as every other certificate, not x:610),
+// the blank name band is y≈348–492 (center y≈420, not y:430 — close by
+// coincidence, not because it was actually measured that way), and the
+// bottom strip is IDENTICAL to darshan/puja's — a plain "DATE OF ISSUE"
+// label with blank space below it (center x≈241, y≈902) and a
+// "REFERENCE / NUMBER" label sitting directly above a decorative,
+// non-functional barcode GRAPHIC — there is no blank space for legible
+// reference text there at all (the old x:390,y:965 slot printed straight
+// on top of the barcode art). Reference text is therefore dropped here,
+// exactly as it already correctly is for darshan/puja, instead of forcing
+// it into a slot that doesn't exist on the artwork.
+const WELLNESS_CERT_NAME_SLOT = { x: 770, y: 420, maxWidth: 560, maxSize: 30, minSize: 16 };
+const WELLNESS_CERT_DATE_SLOT = { x: 241, y: 902, maxWidth: 210, maxSize: 15, minSize: 10 };
 
 async function renderServiceCertificateJpeg(
   name: string,
@@ -1191,7 +1273,8 @@ async function renderServiceCertificateJpeg(
   const isSeva = activityType === "seva";
   const isBazaar = activityType === "product";
   const isGuidance = activityType === "other";
-  const imageFile = isBazaar ? "baazar_certificate.jpg" : isGuidance ? "Guidance_Certificate.jpg" : isSeva ? "seva_certificate.jpg" : "puja_certificate.jpg";
+  const isWellness = activityType === "wellness";
+  const imageFile = isBazaar ? "baazar_certificate.jpg" : isWellness ? "wellness_yoga.jpg" : isGuidance ? "Guidance_Certificate.jpg" : isSeva ? "seva_certificate.jpg" : "puja_certificate.jpg";
   const imagePath = path.join(
     process.cwd(),
     process.env.NODE_ENV === "production" ? "dist" : "public",
@@ -1203,16 +1286,22 @@ async function renderServiceCertificateJpeg(
   const width = meta.width || (isSeva ? 1492 : 1536);
   const height = meta.height || (isSeva ? 1054 : 1024);
 
-  // Bazaar/Guidance artwork has no service-name field baked in (the body
-  // text is fixed/generic on those two designs) — just name + date +
-  // reference, in the bottom strip rather than stacked under the name.
-  if (isBazaar || isGuidance) {
-    const nameSlot = isBazaar ? BAZAAR_CERT_NAME_SLOT : GUIDANCE_CERT_NAME_SLOT;
-    const dateSlot = isBazaar ? BAZAAR_CERT_DATE_SLOT : GUIDANCE_CERT_DATE_SLOT;
-    const refSlot = isBazaar ? BAZAAR_CERT_REF_SLOT : GUIDANCE_CERT_REF_SLOT;
-    const nameEl = fittedTextElement(name, nameSlot.x, nameSlot.y, nameSlot.maxWidth, nameSlot.maxSize, nameSlot.minSize, SERVICE_CERT_FIELD_COLOR);
-    const dateEl = fittedTextElement(performedDate, dateSlot.x, dateSlot.y, dateSlot.maxWidth, dateSlot.maxSize, dateSlot.minSize, SERVICE_CERT_FIELD_COLOR);
-    const refEl = fittedTextElement(refId, refSlot.x, refSlot.y, refSlot.maxWidth, refSlot.maxSize, refSlot.minSize, SERVICE_CERT_FIELD_COLOR);
+  // Bazaar/Guidance/Wellness artwork has no service-name field baked in
+  // (the body text is fixed/generic on all three designs) — just name +
+  // date (+ reference, where the artwork actually has room for it — see
+  // WELLNESS_CERT_NAME_SLOT comment above for why Wellness has none), in
+  // the bottom strip rather than stacked under the name.
+  if (isBazaar || isGuidance || isWellness) {
+    const nameSlot = isBazaar ? BAZAAR_CERT_NAME_SLOT : isWellness ? WELLNESS_CERT_NAME_SLOT : GUIDANCE_CERT_NAME_SLOT;
+    const dateSlot = isBazaar ? BAZAAR_CERT_DATE_SLOT : isWellness ? WELLNESS_CERT_DATE_SLOT : GUIDANCE_CERT_DATE_SLOT;
+    const nameEl = fittedTextElement(name, nameSlot.x, nameSlot.y, nameSlot.maxWidth, nameSlot.maxSize, nameSlot.minSize, SERVICE_CERT_FIELD_COLOR, "middle");
+    const dateEl = fittedTextElement(performedDate, dateSlot.x, dateSlot.y, dateSlot.maxWidth, dateSlot.maxSize, dateSlot.minSize, SERVICE_CERT_FIELD_COLOR, "middle");
+    // Wellness has no printed reference slot on the artwork (see comment
+    // above WELLNESS_CERT_NAME_SLOT) — only Bazaar and Guidance render one.
+    const refEl = isWellness ? "" : fittedTextElement(
+      refId, BAZAAR_CERT_REF_SLOT.x, BAZAAR_CERT_REF_SLOT.y, BAZAAR_CERT_REF_SLOT.maxWidth,
+      BAZAAR_CERT_REF_SLOT.maxSize, BAZAAR_CERT_REF_SLOT.minSize, SERVICE_CERT_FIELD_COLOR, "middle"
+    );
     const textLayer = await renderTextLayerPng(width, height, `${nameEl}${dateEl}${refEl}`);
     return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
   }
@@ -1221,17 +1310,17 @@ async function renderServiceCertificateJpeg(
   const serviceSlot = isSeva ? SEVA_CERT_SERVICE_SLOT : PUJA_CERT_SERVICE_SLOT;
 
   const nameEl = fittedTextElement(
-    name, nameSlot.x, nameSlot.y, nameSlot.maxWidth, nameSlot.maxSize, nameSlot.minSize, SERVICE_CERT_FIELD_COLOR
+    name, nameSlot.x, nameSlot.y, nameSlot.maxWidth, nameSlot.maxSize, nameSlot.minSize, SERVICE_CERT_FIELD_COLOR, "middle"
   );
   const serviceEl = fittedTextElement(
-    serviceName, serviceSlot.x, serviceSlot.y, serviceSlot.maxWidth, serviceSlot.maxSize, serviceSlot.minSize, SERVICE_CERT_FIELD_COLOR
+    serviceName, serviceSlot.x, serviceSlot.y, serviceSlot.maxWidth, serviceSlot.maxSize, serviceSlot.minSize, SERVICE_CERT_FIELD_COLOR, "middle"
   );
   // seva_certificate.jpg has no printed date field — date is simply not
   // baked in for that design, per the "only what's actually on the
   // artwork" rule.
   const dateEl = isSeva ? "" : fittedTextElement(
     performedDate, PUJA_CERT_DATE_SLOT.x, PUJA_CERT_DATE_SLOT.y, PUJA_CERT_DATE_SLOT.maxWidth,
-    PUJA_CERT_DATE_SLOT.maxSize, PUJA_CERT_DATE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR
+    PUJA_CERT_DATE_SLOT.maxSize, PUJA_CERT_DATE_SLOT.minSize, SERVICE_CERT_FIELD_COLOR, "middle"
   );
 
   const textLayer = await renderTextLayerPng(width, height, `${nameEl}${serviceEl}${dateEl}`);
@@ -1413,6 +1502,111 @@ app.get("/api/certificates/general/:refId", async (req, res) => {
   }
 });
 
+// 2h-bis. Register Temple / Contact Us / Inquiry — Immediate Acknowledgement
+// Certificate — composites REFERENCE + DEVOTEE onto register_temple.jpg,
+// server-side, the moment a contact_us / expert_registration /
+// temple_committee_registration form_submissions row exists. This is
+// deliberately a SEPARATE artwork and route from the general-purpose
+// /api/certificates/general/:refId above (which renders these same three
+// form types onto puja_certificate.jpg with "This is to certify that ...
+// has had this sacred Puja performed" body copy — worded for an actual
+// puja booking, not a plain inquiry). register_temple.jpg's fixed body
+// copy ("Thank you for reaching out to Sri Dwar. Your message has been
+// received with care...") is accurate for all three form types and never
+// mentions payment, amount, or booking confirmation — it only
+// acknowledges that the submission was received, so it cannot be misread
+// as proof of a completed payment.
+//
+// "DEVOTEE" is used as the field label for every form type, including
+// Dharmic Expert registrations, because that is the literal text baked
+// into this artwork (see the artwork-preservation note above
+// fittedTextElement) — it is not swapped to "NAME" or "EXPERT" per form
+// type. Both Devotee and Dharmic Expert submissions render identically:
+// only the person's name (form_submissions.name) and the reference ID go
+// on the certificate.
+//
+// REFERENCE_SLOT / DEVOTEE_SLOT below were measured directly against the
+// real register_temple.jpg pixels: the boxed row runs from just past the
+// colon (x≈560) to the box's own inner right edge (x≈855) — true center
+// x≈707 — with anchor="middle", exactly like the matching box on
+// email_template.jpg above.
+const REGISTER_TEMPLE_REFERENCE_SLOT = { x: 707, y: 930, maxWidth: 280, maxSize: 20, minSize: 12 };
+const REGISTER_TEMPLE_DEVOTEE_SLOT = { x: 707, y: 987, maxWidth: 280, maxSize: 20, minSize: 12 };
+const REGISTER_TEMPLE_FIELD_COLOR = "#2b1806";
+const REGISTER_TEMPLE_FORM_TYPES = new Set(["contact_us", "expert_registration", "temple_committee_registration"]);
+
+async function renderRegisterTempleAcknowledgementJpeg(name: string, refId: string): Promise<Buffer> {
+  const sharp = (await import("sharp")).default;
+  const imagePath = path.join(
+    process.cwd(),
+    process.env.NODE_ENV === "production" ? "dist" : "public",
+    "images",
+    "register_temple.jpg"
+  );
+  const base = sharp(imagePath);
+  const meta = await base.metadata();
+  const width = meta.width || 1024;
+  const height = meta.height || 1536;
+
+  const refEl = fittedTextElement(
+    refId, REGISTER_TEMPLE_REFERENCE_SLOT.x, REGISTER_TEMPLE_REFERENCE_SLOT.y, REGISTER_TEMPLE_REFERENCE_SLOT.maxWidth,
+    REGISTER_TEMPLE_REFERENCE_SLOT.maxSize, REGISTER_TEMPLE_REFERENCE_SLOT.minSize, REGISTER_TEMPLE_FIELD_COLOR, "middle"
+  );
+  const devoteeEl = fittedTextElement(
+    (name || "").trim() || "Devotee", REGISTER_TEMPLE_DEVOTEE_SLOT.x, REGISTER_TEMPLE_DEVOTEE_SLOT.y, REGISTER_TEMPLE_DEVOTEE_SLOT.maxWidth,
+    REGISTER_TEMPLE_DEVOTEE_SLOT.maxSize, REGISTER_TEMPLE_DEVOTEE_SLOT.minSize, REGISTER_TEMPLE_FIELD_COLOR, "middle"
+  );
+
+  const textLayer = await renderTextLayerPng(width, height, `${refEl}${devoteeEl}`);
+  return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
+}
+
+async function loadAndRenderRegisterTempleAcknowledgementJpeg(refId: string): Promise<Buffer> {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) throw new Error("Supabase is not configured on the server.");
+
+  const { data, error } = await supabaseAdmin
+    .from("form_submissions")
+    .select("name, form_type, created_at")
+    .eq("ref_id", refId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("not_found");
+
+  const row = data as { name: string | null; form_type: string; created_at: string | null };
+  if (!REGISTER_TEMPLE_FORM_TYPES.has(row.form_type)) {
+    // Exists, but is not a Contact Us / Dharmic Expert / Temple
+    // Committee submission — the general-purpose certificate route above
+    // is the correct one for that record, not this one.
+    throw new Error("not_found");
+  }
+
+  const devoteeName = (row.name || "").trim() || "Devotee";
+  return renderRegisterTempleAcknowledgementJpeg(devoteeName, refId);
+}
+
+app.get("/api/certificates/inquiry/:refId", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderRegisterTempleAcknowledgementJpeg(refId);
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Acknowledgement-${refId}.jpg"`);
+    res.send(jpegBuffer);
+  } catch (err: any) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("inquiry_acknowledgement_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the acknowledgement certificate right now." });
+  }
+});
+
 // ✅ REMOVED (2026-08-29 — explicitly requested architecture reversal):
 // the "/api/certificates/general/:refId/pdf" route, which embedded
 // puja_certificate.jpg inside a PDF via composeCertificatePdf(), is gone —
@@ -1427,23 +1621,36 @@ app.get("/api/certificates/general/:refId", async (req, res) => {
 // otherwise it shows "Payment is still pending" in an amber tone (matching
 // the "Under Review" badge colour already used in the emails) instead of
 // fabricating a method that hasn't actually been verified yet.
-// ✅ UPDATED (2026-08-29 — new artwork replaces Trasancation_Completed.jpg):
-// transaction_details.jpg — completely re-measured against the new design,
-// which also has a different field set: no separate Subtotal line anymore
-// (Total Paid only), and Total Paid sits inside a dark green band so its
-// value needs a light gold colour to actually be readable there, not the
-// usual dark ink used everywhere else on the wood background.
-const TXN_BILLTO_SLOT = { x: 100, y: 325, maxWidth: 260, maxSize: 19, minSize: 10 };
-const TXN_INVOICE_SLOT = { x: 700, y: 288, maxWidth: 120, maxSize: 15, minSize: 9 };
-const TXN_REFERENCE_SLOT = { x: 700, y: 328, maxWidth: 120, maxSize: 15, minSize: 9 };
-const TXN_DATE_SLOT = { x: 670, y: 368, maxWidth: 150, maxSize: 15, minSize: 9 };
-const TXN_DESC_SLOT = { x: 140, y: 500, maxWidth: 550, maxSize: 17, minSize: 11 };
-const TXN_AMOUNT_SLOT = { x: 970, y: 500, maxWidth: 220, maxSize: 17, minSize: 12 };
-const TXN_PAYMENT_SLOT = { x: 280, y: 735, maxWidth: 300, maxSize: 16, minSize: 11 };
-const TXN_TOTAL_SLOT = { x: 940, y: 735, maxWidth: 150, maxSize: 17, minSize: 12 };
+// ✅ FIX (2026-08-30 — re-measured against the real transaction_details.jpg
+// pixels, field by field, rather than the previous guessed coordinates):
+//
+// - BILL TO / Invoice # / Reference / Date all sit on their own single
+//   ruled line next to their label — measured each line's actual left/
+//   right extent from the printed underline pixels, not assumed. Old
+//   x:100 for Bill To was inside the LEFT BORDER of the box (label itself
+//   starts at x≈150); old x:700/670 for Invoice/Reference/Date were close
+//   but not measured, and all three actually share the same blank-line
+//   column (x≈600–745), not three different x's.
+// - Description/Amount table row 1's baseline (y:500) was already
+//   essentially correct — confirmed against the real row divider lines
+//   (row 1 spans y≈477–522) and left as-is.
+// - TOTAL PAID: re-measuring the pill shows it is only dark-green on its
+//   LEFT half (the "TOTAL PAID" label). The right half — where the value
+//   actually gets printed — is the plain light wood background, same as
+//   the rest of the artwork. The previous light-gold fill color would
+//   have been nearly invisible there; this was a real legibility bug, not
+//   a stylistic choice. Value now uses the same dark ink as every other
+//   field, with x/y measured to the actual blank portion of the pill.
+const TXN_BILLTO_SLOT = { x: 270, y: 300, maxWidth: 190, maxSize: 19, minSize: 10 };
+const TXN_INVOICE_SLOT = { x: 615, y: 297, maxWidth: 130, maxSize: 14, minSize: 8 };
+const TXN_REFERENCE_SLOT = { x: 615, y: 340, maxWidth: 130, maxSize: 14, minSize: 8 };
+const TXN_DATE_SLOT = { x: 615, y: 383, maxWidth: 130, maxSize: 14, minSize: 9 };
+const TXN_DESC_SLOT = { x: 140, y: 505, maxWidth: 690, maxSize: 17, minSize: 11 };
+const TXN_AMOUNT_SLOT = { x: 980, y: 505, maxWidth: 250, maxSize: 17, minSize: 12 };
+const TXN_PAYMENT_SLOT = { x: 470, y: 753, maxWidth: 340, maxSize: 16, minSize: 11 };
+const TXN_TOTAL_SLOT = { x: 917, y: 731, maxWidth: 120, maxSize: 17, minSize: 12 };
 const TXN_FIELD_COLOR = "#2b1806";
 const TXN_PENDING_COLOR = "#8a5a12";
-const TXN_TOTAL_PAID_COLOR = "#f4c563"; // light gold — Total Paid sits on a dark green band, dark ink would be unreadable there
 
 function formatInr(amount: number): string {
   return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -1478,8 +1685,8 @@ async function renderTransactionJpeg(fields: {
     fittedTextElement(fields.date, TXN_DATE_SLOT.x, TXN_DATE_SLOT.y, TXN_DATE_SLOT.maxWidth, TXN_DATE_SLOT.maxSize, TXN_DATE_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.description, TXN_DESC_SLOT.x, TXN_DESC_SLOT.y, TXN_DESC_SLOT.maxWidth, TXN_DESC_SLOT.maxSize, TXN_DESC_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(formatInr(fields.amount), TXN_AMOUNT_SLOT.x, TXN_AMOUNT_SLOT.y, TXN_AMOUNT_SLOT.maxWidth, TXN_AMOUNT_SLOT.maxSize, TXN_AMOUNT_SLOT.minSize, TXN_FIELD_COLOR, "end"),
-    fittedTextElement(fields.paymentMethod, TXN_PAYMENT_SLOT.x, TXN_PAYMENT_SLOT.y, TXN_PAYMENT_SLOT.maxWidth, TXN_PAYMENT_SLOT.maxSize, TXN_PAYMENT_SLOT.minSize, fields.isPaid ? TXN_FIELD_COLOR : TXN_PENDING_COLOR),
-    fittedTextElement(formatInr(fields.totalPaid), TXN_TOTAL_SLOT.x, TXN_TOTAL_SLOT.y, TXN_TOTAL_SLOT.maxWidth, TXN_TOTAL_SLOT.maxSize, TXN_TOTAL_SLOT.minSize, TXN_TOTAL_PAID_COLOR, "end"),
+    fittedTextElement(fields.paymentMethod, TXN_PAYMENT_SLOT.x, TXN_PAYMENT_SLOT.y, TXN_PAYMENT_SLOT.maxWidth, TXN_PAYMENT_SLOT.maxSize, TXN_PAYMENT_SLOT.minSize, fields.isPaid ? TXN_FIELD_COLOR : TXN_PENDING_COLOR, "middle"),
+    fittedTextElement(formatInr(fields.totalPaid), TXN_TOTAL_SLOT.x, TXN_TOTAL_SLOT.y, TXN_TOTAL_SLOT.maxWidth, TXN_TOTAL_SLOT.maxSize, TXN_TOTAL_SLOT.minSize, TXN_FIELD_COLOR, "middle"),
   ].join("");
 
   const textLayer = await renderTextLayerPng(width, height, els);

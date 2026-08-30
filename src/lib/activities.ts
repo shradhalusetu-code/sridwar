@@ -15,7 +15,15 @@
 
 import { supabase } from "./supabaseClient";
 
-export type ActivityType = "puja" | "seva" | "product" | "contribution" | "temple_registration" | "subscription" | "other" | "darshan_certificate";
+// ✅ ADDED ("wellness"): Holistic Wellness & Yogic Sciences enrollments used
+// to be recorded as "other" — the exact same value Counselling & Guidance
+// bookings use — which made the two indistinguishable once they reached
+// server.ts. That's what caused Wellness/Yoga certificates to silently
+// render with the Guidance artwork (Guidance_Certificate.jpg) instead of
+// their own dedicated wellness_yoga.jpg (see renderServiceCertificateJpeg
+// in server.ts). Giving Wellness its own activityType lets the server
+// branch on it correctly; "other" now means Guidance only.
+export type ActivityType = "puja" | "seva" | "product" | "contribution" | "temple_registration" | "subscription" | "other" | "darshan_certificate" | "wellness";
 export type PaymentStatus = "pending_verification" | "confirmed" | "failed";
 
 export type FormSubmissionType =
