@@ -227,6 +227,41 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   const [showUPI, setShowUPI]   = useState(false);
   const [refId, setRefId]       = useState("");
 
+  // ✅ ADDED (2026-08-30 — Bazaar/Sankalpa Portal had no success screen at
+  // all, just a blocking alert() + an automatic text-confirmation
+  // download): a real success screen, matching the one BookNowWizard.tsx
+  // already has, with a real "Download Certificate" button next to
+  // "Download Confirmation" — neither existed here before. Snapshotting
+  // the completed order's details here because devoteeName/refId/
+  // selectedItem all get reset immediately after payment confirms.
+  const [bazaarSuccess, setBazaarSuccess] = useState<{ refId: string; devoteeName: string; itemName: string; isService: boolean; message: string } | null>(null);
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+
+  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/service/${encodeURIComponent(certRefId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+
   // ── Devotional Shopping Offerings (new, structured products) state ──────
   const [newSelectedCategory, setNewSelectedCategory] = useState("All");
   const [activeNewOfferingId, setActiveNewOfferingId] = useState<string | null>(null);
@@ -482,20 +517,17 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
         metadata: { devoteeName: devoteeName.trim() },
       });
     }
-    const msg = selectedItem?.isService
-      ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a confirmation soon. Ref: ${refId}`
-      : `🙏 Order received! Once your payment is verified, our team will confirm it and ship your ${selectedItem?.name} within 3–5 working days. Ref: ${refId}`;
-    alert(msg);
-    // No dedicated success screen in this flow (falls straight back to the
-    // bazaar grid after the alert) — deliver the confirmation PDF directly,
-    // same underlying function BookNowWizard's button uses.
+    // ✅ FIX (2026-08-30 — no success screen existed here at all): this used
+    // to be a blocking alert() plus an automatic text-confirmation
+    // download, with no way to get the real Download Certificate at all.
+    // Snapshotting the values needed for the success screen now (including
+    // the same devotional message text the alert() used to show), since
+    // the form-field reset right below clears devoteeName/selectedItem.
     if (selectedItem) {
-      downloadConfirmationMessage({
-        category: selectedItem.isService ? "seva_offering" : "bazaar_order",
-        serviceName: selectedItem.name,
-        devoteeName: devoteeName.trim(),
-        refId,
-      });
+      const message = selectedItem.isService
+        ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a confirmation soon.`
+        : `🙏 Order received! Once your payment is verified, our team will confirm it and ship your ${selectedItem.name} within 3–5 working days.`;
+      setBazaarSuccess({ refId, devoteeName: devoteeName.trim(), itemName: selectedItem.name, isService: !!selectedItem.isService, message });
     }
     // Reset form fields
     setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");
@@ -1086,6 +1118,63 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
               </div>
             </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════
+          STEP 3: Success — Download Confirmation / Certificate
+          ✅ ADDED (2026-08-30): this screen didn't exist before; payment
+          completion used to just alert() and silently auto-download a
+          text confirmation. Matches BookNowWizard.tsx's success screen
+          pattern (same two-button layout, same devotional tone).
+      ══════════════════════════════════════════════════════════════════ */}
+      {bazaarSuccess && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setBazaarSuccess(null)}>
+          <div
+            className="bg-[#052e2a] border border-[#FFB347]/30 rounded-3xl p-6 max-w-sm w-full space-y-4 text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30">
+              <ShieldCheck className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h4 className="font-serif text-xl font-black text-[#5EEAD4]">Sacred Offering Received</h4>
+            <p className="text-sm text-white/80 px-1">{bazaarSuccess.message}</p>
+            <p className="text-[11px] font-mono text-white/50">Reference: {bazaarSuccess.refId}</p>
+            {certificateDownloadError && (
+              <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5">
+                {certificateDownloadError}
+              </p>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => downloadConfirmationMessage({
+                  category: bazaarSuccess.isService ? "seva_offering" : "bazaar_order",
+                  serviceName: bazaarSuccess.itemName,
+                  devoteeName: bazaarSuccess.devoteeName,
+                  refId: bazaarSuccess.refId,
+                })}
+                className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer"
+              >
+                <span>📩</span>
+                <span>Download Confirmation</span>
+              </button>
+              <button
+                type="button"
+                disabled={isDownloadingCertificate}
+                onClick={() => handleDownloadCertificate(bazaarSuccess.refId, bazaarSuccess.devoteeName)}
+                className="bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer"
+              >
+                <span>🛕</span>
+                <span>{isDownloadingCertificate ? "Preparing…" : "Download Certificate"}</span>
+              </button>
+            </div>
+            <button
+              onClick={() => setBazaarSuccess(null)}
+              className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer"
+            >
+              🙏 Close and Pray
+            </button>
           </div>
         </div>
       )}

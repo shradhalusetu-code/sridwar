@@ -398,19 +398,23 @@ export default function DevoteeExperiences() {
   // real email address, so there's no email to send here — PDF download
   // (in-app or browser) is the only delivery this flow needs, and is now
   // the only thing this button offers.
+  // ✅ FIX (2026-08-29 — architecture reversal, explicitly requested):
+  // reverted from PDF back to JPG. Certificate downloads must always be a
+  // standalone image, never a PDF with the certificate embedded inside it
+  // — that distinction is now consistent everywhere in the app.
   const handleDownloadTestimonyCertificate = async () => {
     if (!testimonyRefId) return;
     setTestimonyCertError("");
     setIsDownloadingTestimonyCert(true);
     try {
-      const res = await fetch(`/api/certificates/general/${encodeURIComponent(testimonyRefId)}/pdf`);
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(testimonyRefId)}`);
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const safeName = (newName || "Devotee").trim().replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.pdf`;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

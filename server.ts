@@ -823,7 +823,25 @@ app.post(
 // actually good at (loading the base JPG, compositing, JPEG encoding) —
 // only the text layer itself now comes from resvg-js.
 const RENDER_FONT_FAMILY = "DejaVu Serif";
-const RENDER_FONT_PATH = path.join(process.cwd(), "public", "fonts", "DejaVuSerif-Bold.ttf");
+// ✅ FIX: every other file-lookup in this file (images, static pages) already
+// branches on NODE_ENV to read from "dist" in production, since production
+// only ships the built dist/ output — "public" (the source folder) does not
+// exist there. This constant was the one place that never got that same
+// treatment: it always pointed at "public/fonts/...", which does not exist
+// in production, so resvg-js's Resvg constructor threw on every single call
+// in production. That took down EVERY image-banner endpoint that renders
+// text (inquiry-banner, temple-visit/service/transaction certificates) with
+// a 500 — confirmed directly against Email_Errors log entries showing
+// "HTTP 500 from .../api/email/inquiry-banner" for exactly this reason.
+// Vite's build already copies public/fonts/* into dist/fonts/* automatically
+// (default Vite behavior for the publicDir), so this file exists at the
+// "dist" path in production with no other change needed.
+const RENDER_FONT_PATH = path.join(
+  process.cwd(),
+  process.env.NODE_ENV === "production" ? "dist" : "public",
+  "fonts",
+  "DejaVuSerif-Bold.ttf"
+);
 
 function escapeSvgText(value: string): string {
   return value
@@ -905,95 +923,16 @@ async function renderTextLayerPng(width: number, height: number, textElements: s
   return resvg.render().asPng();
 }
 
-/**
- * ─── Shared PDF composer ─────────────────────────────────────────────────
- * ✅ ADDED (2026-08-29 — requested consolidation): every certificate/receipt
- * PDF in this project used to build its own PDFDocument from scratch, with
- * the image-on-top-plus-footer-band layout copy-pasted between the
- * Transaction and general-certificate routes (and about to be copy-pasted
- * a third time for the new Darshan Certificate PDF below). This is the one
- * place that logic now lives — every PDF route calls this, passing only
- * the already-composited JPEG buffer (which already has the correct
- * service-specific palm-leaf artwork with the devotee's real details baked
- * in) and a few footer lines. This is also what guarantees a PDF can never
- * go out with a stale/wrong/missing image: there's no second code path
- * that could independently forget to embed one.
- *
- * Layout: the JPEG fills the full page width, unmodified, at the top.
- * Below it, plain PDF text — company name/address, an optional one-line
- * disclaimer, optional extra info lines (billing/transaction specifics
- * that don't belong baked into the certificate artwork itself), website,
- * and social links. Never inside the image, exactly as specified.
- */
-async function composeCertificatePdf(opts: {
-  jpegBuffer: Buffer;
-  refId: string;
-  pdfTitle: string;
-  disclaimer?: string;
-  extraInfoLines?: string[];
-}): Promise<Buffer> {
-  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-  const sharp = (await import("sharp")).default;
-
-  const meta = await sharp(opts.jpegBuffer).metadata();
-  const pxWidth = meta.width || 1024;
-  const pxHeight = meta.height || 1536;
-  // 96 CSS px-per-inch, 72 PDF-points-per-inch — the standard conversion so
-  // the page comes out at the artwork's own real printed proportions
-  // instead of an arbitrarily stretched/letterboxed A4/Letter page.
-  const imageWidthPt = (pxWidth / 96) * 72;
-  const imageHeightPt = (pxHeight / 96) * 72;
-
-  const extraLines = opts.extraInfoLines || [];
-  const disclaimerLines = opts.disclaimer ? 2 : 0; // disclaimer text wraps to ~2 lines at this width
-  const footerHeightPt = 70 + extraLines.length * 15 + disclaimerLines * 12;
-  const marginPt = 28;
-  const pageWidth = imageWidthPt;
-  const pageHeight = imageHeightPt + footerHeightPt;
-
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.setTitle(`Sri Dwar — ${opts.pdfTitle} (Ref ${opts.refId})`);
-  pdfDoc.setProducer("Sri Dwar");
-  const jpgImage = await pdfDoc.embedJpg(opts.jpegBuffer);
-  const page = pdfDoc.addPage([pageWidth, pageHeight]);
-  // Image on top, footer text band below it — never inside the artwork.
-  page.drawImage(jpgImage, { x: 0, y: footerHeightPt, width: imageWidthPt, height: imageHeightPt });
-
-  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const ink = rgb(0.11, 0.16, 0.14); // matches CONFIG.BRAND.darkGreen tone used across every email
-  const muted = rgb(0.35, 0.38, 0.36);
-
-  let cursorY = footerHeightPt - 22;
-  page.drawText("Shradhalu Private Limited · Jajpur Road, Odisha, India", {
-    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
-  });
-  cursorY -= 16;
-
-  if (opts.disclaimer) {
-    page.drawText(opts.disclaimer, {
-      x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted, maxWidth: pageWidth - marginPt * 2, lineHeight: 11,
-    });
-    cursorY -= 12 * disclaimerLines + 4;
-  }
-
-  for (const line of extraLines) {
-    page.drawText(line, { x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted });
-    cursorY -= 15;
-  }
-
-  cursorY -= 6;
-  page.drawText("sridwar.com  ·  puja@sridwar.com", {
-    x: marginPt, y: cursorY, size: 9, font: fontBold, color: ink,
-  });
-  cursorY -= 16;
-  page.drawText("Facebook: facebook.com/SridwarSetu  ·  YouTube: @SriDwar  ·  LinkedIn: sri-dwar", {
-    x: marginPt, y: cursorY, size: 8, font: fontRegular, color: muted,
-  });
-
-  const pdfBytes = await pdfDoc.save();
-  return Buffer.from(pdfBytes);
-}
+// ✅ REMOVED (2026-08-29 — explicitly requested architecture reversal):
+// composeCertificatePdf() used to embed a certificate JPEG inside a PDF
+// (image on top, plain-text footer below). Certificate downloads must
+// always be a standalone image and PDFs must never have one embedded
+// inside them, so this helper — and every route that called it — is gone.
+// The separate, plain-text "Download Confirmation" PDF (generated
+// client-side by downloadConfirmationMessage() in
+// utils/devotionalMessages.ts, and server-side by certificateService.ts's
+// own admin/webhook-triggered pipeline) was never built this way and is
+// unaffected by this removal.
 
 // ✅ UPDATED (2026-08-29 — new artwork replaces Email_Design_Templete.jpg):
 // email_template.jpg has a different layout — a boxed "REFERENCE :" /
@@ -1184,40 +1123,15 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
   }
 });
 
-// 2f-pdf. Temple Visit / Darshan Certificate — PDF. ✅ ADDED (2026-08-29 —
-// explicitly reported: "the Darshan download must not generate the current
-// generic PDF"). Before this, there was no dedicated Darshan PDF endpoint
-// at all — any PDF a devotee got for a Darshan booking could only have
-// come from the separate, older certificateService.ts pipeline, which
-// draws its own generic layout from scratch and has no darshan_certificate.jpg
-// artwork in it whatsoever. This is the real fix: an actual PDF that embeds
-// the same populated darshan_certificate.jpg as the JPG endpoint above,
-// via the shared composeCertificatePdf() helper — never a stale/generic
-// substitute.
-app.get("/api/certificates/temple-visit/:refId/pdf", async (req, res) => {
-  const refId = String(req.params.refId || "").trim().slice(0, 60);
-  if (!refId) {
-    res.status(400).json({ error: "A reference ID is required." });
-    return;
-  }
-  try {
-    const jpegBuffer = await loadAndRenderTempleVisitJpeg(refId);
-    const pdfBytes = await composeCertificatePdf({
-      jpegBuffer,
-      refId,
-      pdfTitle: "Temple Visit / Darshan Certificate",
-      disclaimer: "This certificate is a devotional record of your sacred temple visit, prepared with care by Sri Dwar. It is not a government document or legal certificate.",
-    });
-    res.set("Content-Type", "application/pdf");
-    res.set("Cache-Control", "private, max-age=300");
-    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.pdf"`);
-    res.send(pdfBytes);
-  } catch (err: any) {
-    const notFound = err?.message === "not_found";
-    appendAuditLog("temple_visit_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
-    res.status(notFound ? 404 : 500).json({ error: notFound ? "No Temple Visit Certificate request found for this reference." : "Could not generate the certificate right now. Please try again shortly." });
-  }
-});
+// ✅ REMOVED (2026-08-29 — explicitly requested architecture reversal):
+// this used to be a PDF route ("/api/certificates/temple-visit/:refId/pdf")
+// that embedded darshan_certificate.jpg inside a PDF via
+// composeCertificatePdf(). Certificate downloads must always be a
+// standalone image, never embedded inside a PDF — the JPG route above is
+// the only Temple Visit / Darshan Certificate download now. The separate,
+// plain-text "Download Confirmation" PDF for this flow already exists
+// client-side (utils/devotionalMessages.ts's downloadConfirmationMessage())
+// and was never touched by this change.
 
 // 2g. Service Certificate — composites the devotee's name, the puja/seva/
 // service, and the performed date onto the correct certificate artwork —
@@ -1249,15 +1163,35 @@ const SEVA_CERT_NAME_SLOT = { x: 510, y: 440, maxWidth: 480, maxSize: 28, minSiz
 const SEVA_CERT_SERVICE_SLOT = { x: 480, y: 490, maxWidth: 500, maxSize: 24, minSize: 13 };
 const SERVICE_CERT_FIELD_COLOR = "#2b1806";
 
+// ✅ ADDED (2026-08-30 — new artwork for Bazaar/Guidance acknowledgements):
+// baazar_certificate.jpg and Guidance_Certificate.jpg share the exact same
+// layout as puja_certificate.jpg (name below "This is to certify that";
+// date + reference in the bottom strip) but with generic fixed body text
+// ("has received these sacred traditional offerings...",  "has expressed
+// sincere interest in receiving guidance...") — there's no separate
+// service-name field printed on either design, so only name/date/reference
+// are composited. Coordinates were test-rendered against the actual
+// artwork and visually verified (crosshair overlay, checked for caption
+// overlap) before being written here, not assumed from the puja layout.
+const BAZAAR_CERT_NAME_SLOT = { x: 530, y: 385, maxWidth: 500, maxSize: 30, minSize: 16 };
+const BAZAAR_CERT_DATE_SLOT = { x: 95, y: 915, maxWidth: 220, maxSize: 15, minSize: 10 };
+const BAZAAR_CERT_REF_SLOT = { x: 340, y: 915, maxWidth: 260, maxSize: 15, minSize: 10 };
+const GUIDANCE_CERT_NAME_SLOT = BAZAAR_CERT_NAME_SLOT;
+const GUIDANCE_CERT_DATE_SLOT = BAZAAR_CERT_DATE_SLOT;
+const GUIDANCE_CERT_REF_SLOT = BAZAAR_CERT_REF_SLOT;
+
 async function renderServiceCertificateJpeg(
   name: string,
   serviceName: string,
   performedDate: string,
-  activityType: string
+  activityType: string,
+  refId: string
 ): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
   const isSeva = activityType === "seva";
-  const imageFile = isSeva ? "seva_certificate.jpg" : "puja_certificate.jpg";
+  const isBazaar = activityType === "product";
+  const isGuidance = activityType === "other";
+  const imageFile = isBazaar ? "baazar_certificate.jpg" : isGuidance ? "Guidance_Certificate.jpg" : isSeva ? "seva_certificate.jpg" : "puja_certificate.jpg";
   const imagePath = path.join(
     process.cwd(),
     process.env.NODE_ENV === "production" ? "dist" : "public",
@@ -1268,6 +1202,20 @@ async function renderServiceCertificateJpeg(
   const meta = await base.metadata();
   const width = meta.width || (isSeva ? 1492 : 1536);
   const height = meta.height || (isSeva ? 1054 : 1024);
+
+  // Bazaar/Guidance artwork has no service-name field baked in (the body
+  // text is fixed/generic on those two designs) — just name + date +
+  // reference, in the bottom strip rather than stacked under the name.
+  if (isBazaar || isGuidance) {
+    const nameSlot = isBazaar ? BAZAAR_CERT_NAME_SLOT : GUIDANCE_CERT_NAME_SLOT;
+    const dateSlot = isBazaar ? BAZAAR_CERT_DATE_SLOT : GUIDANCE_CERT_DATE_SLOT;
+    const refSlot = isBazaar ? BAZAAR_CERT_REF_SLOT : GUIDANCE_CERT_REF_SLOT;
+    const nameEl = fittedTextElement(name, nameSlot.x, nameSlot.y, nameSlot.maxWidth, nameSlot.maxSize, nameSlot.minSize, SERVICE_CERT_FIELD_COLOR);
+    const dateEl = fittedTextElement(performedDate, dateSlot.x, dateSlot.y, dateSlot.maxWidth, dateSlot.maxSize, dateSlot.minSize, SERVICE_CERT_FIELD_COLOR);
+    const refEl = fittedTextElement(refId, refSlot.x, refSlot.y, refSlot.maxWidth, refSlot.maxSize, refSlot.minSize, SERVICE_CERT_FIELD_COLOR);
+    const textLayer = await renderTextLayerPng(width, height, `${nameEl}${dateEl}${refEl}`);
+    return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
+  }
 
   const nameSlot = isSeva ? SEVA_CERT_NAME_SLOT : PUJA_CERT_NAME_SLOT;
   const serviceSlot = isSeva ? SEVA_CERT_SERVICE_SLOT : PUJA_CERT_SERVICE_SLOT;
@@ -1306,7 +1254,7 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
   try {
     const { data: activity, error: activityError } = await supabaseAdmin
       .from("activities")
-      .select("item_name, completion_status, performed_at, created_at, user_id, activity_type")
+      .select("item_name, created_at, user_id, activity_type, metadata")
       .eq("ref_id", refId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -1318,30 +1266,31 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
       return;
     }
 
-    const row = activity as { item_name: string | null; completion_status: string | null; performed_at: string | null; created_at: string | null; user_id?: string | null; activity_type?: string | null };
-    if (row.completion_status !== "completed" || !row.performed_at) {
-      // Not a rendering failure — a deliberate refusal. Matches
-      // certificateService.ts's own "not_completed" business rule.
-      res.status(403).json({ error: "This certificate isn't available yet — it's issued once Sri Dwar's team confirms the service was performed." });
-      return;
-    }
+    const row = activity as { item_name: string | null; created_at: string | null; user_id?: string | null; activity_type?: string | null; metadata: Record<string, unknown> | null };
+    // These certificates are a devotional ACKNOWLEDGEMENT that a devotee
+    // opted in for a Puja/Seva/service — like an order confirmation —
+    // never proof of performance. A separate, individually personalized
+    // certificate is prepared by Sri Dwar's team after the rite is
+    // actually carried out and emailed directly to the devotee; it is not
+    // this endpoint at all. Available the moment a booking exists.
 
-    // ✅ FIX (2026-08-29 — same root cause as the Transaction receipt bug):
-    // regular Puja/Seva bookings (BookNowWizard.tsx) never create a
-    // form_submissions row either — only a Google Sheet sync + an
-    // `activities` row — so this lookup was silently empty for genuine
-    // paid bookings too, not just Bazaar orders. Falls back to the
-    // devotee's own account profile (activities.user_id -> profiles.name)
-    // before giving up and showing "Devotee".
-    let devoteeName: string | null = null;
-    const { data: submission } = await supabaseAdmin
-      .from("form_submissions")
-      .select("name")
-      .eq("ref_id", refId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    devoteeName = (submission as { name: string | null } | null)?.name || null;
+    // ✅ FIX (2026-08-30 — re-applied: this had regressed back to the
+    // form_submissions/profiles-only fallback, dropping the metadata check
+    // added earlier today): see the identical fix and explanation on the
+    // Transaction receipt endpoint above.
+    let devoteeName: string | null =
+      (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
+
+    if (!devoteeName) {
+      const { data: submission } = await supabaseAdmin
+        .from("form_submissions")
+        .select("name")
+        .eq("ref_id", refId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      devoteeName = (submission as { name: string | null } | null)?.name || null;
+    }
 
     if (!devoteeName && row.user_id) {
       const { data: profile } = await supabaseAdmin
@@ -1353,9 +1302,11 @@ app.get("/api/certificates/service/:refId", async (req, res) => {
     }
 
     const serviceName = (row.item_name || "").trim() || "Sacred Offering";
-    const performedDate = new Date(row.performed_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+    // Booking/opt-in date, not a performed date — this certificate is
+    // issued the moment the devotee books, well before any rite happens.
+    const bookingDate = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-    const jpegBuffer = await renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, performedDate, row.activity_type || "puja");
+    const jpegBuffer = await renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, bookingDate, row.activity_type || "puja", refId);
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Service-Certificate-${refId}.jpg"`);
@@ -1440,7 +1391,7 @@ async function loadAndRenderGeneralCertificateJpeg(refId: string): Promise<Buffe
   // own) uses the puja design as the general-purpose devotional fallback,
   // matching the closest available visual match now that the old single
   // shared Service_Certificate.jpg is gone.
-  return renderServiceCertificateJpeg(devoteeName, blessedThrough, dateOfIssue, "puja");
+  return renderServiceCertificateJpeg(devoteeName, blessedThrough, dateOfIssue, "puja", refId);
 }
 
 app.get("/api/certificates/general/:refId", async (req, res) => {
@@ -1462,36 +1413,11 @@ app.get("/api/certificates/general/:refId", async (req, res) => {
   }
 });
 
-// 2k. General-purpose certificate — PDF. Per spec: the embedded image is
-// followed by a real text footer inside the PDF (disclaimer, Sri Dwar
-// website, social links) — unlike the plain Transaction invoice PDF above,
-// which is only ever a full-bleed image, since a transaction/invoice has
-// no equivalent "footer content" requirement of its own beyond what's
-// already printed on that artwork.
-app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
-  const refId = String(req.params.refId || "").trim().slice(0, 60);
-  if (!refId) {
-    res.status(400).json({ error: "A reference ID is required." });
-    return;
-  }
-  try {
-    const jpegBuffer = await loadAndRenderGeneralCertificateJpeg(refId);
-    const pdfBytes = await composeCertificatePdf({
-      jpegBuffer,
-      refId,
-      pdfTitle: "Certificate",
-      disclaimer: "This certificate is a devotional record prepared with care by Sri Dwar. It is not a government document or legal certificate.",
-    });
-    res.set("Content-Type", "application/pdf");
-    res.set("Cache-Control", "private, max-age=300");
-    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Certificate-${refId}.pdf"`);
-    res.send(pdfBytes);
-  } catch (err: any) {
-    const notFound = err?.message === "not_found";
-    appendAuditLog("general_certificate_pdf_failed", { refId, message: err?.message || "unknown error" });
-    res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the certificate right now." });
-  }
-});
+// ✅ REMOVED (2026-08-29 — explicitly requested architecture reversal):
+// the "/api/certificates/general/:refId/pdf" route, which embedded
+// puja_certificate.jpg inside a PDF via composeCertificatePdf(), is gone —
+// the JPG route above is the only download for this certificate now. See
+// the identical removal note above the old temple-visit PDF route.
 
 // 2h. Transaction Completed — composites Bill To / Invoice / Reference /
 // Date / Description / Amount / Subtotal / Total Paid / Payment Method onto
@@ -1575,7 +1501,7 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
 
   const { data: activity, error: activityError } = await supabaseAdmin
     .from("activities")
-    .select("item_name, amount, payment_method, payment_status, created_at, user_id")
+    .select("item_name, amount, payment_method, payment_status, created_at, user_id, metadata")
     .eq("ref_id", refId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -1587,27 +1513,31 @@ async function loadAndRenderTransactionJpeg(refId: string): Promise<Buffer> {
   const row = activity as {
     item_name: string | null; amount: number | null; payment_method: string | null;
     payment_status: string | null; created_at: string | null; user_id: string | null;
+    metadata: Record<string, unknown> | null;
   };
 
-  // ✅ FIX (2026-08-29 — reported bug: "BILL TO: Devotee" on a real Bazaar
-  // order that should have shown the devotee's real name): a plain Bazaar
-  // cart checkout (App.tsx's finalizeCartCheckout, the `cart.length > 0`
-  // branch) calls recordActivity directly and never creates a matching
-  // form_submissions row — so this lookup always came back empty for that
-  // one specific checkout path, even though the devotee's real name was
-  // sitting right there on their own account the whole time. Puja/Seva
-  // bookings (which DO sync through a form first) are unaffected — this is
-  // an added fallback, not a change to how those already worked.
-  let devoteeName: string | null = null;
+  // ✅ FIX (2026-08-30 — re-applied: this had regressed back to the
+  // form_submissions/profiles-only fallback, dropping the metadata check
+  // added earlier today): every booking flow (BookNowWizard.tsx,
+  // TemplateBazaar.tsx, App.tsx's cart checkouts) stores the devotee's
+  // typed name in activities.metadata.devoteeName at the moment of
+  // booking — the most trustworthy source, since it's exactly who this
+  // specific booking is for (can differ from the logged-in account
+  // holder). Checked first, ahead of the form_submissions/profiles
+  // fallbacks below (kept for older rows recorded before that fix).
+  let devoteeName: string | null =
+    (typeof row.metadata?.["devoteeName"] === "string" ? (row.metadata["devoteeName"] as string).trim() : "") || null;
 
-  const { data: submission } = await supabaseAdmin
-    .from("form_submissions")
-    .select("name")
-    .eq("ref_id", refId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  devoteeName = (submission as { name: string | null } | null)?.name || null;
+  if (!devoteeName) {
+    const { data: submission } = await supabaseAdmin
+      .from("form_submissions")
+      .select("name")
+      .eq("ref_id", refId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    devoteeName = (submission as { name: string | null } | null)?.name || null;
+  }
 
   if (!devoteeName && row.user_id) {
     const { data: profile } = await supabaseAdmin
@@ -1657,39 +1587,12 @@ app.get("/api/certificates/transaction/:refId", async (req, res) => {
   }
 });
 
-// 2i. Transaction Completed — PDF invoice. Per spec: payment/transaction
-// documents are the one record type downloadable as a PDF, and that PDF
-// must embed the same Trasancation_Completed.jpg artwork (with the same
-// prefilled data) as the JPG endpoint above — not a separately-designed
-// invoice layout. This wraps loadAndRenderTransactionJpeg's output as a
-// single full-page image inside a PDF via pdf-lib, exactly the same
-// embed-an-image-in-a-page technique certificateService.ts already uses
-// elsewhere in this project, so there is only one PDF-construction pattern
-// in the codebase, not two.
-app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
-  const refId = String(req.params.refId || "").trim().slice(0, 60);
-  if (!refId) {
-    res.status(400).json({ error: "A reference ID is required." });
-    return;
-  }
-  try {
-    const jpegBuffer = await loadAndRenderTransactionJpeg(refId);
-    const pdfBytes = await composeCertificatePdf({
-      jpegBuffer,
-      refId,
-      pdfTitle: "Transaction Confirmation",
-      disclaimer: "If any payment is found to be unsuccessful, duplicate, or not properly processed, a refund will be initiated wherever applicable — please review our Disclaimer and Refund Policy at sridwar.com.",
-    });
-    res.set("Content-Type", "application/pdf");
-    res.set("Cache-Control", "private, max-age=120");
-    res.set("Content-Disposition", `attachment; filename="Sri-Dwar-Invoice-${refId}.pdf"`);
-    res.send(pdfBytes);
-  } catch (err: any) {
-    const notFound = err?.message === "not_found";
-    appendAuditLog("transaction_invoice_pdf_failed", { refId, message: err?.message || "unknown error" });
-    res.status(notFound ? 404 : 500).json({ error: notFound ? "No transaction found for this reference." : "Could not generate the invoice right now." });
-  }
-});
+// ✅ REMOVED (2026-08-29 — explicitly requested architecture reversal):
+// the "/api/certificates/transaction/:refId/pdf" route, which embedded
+// transaction_details.jpg inside a PDF, is gone — the JPG receipt route
+// above is the only download for this now. Payment/transaction PDF
+// confirmations still come from the separate, plain-text
+// downloadConfirmationMessage() client-side flow, unaffected by this.
 
 // 3. Clean URLs for Privacy Policy / Legal Center and related static
 // legal/info pages (Terms, Refund Policy, Shipping Policy, Disclaimer,

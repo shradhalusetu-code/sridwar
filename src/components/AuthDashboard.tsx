@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, FormEvent } from "react";
 import html2canvas from "html2canvas-pro";
-import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download, Flame, Droplets, Shield, Heart, Sparkles, Sun, Music, BookOpen, Flower2, ChevronDown } from "lucide-react";
+import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download, Flame, Droplets, Shield, Heart, Sparkles, Sun, Music, BookOpen, Flower2 } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import { supabase } from "../lib/supabaseClient";
@@ -218,12 +218,6 @@ export default function AuthDashboard({
   // used during first-time Dharmic ID generation.
   const [showPostLoginContribute, setShowPostLoginContribute] = useState(false);
   const [postLoginContributionSuccess, setPostLoginContributionSuccess] = useState(false);
-  // ✅ ADDED (2026-08-29 — Profile page audit): the "how your support is
-  // used" impact summary below the Contribute panel used to always render
-  // its full 6-line breakdown. Collapsed behind "Read More" by default so
-  // only the short teaser line shows, matching the rest of this page's
-  // short-summary-first pattern.
-  const [showImpactDetails, setShowImpactDetails] = useState(false);
 
   // Sync profile details on mount or auth state change.
   // Supabase is the source of truth (so the Dharmic ID looks the same on
@@ -733,17 +727,12 @@ export default function AuthDashboard({
   const [downloadingCertRefId, setDownloadingCertRefId] = useState<string | null>(null);
   const [certDownloadError, setCertDownloadError] = useState("");
 
-  // ✅ FIX (2026-08-29 — audit finding): this only ever fetched the JPG —
-  // there was no way to get the Temple Visit Certificate as a PDF anywhere
-  // in the app, unlike every other certificate type. `format` now selects
-  // between the plain JPG route and the /pdf route added alongside it in
-  // server.ts (both render from the exact same devotee/temple/date data).
-  const handleDownloadTempleCertificate = async (refId: string, devoteeName: string, format: "jpg" | "pdf" = "jpg") => {
+  const handleDownloadTempleCertificate = async (refId: string, devoteeName: string) => {
     if (!refId) return;
     setCertDownloadError("");
-    setDownloadingCertRefId(`${refId}-${format}`);
+    setDownloadingCertRefId(refId);
     try {
-      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}${format === "pdf" ? "/pdf" : ""}`);
+      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`);
       if (!res.ok) {
         throw new Error(`Server responded ${res.status}`);
       }
@@ -752,7 +741,7 @@ export default function AuthDashboard({
       const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.${format}`;
+      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -819,64 +808,53 @@ export default function AuthDashboard({
     }
   };
 
-  /** Renders the Receipt/Invoice/Certificate download row for one activity record — shared by both the carousel and "show more" list below so they never drift apart. */
+  /** Renders the Receipt/Certificate download row for one activity record — shared by both the carousel and "show more" list below so they never drift apart. */
   const renderActivityDownloadButtons = (rec: ActivityRecord) => {
     const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
     const isPaid = rec.paymentStatus === "confirmed";
-    // Certificate only for genuine puja/seva bookings, only once Sri Dwar's
-    // team has actually confirmed the rite was performed — matches the
-    // server's own refusal to render before then (see
-    // /api/certificates/service/:refId in server.ts).
-    const showCertificate = (rec.activityType === "puja" || rec.activityType === "seva") && rec.completionStatus === "completed";
+    // ✅ FIX (2026-08-29 — explicit clarification): this certificate is a
+    // devotional ACKNOWLEDGEMENT that the devotee opted in for this Puja/
+    // Seva — like an order confirmation — never proof of performance. It
+    // used to wait for completionStatus === "completed" (matching the
+    // server's old gate, since removed) before showing at all; now
+    // available for any genuine puja/seva booking regardless of
+    // completion. A separate, individually personalized certificate is
+    // prepared by Sri Dwar's team after the rite is actually performed and
+    // emailed directly — this button was never meant to be that.
+    const showCertificate = rec.activityType === "puja" || rec.activityType === "seva";
     if (!isPaid && !showCertificate) return null;
+    // ✅ FIX (2026-08-29 — architecture reversal, explicitly requested):
+    // Certificate (JPG) and Confirmation (plain-text PDF, generated
+    // separately client-side by downloadConfirmationMessage() in
+    // utils/devotionalMessages.ts — untouched by any of this work) must
+    // stay two fully independent downloads; a PDF must never have a
+    // certificate image embedded in it. The "Invoice PDF" button that used
+    // to sit here called /api/certificates/transaction/:refId/pdf, which
+    // does exactly that — removed. "Receipt" (JPG) and "Certificate" (JPG)
+    // below are untouched; both were already image-only downloads.
     return (
       <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/5">
         {isPaid && (
-          <>
-            <button
-              type="button"
-              onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
-              disabled={downloadingDocKey === `${rec.id}-jpg`}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Download className="w-3 h-3" />
-              {downloadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}/pdf`, `Sri-Dwar-Invoice-${safeName}.pdf`, `${rec.id}-pdf`)}
-              disabled={downloadingDocKey === `${rec.id}-pdf`}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Download className="w-3 h-3" />
-              {downloadingDocKey === `${rec.id}-pdf` ? "..." : "Invoice PDF"}
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
+            disabled={downloadingDocKey === `${rec.id}-jpg`}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+          >
+            <Download className="w-3 h-3" />
+            {downloadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
+          </button>
         )}
         {showCertificate && (
-          <>
-            <button
-              type="button"
-              onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
-              disabled={downloadingDocKey === `${rec.id}-cert`}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Download className="w-3 h-3" />
-              {downloadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
-            </button>
-            {/* ✅ ADDED — PDF option for the Service (Puja/Seva) Certificate,
-                matching the Receipt/Invoice PDF pair above and every other
-                certificate type's JPG + PDF pair. */}
-            <button
-              type="button"
-              onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}/pdf`, `Sri-Dwar-Certificate-${safeName}.pdf`, `${rec.id}-cert-pdf`)}
-              disabled={downloadingDocKey === `${rec.id}-cert-pdf`}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Download className="w-3 h-3" />
-              {downloadingDocKey === `${rec.id}-cert-pdf` ? "..." : "Certificate PDF"}
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
+            disabled={downloadingDocKey === `${rec.id}-cert`}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+          >
+            <Download className="w-3 h-3" />
+            {downloadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
+          </button>
         )}
       </div>
     );
@@ -2177,60 +2155,40 @@ export default function AuthDashboard({
                             fresh each time from the devotee's own submitted
                             data, so it's available as soon as the request exists. */}
                         {sub.formType === "darshan_certificate" && sub.refId && (
-                          <div className="shrink-0 flex flex-wrap gap-1.5 justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name, "jpg")}
-                              disabled={downloadingCertRefId === `${sub.refId}-jpg`}
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingCertRefId === `${sub.refId}-jpg` ? "..." : "Certificate"}</span>
-                            </button>
-                            {/* ✅ ADDED — PDF option for the Temple Visit
-                                (Darshan) Certificate, matching every other
-                                certificate type's JPG + PDF pair. */}
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name, "pdf")}
-                              disabled={downloadingCertRefId === `${sub.refId}-pdf`}
-                              className="flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingCertRefId === `${sub.refId}-pdf` ? "..." : "PDF"}</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
+                            disabled={downloadingCertRefId === sub.refId}
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{downloadingCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
+                          </button>
                         )}
                         {/* ✅ ADDED — every OTHER form record (Contact Us,
                             Devotion Story, Devotee/Expert/Temple Committee
                             Registration, etc.) has no transaction and no
                             Darshan Certificate of its own, so it uses the
-                            same Service_Certificate.jpg artwork instead —
-                            see /api/certificates/general/:refId(/pdf) in
+                            same puja_certificate.jpg artwork instead —
+                            see /api/certificates/general/:refId in
                             server.ts, which fills in the devotee's field of
                             expertise, the temple they registered, or their
-                            gotra + reference ID depending on record type. */}
+                            gotra + reference ID depending on record type.
+                            ✅ FIX (2026-08-29): the /pdf variant (which
+                            embedded this image inside a PDF) was removed —
+                            Certificate (JPG) and Confirmation (a separate,
+                            plain-text PDF) must stay two independent
+                            downloads, never one embedding the other. */}
                         {sub.formType !== "darshan_certificate" && sub.refId && (
-                          <div className="shrink-0 flex flex-wrap gap-1.5 justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
-                              disabled={downloadingDocKey === `${sub.id}-gen-jpg`}
-                              className="flex items-center gap-1 px-2.5 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingDocKey === `${sub.id}-gen-jpg` ? "..." : "JPG"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}/pdf`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.pdf`, `${sub.id}-gen-pdf`)}
-                              disabled={downloadingDocKey === `${sub.id}-gen-pdf`}
-                              className="flex items-center gap-1 px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingDocKey === `${sub.id}-gen-pdf` ? "..." : "PDF"}</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
+                            disabled={downloadingDocKey === `${sub.id}-gen-jpg`}
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{downloadingDocKey === `${sub.id}-gen-jpg` ? "..." : "Certificate"}</span>
+                          </button>
                         )}
                       </div>
                     ))}
@@ -2301,13 +2259,7 @@ export default function AuthDashboard({
                       One Divine Contribution. Countless Blessings. With gratitude, be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas through Sri Dwar — especially for smaller temples that quietly serve with limited resources or visibility. Together, let's gently strengthen our sacred heritage, one heartfelt offering at a time.
                     </p>
 
-                    <StoneEngravingNote
-                      variant="compact"
-                      showRepeatNote
-                      collapsible
-                      title="Engrave Your Name in a Sacred Legacy"
-                      className="text-left"
-                    />
+                    <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
 
                     <button
                       id="profile-contribute-open-btn"
@@ -2409,53 +2361,38 @@ export default function AuthDashboard({
                   </div>
                 )}
 
-                {/* How your support is used — 5-point impact summary,
-                    collapsed behind "Read More" by default (see
-                    showImpactDetails above). */}
+                {/* How your support is used — 5-point impact summary */}
                 <div className="border-t border-white/5 pt-3 space-y-2.5">
                   <p className="text-[12px] text-white/60 italic leading-relaxed">
                     Don't just offer your devotion — see it come alive.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setShowImpactDetails((v) => !v)}
-                    aria-expanded={showImpactDetails}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FFB347] hover:text-[#FFC97A] transition-colors"
-                  >
-                    {showImpactDetails ? "Show less" : "Read More"}
-                    <ChevronDown className={`w-3 h-3 transition-transform ${showImpactDetails ? "rotate-180" : ""}`} />
-                  </button>
-                  {showImpactDetails && (
-                    <div className="space-y-2.5 animate-fadeIn">
-                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                        <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                        <span>Every booking, seva, order, and divine contribution you make directly supports your chosen temple or local puja mandal.</span>
-                      </div>
-                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                        <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                        <span>Your generosity funds Annadanam — free sacred meals served to devotees.</span>
-                      </div>
-                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                        <Armchair className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                        <span>It also funds seating facilities, a shed, waiting halls, and comfort for devotees visiting the pilgrimage sites.</span>
-                      </div>
-                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                        <Hammer className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                        <span>Your offering supports maintenance and other sacred initiatives.</span>
-                      </div>
-                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                        <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
-                        <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
-                      </div>
-                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                        <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
-                        <span>{STONE_ENGRAVING_REPEAT_TEXT}</span>
-                      </div>
-                      <p className="text-[12px] text-[#FFB347] italic leading-relaxed pt-1">
-                        Every offering becomes a blessing. Every blessing creates a difference.
-                      </p>
-                    </div>
-                  )}
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>Every booking, seva, order, and divine contribution you make directly supports your chosen temple or local puja mandal.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>Your generosity funds Annadanam — free sacred meals served to devotees.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <Armchair className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>It also funds seating facilities, a shed, waiting halls, and comfort for devotees visiting the pilgrimage sites.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <Hammer className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                    <span>Your offering supports maintenance and other sacred initiatives.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
+                    <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                    <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
+                    <span>{STONE_ENGRAVING_REPEAT_TEXT}</span>
+                  </div>
+                  <p className="text-[12px] text-[#FFB347] italic leading-relaxed pt-1">
+                    Every offering becomes a blessing. Every blessing creates a difference.
+                  </p>
                 </div>
               </div>
 

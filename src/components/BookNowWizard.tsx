@@ -199,6 +199,38 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Request Acknowledgement (NOT a completion certificate — see wizard-success-stage below)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSyncingDetails, setIsSyncingDetails] = useState(false);
+  // ✅ ADDED (2026-08-29 — Certificate button beside Download Confirmation):
+  // this certificate is a devotional acknowledgement that the devotee
+  // opted in for this Puja/Seva — like an order confirmation — never
+  // proof of performance, and is available immediately, the same moment
+  // Download Confirmation already is. The endpoint (server.ts) picks the
+  // correct puja/seva artwork itself from the booking's own record, so
+  // this component never needs to know which one applies.
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/service/${encodeURIComponent(certRefId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
   // Which of the two Step 1 buttons is currently submitting — drives which
   // button shows the "…ing" label below, so the devotee isn't left
   // wondering which action they actually triggered.
@@ -869,14 +901,35 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                         `Reference: ${refId}. Once your puja is performed by the temple priest, you'll receive live updates (where available) and photo/video evidence, in addition to your Sankalpa Certificate.`}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category, serviceName: pujaName, devoteeName, refId }); }}
-                      className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
-                      <Download className="w-3.5 h-3.5 text-[#FFB347]" />
-                      <span>Download Confirmation</span>
-                    </button>
+                  <div className="space-y-2">
+                    {certificateDownloadError && (
+                      <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5">
+                        {certificateDownloadError}
+                      </p>
+                    )}
+                    {/* ✅ FIX (2026-08-30): this used to hide the Certificate
+                        button for Guidance/Wellness because no matching
+                        artwork existed. Guidance_Certificate.jpg now exists
+                        and server.ts's /api/certificates/service/:refId
+                        already routes activityType "other" (exactly what
+                        this booking is recorded as) to it — so Guidance and
+                        Wellness get the same two-button layout as Puja/Seva
+                        now, with no other change needed. */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category, serviceName: pujaName, devoteeName, refId }); }}
+                          className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
+                          <Download className="w-3.5 h-3.5 text-[#FFB347]" />
+                          <span>Download Confirmation</span>
+                        </button>
+                        <button id="download-certificate-btn" type="button" disabled={isDownloadingCertificate}
+                          onClick={() => { gaCertificateAction("download", refId); handleDownloadCertificate(refId, devoteeName); }}
+                          className="bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer">
+                          <Download className="w-3.5 h-3.5 text-[#5EEAD4]" />
+                          <span>{isDownloadingCertificate ? "Preparing…" : "Download Certificate"}</span>
+                        </button>
+                      </div>
                     <button id="close-success-wizard" onClick={handleClose}
-                      className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">
+                      className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-3 rounded-xl text-xs transition-all tracking-widest shadow uppercase cursor-pointer">
                       🙏 Close and Pray
                     </button>
                   </div>
