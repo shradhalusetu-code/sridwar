@@ -336,6 +336,7 @@ export default function SacredMoments() {
                     serviceName: "Prayer Wall Voluntary Contribution",
                     devoteeName: prayerContribName,
                     refId: prayerContribRefId,
+                    amount: prayerContributed?.amount,
                   })
                 }
                 className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2 rounded-lg text-[11px] transition-all tracking-wide uppercase cursor-pointer"

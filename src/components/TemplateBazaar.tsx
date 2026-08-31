@@ -234,7 +234,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // "Download Confirmation" — neither existed here before. Snapshotting
   // the completed order's details here because devoteeName/refId/
   // selectedItem all get reset immediately after payment confirms.
-  const [bazaarSuccess, setBazaarSuccess] = useState<{ refId: string; devoteeName: string; itemName: string; isService: boolean; message: string } | null>(null);
+  const [bazaarSuccess, setBazaarSuccess] = useState<{ refId: string; devoteeName: string; itemName: string; isService: boolean; message: string; amount: number } | null>(null);
   const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
   const [certificateDownloadError, setCertificateDownloadError] = useState("");
 
@@ -527,7 +527,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
       const message = selectedItem.isService
         ? `🙏 Jai Jagannath! Your ${selectedItem.name} has been registered. Our pandit team will send you a confirmation soon.`
         : `🙏 Order received! Once your payment is verified, our team will confirm it and ship your ${selectedItem.name} within 3–5 working days.`;
-      setBazaarSuccess({ refId, devoteeName: devoteeName.trim(), itemName: selectedItem.name, isService: !!selectedItem.isService, message });
+      setBazaarSuccess({ refId, devoteeName: devoteeName.trim(), itemName: selectedItem.name, isService: !!selectedItem.isService, message, amount: selectedItem.price });
     }
     // Reset form fields
     setDevoteeName(""); setDevoteePhone(""); setDevoteeEmail("");
@@ -1153,6 +1153,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                   serviceName: bazaarSuccess.itemName,
                   devoteeName: bazaarSuccess.devoteeName,
                   refId: bazaarSuccess.refId,
+                  amount: bazaarSuccess.amount,
                 })}
                 className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1 shadow border border-white/10 cursor-pointer"
               >

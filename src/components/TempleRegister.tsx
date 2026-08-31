@@ -850,7 +850,7 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           {confirmation && (
             <button
-              onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: "Devotee Registration Divine Contribution", devoteeName: form.name, refId })}
+              onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: "Devotee Registration Divine Contribution", devoteeName: form.name, refId, amount: donationConfirmed?.amount, submittedAs: "Devotee" })}
               className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
             >
               <Download className="w-4 h-4 text-[#FFB347]" /><span>Download Confirmation</span>
@@ -1717,7 +1717,7 @@ function DharmicExpertSection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {confirmation && (
             <button
-              onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Dharmic Expert Registration Divine Contribution — ${form.category || "Dharmic Directory"}`, devoteeName: form.fullName, refId: expertRefIdRef.current })}
+              onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Dharmic Expert Registration Divine Contribution — ${form.category || "Dharmic Directory"}`, devoteeName: form.fullName, refId: expertRefIdRef.current, amount: donationConfirmed?.amount, submittedAs: `Dharmic Expert${form.category ? ` (${form.category})` : ""}` })}
               className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
             >
               <Download className="w-4 h-4 text-[#FFB347]" /><span>Download Confirmation</span>
@@ -2843,7 +2843,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 {confirmation && (
                   <button
-                    onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Temple Registration Divine Contribution — ${templeReg.templeName}`, devoteeName: templeReg.contactName, refId: templeRegRefIdRef.current })}
+                    onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Temple Registration Divine Contribution — ${templeReg.templeName}`, devoteeName: templeReg.contactName, refId: templeRegRefIdRef.current, amount: templeRegDonationConfirmed?.amount, submittedAs: "Temple Committee" })}
                     className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all cursor-pointer"
                   >
                     <Download className="w-4 h-4 text-[#FFB347]" /><span>Download Confirmation</span>
@@ -3232,7 +3232,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               <p>{confirmation.opening}</p>
               <p>{confirmation.blessing}</p>
               <button
-                onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}`, devoteeName: devotee.name, refId: donationRefId || devoteeFlowRefIdRef.current })}
+                onClick={() => downloadConfirmationMessage({ category: "temple_contribution", serviceName: `Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}`, devoteeName: devotee.name, refId: donationRefId || devoteeFlowRefIdRef.current, amount: devoteeDonationConfirmed?.amount, submittedAs: "Devotee" })}
                 className="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>Download Confirmation</span>

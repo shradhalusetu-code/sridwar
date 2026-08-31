@@ -361,6 +361,7 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement, us
                     serviceName: "Diya Circle Voluntary Contribution",
                     devoteeName: diyaName,
                     refId: diyaRefIdRef.current,
+                    amount: diyaContributed?.amount,
                   })
                 }
                 className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2 rounded-lg text-[11px] transition-all tracking-wide uppercase"

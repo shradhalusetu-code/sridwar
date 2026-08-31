@@ -213,6 +213,85 @@ export default function AuthDashboard({
   const [bookedLedgerVisible, setBookedLedgerVisible] = useState(LEDGER_CAROUSEL_COUNT);
   const [activityLedgerVisible, setActivityLedgerVisible] = useState(LEDGER_CAROUSEL_COUNT);
 
+  // ── "Pay Now" retry for a pending/failed "All Account Activity" row ──────
+  // activities is an intentionally append-only ledger from the devotee's own
+  // browser (see supabase_schema.sql: "No update/delete policy for regular
+  // users on purpose") — a devotee's session can never flip their own row to
+  // "confirmed" directly, only Sri Dwar's team can, after verifying the UTR.
+  // So "Pay Now" does NOT edit the existing row; it reopens the same UPI
+  // modal for the same item/amount under a fresh Ref ID and inserts a new
+  // "pending_verification" activity (via the existing recordActivity(),
+  // exactly like every other payment on the site already does), tagged with
+  // retryOfRefId so the original row can be traced if needed. The devotee
+  // then sees both the original and the new attempt in their ledger.
+  const [retryPaymentTarget, setRetryPaymentTarget] = useState<ActivityRecord | null>(null);
+  const [showRetryUPI, setShowRetryUPI] = useState(false);
+  const [retryRefId, setRetryRefId] = useState("");
+
+  // "How your support is used" 5-point impact summary, under "Support Our
+  // Mission" — collapsed by default so the panel stays short/scannable like
+  // every other progressive-disclosure block on this page; expands via
+  // "Read More" exactly like StoneEngravingNote's own teaser pattern above it.
+  const [showImpactDetails, setShowImpactDetails] = useState(false);
+
+  const handleOpenRetryPayment = (rec: ActivityRecord) => {
+    setRetryPaymentTarget(rec);
+    setRetryRefId(`SDP-${randomRefSuffix()}`);
+    setShowRetryUPI(true);
+  };
+
+  const handleRetryPaymentConfirmed = async (details: { amount: number; method: "UPI" }) => {
+    if (!retryPaymentTarget) return;
+    // ✅ FIX (this pass): every other payment path on this page
+    // (finalizeContribution above) — and every checkout in BookNowWizard/
+    // TemplateBazaar/App.tsx — calls syncToGoogleForm() ALONGSIDE
+    // recordActivity(), because the Google Sheet is what the team's actual
+    // manual-verification/reconciliation pipeline (confirmedpaymentpoller.gs,
+    // triggers.gs) reads — Supabase's activities table only powers this
+    // Profile page's own display. A first pass at this retry button called
+    // recordActivity() alone, which would have made a retried payment appear
+    // to the devotee here as "Pending Verification" while never actually
+    // reaching the team who verifies and confirms it. Fixed by syncing here
+    // too, exactly like finalizeContribution does.
+    try {
+      await syncToGoogleForm("puja_booking", {
+        name: userProfile.name || "Devotee",
+        email: userProfile.email || "",
+        phone: userPhone || "",
+        gotra: userGotra || undefined,
+        rashi: userRashi || undefined,
+        type: `${ACTIVITY_TYPE_LABELS[retryPaymentTarget.activityType] || "Offering"} — ${retryPaymentTarget.itemName}`,
+        details: `Item: ${retryPaymentTarget.itemName} | Amount: ₹${details.amount} | Payment Status: Payment Submitted — Pending Verification (Retry) | Payment Method: ${details.method} | Original Ref: ${retryPaymentTarget.refId} | Ref: ${retryRefId}`,
+        fee: details.amount,
+        whatsapp: userPhone || "",
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    const newRecord: ActivityRecord = {
+      id: `retry-${retryRefId}`,
+      activityType: retryPaymentTarget.activityType,
+      itemName: retryPaymentTarget.itemName,
+      amount: details.amount,
+      refId: retryRefId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
+      createdAt: new Date().toISOString(),
+    };
+    await recordActivity({
+      activityType: retryPaymentTarget.activityType,
+      itemName: retryPaymentTarget.itemName,
+      amount: details.amount,
+      refId: retryRefId,
+      paymentMethod: details.method,
+      paymentStatus: "pending_verification",
+      metadata: { retryOfRefId: retryPaymentTarget.refId },
+    });
+    setActivityRecords((prev) => [newRecord, ...prev]);
+    setShowRetryUPI(false);
+    setRetryPaymentTarget(null);
+  };
+
   // Post-login "Contribute / Donate" panel — lets an already-logged-in
   // devotee start a new temple divine contribution from their Profile page,
   // reusing the same temple/amount selection + Sankalpa + UPI payment flow
@@ -910,7 +989,11 @@ export default function AuthDashboard({
     // prepared by Sri Dwar's team after the rite is actually performed and
     // emailed directly — this button was never meant to be that.
     const showCertificate = rec.activityType === "puja" || rec.activityType === "seva";
-    if (!isPaid && !showCertificate) return null;
+    // ✅ ADDED — "If payment is pending, show Pay Now" (Profile ledger fix):
+    // lets a devotee resubmit payment for a row still awaiting verification
+    // or explicitly marked failed, without needing to start the booking over.
+    const canRetryPayment = rec.paymentStatus === "pending_verification" || rec.paymentStatus === "failed";
+    if (!isPaid && !showCertificate && !canRetryPayment) return null;
     // ✅ FIX (2026-08-29 — architecture reversal, explicitly requested):
     // Certificate (JPG) and Confirmation (plain-text PDF, generated
     // separately client-side by downloadConfirmationMessage() in
@@ -967,6 +1050,16 @@ export default function AuthDashboard({
               {sharingDocKey === `${rec.id}-cert-share` ? "..." : "Share"}
             </button>
           </>
+        )}
+        {canRetryPayment && (
+          <button
+            type="button"
+            onClick={() => handleOpenRetryPayment(rec)}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FFB347]/15 hover:bg-[#FFB347]/25 border border-[#FFB347]/40 text-[#FFB347] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Pay Now
+          </button>
         )}
       </div>
     );
@@ -2441,7 +2534,13 @@ export default function AuthDashboard({
                       One Divine Contribution. Countless Blessings. With gratitude, be part of Devotee Well-being, Temple Redevelopment, and Sacred Sevas through Sri Dwar — especially for smaller temples that quietly serve with limited resources or visibility. Together, let's gently strengthen our sacred heritage, one heartfelt offering at a time.
                     </p>
 
-                    <StoneEngravingNote variant="compact" showRepeatNote className="text-left" />
+                    <StoneEngravingNote
+                      variant="compact"
+                      showRepeatNote
+                      className="text-left"
+                      title="Engrave Your Name in a Sacred Temple"
+                      collapsible
+                    />
 
                     <button
                       id="profile-contribute-open-btn"
@@ -2543,38 +2642,54 @@ export default function AuthDashboard({
                   </div>
                 )}
 
-                {/* How your support is used — 5-point impact summary */}
+                {/* How your support is used — 5-point impact summary.
+                    ✅ COLLAPSED BY DEFAULT (Profile page audit): teaser line
+                    + "Read More" always visible; the 5 points and closing
+                    line only mount once expanded, matching StoneEngravingNote's
+                    teaser/expand pattern used just above in this same panel. */}
                 <div className="border-t border-white/5 pt-3 space-y-2.5">
                   <p className="text-[12px] text-white/60 italic leading-relaxed">
                     Don't just offer your devotion — see it come alive.
                   </p>
-                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                    <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                    <span>Every booking, seva, order, and divine contribution you make directly supports your chosen temple or local puja mandal.</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                    <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                    <span>Your generosity funds Annadanam — free sacred meals served to devotees.</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                    <Armchair className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                    <span>It also funds seating facilities, a shed, waiting halls, and comfort for devotees visiting the pilgrimage sites.</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                    <Hammer className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
-                    <span>Your offering supports maintenance and other sacred initiatives.</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                    <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
-                    <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
-                  </div>
-                  <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
-                    <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
-                    <span>{STONE_ENGRAVING_REPEAT_TEXT}</span>
-                  </div>
-                  <p className="text-[12px] text-[#FFB347] italic leading-relaxed pt-1">
-                    Every offering becomes a blessing. Every blessing creates a difference.
-                  </p>
+                  {showImpactDetails && (
+                    <>
+                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                        <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                        <span>Every booking, seva, order, and divine contribution you make directly supports your chosen temple or local puja mandal.</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                        <Utensils className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                        <span>Your generosity funds Annadanam — free sacred meals served to devotees.</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                        <Armchair className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                        <span>It also funds seating facilities, a shed, waiting halls, and comfort for devotees visiting the pilgrimage sites.</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                        <Hammer className="w-3 h-3 shrink-0 mt-0.5 text-[#5EEAD4]" />
+                        <span>Your offering supports maintenance and other sacred initiatives.</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                        <FileCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
+                        <span>After the seva is completed, we share photo or video proof of the impact when available and issue your personalized Digital Seva Certificate within 7 working days.</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-[12px] text-white/50 font-mono leading-relaxed">
+                        <Landmark className="w-3 h-3 shrink-0 mt-0.5 text-[#FFB347]" />
+                        <span>{STONE_ENGRAVING_REPEAT_TEXT}</span>
+                      </div>
+                      <p className="text-[12px] text-[#FFB347] italic leading-relaxed pt-1">
+                        Every offering becomes a blessing. Every blessing creates a difference.
+                      </p>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowImpactDetails((v) => !v)}
+                    aria-expanded={showImpactDetails}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FFB347] hover:text-[#FFC97A] transition-colors"
+                  >
+                    {showImpactDetails ? "Show less" : "Read More"}
+                  </button>
                 </div>
               </div>
 
@@ -2902,6 +3017,22 @@ export default function AuthDashboard({
         refId={contributionRefId}
         isVoluntaryContribution={true}
       />
+
+      {/* ── "Pay Now" retry — resubmit payment for a pending/failed row in
+          "All Account Activity" (see handleOpenRetryPayment above for why
+          this inserts a fresh activity row instead of editing the old one). */}
+      {retryPaymentTarget && (
+        <UPIPaymentModal
+          isOpen={showRetryUPI}
+          onClose={() => setShowRetryUPI(false)}
+          onPaymentConfirmed={handleRetryPaymentConfirmed}
+          amount={retryPaymentTarget.amount}
+          bookingName={retryPaymentTarget.itemName}
+          devoteeName={userProfile.name || "Devotee"}
+          refId={retryRefId}
+          skipDisclaimer
+        />
+      )}
 
       {/* ── Delete My Account — self-service confirmation modal ───────────── */}
       {showDeleteAccountConfirm && (

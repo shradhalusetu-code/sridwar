@@ -11,31 +11,36 @@
  * A single, drop-in Node/Express module that recreates the Word mail-merge
  * concept server-side: it selects the right branded template, autofills only
  * the approved fields, renders a PDF, saves it against the booking, and
- * prepares (but — per your choice — does not yet auto-fire) the "Certificate
- * Ready" / "Booking Confirmed" email. It does not touch App.tsx, server.ts's
- * existing routes, the Google Forms sync, WhatsApp alerts, or any current
- * booking/payment/email flow. Nothing here runs until something calls one of
- * the two exported entry points below.
+ * dispatches the "Certificate Ready" / "Booking Confirmed" email via
+ * Webhook.gs. It does not touch App.tsx, the Google Forms sync, WhatsApp
+ * alerts, or any of server.ts's other existing routes/flows.
  *
- * SCOPE, AS YOU SELECTED: "Design/templates only, wire trigger later."
+ * ✅ WIRING STATUS (corrected 2026-08-31 — this section previously said
+ * "design/templates only, wire trigger later"; that is no longer accurate
+ * and was misleading anyone reading this file in isolation):
  * ----------------------------------------------------------------------
- * This file implements the full pipeline (verification re-check → idempotency
- * claim → template render → storage → audit → email payload) and exposes it
- * as two callable functions. It does NOT hook itself into any payment
- * webhook, Supabase trigger, or cron job — that wiring is a deliberate
- * follow-up step, once you tell me which real signal should fire it (a
- * payment-gateway webhook once you have one, an admin "mark paid"/"mark
- * completed" action, or a polling job). Search this file for
- * "TRIGGER WIRING GOES HERE" for the two exact spots.
+ * This pipeline (verification re-check → idempotency claim → template
+ * render → storage → audit → email dispatch) IS live-wired from server.ts,
+ * three ways:
+ *   1. POST /api/admin/certificates/mark-completed-and-send — marks a
+ *      booking's service as performed, then calls generateCertificatePdf().
+ *   2. POST /api/admin/certificates/send-booking-confirmation — calls
+ *      generateBookingConfirmationPdf() directly.
+ *   3. A Supabase Database Webhook route (server.ts, guarded by
+ *      SUPABASE_WEBHOOK_SECRET) that calls generateBookingConfirmationPdf()
+ *      automatically the moment a row's payment_status transitions to
+ *      'confirmed'.
+ * All three import this file dynamically (`await import("./certificateService")`)
+ * so a missing pdf-lib install or unmigrated schema can only ever fail that
+ * one request, never server startup. `registerCertificateAdminRoutes()`
+ * below is a separate, still-unmounted, optional QA-only route pair kept for
+ * ad-hoc Postman testing — it is not how production traffic reaches this file.
  *
- * For manual/QA testing right now, without any trigger, three ways in:
+ * For manual/QA testing, two ways in:
  *   1. `npx tsx certificateService.ts --selftest`  — runs the full test
  *      matrix below against an in-memory fake DB (no network, no Supabase).
  *   2. Import and call `generateBookingConfirmationPdf(refId)` /
  *      `generateCertificatePdf(refId)` directly from a REPL or temp script.
- *   3. Mount `registerCertificateAdminRoutes(app)` from server.ts (one line,
- *      shown at the bottom of this file) to get two header-secret-protected
- *      POST routes you can hit from Postman while QA'ing.
  *
  * WHICH SIGNAL COUNTS AS "PAID" / "PERFORMED" (server re-verifies, always)
  * --------------------------------------------------------------------------
@@ -553,11 +558,17 @@ function significanceLineFor(activityType: string | undefined): string | undefin
 // is fully respected by pdf-lib / every PDF viewer, so no baked-background
 // compositing is needed here the way it was for emailtemplates.gs.
 //
-// Read once from disk, mirroring the exact dev/prod path pattern server.ts
-// already uses for other static assets (STATIC_LEGAL_PAGES above). Never a
-// hard requirement: if the file is missing or fails to embed, PDFs still
-// generate exactly as they did before this feature existed — a missing logo
-// must never block a devotee's certificate or invoice.
+// ✅ FIX (2026-08-31 — verified against the actual public/ folder): this
+// previously pointed at "public/images/sridwar-icon.png", which does not
+// exist anywhere in the repository — fs.readFileSync was silently throwing,
+// the catch below was silently swallowing it, and every certificate/invoice
+// PDF has been rendering with NO logo mark at all. The only current PNG
+// that is an icon-only mark (not the full icon+wordmark+tagline lockup in
+// images/sridwar-logo.png, which would visually duplicate the "SRI DWAR"
+// wordmark and tagline this file already draws as separate text right next
+// to it) is android-chrome-512x512.png — the same mark already used for the
+// site's favicon/PWA icons (see index.html's own <link> tags) — and it
+// lives at the public ROOT, not under images/.
 let cachedBrandIconBytes: Buffer | null | undefined;
 function loadBrandIconBytes(): Buffer | null {
   if (cachedBrandIconBytes !== undefined) return cachedBrandIconBytes;
@@ -565,13 +576,12 @@ function loadBrandIconBytes(): Buffer | null {
     const iconPath = path.join(
       process.cwd(),
       process.env.NODE_ENV === "production" ? "dist" : "public",
-      "images",
-      "sridwar-icon.png"
+      "android-chrome-512x512.png"
     );
     cachedBrandIconBytes = fs.readFileSync(iconPath);
   } catch {
     console.warn(
-      "[certificateService] Brand icon not found at public/images/sridwar-icon.png (or dist/images/ in prod) — PDFs will render without it."
+      "[certificateService] Brand icon not found at public/android-chrome-512x512.png (or dist/ in prod) — PDFs will render without it."
     );
     cachedBrandIconBytes = null;
   }
@@ -677,6 +687,63 @@ function centeredTextAt(page: PDFPage, text: string, centerX: number, y: number,
   page.drawText(text, { x: centerX - textWidth / 2, y, size, font, color });
 }
 
+// ✅ ADDED — shrink-to-fit + truncate for dynamic, devotee-submitted text
+// (a devotee's own name, a Bazaar product name, a deity/temple name) whose
+// length is never bounded by us. Every OTHER text draw in this file is
+// either a fixed short label or already passed through pdf-lib's own
+// `maxWidth` wrapping (see drawWrapped/contactLine below) — these two were
+// the only dynamic-length lines with no protection at all, so a long name
+// or product title could previously run past the certificate's ornamental
+// frame, or collide with the invoice's amount column. Uses pdf-lib's own
+// `font.widthOfTextAtSize()` — the exact glyph metrics already embedded in
+// the PDF — rather than a guessed average character width, so this is
+// precise, not approximate.
+function fitTextWidth(font: PDFFont, text: string, maxWidth: number, startSize: number, minSize: number): { text: string; size: number } {
+  let size = startSize;
+  while (size > minSize && font.widthOfTextAtSize(text, size) > maxWidth) size -= 0.5;
+  if (font.widthOfTextAtSize(text, size) <= maxWidth) return { text, size };
+  // Still too wide even at the floor size — truncate with an ellipsis,
+  // never let dynamic text cross a hard boundary (frame edge, amount column).
+  let truncated = text;
+  while (truncated.length > 1 && font.widthOfTextAtSize(`${truncated}…`, size) > maxWidth) {
+    truncated = truncated.slice(0, -1);
+  }
+  return { text: `${truncated.trimEnd()}…`, size };
+}
+
+/** centeredText, but shrinks (then truncates) dynamic text to always fit within maxWidth. */
+function centeredTextFit(
+  page: PDFPage,
+  text: string,
+  y: number,
+  font: PDFFont,
+  startSize: number,
+  minSize: number,
+  maxWidth: number,
+  color: RGB = BRAND.darkGreen
+) {
+  const { width } = page.getSize();
+  const fitted = fitTextWidth(font, text, maxWidth, startSize, minSize);
+  const textWidth = font.widthOfTextAtSize(fitted.text, fitted.size);
+  page.drawText(fitted.text, { x: (width - textWidth) / 2, y, size: fitted.size, font, color });
+}
+
+/** Left-aligned text that shrinks (then truncates) dynamic text to always fit within maxWidth. */
+function leftTextFit(
+  page: PDFPage,
+  text: string,
+  x: number,
+  y: number,
+  font: PDFFont,
+  startSize: number,
+  minSize: number,
+  maxWidth: number,
+  color: RGB
+) {
+  const fitted = fitTextWidth(font, text, maxWidth, startSize, minSize);
+  page.drawText(fitted.text, { x, y, size: fitted.size, font, color });
+}
+
 async function renderCertificatePdf(kind: TemplateKind, fields: MergedFields): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const page = doc.addPage([595.28, 419.53]); // A5 landscape — premium certificate proportions
@@ -709,12 +776,12 @@ async function renderCertificatePdf(kind: TemplateKind, fields: MergedFields): P
     kind === "booking_confirmation"
       ? `This confirms that ${fields.devoteeName}'s booking for`
       : `This is to certify that ${fields.devoteeName}'s`;
-  centeredText(page, bodyLine1, height - 190, serifRegular, 13);
+  centeredTextFit(page, bodyLine1, height - 190, serifRegular, 13, 9, width - 68);
 
   const serviceLine = fields.deityOrTempleName
     ? `${fields.serviceName} — ${fields.deityOrTempleName}`
     : fields.serviceName;
-  centeredText(page, serviceLine, height - 215, serif, 16, BRAND.darkGreen);
+  centeredTextFit(page, serviceLine, height - 215, serif, 16, 10, width - 68, BRAND.darkGreen);
 
   const bodyLine2 =
     kind === "booking_confirmation"
@@ -810,7 +877,7 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
   text("BILL TO", margin, y, { size: 8, font: sansBold, color: BRAND.textMuted });
   text("INVOICE DETAILS", width / 2 + 10, y, { size: 8, font: sansBold, color: BRAND.textMuted });
   y -= 16;
-  text(fields.devoteeName, margin, y, { size: 12, font: sansBold });
+  leftTextFit(page, fields.devoteeName, margin, y, sansBold, 12, 8, width / 2 - margin - 6, BRAND.darkGreen);
   text(`Invoice #: ${fields.invoiceNumber}`, width / 2 + 10, y, { size: 10, font: sans });
   y -= 15;
   text(`Reference: ${fields.referenceId}`, width / 2 + 10, y, { size: 10, font: sans });
@@ -829,7 +896,7 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
   y -= 20;
 
   const serviceLine = fields.deityOrTempleName ? `${fields.serviceName} — ${fields.deityOrTempleName}` : fields.serviceName;
-  text(serviceLine, margin, y, { size: 11, font: sansBold });
+  leftTextFit(page, serviceLine, margin, y, sansBold, 11, 8, contentWidth - 140, BRAND.darkGreen);
   text(formatRupees(fields.amount ?? 0), width - margin, y, { size: 11, font: sans, align: "right" });
   y -= 16;
 
@@ -1203,14 +1270,18 @@ export async function generateCertificatePdf(
 }
 
 // ═══════════════════════════ OPTIONAL ADMIN TEST ROUTES ═════════════════════
-// Not mounted automatically. To use during QA, add ONE line to server.ts:
+// Not mounted automatically, and NOT what production uses — server.ts wires
+// its own /api/admin/certificates/* routes and the Supabase webhook route
+// directly against generateCertificatePdf()/generateBookingConfirmationPdf()
+// (see the WIRING STATUS note at the top of this file). This helper is kept
+// only as an optional, separate route pair for ad-hoc Postman QA. To use it,
+// add ONE line to server.ts:
 //
 //   import { registerCertificateAdminRoutes } from "./certificateService";
 //   registerCertificateAdminRoutes(app);
 //
-// Protected by CERTIFICATE_ADMIN_SECRET (set in your .env) — this is the
-// manual stand-in until a real trigger is wired, and is safe to leave
-// unmounted in production until then.
+// Protected by CERTIFICATE_ADMIN_SECRET (set in your .env). Safe to leave
+// unmounted in production.
 export function registerCertificateAdminRoutes(app: {
   post: (path: string, handler: (req: any, res: any) => void) => void;
 }) {

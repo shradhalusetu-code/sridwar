@@ -514,6 +514,7 @@ export default function SubscriptionSignup({
                         serviceName: `${tier.name} (${categoryLabel})`,
                         devoteeName: name,
                         refId,
+                        amount: isFree ? undefined : amount,
                       })
                     }
                     className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-xs transition-all tracking-wide uppercase cursor-pointer">

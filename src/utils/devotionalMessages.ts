@@ -93,6 +93,20 @@ interface DevotionalMessageInput {
   serviceName: string;
   devoteeName: string;
   refId: string;
+  // ✅ ADDED (2026-08-31 — professional-PDF pass): optional payment/
+  // transaction amount, in rupees. Shown as a real "Amount Paid" line in
+  // the confirmation PDF's main section when provided, so the document
+  // actually functions as a payment record for the categories where a
+  // payment was made — left undefined (and simply omitted from the PDF)
+  // for pure inquiries/testimonials where no payment occurred, which is
+  // the honest thing to show rather than a fabricated "₹0".
+  amount?: number;
+  // ✅ ADDED (2026-08-31): free-text "Submitted As" label — e.g. "Devotee",
+  // "Dharmic Expert / Pandit" — for registration-style submissions where
+  // the category itself doesn't already say who submitted the form. Left
+  // undefined (and omitted from the PDF) for every category where it
+  // wouldn't add information beyond what serviceName already states.
+  submittedAs?: string;
 }
 
 const OPENING_BY_CATEGORY: Record<DevotionalServiceCategory, (serviceName: string) => string> = {
@@ -322,6 +336,25 @@ export function getDevotionalConfirmationText(input: DevotionalMessageInput): st
   return lines.join("\n");
 }
 
+/** Matches certificateService.ts's formatRupees so every Sri Dwar document shows amounts the same way. */
+function formatRupeesForPdf(n: number): string {
+  return `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/** Category-appropriate label for the amount line — "Amount Paid" only where a real payment (not a voluntary/undetermined contribution) occurred. */
+const AMOUNT_LABEL_BY_CATEGORY: Record<DevotionalServiceCategory, string> = {
+  darshan_certificate: "Amount Paid",
+  puja_seva: "Amount Paid",
+  counselling_guidance: "Amount Paid",
+  holistic_wellness: "Amount Paid",
+  seva_offering: "Amount Paid",
+  temple_contribution: "Contribution Amount",
+  bazaar_order: "Amount Paid",
+  subscription: "Plan Amount",
+  support_contribution: "Contribution Amount",
+  stone_name_engraving: "Contribution Amount",
+};
+
 // ─── Small self-contained toast (no dependency on any app-wide toast system) ─
 // Gives the devotee a visible, positive signal for whichever download path
 // actually succeeded — the whole point of this fix is that tapping the
@@ -434,13 +467,24 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
 
   const doc = await PDFDocument.create();
   const page = doc.addPage([595.28, 841.89]); // A4
-  const { width } = page.getSize();
+  const { width, height } = page.getSize();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
   const margin = 56;
   const maxWidth = width - margin * 2;
   const headerTop = 841.89;
+
+  // ✅ ADDED (2026-08-31 — professional-PDF pass): a restrained full-page
+  // hairline frame, matching the "generous whitespace band" premium
+  // certificates use (same visual language as certificateService.ts's
+  // drawFrame) — gives this everyday confirmation receipt the same crisp,
+  // deliberately-designed edge a corporate PDF (invoice, boarding pass,
+  // bank statement) has, instead of text simply running to the page edge.
+  // Drawn LAST (see bottom of this function, just before doc.save()) so
+  // the header/footer color bands below don't paint over its top/bottom
+  // edges.
+  const frameMargin = 18;
 
   // Header — the real logo asset (see SriDwarLogo.tsx) is a navy/gold mark
   // on a TRANSPARENT background, designed for light surfaces. It would be
@@ -451,6 +495,19 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   const headerHeight = 70;
   page.drawRectangle({ x: 0, y: headerTop - headerHeight, width, height: headerHeight, color: cream });
   page.drawRectangle({ x: 0, y: headerTop - headerHeight, width, height: 3, color: saffron });
+
+  // ✅ ADDED (2026-08-31): a small, tasteful Om roundel — a restrained
+  // Dharmic visual mark in the header, alongside the logo, rather than
+  // relying on the logo alone to carry the document's cultural identity.
+  // Drawn as vector paths (not an embedded image) so it never depends on
+  // an asset file existing. Deliberately small and placed in the header's
+  // top-right corner — an accent, not competing with the logo or title.
+  const omX = width - margin - 16;
+  const omY = headerTop - headerHeight / 2;
+  page.drawEllipse({ x: omX, y: omY, xScale: 17, yScale: 17, borderColor: saffron, borderWidth: 1, color: cream });
+  page.drawText("Om", { x: omX - font.widthOfTextAtSize("Om", 6) / 2, y: omY + 8, size: 6, font: italic, color: textMuted });
+  page.drawEllipse({ x: omX, y: omY, xScale: 3, yScale: 3, color: saffron });
+  page.drawText("SHRI", { x: omX - bold.widthOfTextAtSize("SHRI", 5.5) / 2, y: omY - 6, size: 5.5, font: bold, color: darkGreen });
 
   // Falls back to the old dark-green text wordmark if the logo fetch/embed
   // ever fails, so a network hiccup can't break the whole PDF — the devotee
@@ -525,6 +582,12 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   }
 
   drawParagraph(refLine, 10, 16, bold, textMuted);
+  if (input.submittedAs) {
+    drawParagraph(`Submitted As: ${input.submittedAs}`, 10, 16, bold, textMuted);
+  }
+  if (typeof input.amount === "number" && input.amount > 0) {
+    drawParagraph(`${AMOUNT_LABEL_BY_CATEGORY[input.category]}: ${formatRupeesForPdf(input.amount)}`, 10, 16, bold, textMuted);
+  }
   y -= 6;
   drawParagraph(greeting, 12, 18, bold, ink);
   y -= 4;
@@ -603,6 +666,18 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
     size: 8,
     font,
     color: white,
+  });
+
+  // Full-page hairline frame — drawn last so its top/bottom edges sit on
+  // top of the header/footer color bands rather than being painted over
+  // by them. See the fix note above the `frameMargin` declaration.
+  page.drawRectangle({
+    x: frameMargin,
+    y: frameMargin,
+    width: width - frameMargin * 2,
+    height: height - frameMargin * 2,
+    borderColor: saffron,
+    borderWidth: 0.75,
   });
 
   return doc.save();

@@ -946,7 +946,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                         Wellness get the same two-button layout as Puja/Seva
                         now, with no other change needed. */}
                     <div className="grid grid-cols-3 gap-2">
-                        <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category, serviceName: pujaName, devoteeName, refId }); }}
+                        <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category, serviceName: pujaName, devoteeName, refId, amount: price }); }}
                           className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-[10px] transition-all tracking-wider flex flex-col items-center justify-center gap-1 shadow border border-white/10 cursor-pointer">
                           <Download className="w-3.5 h-3.5 text-[#FFB347]" />
                           <span>Confirmation</span>
