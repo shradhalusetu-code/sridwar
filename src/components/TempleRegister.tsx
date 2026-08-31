@@ -560,18 +560,18 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
     try {
-      const res = await fetch(`/api/certificates/general/${encodeURIComponent(certRefId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Certificate download failed:", e);
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
@@ -1228,18 +1228,18 @@ function DharmicExpertSection() {
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
     try {
-      const res = await fetch(`/api/certificates/general/${encodeURIComponent(certRefId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Certificate download failed:", e);
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
@@ -2251,18 +2251,18 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
     try {
-      const res = await fetch(`/api/certificates/general/${encodeURIComponent(certRefId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Certificate download failed:", e);
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");

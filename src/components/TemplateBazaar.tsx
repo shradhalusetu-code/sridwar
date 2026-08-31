@@ -16,6 +16,7 @@ import UPIPaymentModal from "./UPIPaymentModal";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { fetchAndShareCertificate } from "../utils/shareCertificate";
 import SriDwarLogo from "./SriDwarLogo";
 import IndiaTempleMap from "./IndiaTempleMap";
 import { gaCategoryFilter, gaAddToCart, gaCheckoutInitiate, gaBookingComplete } from "../utils/analytics";
@@ -242,18 +243,18 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
     try {
-      const res = await fetch(`/api/certificates/service/${encodeURIComponent(certRefId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/service/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Certificate download failed:", e);
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");

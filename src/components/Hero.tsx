@@ -80,18 +80,18 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
     try {
-      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
+        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Temple Visit Certificate",
+        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Temple Visit Certificate download failed:", e);
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");

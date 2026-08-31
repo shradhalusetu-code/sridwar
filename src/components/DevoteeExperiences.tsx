@@ -25,6 +25,7 @@ import StoneEngravingNote from "./StoneEngravingNote";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { fetchAndShareCertificate } from "../utils/shareCertificate";
 // ✅ BUNDLE-SIZE FIX: DevoteeExperiences.tsx renders on every visit to the
 // homepage and was previously statically importing UPIPaymentModal, which
 // pulled the whole payment modal into the eager main bundle for every
@@ -407,18 +408,18 @@ export default function DevoteeExperiences() {
     setTestimonyCertError("");
     setIsDownloadingTestimonyCert(true);
     try {
-      const res = await fetch(`/api/certificates/general/${encodeURIComponent(testimonyRefId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (newName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(testimonyRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setTestimonyCertError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Testimony certificate download failed:", e);
       setTestimonyCertError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");

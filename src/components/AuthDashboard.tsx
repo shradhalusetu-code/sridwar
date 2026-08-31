@@ -780,15 +780,13 @@ export default function AuthDashboard({
       const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.95));
       if (!blob) throw new Error("Canvas produced an empty image (toBlob returned null)");
 
-      const url = URL.createObjectURL(blob);
       const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Dharmic-ID-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await shareOrDownloadBlob(blob, `Dharmic-ID-${safeName}.jpg`, "My Sri Dwar Dharmic ID", "Jai Jagannath! Here is my Sri Dwar Dharmic ID.");
+      if (result.status === "error") {
+        setDharmicIdDownloadError("Could not generate the image right now. Please try again, or take a screenshot instead.");
+      }
     } catch (e) {
       console.error("Dharmic ID download failed:", e);
       setDharmicIdDownloadError("Could not generate the image right now. Please try again, or take a screenshot instead.");
@@ -856,20 +854,18 @@ export default function AuthDashboard({
     setCertDownloadError("");
     setDownloadingCertRefId(refId);
     try {
-      const res = await fetch(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`);
-      if (!res.ok) {
-        throw new Error(`Server responded ${res.status}`);
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
+        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Temple Visit Certificate",
+        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Temple Visit Certificate download failed:", e);
       setCertDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
@@ -938,17 +934,12 @@ export default function AuthDashboard({
     setActivityDownloadError("");
     setDownloadingDocKey(docKey);
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(objectUrl);
+      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
+      // cascade instead of a plain `<a download>`-only implementation.
+      const result = await fetchAndShareCertificate(url, filename, "Sri Dwar", "Jai Jagannath! Sharing this from Sri Dwar.");
+      if (result.status === "error") {
+        setActivityDownloadError("Could not download this document right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Activity document download failed:", e);
       setActivityDownloadError("Could not download this document right now. Please try again shortly, or contact puja@sridwar.com.");

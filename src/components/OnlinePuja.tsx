@@ -1014,11 +1014,21 @@ function PujaCategoryCard({ puja, isDetailsOpen, onToggleDetails, onBook, onView
           </span>
         </div>
 
-        {priest && (
+        {/* ✅ FIX (missing pandit details bug): this used to be gated on
+            `priest &&` — i.e. the whole line, including the plain
+            puja.priestDetails text, only rendered when that priest also had
+            a full registered profile in PRIEST_PROFILES (priests.ts). Most
+            temple/puja combinations don't have one of the ~101 curated
+            profiles, so their pandit line silently disappeared even though
+            puja.priestDetails always has a valid value. PujaDesktopRow
+            (below) already had the correct pattern — text always shows,
+            only the "Profile" button is conditional on `priest` — this now
+            matches that. */}
+        {puja.priestDetails && (
           <div className="flex items-center gap-1.5 mb-2.5">
             <UserCircle2 className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
             <span className="text-[11px] font-mono text-white/50 truncate">{puja.priestDetails}</span>
-            {onViewPriestProfile && (
+            {priest && onViewPriestProfile && (
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onViewPriestProfile(priest.id); }}

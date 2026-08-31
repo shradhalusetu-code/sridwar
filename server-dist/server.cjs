@@ -1873,16 +1873,16 @@ app.get("/api/certificates/inquiry/:refId", async (req, res) => {
     res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the acknowledgement certificate right now." });
   }
 });
-var TXN_BILLTO_SLOT = { x: 270, y: 300, maxWidth: 190, maxSize: 19, minSize: 10 };
-var TXN_INVOICE_SLOT = { x: 615, y: 297, maxWidth: 130, maxSize: 14, minSize: 8 };
-var TXN_REFERENCE_SLOT = { x: 615, y: 340, maxWidth: 130, maxSize: 14, minSize: 8 };
-var TXN_DATE_SLOT = { x: 615, y: 383, maxWidth: 130, maxSize: 14, minSize: 9 };
+var TXN_BILLTO_SLOT = { x: 215, y: 350, maxWidth: 210, maxSize: 20, minSize: 11 };
+var TXN_INVOICE_SLOT = { x: 615, y: 297, maxWidth: 150, maxSize: 14, minSize: 8 };
+var TXN_REFERENCE_SLOT = { x: 624, y: 340, maxWidth: 143, maxSize: 14, minSize: 8 };
+var TXN_DATE_SLOT = { x: 580, y: 378, maxWidth: 185, maxSize: 14, minSize: 9 };
 var TXN_DESC_SLOT = { x: 140, y: 505, maxWidth: 690, maxSize: 17, minSize: 11 };
 var TXN_AMOUNT_SLOT = { x: 980, y: 505, maxWidth: 250, maxSize: 17, minSize: 12 };
-var TXN_PAYMENT_SLOT = { x: 470, y: 753, maxWidth: 340, maxSize: 16, minSize: 11 };
+var TXN_PAYMENT_SLOT = { x: 440, y: 745, maxWidth: 280, maxSize: 14, minSize: 10 };
 var TXN_TOTAL_SLOT = { x: 917, y: 731, maxWidth: 120, maxSize: 17, minSize: 12 };
 var TXN_FIELD_COLOR = "#2b1806";
-var TXN_PENDING_COLOR = "#8a5a12";
+var TXN_PENDING_COLOR = "#6b1d0a";
 function formatInr(amount) {
   return `\u20B9${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -1907,7 +1907,7 @@ async function renderTransactionJpeg(fields) {
   const width = meta.width || 1087;
   const height = meta.height || 1447;
   const els = [
-    fittedTextElement(fields.billTo, TXN_BILLTO_SLOT.x, TXN_BILLTO_SLOT.y, TXN_BILLTO_SLOT.maxWidth, TXN_BILLTO_SLOT.maxSize, TXN_BILLTO_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.billTo, TXN_BILLTO_SLOT.x, TXN_BILLTO_SLOT.y, TXN_BILLTO_SLOT.maxWidth, TXN_BILLTO_SLOT.maxSize, TXN_BILLTO_SLOT.minSize, TXN_FIELD_COLOR, "middle"),
     fittedTextElement(fields.invoice, TXN_INVOICE_SLOT.x, TXN_INVOICE_SLOT.y, TXN_INVOICE_SLOT.maxWidth, TXN_INVOICE_SLOT.maxSize, TXN_INVOICE_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.reference, TXN_REFERENCE_SLOT.x, TXN_REFERENCE_SLOT.y, TXN_REFERENCE_SLOT.maxWidth, TXN_REFERENCE_SLOT.maxSize, TXN_REFERENCE_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.date, TXN_DATE_SLOT.x, TXN_DATE_SLOT.y, TXN_DATE_SLOT.maxWidth, TXN_DATE_SLOT.maxSize, TXN_DATE_SLOT.minSize, TXN_FIELD_COLOR),

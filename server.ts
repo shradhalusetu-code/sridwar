@@ -1618,39 +1618,61 @@ app.get("/api/certificates/inquiry/:refId", async (req, res) => {
 // Trasancation_Completed.jpg, server-side, from the real activities row.
 //
 // Payment Method shows the real method once payment_status is 'confirmed';
-// otherwise it shows "Payment is still pending" in an amber tone (matching
-// the "Under Review" badge colour already used in the emails) instead of
-// fabricating a method that hasn't actually been verified yet.
-// ✅ FIX (2026-08-30 — re-measured against the real transaction_details.jpg
-// pixels, field by field, rather than the previous guessed coordinates):
+// otherwise it shows "Payment is still pending" in a dark red-brown tone
+// instead of fabricating a method that hasn't actually been verified yet.
 //
-// - BILL TO / Invoice # / Reference / Date all sit on their own single
-//   ruled line next to their label — measured each line's actual left/
-//   right extent from the printed underline pixels, not assumed. Old
-//   x:100 for Bill To was inside the LEFT BORDER of the box (label itself
-//   starts at x≈150); old x:700/670 for Invoice/Reference/Date were close
-//   but not measured, and all three actually share the same blank-line
-//   column (x≈600–745), not three different x's.
-// - Description/Amount table row 1's baseline (y:500) was already
-//   essentially correct — confirmed against the real row divider lines
-//   (row 1 spans y≈477–522) and left as-is.
-// - TOTAL PAID: re-measuring the pill shows it is only dark-green on its
-//   LEFT half (the "TOTAL PAID" label). The right half — where the value
-//   actually gets printed — is the plain light wood background, same as
-//   the rest of the artwork. The previous light-gold fill color would
-//   have been nearly invisible there; this was a real legibility bug, not
-//   a stylistic choice. Value now uses the same dark ink as every other
-//   field, with x/y measured to the actual blank portion of the pill.
-const TXN_BILLTO_SLOT = { x: 270, y: 300, maxWidth: 190, maxSize: 19, minSize: 10 };
-const TXN_INVOICE_SLOT = { x: 615, y: 297, maxWidth: 130, maxSize: 14, minSize: 8 };
-const TXN_REFERENCE_SLOT = { x: 615, y: 340, maxWidth: 130, maxSize: 14, minSize: 8 };
-const TXN_DATE_SLOT = { x: 615, y: 383, maxWidth: 130, maxSize: 14, minSize: 9 };
+// Description/Amount table row 1's baseline (y:505) and TOTAL PAID's slot
+// (x:917/y:731, dark ink — the right half of that pill is plain light-wood
+// artwork, not dark green, so dark ink is correctly legible there) were
+// already confirmed correct against the real artwork and are unchanged.
+//
+// ✅ FIX (2026-08-31 — re-measured pixel-by-pixel against the real
+// transaction_details.jpg and verified by rendering test output through
+// the actual sharp+resvg pipeline before applying, per project
+// verification rules):
+//
+// - BILL TO is a two-row field (label on its own line, blank line below
+//   it) — NOT inline with the label like Invoice/Reference/Date. The old
+//   x:270 started the devotee name in the middle of the blank line,
+//   directly under the Om roundel artwork, causing the name to visually
+//   collide with it (reported directly against a live email/screenshot).
+//   Now starts at x:100 (the line's actual left edge) with a smaller max
+//   font so it clears the "BILL TO" label above instead of overlapping it.
+// - Invoice/Reference/Date are inline fields (label + blank line on the
+//   SAME row), but Reference/Date's blank line starts at a different x
+//   than Invoice's because the labels have different widths — reusing one
+//   shared x:615 for all three left Reference/Date's value touching the
+//   label's colon with no gap. Each now uses its own measured x.
+// - Payment Method used dominant-baseline="central" with a y sitting
+//   exactly ON the blank line, so the ruled line visually cut through the
+//   middle of the text (looked like strikethrough). y raised so the text
+//   sits just above the line instead.
+// - BILL TO's box actually has TWO blank ruled lines (y≈310 and y≈390,
+//   the second marked with a small lotus decoration), not one — a
+//   deployed screenshot (2026-08-31) showed the name still overlapping
+//   the "BILL TO" label because the previous fix anchored to the first
+//   line only, sitting right under the label with no headroom. Re-cropped
+//   the box at 2x and confirmed both lines directly. Value now uses
+//   anchor="middle" and is centered in the box: x is the horizontal
+//   center of the line span (100–330 → 215), y is the vertical midpoint
+//   between the two lines ((310+390)/2 → 350) — sits clear of the label
+//   above and both lines, verified by rendering this exact change against
+//   the real artwork before applying it here.
+const TXN_BILLTO_SLOT = { x: 215, y: 350, maxWidth: 210, maxSize: 20, minSize: 11 };
+const TXN_INVOICE_SLOT = { x: 615, y: 297, maxWidth: 150, maxSize: 14, minSize: 8 };
+const TXN_REFERENCE_SLOT = { x: 624, y: 340, maxWidth: 143, maxSize: 14, minSize: 8 };
+const TXN_DATE_SLOT = { x: 580, y: 378, maxWidth: 185, maxSize: 14, minSize: 9 };
 const TXN_DESC_SLOT = { x: 140, y: 505, maxWidth: 690, maxSize: 17, minSize: 11 };
 const TXN_AMOUNT_SLOT = { x: 980, y: 505, maxWidth: 250, maxSize: 17, minSize: 12 };
-const TXN_PAYMENT_SLOT = { x: 470, y: 753, maxWidth: 340, maxSize: 16, minSize: 11 };
+const TXN_PAYMENT_SLOT = { x: 440, y: 745, maxWidth: 280, maxSize: 14, minSize: 10 };
 const TXN_TOTAL_SLOT = { x: 917, y: 731, maxWidth: 120, maxSize: 17, minSize: 12 };
 const TXN_FIELD_COLOR = "#2b1806";
-const TXN_PENDING_COLOR = "#8a5a12";
+// ✅ FIX (2026-08-31): old #8a5a12 (medium amber) had very low contrast
+// against this artwork's wood tone (~rgb(220,142,44)) — "Payment is still
+// pending" was nearly unreadable, confirmed by rendering it against the
+// real background. Darker red-brown reads clearly while still looking
+// distinct (cautionary) from the standard dark-ink field color.
+const TXN_PENDING_COLOR = "#6b1d0a";
 
 function formatInr(amount: number): string {
   return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -1679,7 +1701,7 @@ async function renderTransactionJpeg(fields: {
   const height = meta.height || 1447;
 
   const els = [
-    fittedTextElement(fields.billTo, TXN_BILLTO_SLOT.x, TXN_BILLTO_SLOT.y, TXN_BILLTO_SLOT.maxWidth, TXN_BILLTO_SLOT.maxSize, TXN_BILLTO_SLOT.minSize, TXN_FIELD_COLOR),
+    fittedTextElement(fields.billTo, TXN_BILLTO_SLOT.x, TXN_BILLTO_SLOT.y, TXN_BILLTO_SLOT.maxWidth, TXN_BILLTO_SLOT.maxSize, TXN_BILLTO_SLOT.minSize, TXN_FIELD_COLOR, "middle"),
     fittedTextElement(fields.invoice, TXN_INVOICE_SLOT.x, TXN_INVOICE_SLOT.y, TXN_INVOICE_SLOT.maxWidth, TXN_INVOICE_SLOT.maxSize, TXN_INVOICE_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.reference, TXN_REFERENCE_SLOT.x, TXN_REFERENCE_SLOT.y, TXN_REFERENCE_SLOT.maxWidth, TXN_REFERENCE_SLOT.maxSize, TXN_REFERENCE_SLOT.minSize, TXN_FIELD_COLOR),
     fittedTextElement(fields.date, TXN_DATE_SLOT.x, TXN_DATE_SLOT.y, TXN_DATE_SLOT.maxWidth, TXN_DATE_SLOT.maxSize, TXN_DATE_SLOT.minSize, TXN_FIELD_COLOR),

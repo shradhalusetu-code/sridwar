@@ -214,18 +214,21 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
     setCertificateDownloadError("");
     setIsDownloadingCertificate(true);
     try {
-      const res = await fetch(`/api/certificates/service/${encodeURIComponent(certRefId)}`);
-      if (!res.ok) throw new Error(`Server responded ${res.status}`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
       const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // ✅ RELIABILITY FIX: now goes through the same native-Android-first
+      // cascade as the Share button (fetchAndShareCertificate), instead of
+      // a plain `<a download>`-only implementation that silently fails
+      // inside the Capacitor Android WebView. See shareCertificate.ts for
+      // the full explanation.
+      const result = await fetchAndShareCertificate(
+        `/api/certificates/service/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+      if (result.status === "error") {
+        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+      }
     } catch (e) {
       console.error("Certificate download failed:", e);
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
