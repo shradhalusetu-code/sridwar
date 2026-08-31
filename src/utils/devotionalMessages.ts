@@ -61,6 +61,13 @@
 
 // @ts-ignore — same pattern as SriDwarLogo.tsx; Vite resolves this to a URL string.
 import sriDwarLogoPng from "../assets/images/sridwar-logo.png";
+// ✅ ADDED — same real, already-live website QR artwork used everywhere else
+// on the site (src/assets/images/SridwarQR.jpg), for the confirmation PDF's
+// footer contact block. Bundled by Vite exactly like the logo import above,
+// so — unlike a server-side fs.readFileSync — there is no separate deploy
+// path to get wrong; if this import resolves, the asset exists.
+// @ts-ignore — same pattern as the logo import above.
+import sriDwarQrPng from "../assets/images/SridwarQR.jpg";
 import { isNativeAndroidApp } from "./shareUrl";
 
 export type DevotionalServiceCategory =
@@ -399,6 +406,16 @@ function warmLogoBytes() {
 }
 if (typeof window !== "undefined") warmLogoBytes();
 
+// Same eager-warm reasoning again, applied to the QR artwork.
+let qrBytesPromise: Promise<ArrayBuffer> | null = null;
+function warmQrBytes() {
+  if (!qrBytesPromise) {
+    qrBytesPromise = fetch(sriDwarQrPng).then((r) => r.arrayBuffer());
+  }
+  return qrBytesPromise;
+}
+if (typeof window !== "undefined") warmQrBytes();
+
 // ─── Confirmation PDF (client-side receipt — NOT the priest-issued certificate) ─
 // Reuses the same brand palette as Config.gs / certificateService.ts so the
 // receipt looks consistent with every other Sri Dwar document, but this is
@@ -546,6 +563,37 @@ async function buildConfirmationPdfBytes(input: DevotionalMessageInput): Promise
   y -= 4;
   const disclaimer = DISCLAIMER_BY_CATEGORY[input.category];
   drawParagraph(disclaimer, 8, 11, italic, textMuted);
+
+  // ✅ ADDED — contact/social block + website QR, directly above the footer
+  // band, using the exact same real handles as certificateService.ts's
+  // invoice PDF (Instagram/Facebook/YouTube/WhatsApp published in
+  // Navbar.tsx) so every downloadable Sri Dwar document — this in-app
+  // confirmation and the emailed invoice alike — ends the same way.
+  // Deliberately no phone number, matching every other Sri Dwar contact
+  // surface. QR is optional/defensive: a failed embed just skips the image,
+  // never the rest of the PDF.
+  y -= 8;
+  const qrSize = 42;
+  let contactTextWidth = maxWidth;
+  try {
+    const qrBytes = await warmQrBytes();
+    const qrImage = await doc.embedJpg(qrBytes);
+    contactTextWidth = maxWidth - qrSize - 10;
+    const qrX = width - margin - qrSize;
+    const qrY = y - qrSize + 8;
+    page.drawImage(qrImage, { x: qrX, y: qrY, width: qrSize, height: qrSize });
+    const scanLabel = "Scan to visit";
+    const scanLabelWidth = font.widthOfTextAtSize(scanLabel, 6);
+    page.drawText(scanLabel, { x: qrX + qrSize / 2 - scanLabelWidth / 2, y: qrY - 8, size: 6, font, color: textMuted });
+  } catch {
+    // Corrupt/unexpected asset — never let a bad QR embed break this PDF.
+  }
+  const contactLine = "WhatsApp: wa.me/message/325QR2O5II3IH1 · Instagram / Facebook / YouTube: @sridwar";
+  for (const line of wrapText(contactLine, 8, font)) {
+    if (font.widthOfTextAtSize(line, 8) > contactTextWidth) break; // defensive — never overlaps the QR
+    page.drawText(line, { x: margin, y, size: 8, font, color: textMuted });
+    y -= 11;
+  }
 
   // Footer
   page.drawRectangle({ x: 0, y: 0, width, height: 50, color: darkGreen });

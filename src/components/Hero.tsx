@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, FormEvent, lazy, Suspense } from "react";
-import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw } from "lucide-react";
+import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Share2 } from "lucide-react";
 import { Language } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
@@ -18,6 +18,7 @@ import { recordFormSubmission, recordActivity } from "../lib/activities";
 const UPIPaymentModal = lazy(() => import("./UPIPaymentModal"));
 const StoneEngravingNote = lazy(() => import("./StoneEngravingNote"));
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { fetchAndShareCertificate } from "../utils/shareCertificate";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
 import { gaContactFormStart, gaContactFormSubmit } from "../utils/analytics";
@@ -96,6 +97,34 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
       setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
     } finally {
       setIsDownloadingCertificate(false);
+    }
+  };
+
+  // ✅ ADDED — Share Certificate: opens the OS-native share sheet with the
+  // actual Temple Visit Certificate JPG attached (not a link), using the
+  // same relative-fetch as the Download button above. Falls back to a
+  // normal download on browsers/devices that don't support native file
+  // sharing — see utils/shareCertificate.ts for the shared logic used by
+  // every Share Certificate button across the app.
+  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
+
+  const handleShareTempleVisitCertificate = async () => {
+    if (!refId) return;
+    setCertificateDownloadError("");
+    setIsSharingCertificate(true);
+    try {
+      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
+      await fetchAndShareCertificate(
+        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
+        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Temple Visit Certificate",
+        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
+      );
+    } catch (e) {
+      console.error("Temple Visit Certificate share failed:", e);
+      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsSharingCertificate(false);
     }
   };
   
@@ -764,6 +793,16 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                   >
                     <span>🛕</span>
                     <span>{isDownloadingCertificate ? "Preparing…" : "Download Certificate"}</span>
+                  </button>
+                  <button
+                    id="share-temple-visit-certificate"
+                    onClick={() => handleShareTempleVisitCertificate()}
+                    disabled={isSharingCertificate}
+                    aria-label="Share Certificate"
+                    className="shrink-0 px-4 bg-white/10 hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow border border-white/15"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">{isSharingCertificate ? "…" : "Share"}</span>
                   </button>
                 </div>
 

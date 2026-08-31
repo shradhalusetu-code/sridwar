@@ -1,11 +1,11 @@
 /**
  * @license
- * SPDX-License-Identifier: Apache-2.5
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect, FormEvent } from "react";
 import html2canvas from "html2canvas-pro";
-import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download, Flame, Droplets, Shield, Heart, Sparkles, Sun, Music, BookOpen, Flower2 } from "lucide-react";
+import { User, ShieldCheck, Mail, Phone, Calendar, RefreshCw, LogOut, Award, Layers, Plus, Trash2, Save, Lock, AlertCircle, UserPlus, LogIn, Landmark, Utensils, Armchair, Hammer, FileCheck, Pencil, Download, Share2, Flame, Droplets, Shield, Heart, Sparkles, Sun, Music, BookOpen, Flower2 } from "lucide-react";
 import { Language, TRANSLATIONS } from "../data/translations";
 import { TEMPLES_LIST } from "../data/temples";
 import { supabase } from "../lib/supabaseClient";
@@ -23,6 +23,7 @@ import ReferralDashboardPanel from "./ReferralDashboardPanel";
 import MobileCarousel from "./shared/MobileCarousel";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
+import { shareOrDownloadBlob, fetchAndShareCertificate } from "../utils/shareCertificate";
 import {
   recordActivity, fetchProfileExtra, saveProfileExtra,
   fetchFamilyMembers, syncFamilyMembers,
@@ -717,6 +718,50 @@ export default function AuthDashboard({
     }
   };
 
+  // ✅ ADDED — Share Certificate for the Dharmic ID. Re-renders the same
+  // html2canvas-pro capture as handleDownloadDharmicId above (rather than
+  // reusing a stored blob, since the card can change between renders) and
+  // hands it to the shared shareOrDownloadBlob() helper, which opens the
+  // native share sheet with the actual JPG attached and safely falls back
+  // to a normal download on browsers without file-sharing support.
+  const [isSharingDharmicId, setIsSharingDharmicId] = useState(false);
+
+  const handleShareDharmicId = async () => {
+    setDharmicIdDownloadError("");
+    const node = document.getElementById("digital-dharmic-id-card");
+    if (!node) return;
+
+    setIsSharingDharmicId(true);
+    try {
+      const rect = node.getBoundingClientRect();
+      const dpr = (typeof window !== "undefined" && window.devicePixelRatio) || 2;
+      const requestedScale = Math.min(3, dpr);
+      const safeScale = Math.max(
+        1,
+        Math.min(requestedScale, MAX_CANVAS_DIMENSION / Math.max(rect.width, 1), MAX_CANVAS_DIMENSION / Math.max(rect.height, 1))
+      );
+
+      let canvas: HTMLCanvasElement;
+      try {
+        canvas = await renderDharmicIdCanvas(node as HTMLElement, safeScale);
+      } catch (firstError) {
+        console.warn("Dharmic ID render failed at scale", safeScale, "— retrying at scale 1:", firstError);
+        canvas = await renderDharmicIdCanvas(node as HTMLElement, 1);
+      }
+
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.95));
+      if (!blob) throw new Error("Canvas produced an empty image (toBlob returned null)");
+
+      const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
+      await shareOrDownloadBlob(blob, `Dharmic-ID-${safeName}.jpg`, "My Sri Dwar Dharmic ID", "Jai Jagannath! Here is my Sri Dwar Dharmic ID.");
+    } catch (e) {
+      console.error("Dharmic ID share failed:", e);
+      setDharmicIdDownloadError("Could not share the image right now. Please try again, or take a screenshot instead.");
+    } finally {
+      setIsSharingDharmicId(false);
+    }
+  };
+
   // Downloads the server-composited Temple Visit Certificate for one Darshan
   // Certificate request (see GET /api/certificates/temple-visit/:refId in
   // server.ts). A relative fetch — this page is always served by the same
@@ -751,6 +796,31 @@ export default function AuthDashboard({
       setCertDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
     } finally {
       setDownloadingCertRefId(null);
+    }
+  };
+
+  // ✅ ADDED — Share Certificate sibling for the Temple Visit Certificate
+  // above; same relative fetch, handed to the shared helper instead of a
+  // forced download.
+  const [sharingCertRefId, setSharingCertRefId] = useState<string | null>(null);
+
+  const handleShareTempleCertificate = async (refId: string, devoteeName: string) => {
+    if (!refId) return;
+    setCertDownloadError("");
+    setSharingCertRefId(refId);
+    try {
+      const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      await fetchAndShareCertificate(
+        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
+        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Temple Visit Certificate",
+        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
+      );
+    } catch (e) {
+      console.error("Temple Visit Certificate share failed:", e);
+      setCertDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setSharingCertRefId(null);
     }
   };
 
@@ -808,6 +878,24 @@ export default function AuthDashboard({
     }
   };
 
+  // ✅ ADDED — Share Certificate sibling for the "All Account Activity"
+  // ledger's Receipt/Certificate buttons above; same relative fetch,
+  // handed to the shared helper instead of a forced download.
+  const [sharingDocKey, setSharingDocKey] = useState<string | null>(null);
+
+  const handleShareActivityDocument = async (url: string, filename: string, shareTitle: string, docKey: string) => {
+    setActivityDownloadError("");
+    setSharingDocKey(docKey);
+    try {
+      await fetchAndShareCertificate(url, filename, shareTitle, "Jai Jagannath! Sharing this from Sri Dwar.");
+    } catch (e) {
+      console.error("Activity document share failed:", e);
+      setActivityDownloadError("Could not share this document right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setSharingDocKey(null);
+    }
+  };
+
   /** Renders the Receipt/Certificate download row for one activity record — shared by both the carousel and "show more" list below so they never drift apart. */
   const renderActivityDownloadButtons = (rec: ActivityRecord) => {
     const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
@@ -835,26 +923,50 @@ export default function AuthDashboard({
     return (
       <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/5">
         {isPaid && (
-          <button
-            type="button"
-            onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
-            disabled={downloadingDocKey === `${rec.id}-jpg`}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-          >
-            <Download className="w-3 h-3" />
-            {downloadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
+              disabled={downloadingDocKey === `${rec.id}-jpg`}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            >
+              <Download className="w-3 h-3" />
+              {downloadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleShareActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, "My Sri Dwar Receipt", `${rec.id}-jpg-share`)}
+              disabled={sharingDocKey === `${rec.id}-jpg-share`}
+              aria-label="Share Receipt"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            >
+              <Share2 className="w-3 h-3" />
+              {sharingDocKey === `${rec.id}-jpg-share` ? "..." : "Share"}
+            </button>
+          </>
         )}
         {showCertificate && (
-          <button
-            type="button"
-            onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
-            disabled={downloadingDocKey === `${rec.id}-cert`}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-          >
-            <Download className="w-3 h-3" />
-            {downloadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
+              disabled={downloadingDocKey === `${rec.id}-cert`}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            >
+              <Download className="w-3 h-3" />
+              {downloadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleShareActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, "My Sri Dwar Certificate", `${rec.id}-cert-share`)}
+              disabled={sharingDocKey === `${rec.id}-cert-share`}
+              aria-label="Share Certificate"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            >
+              <Share2 className="w-3 h-3" />
+              {sharingDocKey === `${rec.id}-cert-share` ? "..." : "Share"}
+            </button>
+          </>
         )}
       </div>
     );
@@ -1925,6 +2037,16 @@ export default function AuthDashboard({
                   <Download className="w-3.5 h-3.5" />
                   <span>{isDownloadingDharmicId ? "Preparing..." : "Download Your ID"}</span>
                 </button>
+                <button
+                  type="button"
+                  id="dharmic-id-share-btn"
+                  onClick={() => handleShareDharmicId()}
+                  disabled={isSharingDharmicId}
+                  className="w-full mt-2 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] font-bold py-2.5 rounded-xl text-[11px] uppercase tracking-wide transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>{isSharingDharmicId ? "Preparing..." : "Share Your ID"}</span>
+                </button>
               </div>
 
               {/* MY SPIRITUAL TRANSACTIONS LEDGER — moved directly below the ID card */}
@@ -2155,23 +2277,71 @@ export default function AuthDashboard({
                             fresh each time from the devotee's own submitted
                             data, so it's available as soon as the request exists. */}
                         {sub.formType === "darshan_certificate" && sub.refId && (
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
-                            disabled={downloadingCertRefId === sub.refId}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>{downloadingCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
-                          </button>
+                          <div className="shrink-0 flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
+                              disabled={downloadingCertRefId === sub.refId}
+                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{downloadingCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShareTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
+                              disabled={sharingCertRefId === sub.refId}
+                              aria-label="Share Certificate"
+                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>{sharingCertRefId === sub.refId ? "..." : "Share"}</span>
+                            </button>
+                          </div>
                         )}
-                        {/* ✅ ADDED — every OTHER form record (Contact Us,
-                            Devotion Story, Devotee/Expert/Temple Committee
-                            Registration, etc.) has no transaction and no
-                            Darshan Certificate of its own, so it uses the
-                            same puja_certificate.jpg artwork instead —
-                            see /api/certificates/general/:refId in
-                            server.ts, which fills in the devotee's field of
+                        {/* ✅ ADDED — Contact Us / Dharmic Expert / Temple
+                            Committee Registration submissions now get their
+                            own immediate acknowledgement certificate on
+                            register_temple.jpg (see GET
+                            /api/certificates/inquiry/:refId in server.ts),
+                            instead of being folded into the generic
+                            puja_certificate.jpg fallback below — that
+                            artwork's "This is to certify that ... has had
+                            this sacred Puja performed" wording doesn't fit
+                            a plain inquiry. Every OTHER form record
+                            (Devotion Story, Devotee Registration, etc.)
+                            still uses the general-purpose fallback further
+                            below, unchanged. */}
+                        {(sub.formType === "contact_us" || sub.formType === "expert_registration" || sub.formType === "temple_committee_registration") && sub.refId && (
+                          <div className="shrink-0 flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadActivityDocument(`/api/certificates/inquiry/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Acknowledgement-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-inq-jpg`)}
+                              disabled={downloadingDocKey === `${sub.id}-inq-jpg`}
+                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{downloadingDocKey === `${sub.id}-inq-jpg` ? "..." : "Certificate"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShareActivityDocument(`/api/certificates/inquiry/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Acknowledgement-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, "My Sri Dwar Acknowledgement", `${sub.id}-inq-jpg-share`)}
+                              disabled={sharingDocKey === `${sub.id}-inq-jpg-share`}
+                              aria-label="Share Certificate"
+                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>{sharingDocKey === `${sub.id}-inq-jpg-share` ? "..." : "Share"}</span>
+                            </button>
+                          </div>
+                        )}
+                        {/* ✅ ADDED — every OTHER form record (Devotion
+                            Story, Devotee Registration, etc.) has no
+                            transaction and no dedicated artwork of its own,
+                            so it still uses the general-purpose
+                            puja_certificate.jpg fallback — see
+                            /api/certificates/general/:refId in server.ts,
+                            which fills in the devotee's field of
                             expertise, the temple they registered, or their
                             gotra + reference ID depending on record type.
                             ✅ FIX (2026-08-29): the /pdf variant (which
@@ -2179,16 +2349,28 @@ export default function AuthDashboard({
                             Certificate (JPG) and Confirmation (a separate,
                             plain-text PDF) must stay two independent
                             downloads, never one embedding the other. */}
-                        {sub.formType !== "darshan_certificate" && sub.refId && (
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
-                            disabled={downloadingDocKey === `${sub.id}-gen-jpg`}
-                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>{downloadingDocKey === `${sub.id}-gen-jpg` ? "..." : "Certificate"}</span>
-                          </button>
+                        {sub.formType !== "darshan_certificate" && sub.formType !== "contact_us" && sub.formType !== "expert_registration" && sub.formType !== "temple_committee_registration" && sub.refId && (
+                          <div className="shrink-0 flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
+                              disabled={downloadingDocKey === `${sub.id}-gen-jpg`}
+                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>{downloadingDocKey === `${sub.id}-gen-jpg` ? "..." : "Certificate"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShareActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, "My Sri Dwar Certificate", `${sub.id}-gen-jpg-share`)}
+                              disabled={sharingDocKey === `${sub.id}-gen-jpg-share`}
+                              aria-label="Share Certificate"
+                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>{sharingDocKey === `${sub.id}-gen-jpg-share` ? "..." : "Share"}</span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     ))}

@@ -294,6 +294,11 @@ export interface MergedFields {
   platformFee?: number;
   totalAmount?: number;
   paymentMethodLabel?: string;
+  // ✅ ADDED — raw activities.activity_type, invoice-only (same allowlist
+  // rule as the fields above). Lets renderInvoicePdf print one short,
+  // service-appropriate significance line instead of identical generic
+  // copy for every activity_type — see SIGNIFICANCE_BY_ACTIVITY_TYPE.
+  activityType?: string;
 }
 
 export class CertificateError extends Error {
@@ -501,7 +506,32 @@ function mergeFields(
     platformFee,
     totalAmount,
     paymentMethodLabel,
+    activityType: activity.activity_type,
   };
+}
+
+// ── Per-service significance line, invoice only ─────────────────────────────
+// One short, honest sentence naming what the booking actually is — mirrors
+// the real activity_type values recorded across the app (BookNowWizard.tsx,
+// TemplateBazaar.tsx, SubscriptionSignup.tsx, TempleRegister.tsx, Hero.tsx,
+// lib/activities.ts's ActivityType union) so the invoice reads as the
+// specific offering it is rather than one interchangeable line for every
+// service. Never a ritual claim beyond what the booking itself provides —
+// same restraint as TEMPLATE_TITLES/SHLOKA_BY_KIND above.
+const SIGNIFICANCE_BY_ACTIVITY_TYPE: Record<string, string> = {
+  puja: "A puja booked to be performed with devotion at your chosen temple, per the selected sankalpa.",
+  seva: "A seva sponsorship supporting ongoing temple service and upkeep, offered in your name.",
+  product: "A traditional offering item from the Sri Dwar Bazaar, sourced for devotional and ritual use.",
+  wellness: "An enrollment in a Holistic Wellness & Yogic Sciences session or program.",
+  other: "A Counselling & Guidance session booked with a Sri Dwar-affiliated expert.",
+  darshan_certificate: "A Temple Visit / Darshan Certificate contribution, commemorating your visit.",
+  contribution: "A voluntary contribution toward Sri Dwar's temple-preservation and community work.",
+  temple_registration: "A temple or priest registration submission with Sri Dwar's network.",
+  subscription: "A Refer & Earn subscription plan enrollment.",
+};
+function significanceLineFor(activityType: string | undefined): string | undefined {
+  if (!activityType) return undefined;
+  return SIGNIFICANCE_BY_ACTIVITY_TYPE[activityType];
 }
 
 // ═════════════════════════════════ RENDERING ════════════════════════════════
@@ -546,6 +576,37 @@ function loadBrandIconBytes(): Buffer | null {
     cachedBrandIconBytes = null;
   }
   return cachedBrandIconBytes;
+}
+
+// ✅ ADDED — website QR code in the invoice footer, reusing the existing
+// SridwarQR artwork already in the website's images (src/assets/images/
+// SridwarQR.jpg). Read from the same public/images (dist/images in prod)
+// location every other server-rendered asset in this file uses — see
+// loadBrandIconBytes above for the identical dev/prod path pattern.
+// Exactly as defensive as that loader: a missing/renamed file must never
+// block a devotee's invoice from generating, so failures just log and the
+// invoice renders without the QR block. NOTE: this assumes the file is
+// deployed to public/images/SridwarQR.jpg — confirm that filename/path
+// against the actual public/ folder (not included in this review) before
+// relying on this; if it differs, update the path below.
+let cachedQrCodeBytes: Buffer | null | undefined;
+function loadQrCodeBytes(): Buffer | null {
+  if (cachedQrCodeBytes !== undefined) return cachedQrCodeBytes;
+  try {
+    const qrPath = path.join(
+      process.cwd(),
+      process.env.NODE_ENV === "production" ? "dist" : "public",
+      "images",
+      "SridwarQR.jpg"
+    );
+    cachedQrCodeBytes = fs.readFileSync(qrPath);
+  } catch {
+    console.warn(
+      "[certificateService] Website QR code not found at public/images/SridwarQR.jpg (or dist/images/ in prod) — invoices will render without it."
+    );
+    cachedQrCodeBytes = null;
+  }
+  return cachedQrCodeBytes;
 }
 
 async function drawMandalaCorner(page: PDFPage, x: number, y: number, scale = 1) {
@@ -608,6 +669,12 @@ function centeredText(
   const { width } = page.getSize();
   const textWidth = font.widthOfTextAtSize(text, size);
   page.drawText(text, { x: (width - textWidth) / 2, y, size, font, color });
+}
+
+/** Like centeredText, but centered on an arbitrary x (not the whole page) — used for the QR caption. */
+function centeredTextAt(page: PDFPage, text: string, centerX: number, y: number, font: PDFFont, size: number, color: RGB) {
+  const textWidth = font.widthOfTextAtSize(text, size);
+  page.drawText(text, { x: centerX - textWidth / 2, y, size, font, color });
 }
 
 async function renderCertificatePdf(kind: TemplateKind, fields: MergedFields): Promise<Uint8Array> {
@@ -686,6 +753,7 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
   const { width, height } = page.getSize();
   const sans = await doc.embedFont(StandardFonts.Helvetica);
   const sansBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
   const margin = 48;
   const contentWidth = width - margin * 2;
   let y = height - margin;
@@ -761,9 +829,22 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
   y -= 20;
 
   const serviceLine = fields.deityOrTempleName ? `${fields.serviceName} — ${fields.deityOrTempleName}` : fields.serviceName;
-  text(serviceLine, margin, y, { size: 11, font: sans });
+  text(serviceLine, margin, y, { size: 11, font: sansBold });
   text(formatRupees(fields.amount ?? 0), width - margin, y, { size: 11, font: sans, align: "right" });
-  y -= 26;
+  y -= 16;
+
+  // ✅ ADDED — service-specific significance line (see
+  // SIGNIFICANCE_BY_ACTIVITY_TYPE) so this invoice reads as the actual
+  // offering it is, not one interchangeable line for every service type.
+  // Falls back to nothing (not a fabricated sentence) for an
+  // activity_type this map doesn't yet cover.
+  const significance = significanceLineFor(fields.activityType);
+  if (significance) {
+    text(significance, margin, y, { size: 8.5, font: italic, color: BRAND.textMuted });
+    y -= 14;
+  }
+
+  y -= 10;
   rule(y, BRAND.textMuted, 0.5);
   y -= 22;
 
@@ -806,7 +887,6 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
     "Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple " +
     "schedule, festival rush, priest availability, and temple rituals. This document confirms receipt of payment as " +
     "recorded above and serves as your official proof of booking/payment. For queries, contact puja@sridwar.com.";
-  const italic = await doc.embedFont(StandardFonts.HelveticaOblique);
 
   const drawWrapped = (t: string, size: number, useFont: PDFFont, color: RGB, lineGap: number) => {
     const words = t.split(" ");
@@ -842,8 +922,31 @@ async function renderInvoicePdf(fields: MergedFields): Promise<Uint8Array> {
   y -= 4;
   drawWrapped(STONE_ENGRAVING_LINE_PDF, 8, italic, BRAND.textMuted, 11);
 
+  // ✅ ADDED — contact/social line + website QR, sourced from the same real
+  // handles already published on the live site's footer (Navbar.tsx):
+  // Instagram, Facebook, YouTube, and the official WhatsApp helpline link.
+  // Deliberately no phone number, matching the rest of Sri Dwar's contact
+  // surfaces. QR code is optional/defensive — see loadQrCodeBytes above.
   y -= 6;
-  text("Shradhalu Private Limited · sridwar.com · puja@sridwar.com", margin, y, { size: 8, font: sans, color: BRAND.textMuted });
+  const qrBytes = loadQrCodeBytes();
+  let footerTextWidth = contentWidth;
+  if (qrBytes) {
+    try {
+      const qrImage = await doc.embedJpg(qrBytes);
+      const qrSize = 46;
+      footerTextWidth = contentWidth - qrSize - 12;
+      const qrX = width - margin - qrSize;
+      page.drawImage(qrImage, { x: qrX, y: y - qrSize + 8, width: qrSize, height: qrSize });
+      centeredTextAt(page, "Scan to visit", qrX + qrSize / 2, y - qrSize - 2, sans, 6, BRAND.textMuted);
+    } catch {
+      // Corrupt/unexpected asset — never let a bad QR file break invoice generation.
+    }
+  }
+  const contactLine1 = "Shradhalu Private Limited · sridwar.com · puja@sridwar.com";
+  const contactLine2 = "WhatsApp: wa.me/message/325QR2O5II3IH1 · Instagram/Facebook/YouTube: @sridwar";
+  page.drawText(contactLine1, { x: margin, y, size: 8, font: sans, color: BRAND.textMuted, maxWidth: footerTextWidth });
+  y -= 11;
+  page.drawText(contactLine2, { x: margin, y, size: 8, font: sans, color: BRAND.textMuted, maxWidth: footerTextWidth });
 
   return doc.save();
 }

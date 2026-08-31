@@ -4,10 +4,11 @@
  */
 
 import { useState, FormEvent } from "react";
-import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight, Download } from "lucide-react";
+import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight, Download, Share2 } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { fetchAndShareCertificate } from "../utils/shareCertificate";
 import UPIPaymentModal from "./UPIPaymentModal";
 import StoneEngravingNote from "./StoneEngravingNote";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
@@ -44,6 +45,58 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
   const [contactDisclaimerChecked, setContactDisclaimerChecked] = useState(false);
   const [showContactDisclaimerError, setShowContactDisclaimerError] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  // ✅ ADDED (2026-08-30 — this Inquiry flow had no real certificate
+  // download at all, only a conditional "Download Confirmation" that only
+  // showed up alongside a divine contribution). Uses the general
+  // certificate endpoint — register_temple.jpg — which never implies a
+  // payment or a performed rite, appropriate for a plain inquiry.
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  const handleDownloadCertificate = async () => {
+    if (!refId) return;
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(refId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
+  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
+  const handleShareCertificate = async () => {
+    if (!refId) return;
+    setIsSharingCertificate(true);
+    try {
+      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
+      await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(refId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+    } catch (e) {
+      console.error("Certificate share failed:", e);
+      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsSharingCertificate(false);
+    }
+  };
   const [refId, setRefId] = useState("");
 
   // ── "Submit Message" — fires ONE Pending row to Google Sync immediately,
@@ -454,6 +507,32 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                 <div className="flex items-center justify-center space-x-1.5 text-[12px] font-mono text-emerald-400 bg-emerald-950/20 py-1.5 rounded-lg border border-emerald-500/20">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Automated Real-Time synchronization completed</span>
+                </div>
+
+                {certificateDownloadError && (
+                  <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5">
+                    {certificateDownloadError}
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    id="download-certificate-btn"
+                    type="button"
+                    disabled={isDownloadingCertificate}
+                    onClick={handleDownloadCertificate}
+                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-[11px] transition-all tracking-wide uppercase cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" /> {isDownloadingCertificate ? "Preparing…" : "Certificate"}
+                  </button>
+                  <button
+                    id="share-certificate-btn"
+                    type="button"
+                    disabled={isSharingCertificate}
+                    onClick={handleShareCertificate}
+                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-[11px] transition-all tracking-wide uppercase cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5" /> {isSharingCertificate ? "Preparing…" : "Share"}
+                  </button>
                 </div>
 
                 {donationAmount ? (

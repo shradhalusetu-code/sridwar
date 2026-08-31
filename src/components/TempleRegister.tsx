@@ -27,6 +27,7 @@ import { validateName, validateEmail, validatePhone } from "../utils/formValidat
 import { makeSubmissionRef, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
+import { fetchAndShareCertificate } from "../utils/shareCertificate";
 import UPIPaymentModal from "./UPIPaymentModal";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
@@ -544,6 +545,59 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   // Set only when a real divine contribution was paid (not on Skip) — drives
   // the devotional confirmation shown on the success screen below.
   const [donationConfirmed, setDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
+  // ✅ ADDED (2026-08-31 — "Devotee ... entries" certificate coverage):
+  // this used to have no certificate download at all (see the removed
+  // comment on the success screen below, which claimed one would be
+  // "handcrafted and shared... within 3–7 working days" — that described
+  // the OLD architecture; certificates are now immediate acknowledgements,
+  // available the moment a registration exists). Uses the general
+  // certificate endpoint, which composites register_temple.jpg for this
+  // form type.
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(certRefId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
+  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
+  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setIsSharingCertificate(true);
+    try {
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+    } catch (e) {
+      console.error("Certificate share failed:", e);
+      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsSharingCertificate(false);
+    }
+  };
 
   const [form, setForm] = useState<DevoteeForm>({
     name: "", email: "", phone: "", city: "", gotra: "", rashi: "", deity: "",
@@ -729,10 +783,9 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   if (step === "form-success") {
     const refId = refIdRef.current;
     // Devotional confirmation — shown only when a real divine contribution
-    // was paid (not on Skip). No "Download Certificate" is offered here:
-    // the actual certificate is handcrafted and shared on WhatsApp/Email
-    // within 3–7 working days. The devotee can download this confirmation
-    // message instead.
+    // was paid (not on Skip). The Certificate download (added below) is
+    // always available regardless of contribution — it's an immediate
+    // acknowledgement, not proof of a handcrafted performance.
     // ✅ STONE-NAME ENGRAVING (2026-08-28): contributions of ₹200 or more
     // qualify for the Stone-Name Engraving Seva (see StoneEngravingNote.tsx
     // / TempleRegister.tsx's own copy above), so the confirmation now uses
@@ -761,6 +814,30 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
         </p>
         <div className="text-xs font-mono text-[#FFB347]/70 bg-[#FFB347]/8 border border-[#FFB347]/20 rounded-xl px-4 py-2.5 inline-block">
           REF: {refId}
+        </div>
+
+        {certificateDownloadError && (
+          <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 max-w-sm mx-auto">
+            {certificateDownloadError}
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+          <button
+            type="button"
+            disabled={isDownloadingCertificate}
+            onClick={() => handleDownloadCertificate(refId, form.name)}
+            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
+          </button>
+          <button
+            type="button"
+            disabled={isSharingCertificate}
+            onClick={() => handleShareCertificate(refId, form.name)}
+            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
+          </button>
         </div>
 
         {confirmation && (
@@ -1141,6 +1218,54 @@ function DharmicExpertSection() {
   // Set only when a real divine contribution was paid (not on Skip) — drives
   // the devotional confirmation shown on the success screen below.
   const [donationConfirmed, setDonationConfirmed] = useState<{ amount: number; method: string } | null>(null);
+  // ✅ ADDED (2026-08-31 — "Dharmic Expert entries" certificate coverage):
+  // same fix as DevoteeRegistrationSection above — see that component's
+  // comment for the full explanation.
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(certRefId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
+  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
+  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setIsSharingCertificate(true);
+    try {
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+    } catch (e) {
+      console.error("Certificate share failed:", e);
+      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsSharingCertificate(false);
+    }
+  };
 
   // Send-link sub-flow
   const [sendLinkName, setSendLinkName] = useState("");
@@ -1530,10 +1655,8 @@ function DharmicExpertSection() {
   // ── Success screen ──
   if (expertStep === "form-success") {
     // Devotional confirmation — shown only when a real divine contribution
-    // was paid (not on Skip). No "Download Certificate" is offered here:
-    // the actual certificate is handcrafted and shared on WhatsApp/Email
-    // within 3–7 working days. The expert can download this confirmation
-    // message instead.
+    // was paid (not on Skip). The Certificate download (added below) is
+    // always available regardless of contribution.
     // ✅ STONE-NAME ENGRAVING (2026-08-28): same threshold switch as the
     // Devotee Registration confirmation above — see that comment for why.
     const expertDonationIsStoneEngravingEligible = Number(form.donationAmount) >= 200;
@@ -1563,6 +1686,30 @@ function DharmicExpertSection() {
             <p>{confirmation.blessing}</p>
           </div>
         )}
+
+        {certificateDownloadError && (
+          <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 max-w-sm mx-auto">
+            {certificateDownloadError}
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+          <button
+            type="button"
+            disabled={isDownloadingCertificate}
+            onClick={() => handleDownloadCertificate(expertRefIdRef.current, form.fullName)}
+            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
+          </button>
+          <button
+            type="button"
+            disabled={isSharingCertificate}
+            onClick={() => handleShareCertificate(expertRefIdRef.current, form.fullName)}
+            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
+          </button>
+        </div>
 
         <div className="text-xs font-mono text-[#5EEAD4]/60 bg-[#5EEAD4]/5 border border-[#5EEAD4]/15 rounded-xl px-4 py-2.5">
           Powered by Sridwar Technology
@@ -2095,6 +2242,53 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   const [step, setStep] = useState<Step>(standaloneTempleReg ? "temple-reg" : "find");
   const [selectedTemple, setSelectedTemple] = useState<string>("");
   const [isNewTemple, setIsNewTemple] = useState(false);
+  // ✅ ADDED (2026-08-31 — "Register Temple flow" certificate coverage):
+  // same fix as DevoteeRegistrationSection/DharmicExpertSection above.
+  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
+  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setCertificateDownloadError("");
+    setIsDownloadingCertificate(true);
+    try {
+      const res = await fetch(`/api/certificates/general/${encodeURIComponent(certRefId)}`);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Sri-Dwar-Certificate-${safeName}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Certificate download failed:", e);
+      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsDownloadingCertificate(false);
+    }
+  };
+  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
+  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
+  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
+    setIsSharingCertificate(true);
+    try {
+      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+      await fetchAndShareCertificate(
+        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
+        `Sri-Dwar-Certificate-${safeName}.jpg`,
+        "My Sri Dwar Certificate",
+        "Jai Jagannath! Here is my Certificate from Sri Dwar."
+      );
+    } catch (e) {
+      console.error("Certificate share failed:", e);
+      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
+    } finally {
+      setIsSharingCertificate(false);
+    }
+  };
 
   // ── Search dropdown ──
   const [searchQuery, setSearchQuery] = useState("");
@@ -2618,6 +2812,30 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                   <p>{confirmation.blessing}</p>
                 </div>
               )}
+
+              {certificateDownloadError && (
+                <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 max-w-sm mx-auto">
+                  {certificateDownloadError}
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+                <button
+                  type="button"
+                  disabled={isDownloadingCertificate}
+                  onClick={() => handleDownloadCertificate(templeRegRefIdRef.current, templeReg.contactName)}
+                  className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={isSharingCertificate}
+                  onClick={() => handleShareCertificate(templeRegRefIdRef.current, templeReg.contactName)}
+                  className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
+                </button>
+              </div>
 
               <div className="text-xs font-mono text-[#5EEAD4]/60 bg-[#5EEAD4]/5 border border-[#5EEAD4]/15 rounded-xl px-4 py-2">
                 Securely managed by Sridwar Technology · Sri Dwar
