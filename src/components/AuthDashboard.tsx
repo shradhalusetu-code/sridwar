@@ -23,7 +23,9 @@ import ReferralDashboardPanel from "./ReferralDashboardPanel";
 import MobileCarousel from "./shared/MobileCarousel";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { gaRegistrationSubmit, gaLogin, gaDonationInitiate } from "../utils/analytics";
-import { shareOrDownloadBlob, fetchAndShareCertificate } from "../utils/shareCertificate";
+import { shareOrDownloadBlob } from "../utils/shareCertificate";
+import { useCertificateReveal } from "./shared/useCertificateReveal";
+import CertificateRevealModal from "./shared/CertificateRevealModal";
 import {
   recordActivity, fetchProfileExtra, saveProfileExtra,
   fetchFamilyMembers, syncFamilyMembers,
@@ -99,6 +101,8 @@ interface AuthDashboardProps {
   userProfile: { name: string; email: string };
   bookedItems: Array<{ pujaName: string; price: number; refId: string; date: string }>;
   onOpenLegalDoc?: (doc: string) => void;
+  // ✅ ADDED — "Book Again" from a past Puja/Seva activity.
+  onBookAgain?: (pujaName: string, price: number) => void;
 }
 
 export default function AuthDashboard({
@@ -108,12 +112,48 @@ export default function AuthDashboard({
   onLogout,
   userProfile,
   bookedItems,
-  onOpenLegalDoc
+  onOpenLegalDoc,
+  onBookAgain
 }: AuthDashboardProps) {
   const [userNameField, setUserNameField] = useState("");
   const [userEmailField, setUserEmailField] = useState("");
   const [userGotra, setUserGotra] = useState("Vatsasa Gotra");
   const [userRashi, setUserRashi] = useState("Dhanu (Sagittarius)");
+  // ✅ ADDED — "Manage Subscriptions" preference center. Every new devotee
+  // is auto-subscribed at signup (see supabase_add_subscription_preferences.sql
+  // — the database column defaults handle this, no signup code changed).
+  // This state just mirrors the devotee's own row so they can review/turn
+  // categories off later, the same relationship Gmail's "Manage
+  // Subscriptions" has to your inbox. Booking confirmations, payment
+  // receipts, and certificate-ready emails are transactional — never
+  // included here, never optional, exactly like Amazon's order emails.
+  const [subscriptionPrefs, setSubscriptionPrefs] = useState({
+    subscribe_puja_reminders: true,
+    subscribe_devotional_content: true,
+    subscribe_temple_updates: true,
+    subscribe_referral_program: true,
+  });
+  const [isSavingSubscriptionPrefs, setIsSavingSubscriptionPrefs] = useState(false);
+  const [subscriptionPrefsError, setSubscriptionPrefsError] = useState("");
+  const toggleSubscriptionPref = async (key: keyof typeof subscriptionPrefs) => {
+    const nextValue = !subscriptionPrefs[key];
+    const previous = subscriptionPrefs;
+    setSubscriptionPrefs((prev) => ({ ...prev, [key]: nextValue })); // optimistic — feels instant
+    setSubscriptionPrefsError("");
+    setIsSavingSubscriptionPrefs(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) throw new Error("Not signed in");
+      const { error } = await supabase.from("profiles").update({ [key]: nextValue }).eq("id", userData.user.id);
+      if (error) throw error;
+    } catch (e) {
+      console.error("Could not save subscription preference:", e);
+      setSubscriptionPrefs(previous); // roll back the optimistic update
+      setSubscriptionPrefsError("Could not save your preference right now. Please try again.");
+    } finally {
+      setIsSavingSubscriptionPrefs(false);
+    }
+  };
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Real Supabase email/password authentication
@@ -346,6 +386,12 @@ export default function AuthDashboard({
           if (extra.gotra) setUserGotra(extra.gotra);
           if (extra.rashi) setUserRashi(extra.rashi);
           if (extra.phone) setUserPhone(extra.phone);
+          setSubscriptionPrefs({
+            subscribe_puja_reminders: extra.subscribe_puja_reminders ?? true,
+            subscribe_devotional_content: extra.subscribe_devotional_content ?? true,
+            subscribe_temple_updates: extra.subscribe_temple_updates ?? true,
+            subscribe_referral_program: extra.subscribe_referral_program ?? true,
+          });
         }
         // Only overwrite the family list if the DB actually has rows —
         // an empty DB result on a first-time fetch (e.g. right after
@@ -855,57 +901,21 @@ export default function AuthDashboard({
   // the Capacitor app, which loads the live site directly per
   // capacitor.config.ts), so no separate API base URL is needed here. Same
   // blob→object-URL→<a download> pattern as handleDownloadDharmicId above.
-  const [downloadingCertRefId, setDownloadingCertRefId] = useState<string | null>(null);
+  // ✅ UPDATED — opens the shared reveal modal (the "unboxing" moment)
+  // instead of immediately saving/sharing silently — see
+  // shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx.
   const [certDownloadError, setCertDownloadError] = useState("");
+  const [loadingTempleCertRefId, setLoadingTempleCertRefId] = useState<string | null>(null);
+  const templeCertReveal = useCertificateReveal();
 
-  const handleDownloadTempleCertificate = async (refId: string, devoteeName: string) => {
+  const openTempleCertificateReveal = async (refId: string, devoteeName: string) => {
     if (!refId) return;
     setCertDownloadError("");
-    setDownloadingCertRefId(refId);
-    try {
-      const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
-        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Temple Visit Certificate",
-        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Temple Visit Certificate download failed:", e);
-      setCertDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setDownloadingCertRefId(null);
-    }
-  };
-
-  // ✅ ADDED — Share Certificate sibling for the Temple Visit Certificate
-  // above; same relative fetch, handed to the shared helper instead of a
-  // forced download.
-  const [sharingCertRefId, setSharingCertRefId] = useState<string | null>(null);
-
-  const handleShareTempleCertificate = async (refId: string, devoteeName: string) => {
-    if (!refId) return;
-    setCertDownloadError("");
-    setSharingCertRefId(refId);
-    try {
-      const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
-        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Temple Visit Certificate",
-        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Temple Visit Certificate share failed:", e);
-      setCertDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setSharingCertRefId(null);
-    }
+    setLoadingTempleCertRefId(refId);
+    const safeName = (devoteeName || "Devotee").trim().replace(/\s+/g, "_");
+    await templeCertReveal.open(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`, `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`);
+    setLoadingTempleCertRefId(null);
+    if (templeCertReveal.error) setCertDownloadError(templeCertReveal.error);
   };
 
   const t = TRANSLATIONS[currentLanguage];
@@ -957,48 +967,24 @@ export default function AuthDashboard({
     return Flower2;
   };
 
-  // ✅ ADDED — shared download handler for the "All Account Activity" ledger's
-  // Receipt/Invoice/Certificate buttons below. Same fetch→blob→<a download>
-  // pattern as handleDownloadTempleCertificate above; kept separate (not
-  // merged into that one) so the already-working certificate download can't
-  // be affected by this change.
-  const [downloadingDocKey, setDownloadingDocKey] = useState<string | null>(null);
+  // ✅ UPDATED — every "Receipt"/"Certificate"/"Inquiry"/"General" download
+  // button in this file now opens the shared reveal modal (the "unboxing"
+  // moment) instead of immediately saving/sharing silently — see
+  // shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx,
+  // the one implementation every certificate download in the app shares.
+  // docKey is still tracked here (separately from the hook's own isLoading)
+  // so the SPECIFIC button that was tapped shows its own "Preparing…"
+  // state, since this one page can have many such buttons at once.
   const [activityDownloadError, setActivityDownloadError] = useState("");
+  const [loadingDocKey, setLoadingDocKey] = useState<string | null>(null);
+  const documentReveal = useCertificateReveal();
 
-  const handleDownloadActivityDocument = async (url: string, filename: string, docKey: string) => {
+  const openDocumentReveal = async (url: string, filename: string, docKey: string) => {
     setActivityDownloadError("");
-    setDownloadingDocKey(docKey);
-    try {
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(url, filename, "Sri Dwar", "Jai Jagannath! Sharing this from Sri Dwar.");
-      if (result.status === "error") {
-        setActivityDownloadError("Could not download this document right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Activity document download failed:", e);
-      setActivityDownloadError("Could not download this document right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setDownloadingDocKey(null);
-    }
-  };
-
-  // ✅ ADDED — Share Certificate sibling for the "All Account Activity"
-  // ledger's Receipt/Certificate buttons above; same relative fetch,
-  // handed to the shared helper instead of a forced download.
-  const [sharingDocKey, setSharingDocKey] = useState<string | null>(null);
-
-  const handleShareActivityDocument = async (url: string, filename: string, shareTitle: string, docKey: string) => {
-    setActivityDownloadError("");
-    setSharingDocKey(docKey);
-    try {
-      await fetchAndShareCertificate(url, filename, shareTitle, "Jai Jagannath! Sharing this from Sri Dwar.");
-    } catch (e) {
-      console.error("Activity document share failed:", e);
-      setActivityDownloadError("Could not share this document right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setSharingDocKey(null);
-    }
+    setLoadingDocKey(docKey);
+    await documentReveal.open(url, filename);
+    setLoadingDocKey(null);
+    if (documentReveal.error) setActivityDownloadError(documentReveal.error);
   };
 
   /** Renders the Receipt/Certificate download row for one activity record — shared by both the carousel and "show more" list below so they never drift apart. */
@@ -1032,50 +1018,26 @@ export default function AuthDashboard({
     return (
       <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/5">
         {isPaid && (
-          <>
-            <button
-              type="button"
-              onClick={() => handleDownloadActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
-              disabled={downloadingDocKey === `${rec.id}-jpg`}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Download className="w-3 h-3" />
-              {downloadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleShareActivityDocument(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, "My Sri Dwar Receipt", `${rec.id}-jpg-share`)}
-              disabled={sharingDocKey === `${rec.id}-jpg-share`}
-              aria-label="Share Receipt"
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Share2 className="w-3 h-3" />
-              {sharingDocKey === `${rec.id}-jpg-share` ? "..." : "Share"}
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => openDocumentReveal(`/api/certificates/transaction/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Receipt-${safeName}.jpg`, `${rec.id}-jpg`)}
+            disabled={loadingDocKey === `${rec.id}-jpg`}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+          >
+            <Download className="w-3 h-3" />
+            {loadingDocKey === `${rec.id}-jpg` ? "..." : "Receipt"}
+          </button>
         )}
         {showCertificate && (
-          <>
-            <button
-              type="button"
-              onClick={() => handleDownloadActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
-              disabled={downloadingDocKey === `${rec.id}-cert`}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Download className="w-3 h-3" />
-              {downloadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleShareActivityDocument(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, "My Sri Dwar Certificate", `${rec.id}-cert-share`)}
-              disabled={sharingDocKey === `${rec.id}-cert-share`}
-              aria-label="Share Certificate"
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-            >
-              <Share2 className="w-3 h-3" />
-              {sharingDocKey === `${rec.id}-cert-share` ? "..." : "Share"}
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => openDocumentReveal(`/api/certificates/service/${encodeURIComponent(rec.refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`, `${rec.id}-cert`)}
+            disabled={loadingDocKey === `${rec.id}-cert`}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+          >
+            <Download className="w-3 h-3" />
+            {loadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
+          </button>
         )}
         {canRetryPayment && (
           <button
@@ -1085,6 +1047,21 @@ export default function AuthDashboard({
           >
             <RefreshCw className="w-3 h-3" />
             Pay Now
+          </button>
+        )}
+        {/* ✅ ADDED — "Book Again" (Amazon/Flipkart's "Buy Again", adapted):
+            only for a genuine puja/seva that's actually paid, and only
+            when onBookAgain was actually passed in — never shown for a
+            failed/pending booking, since re-offering the same wizard for
+            those is what the "Pay Now" retry button above already is. */}
+        {showCertificate && isPaid && onBookAgain && (
+          <button
+            type="button"
+            onClick={() => onBookAgain(rec.itemName, rec.amount)}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Book Again
           </button>
         )}
       </div>
@@ -1118,6 +1095,57 @@ export default function AuthDashboard({
       return { label: "Payment Failed", cls: "bg-red-950/50 text-red-300 border-red-500/30" };
     }
     return { label: "Pending Verification", cls: "bg-[#FFB347]/10 text-[#FFB347] border-[#FFB347]/20" };
+  };
+
+  // ✅ ADDED — booking-journey progress stepper for genuine Puja/Seva
+  // activities, in the spirit of a delivery tracker (Amazon/Flipkart) but
+  // honest to what Sri Dwar can actually confirm: only 3 stages are ever
+  // marked complete, each backed directly by real stored data
+  // (paymentStatus / completionStatus) — never a guess. A 4th line notes
+  // the personalized completion certificate without claiming it's done,
+  // since that's prepared and sent individually by the team and isn't
+  // tracked in this data at all — showing a false checkmark for it would
+  // be worse than not showing a stepper.
+  const renderBookingStepper = (rec: ActivityRecord) => {
+    if (rec.activityType !== "puja" && rec.activityType !== "seva") return null;
+    const paid = rec.paymentStatus === "confirmed";
+    const failed = rec.paymentStatus === "failed";
+    const performed = rec.completionStatus === "completed";
+    const steps = [
+      { label: "Sankalpa Received", done: true },
+      { label: failed ? "Payment Failed" : "Payment Confirmed", done: paid, failed },
+      { label: "Puja Performed", done: performed },
+    ];
+    return (
+      <div className="mt-3 pt-3 border-t border-white/5">
+        <div className="flex items-center">
+          {steps.map((step, i) => (
+            <div key={step.label} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center gap-1">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                  step.failed ? "bg-red-500/20 text-red-300 border border-red-500/40"
+                  : step.done ? "bg-[#5EEAD4] text-[#021816]"
+                  : "bg-white/10 text-white/40 border border-white/15"
+                }`}>
+                  {step.failed ? "!" : step.done ? "✓" : i + 1}
+                </div>
+                <span className={`text-[9px] text-center leading-tight max-w-[64px] ${step.done || step.failed ? "text-white/80 font-semibold" : "text-white/35"}`}>
+                  {step.label}
+                </span>
+              </div>
+              {i < steps.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-1 mb-4 ${steps[i + 1].done || steps[i + 1].failed ? "bg-[#5EEAD4]" : "bg-white/10"}`} />
+              )}
+            </div>
+          ))}
+        </div>
+        {performed && (
+          <p className="text-[10px] text-white/40 mt-2 text-center leading-relaxed">
+            Your personalized completion certificate is prepared individually and sent to your email — separate from the acknowledgement certificate above.
+          </p>
+        )}
+      </div>
+    );
   };
 
   const handleGoogleLogin = async (e: FormEvent) => {
@@ -2337,6 +2365,7 @@ export default function AuthDashboard({
                                 {badge.label}
                               </span>
                             </div>
+                            {renderBookingStepper(rec)}
                             {renderActivityDownloadButtons(rec)}
                           </div>
                         );
@@ -2368,6 +2397,7 @@ export default function AuthDashboard({
                                   {badge.label}
                                 </span>
                               </div>
+                              {renderBookingStepper(rec)}
                               {renderActivityDownloadButtons(rec)}
                             </div>
                           );
@@ -2432,27 +2462,15 @@ export default function AuthDashboard({
                             fresh each time from the devotee's own submitted
                             data, so it's available as soon as the request exists. */}
                         {sub.formType === "darshan_certificate" && sub.refId && (
-                          <div className="shrink-0 flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
-                              disabled={downloadingCertRefId === sub.refId}
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleShareTempleCertificate(sub.refId as string, sub.name || userProfile.name)}
-                              disabled={sharingCertRefId === sub.refId}
-                              aria-label="Share Certificate"
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Share2 className="w-3.5 h-3.5" />
-                              <span>{sharingCertRefId === sub.refId ? "..." : "Share"}</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => openTempleCertificateReveal(sub.refId as string, sub.name || userProfile.name)}
+                            disabled={loadingTempleCertRefId === sub.refId}
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{loadingTempleCertRefId === sub.refId ? "Preparing..." : "Certificate"}</span>
+                          </button>
                         )}
                         {/* ✅ ADDED — Contact Us / Dharmic Expert / Temple
                             Committee Registration submissions now get their
@@ -2468,27 +2486,15 @@ export default function AuthDashboard({
                             still uses the general-purpose fallback further
                             below, unchanged. */}
                         {(sub.formType === "contact_us" || sub.formType === "expert_registration" || sub.formType === "temple_committee_registration") && sub.refId && (
-                          <div className="shrink-0 flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadActivityDocument(`/api/certificates/inquiry/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Acknowledgement-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-inq-jpg`)}
-                              disabled={downloadingDocKey === `${sub.id}-inq-jpg`}
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingDocKey === `${sub.id}-inq-jpg` ? "..." : "Certificate"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleShareActivityDocument(`/api/certificates/inquiry/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Acknowledgement-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, "My Sri Dwar Acknowledgement", `${sub.id}-inq-jpg-share`)}
-                              disabled={sharingDocKey === `${sub.id}-inq-jpg-share`}
-                              aria-label="Share Certificate"
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Share2 className="w-3.5 h-3.5" />
-                              <span>{sharingDocKey === `${sub.id}-inq-jpg-share` ? "..." : "Share"}</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => openDocumentReveal(`/api/certificates/inquiry/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Acknowledgement-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-inq-jpg`)}
+                            disabled={loadingDocKey === `${sub.id}-inq-jpg`}
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{loadingDocKey === `${sub.id}-inq-jpg` ? "..." : "Certificate"}</span>
+                          </button>
                         )}
                         {/* ✅ ADDED — every OTHER form record (Devotion
                             Story, Devotee Registration, etc.) has no
@@ -2505,33 +2511,67 @@ export default function AuthDashboard({
                             plain-text PDF) must stay two independent
                             downloads, never one embedding the other. */}
                         {sub.formType !== "darshan_certificate" && sub.formType !== "contact_us" && sub.formType !== "expert_registration" && sub.formType !== "temple_committee_registration" && sub.refId && (
-                          <div className="shrink-0 flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
-                              disabled={downloadingDocKey === `${sub.id}-gen-jpg`}
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>{downloadingDocKey === `${sub.id}-gen-jpg` ? "..." : "Certificate"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleShareActivityDocument(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, "My Sri Dwar Certificate", `${sub.id}-gen-jpg-share`)}
-                              disabled={sharingDocKey === `${sub.id}-gen-jpg-share`}
-                              aria-label="Share Certificate"
-                              className="flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
-                            >
-                              <Share2 className="w-3.5 h-3.5" />
-                              <span>{sharingDocKey === `${sub.id}-gen-jpg-share` ? "..." : "Share"}</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => openDocumentReveal(`/api/certificates/general/${encodeURIComponent(sub.refId as string)}`, `Sri-Dwar-Certificate-${(sub.name || userProfile.name || "Devotee").trim().replace(/\s+/g, "_")}.jpg`, `${sub.id}-gen-jpg`)}
+                            disabled={loadingDocKey === `${sub.id}-gen-jpg`}
+                            className="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{loadingDocKey === `${sub.id}-gen-jpg` ? "..." : "Certificate"}</span>
+                          </button>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* ✅ ADDED — "Manage Subscriptions" preference center, the
+                  same relationship Gmail's own settings page has to your
+                  inbox: every devotee is auto-subscribed at signup (the
+                  database column defaults handle that, nothing here
+                  controls it), and this panel is just where they can
+                  review and turn individual categories off. Booking
+                  confirmations, payment receipts, and certificate-ready
+                  emails are transactional and are never listed here —
+                  they always send, exactly like Amazon's order emails. */}
+              <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                <h4 className="text-xs font-bold text-[#5EEAD4] uppercase tracking-wider font-mono mb-1">Manage Subscriptions</h4>
+                <p className="text-[11px] text-white/50 mb-3 leading-relaxed">
+                  Booking and payment updates always reach you. Everything below is optional — turn off anything you'd rather not receive.
+                </p>
+                {subscriptionPrefsError && (
+                  <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 mb-2">
+                    {subscriptionPrefsError}
+                  </p>
+                )}
+                <div className="space-y-2">
+                  {([
+                    { key: "subscribe_puja_reminders" as const, label: "Festival & Puja Reminders", desc: "Ekadashi, seasonal pujas, auspicious dates" },
+                    { key: "subscribe_devotional_content" as const, label: "Devotional Stories", desc: "Devotee experiences and spiritual content" },
+                    { key: "subscribe_temple_updates" as const, label: "Temple & Community Updates", desc: "New temples, platform news" },
+                    { key: "subscribe_referral_program" as const, label: "Refer & Earn Updates", desc: "Cashback and referral program news" },
+                  ]).map(({ key, label, desc }) => (
+                    <div key={key} className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-white/90">{label}</p>
+                        <p className="text-[10px] text-white/45">{desc}</p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={subscriptionPrefs[key]}
+                        disabled={isSavingSubscriptionPrefs}
+                        onClick={() => toggleSubscriptionPref(key)}
+                        className={`shrink-0 w-10 h-6 rounded-full transition-colors relative disabled:opacity-60 cursor-pointer ${subscriptionPrefs[key] ? "bg-[#5EEAD4]" : "bg-white/15"}`}
+                      >
+                        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${subscriptionPrefs[key] ? "translate-x-[18px]" : "translate-x-0.5"}`} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* Log out option */}
               <button
@@ -3204,6 +3244,19 @@ export default function AuthDashboard({
           </div>
         </div>
       )}
+
+      <CertificateRevealModal
+        isOpen={documentReveal.isOpen}
+        onClose={documentReveal.close}
+        imageBlob={documentReveal.imageBlob}
+        filename={documentReveal.filename}
+      />
+      <CertificateRevealModal
+        isOpen={templeCertReveal.isOpen}
+        onClose={templeCertReveal.close}
+        imageBlob={templeCertReveal.imageBlob}
+        filename={templeCertReveal.filename}
+      />
     </section>
   );
 }

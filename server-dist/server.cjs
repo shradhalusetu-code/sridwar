@@ -1709,6 +1709,29 @@ async function renderServiceCertificateJpeg(name, serviceName, performedDate, ac
   const textLayer = await renderTextLayerPng(width, height, `${nameEl}${serviceEl}${dateEl}`);
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
+app.get("/api/stats/community", async (req, res) => {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase is not configured on the server." });
+    return;
+  }
+  try {
+    const startOfYear = new Date((/* @__PURE__ */ new Date()).getFullYear(), 0, 1).toISOString();
+    const [pujaSevaCount, templeVisitCount] = await Promise.all([
+      supabaseAdmin.from("activities").select("id", { count: "exact", head: true }).in("activity_type", ["puja", "seva"]).eq("payment_status", "confirmed").gte("created_at", startOfYear),
+      supabaseAdmin.from("form_submissions").select("id", { count: "exact", head: true }).eq("form_type", "darshan_certificate").gte("created_at", startOfYear)
+    ]);
+    res.set("Cache-Control", "public, max-age=1800");
+    res.json({
+      pujaSevaCompletedThisYear: pujaSevaCount.count ?? 0,
+      templeVisitsThisYear: templeVisitCount.count ?? 0,
+      year: (/* @__PURE__ */ new Date()).getFullYear()
+    });
+  } catch (err) {
+    appendAuditLog("community_stats_failed", { message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not load community stats right now." });
+  }
+});
 app.get("/api/certificates/service/:refId", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {

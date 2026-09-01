@@ -994,6 +994,18 @@ function PujaCategoryCard({ puja, isDetailsOpen, onToggleDetails, onBook, onView
         <h3 className="font-serif font-black text-white text-sm leading-snug mb-1">{puja.name}</h3>
         <p className="text-[12px] font-mono text-[#FFB347]/70 truncate mb-2">{puja.templeName}</p>
 
+        {/* ✅ ADDED — "why this matters," visible at the point of decision
+            instead of hidden behind the "Purpose & inclusions" toggle
+            below. Reuses puja.benefits — the same content already written
+            and already shown once expanded — just surfaces the first
+            clause of it here too, truncated to one line, rather than
+            writing new devotional copy. */}
+        {puja.benefits && (
+          <p className="text-[11px] text-white/55 italic leading-snug mb-2 line-clamp-1">
+            {puja.benefits.split(/[,.]/)[0]}
+          </p>
+        )}
+
         <div className="flex flex-wrap items-center gap-3 mb-2.5">
           <span className="flex items-center gap-1 text-[11px] text-white/50 font-mono">
             <Clock className="w-3 h-3 text-[#FFB347]/60 shrink-0" />
@@ -1258,6 +1270,14 @@ function PujaDesktopRow({ puja, isDetailsOpen, onToggleDetails, onViewPriestProf
         <p className="text-[12px] font-mono text-[#FFB347]/70">
           {puja.templeName}
         </p>
+
+        {/* ✅ ADDED — same "why this matters" line as the mobile card
+            above, for consistency across both layouts. */}
+        {puja.benefits && (
+          <p className="text-[11px] text-white/55 italic leading-snug line-clamp-1">
+            {puja.benefits.split(/[,.]/)[0]}
+          </p>
+        )}
 
         {/* Duration row */}
         <div className="flex flex-wrap items-center gap-3 pt-0.5">

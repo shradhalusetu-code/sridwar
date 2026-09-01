@@ -86,6 +86,14 @@ export interface ProfileExtra {
   gotra?: string;
   rashi?: string;
   phone?: string;
+  // ✅ ADDED — "Manage Subscriptions" preference center. Optional because
+  // fetchProfileExtra() is also used by code paths that don't need them;
+  // callers that do (AuthDashboard's subscription panel) check for
+  // undefined the same way they already do for gotra/rashi/phone.
+  subscribe_puja_reminders?: boolean;
+  subscribe_devotional_content?: boolean;
+  subscribe_temple_updates?: boolean;
+  subscribe_referral_program?: boolean;
 }
 
 /** Returns the logged-in devotee's Supabase user id, or null for guests. */
@@ -259,7 +267,7 @@ export async function fetchProfileExtra(): Promise<ProfileExtra | null> {
 
     const { data, error } = await supabase
       .from("profiles")
-      .select("gotra, rashi, phone")
+      .select("gotra, rashi, phone, subscribe_puja_reminders, subscribe_devotional_content, subscribe_temple_updates, subscribe_referral_program")
       .eq("id", userId)
       .maybeSingle();
 
@@ -267,7 +275,13 @@ export async function fetchProfileExtra(): Promise<ProfileExtra | null> {
       console.error("fetchProfileExtra failed:", error.message);
       return null;
     }
-    return data ? { gotra: data.gotra, rashi: data.rashi, phone: data.phone } : null;
+    return data ? {
+      gotra: data.gotra, rashi: data.rashi, phone: data.phone,
+      subscribe_puja_reminders: data.subscribe_puja_reminders,
+      subscribe_devotional_content: data.subscribe_devotional_content,
+      subscribe_temple_updates: data.subscribe_temple_updates,
+      subscribe_referral_program: data.subscribe_referral_program,
+    } : null;
   } catch (e) {
     console.error("fetchProfileExtra failed", e);
     return null;

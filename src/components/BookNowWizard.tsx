@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database, ShoppingBasket, Share2 } from "lucide-react";
+import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database, ShoppingBasket } from "lucide-react";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import { SEVA_DISCLAIMER } from "../data/sevaOfferings";
@@ -13,7 +13,8 @@ import UPIPaymentModal from "./UPIPaymentModal";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import SriDwarLogo from "./SriDwarLogo";
 import { getDevotionalConfirmation, downloadConfirmationMessage, DevotionalServiceCategory } from "../utils/devotionalMessages";
-import { fetchAndShareCertificate } from "../utils/shareCertificate";
+import { useCertificateReveal } from "./shared/useCertificateReveal";
+import CertificateRevealModal from "./shared/CertificateRevealModal";
 import { isDiscountPromoVisible, DISCOUNT_TAG } from "../utils/discount";
 import { validateName, validateEmail, validatePhone, validateDOB } from "../utils/formValidation";
 import { gaBookNowOpen, gaBookingDetailsSubmit, gaCheckoutInitiate, gaBookingComplete, gaCertificateAction } from "../utils/analytics";
@@ -207,54 +208,16 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   // Download Confirmation already is. The endpoint (server.ts) picks the
   // correct puja/seva artwork itself from the booking's own record, so
   // this component never needs to know which one applies.
-  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
-  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
-  const [certificateDownloadError, setCertificateDownloadError] = useState("");
-  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setCertificateDownloadError("");
-    setIsDownloadingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: now goes through the same native-Android-first
-      // cascade as the Share button (fetchAndShareCertificate), instead of
-      // a plain `<a download>`-only implementation that silently fails
-      // inside the Capacitor Android WebView. See shareCertificate.ts for
-      // the full explanation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/service/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Certificate download failed:", e);
-      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsDownloadingCertificate(false);
-    }
-  };
-  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
-  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call —
-  // instead of a separate hand-rolled implementation.
-  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setIsSharingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/service/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Certificate share failed:", e);
-      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsSharingCertificate(false);
-    }
+  // ✅ UPDATED — "Certificate" now opens the shared reveal modal (the
+  // "unboxing" moment) instead of immediately saving/sharing silently.
+  // Save and Share happen from inside the modal itself, reusing the same
+  // already-fetched blob — see shared/useCertificateReveal.ts +
+  // shared/CertificateRevealModal.tsx, the one implementation every
+  // certificate download in the app now shares.
+  const certificateReveal = useCertificateReveal();
+  const openCertificateReveal = (certRefId: string, certDevoteeName: string) => {
+    const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+    certificateReveal.open(`/api/certificates/service/${encodeURIComponent(certRefId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`);
   };
   // Which of the two Step 1 buttons is currently submitting — drives which
   // button shows the "…ing" label below, so the devotee isn't left
@@ -935,9 +898,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                     </span>
                   </div>
                   <div className="space-y-2">
-                    {certificateDownloadError && (
+                    {certificateReveal.error && (
                       <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5">
-                        {certificateDownloadError}
+                        {certificateReveal.error}
                       </p>
                     )}
                     {/* ✅ FIX (2026-08-30): this used to hide the Certificate
@@ -948,23 +911,20 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                         this booking is recorded as) to it — so Guidance and
                         Wellness get the same two-button layout as Puja/Seva
                         now, with no other change needed. */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                         <button id="download-confirmation-btn" onClick={() => { gaCertificateAction("download", refId); downloadConfirmationMessage({ category, serviceName: pujaName, devoteeName, refId, amount: price }); }}
-                          className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-[10px] transition-all tracking-wider flex flex-col items-center justify-center gap-1 shadow border border-white/10 cursor-pointer">
+                          className="bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center gap-1.5 shadow border border-white/10 cursor-pointer">
                           <Download className="w-3.5 h-3.5 text-[#FFB347]" />
                           <span>Confirmation</span>
                         </button>
-                        <button id="download-certificate-btn" type="button" disabled={isDownloadingCertificate}
-                          onClick={() => { gaCertificateAction("download", refId); handleDownloadCertificate(refId, devoteeName); }}
-                          className="bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white font-bold py-3 rounded-xl text-[10px] transition-all tracking-wider flex flex-col items-center justify-center gap-1 shadow border border-white/10 cursor-pointer">
+                        {/* ✅ UPDATED — opens the shared reveal modal (see
+                            useCertificateReveal above) instead of
+                            immediately saving/sharing silently. */}
+                        <button id="download-certificate-btn" type="button" disabled={certificateReveal.isLoading}
+                          onClick={() => { gaCertificateAction("download", refId); openCertificateReveal(refId, devoteeName); }}
+                          className="bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center gap-1.5 shadow border border-white/10 cursor-pointer">
                           <Download className="w-3.5 h-3.5 text-[#5EEAD4]" />
-                          <span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
-                        </button>
-                        <button id="share-certificate-btn" type="button" disabled={isSharingCertificate}
-                          onClick={() => { gaCertificateAction("download", refId); handleShareCertificate(refId, devoteeName); }}
-                          className="bg-white/5 hover:bg-white/10 disabled:opacity-60 text-white font-bold py-3 rounded-xl text-[10px] transition-all tracking-wider flex flex-col items-center justify-center gap-1 shadow border border-white/10 cursor-pointer">
-                          <Share2 className="w-3.5 h-3.5 text-[#5EEAD4]" />
-                          <span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
+                          <span>{certificateReveal.isLoading ? "Preparing…" : "Certificate"}</span>
                         </button>
                       </div>
                     <button id="close-success-wizard" onClick={handleClose}
@@ -1034,6 +994,13 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         // so the payment step here doesn't ask the devotee to read and tick
         // the same acknowledgement a second time.
         skipDisclaimer
+      />
+
+      <CertificateRevealModal
+        isOpen={certificateReveal.isOpen}
+        onClose={certificateReveal.close}
+        imageBlob={certificateReveal.imageBlob}
+        filename={certificateReveal.filename}
       />
     </>
   );

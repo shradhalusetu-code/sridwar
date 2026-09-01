@@ -27,7 +27,8 @@ import { validateName, validateEmail, validatePhone } from "../utils/formValidat
 import { makeSubmissionRef, randomRefSuffix } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
-import { fetchAndShareCertificate } from "../utils/shareCertificate";
+import { useCertificateReveal } from "./shared/useCertificateReveal";
+import CertificateRevealModal from "./shared/CertificateRevealModal";
 import UPIPaymentModal from "./UPIPaymentModal";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
 import { SetuYatraFooterLinks } from "./SetuYatraChallenge";
@@ -553,50 +554,13 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
   // available the moment a registration exists). Uses the general
   // certificate endpoint, which composites register_temple.jpg for this
   // form type.
-  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
-  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
-  const [certificateDownloadError, setCertificateDownloadError] = useState("");
-  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setCertificateDownloadError("");
-    setIsDownloadingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Certificate download failed:", e);
-      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsDownloadingCertificate(false);
-    }
-  };
-  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
-  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
-  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setIsSharingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Certificate share failed:", e);
-      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsSharingCertificate(false);
-    }
+  // ✅ UPDATED — "Certificate" now opens the shared reveal modal (the
+  // "unboxing" moment) instead of immediately saving/sharing silently —
+  // see shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx.
+  const certificateReveal = useCertificateReveal();
+  const openCertificateReveal = (certRefId: string, certDevoteeName: string) => {
+    const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+    certificateReveal.open(`/api/certificates/general/${encodeURIComponent(certRefId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`);
   };
 
   const [form, setForm] = useState<DevoteeForm>({
@@ -816,29 +780,21 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           REF: {refId}
         </div>
 
-        {certificateDownloadError && (
+        {certificateReveal.error && (
           <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 max-w-sm mx-auto">
-            {certificateDownloadError}
+            {certificateReveal.error}
           </p>
         )}
-        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
-          <button
-            type="button"
-            disabled={isDownloadingCertificate}
-            onClick={() => handleDownloadCertificate(refId, form.name)}
-            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
-          </button>
-          <button
-            type="button"
-            disabled={isSharingCertificate}
-            onClick={() => handleShareCertificate(refId, form.name)}
-            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
-          >
-            <Share2 className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
-          </button>
-        </div>
+        {/* ✅ UPDATED — opens the shared reveal modal instead of separate
+            Download/Share buttons; Save and Share now live in the modal. */}
+        <button
+          type="button"
+          disabled={certificateReveal.isLoading}
+          onClick={() => openCertificateReveal(refId, form.name)}
+          className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 px-6 rounded-xl transition-all cursor-pointer mx-auto"
+        >
+          <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{certificateReveal.isLoading ? "Preparing…" : "Certificate"}</span>
+        </button>
 
         {confirmation && (
           <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left text-xs text-white/90 leading-relaxed space-y-2">
@@ -876,6 +832,12 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           </button>
         </div>
         <div className="text-xs font-mono text-[#5EEAD4]/50">Powered by Sridwar Technology</div>
+        <CertificateRevealModal
+          isOpen={certificateReveal.isOpen}
+          onClose={certificateReveal.close}
+          imageBlob={certificateReveal.imageBlob}
+          filename={certificateReveal.filename}
+        />
       </div>
     );
   }
@@ -1221,50 +1183,13 @@ function DharmicExpertSection() {
   // ✅ ADDED (2026-08-31 — "Dharmic Expert entries" certificate coverage):
   // same fix as DevoteeRegistrationSection above — see that component's
   // comment for the full explanation.
-  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
-  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
-  const [certificateDownloadError, setCertificateDownloadError] = useState("");
-  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setCertificateDownloadError("");
-    setIsDownloadingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Certificate download failed:", e);
-      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsDownloadingCertificate(false);
-    }
-  };
-  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
-  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
-  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setIsSharingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Certificate share failed:", e);
-      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsSharingCertificate(false);
-    }
+  // ✅ UPDATED — "Certificate" now opens the shared reveal modal (the
+  // "unboxing" moment) instead of immediately saving/sharing silently —
+  // see shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx.
+  const certificateReveal = useCertificateReveal();
+  const openCertificateReveal = (certRefId: string, certDevoteeName: string) => {
+    const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+    certificateReveal.open(`/api/certificates/general/${encodeURIComponent(certRefId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`);
   };
 
   // Send-link sub-flow
@@ -1687,29 +1612,19 @@ function DharmicExpertSection() {
           </div>
         )}
 
-        {certificateDownloadError && (
+        {certificateReveal.error && (
           <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 max-w-sm mx-auto">
-            {certificateDownloadError}
+            {certificateReveal.error}
           </p>
         )}
-        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
-          <button
-            type="button"
-            disabled={isDownloadingCertificate}
-            onClick={() => handleDownloadCertificate(expertRefIdRef.current, form.fullName)}
-            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
-          </button>
-          <button
-            type="button"
-            disabled={isSharingCertificate}
-            onClick={() => handleShareCertificate(expertRefIdRef.current, form.fullName)}
-            className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
-          >
-            <Share2 className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled={certificateReveal.isLoading}
+          onClick={() => openCertificateReveal(expertRefIdRef.current, form.fullName)}
+          className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 px-6 rounded-xl transition-all cursor-pointer mx-auto"
+        >
+          <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{certificateReveal.isLoading ? "Preparing…" : "Certificate"}</span>
+        </button>
 
         <div className="text-xs font-mono text-[#5EEAD4]/60 bg-[#5EEAD4]/5 border border-[#5EEAD4]/15 rounded-xl px-4 py-2.5">
           Powered by Sridwar Technology
@@ -1745,6 +1660,12 @@ function DharmicExpertSection() {
             <Plus className="w-4 h-4" /><span>Register Another Expert</span>
           </button>
         </div>
+        <CertificateRevealModal
+          isOpen={certificateReveal.isOpen}
+          onClose={certificateReveal.close}
+          imageBlob={certificateReveal.imageBlob}
+          filename={certificateReveal.filename}
+        />
       </div>
     );
   }
@@ -2244,50 +2165,13 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
   const [isNewTemple, setIsNewTemple] = useState(false);
   // ✅ ADDED (2026-08-31 — "Register Temple flow" certificate coverage):
   // same fix as DevoteeRegistrationSection/DharmicExpertSection above.
-  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
-  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
-  const [certificateDownloadError, setCertificateDownloadError] = useState("");
-  const handleDownloadCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setCertificateDownloadError("");
-    setIsDownloadingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Certificate download failed:", e);
-      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsDownloadingCertificate(false);
-    }
-  };
-  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
-  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
-  const handleShareCertificate = async (certRefId: string, certDevoteeName: string) => {
-    setIsSharingCertificate(true);
-    try {
-      const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(certRefId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Certificate share failed:", e);
-      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsSharingCertificate(false);
-    }
+  // ✅ UPDATED — "Certificate" now opens the shared reveal modal (the
+  // "unboxing" moment) instead of immediately saving/sharing silently —
+  // see shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx.
+  const certificateReveal = useCertificateReveal();
+  const openCertificateReveal = (certRefId: string, certDevoteeName: string) => {
+    const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+    certificateReveal.open(`/api/certificates/general/${encodeURIComponent(certRefId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`);
   };
 
   // ── Search dropdown ──
@@ -2813,29 +2697,19 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                 </div>
               )}
 
-              {certificateDownloadError && (
+              {certificateReveal.error && (
                 <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5 max-w-sm mx-auto">
-                  {certificateDownloadError}
+                  {certificateReveal.error}
                 </p>
               )}
-              <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
-                <button
-                  type="button"
-                  disabled={isDownloadingCertificate}
-                  onClick={() => handleDownloadCertificate(templeRegRefIdRef.current, templeReg.contactName)}
-                  className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isDownloadingCertificate ? "Preparing…" : "Certificate"}</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={isSharingCertificate}
-                  onClick={() => handleShareCertificate(templeRegRefIdRef.current, templeReg.contactName)}
-                  className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 rounded-xl transition-all cursor-pointer"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-[#FFB347]" /><span>{isSharingCertificate ? "Preparing…" : "Share"}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={certificateReveal.isLoading}
+                onClick={() => openCertificateReveal(templeRegRefIdRef.current, templeReg.contactName)}
+                className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-white/70 text-xs font-semibold py-2.5 px-6 rounded-xl transition-all cursor-pointer mx-auto"
+              >
+                <Download className="w-3.5 h-3.5 text-[#FFB347]" /><span>{certificateReveal.isLoading ? "Preparing…" : "Certificate"}</span>
+              </button>
 
               <div className="text-xs font-mono text-[#5EEAD4]/60 bg-[#5EEAD4]/5 border border-[#5EEAD4]/15 rounded-xl px-4 py-2">
                 Securely managed by Sridwar Technology · Sri Dwar
@@ -2873,6 +2747,12 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
                   </button>
                 )}
               </div>
+              <CertificateRevealModal
+                isOpen={certificateReveal.isOpen}
+                onClose={certificateReveal.close}
+                imageBlob={certificateReveal.imageBlob}
+                filename={certificateReveal.filename}
+              />
             </div>
             );
           })()

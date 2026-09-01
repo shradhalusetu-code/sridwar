@@ -1129,6 +1129,15 @@ export default function App() {
                 userProfile={userProfile}
                 bookedItems={bookedItems}
                 onOpenLegalDoc={(doc) => setActiveLegalDoc(doc as any)}
+                // ✅ ADDED — "Book Again" from a past activity (Amazon/
+                // Flipkart's "Buy Again", adapted): reuses the exact same
+                // wizard-opening pattern TempleExperience's onBookPuja
+                // already uses above — no new booking path, just another
+                // caller of the one that exists.
+                onBookAgain={(pujaName, price) => {
+                  setWizardDefaults({ pujaName, price });
+                  setIsBookNowOpen(true);
+                }}
               />
             </Suspense>
           </div>

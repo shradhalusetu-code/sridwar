@@ -4,11 +4,12 @@
  */
 
 import { useState, FormEvent } from "react";
-import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight, Download, Share2 } from "lucide-react";
+import { MessageSquare, Phone, Mail, Clock, ShieldCheck, Database, RefreshCw, Send, Check, Landmark, ChevronRight, Download } from "lucide-react";
 import { syncToGoogleForm, makeSubmissionRef } from "../utils/googleFormSync";
 import { recordFormSubmission, recordActivity } from "../lib/activities";
 import { downloadConfirmationMessage } from "../utils/devotionalMessages";
-import { fetchAndShareCertificate } from "../utils/shareCertificate";
+import { useCertificateReveal } from "./shared/useCertificateReveal";
+import CertificateRevealModal from "./shared/CertificateRevealModal";
 import UPIPaymentModal from "./UPIPaymentModal";
 import StoneEngravingNote from "./StoneEngravingNote";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
@@ -50,52 +51,14 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
   // showed up alongside a divine contribution). Uses the general
   // certificate endpoint — register_temple.jpg — which never implies a
   // payment or a performed rite, appropriate for a plain inquiry.
-  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
-  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
-  const [certificateDownloadError, setCertificateDownloadError] = useState("");
-  const handleDownloadCertificate = async () => {
+  // ✅ UPDATED — "Certificate" now opens the shared reveal modal (the
+  // "unboxing" moment) instead of immediately saving/sharing silently —
+  // see shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx.
+  const certificateReveal = useCertificateReveal();
+  const openCertificateReveal = () => {
     if (!refId) return;
-    setCertificateDownloadError("");
-    setIsDownloadingCertificate(true);
-    try {
-      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(refId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Certificate download failed:", e);
-      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsDownloadingCertificate(false);
-    }
-  };
-  // ✅ Uses the shared utils/shareCertificate.ts helper — the same one
-  // Hero.tsx/AuthDashboard.tsx's Share Certificate buttons already call.
-  const handleShareCertificate = async () => {
-    if (!refId) return;
-    setIsSharingCertificate(true);
-    try {
-      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/general/${encodeURIComponent(refId)}`,
-        `Sri-Dwar-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Certificate",
-        "Jai Jagannath! Here is my Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Certificate share failed:", e);
-      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsSharingCertificate(false);
-    }
+    const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
+    certificateReveal.open(`/api/certificates/general/${encodeURIComponent(refId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`);
   };
   const [refId, setRefId] = useState("");
 
@@ -509,31 +472,23 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                   <span>Automated Real-Time synchronization completed</span>
                 </div>
 
-                {certificateDownloadError && (
+                {certificateReveal.error && (
                   <p className="text-[11px] text-red-300 bg-red-950/30 border border-red-500/20 rounded-lg px-2.5 py-1.5">
-                    {certificateDownloadError}
+                    {certificateReveal.error}
                   </p>
                 )}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    id="download-certificate-btn"
-                    type="button"
-                    disabled={isDownloadingCertificate}
-                    onClick={handleDownloadCertificate}
-                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-[11px] transition-all tracking-wide uppercase cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5" /> {isDownloadingCertificate ? "Preparing…" : "Certificate"}
-                  </button>
-                  <button
-                    id="share-certificate-btn"
-                    type="button"
-                    disabled={isSharingCertificate}
-                    onClick={handleShareCertificate}
-                    className="flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-[11px] transition-all tracking-wide uppercase cursor-pointer"
-                  >
-                    <Share2 className="w-3.5 h-3.5" /> {isSharingCertificate ? "Preparing…" : "Share"}
-                  </button>
-                </div>
+                {/* ✅ UPDATED — opens the shared reveal modal instead of two
+                    separate Download/Share buttons; Save and Share now
+                    live inside the modal itself. */}
+                <button
+                  id="download-certificate-btn"
+                  type="button"
+                  disabled={certificateReveal.isLoading}
+                  onClick={openCertificateReveal}
+                  className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-60 border border-white/15 text-[#5EEAD4] font-bold py-3 rounded-xl text-[11px] transition-all tracking-wide uppercase cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" /> {certificateReveal.isLoading ? "Preparing…" : "Certificate"}
+                </button>
 
                 {donationAmount ? (
                   <button
@@ -600,6 +555,13 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
         </button>
 
       </div>
+
+      <CertificateRevealModal
+        isOpen={certificateReveal.isOpen}
+        onClose={certificateReveal.close}
+        imageBlob={certificateReveal.imageBlob}
+        filename={certificateReveal.filename}
+      />
     </section>
   );
 }

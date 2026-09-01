@@ -1327,6 +1327,48 @@ async function renderServiceCertificateJpeg(
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
 
+// ✅ ADDED — real, checkable social proof numbers (Amazon/Flipkart's
+// "1,000+ bought this month" pattern, adapted honestly): returns actual
+// counts from the activities table, never invented figures. Deliberately
+// public/unauthenticated (only returns aggregate counts, never any
+// individual devotee's data) and cached for 30 minutes since these numbers
+// don't need to be second-by-second live to build trust — they need to be
+// true.
+app.get("/api/stats/community", async (req, res) => {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase is not configured on the server." });
+    return;
+  }
+  try {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
+    const [pujaSevaCount, templeVisitCount] = await Promise.all([
+      supabaseAdmin
+        .from("activities")
+        .select("id", { count: "exact", head: true })
+        .in("activity_type", ["puja", "seva"])
+        .eq("payment_status", "confirmed")
+        .gte("created_at", startOfYear),
+      supabaseAdmin
+        .from("form_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("form_type", "darshan_certificate")
+        .gte("created_at", startOfYear),
+    ]);
+
+    res.set("Cache-Control", "public, max-age=1800"); // 30 min — see comment above
+    res.json({
+      pujaSevaCompletedThisYear: pujaSevaCount.count ?? 0,
+      templeVisitsThisYear: templeVisitCount.count ?? 0,
+      year: new Date().getFullYear(),
+    });
+  } catch (err: any) {
+    appendAuditLog("community_stats_failed", { message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not load community stats right now." });
+  }
+});
+
+
 app.get("/api/certificates/service/:refId", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {

@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, FormEvent, lazy, Suspense } from "react";
-import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw, Share2 } from "lucide-react";
+import { useState, useEffect, useMemo, FormEvent, lazy, Suspense } from "react";
+import { BookOpen, ChevronRight, Check, Heart, ShieldCheck, Database, RefreshCw } from "lucide-react";
 import { Language } from "../data/translations";
 import SacredIcon from "./SacredIcon";
 import SriDwarLogo from "./SriDwarLogo";
@@ -18,9 +18,11 @@ import { recordFormSubmission, recordActivity } from "../lib/activities";
 const UPIPaymentModal = lazy(() => import("./UPIPaymentModal"));
 const StoneEngravingNote = lazy(() => import("./StoneEngravingNote"));
 import { getDevotionalConfirmation, downloadConfirmationMessage } from "../utils/devotionalMessages";
-import { fetchAndShareCertificate } from "../utils/shareCertificate";
+import { useCertificateReveal } from "./shared/useCertificateReveal";
+import CertificateRevealModal from "./shared/CertificateRevealModal";
 import { validateName, validateEmail, validatePhone, validateAge } from "../utils/formValidation";
 import { TEMPLES_LIST } from "../data/temples";
+import { FESTIVAL_DATES_2026 } from "../data/festivalDates";
 import { gaContactFormStart, gaContactFormSubmit } from "../utils/analytics";
 import { registerBackHandler, unregisterBackHandler } from "../utils/backHandlerStack";
 import OptimizedImage from "./OptimizedImage";
@@ -37,6 +39,41 @@ interface HeroProps {
 
 export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate }: HeroProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ✅ ADDED — real, checkable social proof (Amazon/Flipkart's "1,000+
+  // bought this month" pattern, adapted honestly): fetches actual counts
+  // from /api/stats/community — never a hardcoded/invented number. Fails
+  // silently (stays null, badge just doesn't render) rather than showing
+  // a broken or stale figure if the request fails.
+  const [communityStats, setCommunityStats] = useState<{ pujaSevaCompletedThisYear: number; templeVisitsThisYear: number; year: number } | null>(null);
+  useEffect(() => {
+    fetch("/api/stats/community")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setCommunityStats(data); })
+      .catch(() => {}); // silent — see comment above
+  }, []);
+
+  // ✅ ADDED — festival-aware homepage banner. Only ever shows a festival
+  // from src/data/festivalDates.ts (see that file's own comment on why
+  // some well-known 2026 dates are deliberately absent — sources
+  // disagreed on them). Only shows when the nearest one is within 30
+  // days, so the banner never sits there feeling stale/irrelevant for
+  // months at a stretch — it just quietly stops appearing until
+  // something is actually coming up.
+  const upcomingFestival = useMemo(() => {
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let soonest: { name: string; note: string; daysAway: number } | null = null;
+    for (const f of FESTIVAL_DATES_2026) {
+      const [y, m, d] = f.date.split("-").map(Number);
+      const festivalDay = new Date(y, m - 1, d);
+      const daysAway = Math.round((festivalDay.getTime() - todayMidnight.getTime()) / 86400000);
+      if (daysAway >= 0 && daysAway <= 30 && (!soonest || daysAway < soonest.daysAway)) {
+        soonest = { name: f.name, note: f.note, daysAway };
+      }
+    }
+    return soonest;
+  }, []);
 
   // Register with the shared Back-button trap while the Darshan Certificate
   // modal is open, so pressing Back (browser or Android hardware) closes
@@ -65,69 +102,23 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
   // that exact same relative-fetch → blob → object-URL → <a download>
   // pattern here, so the certificate is downloadable the moment the form is
   // submitted, not just later from the Profile page.
-  const [isDownloadingCertificate, setIsDownloadingCertificate] = useState(false);
-  const [certificateDownloadError, setCertificateDownloadError] = useState("");
-
   // ✅ FIX (dead button removed): this used to also accept a "pdf" format
   // and call "/api/certificates/temple-visit/:refId/pdf", but that route
   // was intentionally removed from server.ts (see the "REMOVED" note above
   // app.get("/api/certificates/temple-visit/:refId", ...) there — "Certificate
   // downloads must always be a standalone image, never embedded inside a
-  // PDF"). The PDF button below was therefore calling a route that always
-  // 404s. Only the JPG route actually exists, so this now only downloads JPG.
-  const handleDownloadTempleVisitCertificate = async () => {
+  // PDF"). The button below now only ever fetches the JPG route, which
+  // genuinely exists.
+  // ✅ UPDATED — "Certificate" now opens the shared reveal modal (the
+  // "unboxing" moment) instead of immediately saving/sharing silently —
+  // see shared/useCertificateReveal.ts + shared/CertificateRevealModal.tsx,
+  // the one implementation every certificate download in the app shares.
+  const certificateReveal = useCertificateReveal();
+  const openTempleVisitCertificateReveal = () => {
     if (!refId) return;
-    setCertificateDownloadError("");
-    setIsDownloadingCertificate(true);
-    try {
-      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
-      // ✅ RELIABILITY FIX: see shareCertificate.ts — native-Android-first
-      // cascade instead of a plain `<a download>`-only implementation.
-      const result = await fetchAndShareCertificate(
-        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
-        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Temple Visit Certificate",
-        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
-      );
-      if (result.status === "error") {
-        setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-      }
-    } catch (e) {
-      console.error("Temple Visit Certificate download failed:", e);
-      setCertificateDownloadError("Could not download your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsDownloadingCertificate(false);
-    }
+    const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
+    certificateReveal.open(`/api/certificates/temple-visit/${encodeURIComponent(refId)}`, `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`);
   };
-
-  // ✅ ADDED — Share Certificate: opens the OS-native share sheet with the
-  // actual Temple Visit Certificate JPG attached (not a link), using the
-  // same relative-fetch as the Download button above. Falls back to a
-  // normal download on browsers/devices that don't support native file
-  // sharing — see utils/shareCertificate.ts for the shared logic used by
-  // every Share Certificate button across the app.
-  const [isSharingCertificate, setIsSharingCertificate] = useState(false);
-
-  const handleShareTempleVisitCertificate = async () => {
-    if (!refId) return;
-    setCertificateDownloadError("");
-    setIsSharingCertificate(true);
-    try {
-      const safeName = (name || "Devotee").trim().replace(/\s+/g, "_");
-      await fetchAndShareCertificate(
-        `/api/certificates/temple-visit/${encodeURIComponent(refId)}`,
-        `Sri-Dwar-Temple-Visit-Certificate-${safeName}.jpg`,
-        "My Sri Dwar Temple Visit Certificate",
-        "Jai Jagannath! Here is my Temple Visit Certificate from Sri Dwar."
-      );
-    } catch (e) {
-      console.error("Temple Visit Certificate share failed:", e);
-      setCertificateDownloadError("Could not share your certificate right now. Please try again shortly, or contact puja@sridwar.com.");
-    } finally {
-      setIsSharingCertificate(false);
-    }
-  };
-  
   // Form fields
   const [name, setName] = useState("");
   const [temple, setTemple] = useState("");
@@ -380,6 +371,39 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
             <p className={`text-sm sm:text-base text-white/85 font-sans font-normal leading-relaxed max-w-2xl text-center md:text-left mx-auto md:mx-0 ${isAndroidApp ? "mt-6" : "mt-6 sm:mt-7 lg:mt-8"}`}>
               Every sacred fire lit in your name, every mantra chanted for your family, every Sankalpa spoken with your Gotra — these are not transactions. They are threads that keep you tied to the temple your ancestors once walked toward. We simply help you hold that thread, from wherever you are.
             </p>
+
+            {/* ✅ ADDED — real, checkable social proof, shown only once the
+                real count has loaded (never a placeholder/invented number
+                in the meantime — the line simply doesn't render until
+                then). */}
+            {communityStats && (communityStats.pujaSevaCompletedThisYear > 0 || communityStats.templeVisitsThisYear > 0) && (
+              <p className="mt-4 text-xs sm:text-sm text-[#FFB347]/90 font-mono text-center md:text-left">
+                {communityStats.pujaSevaCompletedThisYear > 0 && (
+                  <>🪔 {communityStats.pujaSevaCompletedThisYear}+ Pujas & Sevas offered in {communityStats.year}</>
+                )}
+                {communityStats.pujaSevaCompletedThisYear > 0 && communityStats.templeVisitsThisYear > 0 && "  ·  "}
+                {communityStats.templeVisitsThisYear > 0 && (
+                  <>{communityStats.templeVisitsThisYear}+ Darshan Certificates issued</>
+                )}
+              </p>
+            )}
+
+            {/* ✅ ADDED — festival banner, only when something is genuinely
+                within 30 days (see the comment on upcomingFestival above). */}
+            {upcomingFestival && (
+              <button
+                type="button"
+                onClick={() => onNavigate?.("puja")}
+                className="mt-4 inline-flex items-center gap-2 bg-[#FFB347]/10 hover:bg-[#FFB347]/15 border border-[#FFB347]/30 rounded-full px-4 py-2 text-xs sm:text-sm text-white/90 transition-colors cursor-pointer mx-auto md:mx-0"
+              >
+                <span className="text-[#FFB347] font-bold">
+                  {upcomingFestival.daysAway === 0 ? "Today" : upcomingFestival.daysAway === 1 ? "Tomorrow" : `In ${upcomingFestival.daysAway} days`}
+                </span>
+                <span className="text-white/40">·</span>
+                <span className="font-serif font-semibold">{upcomingFestival.name}</span>
+                <span className="text-white/50 hidden sm:inline">— {upcomingFestival.note}</span>
+              </button>
+            )}
           </div>
 
           {/* Sri Dwar YouTube Short — sits to the RIGHT of the headline on
@@ -781,30 +805,22 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
                     devotee's actual name/temple/date populated on it, even
                     though the endpoint for it already exists and already
                     works from the Profile page (AuthDashboard.tsx). */}
-                {certificateDownloadError && (
-                  <p className="text-[11px] text-red-300 text-center -mb-1">{certificateDownloadError}</p>
+                {certificateReveal.error && (
+                  <p className="text-[11px] text-red-300 text-center -mb-1">{certificateReveal.error}</p>
                 )}
-                <div className="w-full flex gap-2">
-                  <button
-                    id="download-temple-visit-certificate"
-                    onClick={() => handleDownloadTempleVisitCertificate()}
-                    disabled={isDownloadingCertificate}
-                    className="flex-1 bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow"
-                  >
-                    <span>🛕</span>
-                    <span>{isDownloadingCertificate ? "Preparing…" : "Download Certificate"}</span>
-                  </button>
-                  <button
-                    id="share-temple-visit-certificate"
-                    onClick={() => handleShareTempleVisitCertificate()}
-                    disabled={isSharingCertificate}
-                    aria-label="Share Certificate"
-                    className="shrink-0 px-4 bg-white/10 hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow border border-white/15"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">{isSharingCertificate ? "…" : "Share"}</span>
-                  </button>
-                </div>
+                {/* ✅ UPDATED — opens the shared reveal modal (the
+                    "unboxing" moment) instead of two separate Download/
+                    Share buttons; Save and Share now live inside the modal
+                    itself, using the same already-fetched blob. */}
+                <button
+                  id="download-temple-visit-certificate"
+                  onClick={openTempleVisitCertificateReveal}
+                  disabled={certificateReveal.isLoading}
+                  className="w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3 rounded-xl text-xs transition-all tracking-wider flex items-center justify-center space-x-1.5 shadow"
+                >
+                  <span>🛕</span>
+                  <span>{certificateReveal.isLoading ? "Preparing…" : "View Certificate"}</span>
+                </button>
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <button
@@ -849,6 +865,13 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         isVoluntaryContribution={true}
       />
     </Suspense>
+
+    <CertificateRevealModal
+      isOpen={certificateReveal.isOpen}
+      onClose={certificateReveal.close}
+      imageBlob={certificateReveal.imageBlob}
+      filename={certificateReveal.filename}
+    />
     </div>
   );
 }
