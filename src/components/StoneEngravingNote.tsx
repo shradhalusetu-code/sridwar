@@ -27,9 +27,25 @@ import OptimizedImage from "./OptimizedImage";
 import stoneEngravingImg from "../assets/images/Stone_Name_Engraving.jpg";
 // @ts-ignore
 import stoneEngravingImgWebp from "../assets/images/Stone_Name_Engraving.webp";
+// ✅ HOMEPAGE-ONLY IMAGE SWAP (see StoneEngravingHomeSection below): used
+// ONLY in the homepage "Your Name, Engraved in Stone" section. Every other
+// place this initiative appears (Contact, Auth Dashboard, Report an Issue,
+// UPI Payment Modal, Diya Circle, etc. via <StoneEngravingNote>) keeps using
+// stoneEngravingImg/-Webp above, unchanged.
+// @ts-ignore
+import yourNameImg from "../assets/images/Your_Name.jpg";
+// @ts-ignore
+import yourNameImgWebp from "../assets/images/Your_Name.webp";
 
 const ALT_TEXT =
   "Stone slabs engraved with devotees' names placed along a temple pathway, including a temple still under construction — the real Sri Dwar stone-name engraving initiative";
+
+/** Alt text for the homepage-only image (yourNameImg), which has its own
+ * baked-in "Your Name. Your Legacy. Eternally Engraved in Divine Presence."
+ * headline and example engraved names, unlike the plain photo used in
+ * <StoneEngravingNote> elsewhere. */
+const HOME_ALT_TEXT =
+  "\"Your Name. Your Legacy. Eternally Engraved in Divine Presence.\" — a grandmother and grandson reading devotees' names engraved on a temple wall, beneath a large Shiva statue at dusk";
 
 /** Full explanatory copy — used everywhere the initiative is described (see
  * STONE_ENGRAVING_COMPACT_TEXT below for why "full" and "compact" now share
@@ -179,10 +195,16 @@ export function StoneEngravingHomeSection() {
             order classes, with the whole row vertically centered by the
             grid's `items-center`. */}
         <div className="order-1 md:order-2 rounded-3xl overflow-hidden border border-white/10 shadow-2xl aspect-[4/3] md:aspect-auto md:h-[420px]">
+          {/* ✅ HOMEPAGE IMAGE SWAP: this section now uses yourNameImg
+              (Your_Name.jpg/.webp) instead of the shared stoneEngravingImg.
+              Every other <StoneEngravingNote> instance elsewhere in the app
+              (Contact, Auth Dashboard, Report an Issue, UPI Payment Modal,
+              Diya Circle, etc.) is untouched and still renders
+              stoneEngravingImg below. */}
           <OptimizedImage
-            src={stoneEngravingImg}
-            webpSrc={stoneEngravingImgWebp}
-            alt={ALT_TEXT}
+            src={yourNameImg}
+            webpSrc={yourNameImgWebp}
+            alt={HOME_ALT_TEXT}
             loading="lazy"
             className="w-full h-full object-cover"
           />
