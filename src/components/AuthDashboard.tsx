@@ -41,14 +41,23 @@ interface FamilyMember {
 // (Signup, and "Save New Password" during forgot-password recovery). Kept
 // deliberately short per product requirement — no long character-class
 // checklist shown to the devotee, just this single sentence.
+//
+// ✅ FIX (2026-08-31 — matches the required exact user-facing wording): this
+// previously read "...include one capital letter, small letters, and
+// numbers" and enforced a case-specific rule (required BOTH an uppercase AND
+// a lowercase letter) that isn't part of the spec. The required message is
+// exactly "Password must be 8–14 characters and include letters and
+// numbers." — i.e. length 8–14, at least one letter (any case) and at least
+// one number. Rejecting a devotee's password for missing an uppercase
+// letter, when the message never told them that rule existed, was silently
+// blocking valid signups/password-resets.
 const PASSWORD_ERROR_MESSAGE =
-  "Password must be 8–14 characters and include one capital letter, small letters, and numbers.";
+  "Password must be 8–14 characters and include letters and numbers.";
 function isValidPassword(pw: string): boolean {
   return (
     pw.length >= 8 &&
     pw.length <= 14 &&
-    /[A-Z]/.test(pw) &&
-    /[a-z]/.test(pw) &&
+    /[A-Za-z]/.test(pw) &&
     /[0-9]/.test(pw)
   );
 }

@@ -189,8 +189,16 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
   // gets its own entry in this per-item map rather than one shared
   // checkbox — same reasoning as the structured Devotional Shopping
   // Offerings cards, which already gate on their own local state.
-  const [legacyDisclaimerChecked, setLegacyDisclaimerChecked] = useState<Record<string, boolean>>({});
-  const [legacyDisclaimerError, setLegacyDisclaimerError] = useState<Record<string, boolean>>({});
+  // ✅ FIX (2026-08-31 — Task 13 "do not repeat the disclaimer on every
+  // step"): legacyDisclaimerChecked/legacyDisclaimerError used to gate a
+  // second, stale-worded copy of the offering disclaimer shown on every
+  // single card in the grid — on top of the correctly-relocated one already
+  // shown once inside the Sankalpa Portal below. Since handleBuyNow() always
+  // opens that Portal (and always resets its own disclaimer checkbox), the
+  // per-card copy was pure duplicate friction: check the box on the card,
+  // click "Buy Now"/"Book Seva", then check the SAME thing again in the
+  // portal before it would let you submit. Removed — see the deleted
+  // per-card disclaimer block a few lines below for the fuller note.
 
   // Sankalpa Portal (step 1) state
   const [showSankalpa, setShowSankalpa] = useState(false);
@@ -647,23 +655,15 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                 {/* Spacer pushes price/CTA to the bottom */}
                 <div className="flex-1" />
 
-                {/* Contribution disclaimer — lives inside this card, right
-                    above its own Buy Now/Book Seva button. */}
-                <div id={`bazaar-legacy-disclaimer-${item.id}`} className="mt-2 pt-3">
-                  <DisclaimerAcknowledge
-                    summary={item.isService
-                      ? "May this seva be a heartfelt expression of your श्रद्धा, lovingly performed according to the sacred traditions of the temple, with each devotee's experience unfolding in its own unique way."
-                      : "This item is dispatched with care after payment confirmation — delivery timelines can vary by location."}
-                    details={BAZAAR_DISCLAIMER}
-                    checked={!!legacyDisclaimerChecked[item.id]}
-                    onCheckedChange={(v) => {
-                      setLegacyDisclaimerChecked((p) => ({ ...p, [item.id]: v }));
-                      if (v) setLegacyDisclaimerError((p) => ({ ...p, [item.id]: false }));
-                    }}
-                    checkboxLabel="I understand and confirm before proceeding."
-                    showRequiredError={!!legacyDisclaimerError[item.id]}
-                  />
-                </div>
+                {/* ✅ FIX (2026-08-31 — Task 13): the per-card offering
+                    disclaimer that used to render here is removed. It
+                    duplicated the Sankalpa Portal's own disclaimer (below,
+                    shown once when the portal opens) with stale wording
+                    that didn't match the required text, and handleBuyNow()
+                    always routes through that Portal before payment anyway
+                    — so this copy was never the thing actually gating a
+                    payment, just extra friction before a devotee even
+                    reached the real one. */}
 
                 {/* Price + CTA
                     ✅ FIX — same price/button collision fix as
@@ -679,14 +679,7 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
                     <span className="text-base font-extrabold text-[#FFB347] font-serif">₹{item.price}</span>
                   </div>
                   <button
-                    onClick={() => {
-                      if (!legacyDisclaimerChecked[item.id]) {
-                        setLegacyDisclaimerError((p) => ({ ...p, [item.id]: true }));
-                        document.getElementById(`bazaar-legacy-disclaimer-${item.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                        return;
-                      }
-                      handleBuyNow(item);
-                    }}
+                    onClick={() => handleBuyNow(item)}
                     className="bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold px-4 py-2.5 rounded-xl text-[12px] tracking-widest uppercase transition-all shadow flex items-center gap-1.5 shrink-0 whitespace-nowrap"
                   >
                     {item.isService
