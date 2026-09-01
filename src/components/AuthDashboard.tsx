@@ -919,6 +919,32 @@ export default function AuthDashboard({
   // and (2) laid out as a proper flex row with its own column instead of
   // position:absolute, so the title can never wrap underneath it again —
   // structurally impossible now, not just visually unlikely.
+  // ✅ ADDED (2026-08-31 — "Booked Ceremonies" title clutter): pujaName is
+  // often a long, fully-descriptive string built at booking time (e.g.
+  // "Veer Raksha Kavach Puja — For Our Armed Forces — Ekal Raksha
+  // Prarthana, Temple Selection: Any Temple, Priest/Expert Selection: Any
+  // experienced priest/expert for this puja") — correct and complete, but
+  // unreadable as a list-card title. Every such string this app builds
+  // uses " — " (em dash) to separate the core name from the elaboration
+  // that follows, so splitting on the FIRST one recovers exactly the
+  // short form asked for ("Veer Raksha Kavach Puja") without needing a
+  // second data field or touching how pujaName is stored/read anywhere
+  // else. Names that never had a " — " in them (already short, e.g.
+  // "Rudrabhishek Puja") pass through unchanged. The full original string
+  // is never discarded — see the expand toggle below, which reveals it in
+  // full when tapped.
+  const getShortTitle = (fullName: string): string => {
+    const idx = fullName.indexOf(" — ");
+    return idx > 0 ? fullName.slice(0, idx).trim() : fullName;
+  };
+  const [expandedBookedItems, setExpandedBookedItems] = useState<Set<string>>(new Set());
+  const toggleBookedItemExpanded = (key: string) => {
+    setExpandedBookedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
   const getPujaIcon = (name: string) => {
     const n = (name || "").toLowerCase();
     if (/raksha|kavach|protection|armed forces|shield/.test(n)) return Shield;
@@ -2163,6 +2189,10 @@ export default function AuthDashboard({
                         cardWidthClassName="w-[clamp(210px,62vw,360px)]"
                         renderItem={(item, idx) => {
                           const PujaIcon = getPujaIcon(item.pujaName);
+                          const shortTitle = getShortTitle(item.pujaName);
+                          const hasMore = shortTitle !== item.pujaName;
+                          const itemKey = `carousel-${idx}`;
+                          const isExpanded = expandedBookedItems.has(itemKey);
                           return (
                           <div
                             id={`booked-item-ledg-${idx}`}
@@ -2172,7 +2202,21 @@ export default function AuthDashboard({
                               <div className="shrink-0 w-9 h-9 rounded-full bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 flex items-center justify-center">
                                 <PujaIcon className="w-4.5 h-4.5 text-[#5EEAD4]" />
                               </div>
-                              <h4 className="font-serif text-sm font-bold text-white flex-1 min-w-0">{item.pujaName}</h4>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-serif text-sm font-bold text-white">{shortTitle}</h4>
+                                {hasMore && (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleBookedItemExpanded(itemKey)}
+                                    className="text-[10px] font-bold text-[#5EEAD4]/70 hover:text-[#5EEAD4] uppercase tracking-wide mt-0.5 cursor-pointer"
+                                  >
+                                    {isExpanded ? "Show less ▲" : "Details ▼"}
+                                  </button>
+                                )}
+                                {hasMore && isExpanded && (
+                                  <p className="text-[11px] text-white/60 mt-1.5 leading-snug">{item.pujaName}</p>
+                                )}
+                              </div>
                             </div>
                             <span className="text-[12px] text-white/50 font-mono font-medium block mt-2">Reference Key: {item.refId} | Date: {item.date}</span>
                             <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
@@ -2193,6 +2237,10 @@ export default function AuthDashboard({
                           {bookedItems.slice(LEDGER_CAROUSEL_COUNT, bookedLedgerVisible).map((item, i) => {
                             const idx = LEDGER_CAROUSEL_COUNT + i;
                             const PujaIcon = getPujaIcon(item.pujaName);
+                            const shortTitle = getShortTitle(item.pujaName);
+                            const hasMore = shortTitle !== item.pujaName;
+                            const itemKey = `list-${idx}`;
+                            const isExpanded = expandedBookedItems.has(itemKey);
                             return (
                               <div
                                 key={idx}
@@ -2203,7 +2251,21 @@ export default function AuthDashboard({
                                   <div className="shrink-0 w-9 h-9 rounded-full bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 flex items-center justify-center">
                                     <PujaIcon className="w-4.5 h-4.5 text-[#5EEAD4]" />
                                   </div>
-                                  <h4 className="font-serif text-sm font-bold text-white flex-1 min-w-0">{item.pujaName}</h4>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-serif text-sm font-bold text-white">{shortTitle}</h4>
+                                    {hasMore && (
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleBookedItemExpanded(itemKey)}
+                                        className="text-[10px] font-bold text-[#5EEAD4]/70 hover:text-[#5EEAD4] uppercase tracking-wide mt-0.5 cursor-pointer"
+                                      >
+                                        {isExpanded ? "Show less ▲" : "Details ▼"}
+                                      </button>
+                                    )}
+                                    {hasMore && isExpanded && (
+                                      <p className="text-[11px] text-white/60 mt-1.5 leading-snug">{item.pujaName}</p>
+                                    )}
+                                  </div>
                                 </div>
                                 <span className="text-[12px] text-white/50 font-mono font-medium block mt-2">Reference Key: {item.refId} | Date: {item.date}</span>
                                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
