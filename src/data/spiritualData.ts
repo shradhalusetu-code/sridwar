@@ -243,7 +243,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     unitPrice: 400,
     unitDurationMinutes: 10,
     duration: "60 minutes",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_3.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/deity_akhandaalamani_1781874203434.jpg"
   },
   {
     id: "puja-wealth-laxmi",
@@ -260,7 +260,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     unitPrice: 665,
     unitDurationMinutes: 10,
     duration: "90 minutes",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/deity_kolhapur_mahalakshmi_1781874711476.jpg"
   },
   {
     id: "puja-protection-sarala",
@@ -294,7 +294,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     unitPrice: 600,
     unitDurationMinutes: 10,
     duration: "45 minutes",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_2.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
   },
   {
     id: "puja-marriage-milani",

@@ -197,7 +197,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         gapClassName="gap-2.5"
         desktopGridClassName="lg:grid-cols-4"
         renderItem={(stat) => (
-          <div className="bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
+          <div className="h-full flex flex-col justify-center bg-[#021816] border border-white/5 rounded-xl p-2.5 text-center">
             <stat.icon className={`w-3.5 h-3.5 ${stat.iconColor} mx-auto mb-1`} />
             <span className={`block text-base font-serif font-black ${stat.valueColor}`}>{stat.value}</span>
             <span className="block text-[11px] text-white/45">{stat.label}</span>
@@ -214,7 +214,7 @@ export default function ReferralDashboardPanel({ userProfile, onOpenLegalDoc }: 
         gapClassName="gap-2"
         desktopGridClassName="lg:grid-cols-3"
         renderItem={(c) => (
-          <div className="bg-[#021816] border border-white/5 rounded-lg p-2 text-center">
+          <div className="h-full flex flex-col justify-center bg-[#021816] border border-white/5 rounded-lg p-2 text-center">
             <span className="block text-sm font-serif font-black text-[#FFB347]">{c.rate}%</span>
             <span className="block text-[10px] text-white/45 uppercase">{c.bookingLabel}</span>
           </div>

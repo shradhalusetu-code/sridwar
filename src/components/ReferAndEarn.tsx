@@ -35,25 +35,36 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-          <div className="text-left space-y-2 md:flex-1 min-w-0">
+        <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6 mb-8">
+          <div className="text-left space-y-2 xl:flex-1 min-w-0">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Dharmic referral & cashback ecosystem</span>
-            {/* ✅ TABLET/LANDSCAPE FIX: this jumped straight from text-3xl to
-                text-4xl at the `sm:` breakpoint (640px) and stayed at
-                text-4xl all the way through tablet/landscape widths too —
-                but `md:flex-row` (768px+) is exactly where this heading
-                starts sharing its row with the two CTA buttons instead of
-                stacking above them. At text-4xl in that narrower shared
-                row, the heading wrapped awkwardly and crowded the buttons
-                on tablet/landscape widths. Stepping back down to text-3xl
-                for the `md:` row-sharing range and only growing to
-                text-4xl at `lg:` (1024px+, where there's real width to
-                spare) keeps the heading proportional to the space it
-                actually has at every width. */}
+            {/* ✅ TABLET/LANDSCAPE WRAP FIX (2026-09-03): the previous version
+                shared this row with the two CTA buttons starting at `md:`
+                (768px) — exactly the width band real tablets land in when
+                held landscape. Splitting a ~1200px-ish tablet row between a
+                flex-1 text column and two fixed-width pill buttons left the
+                heading/paragraph only ~750-800px to work with, so "Refer,
+                Earn & Grow with Dharma" and the intro sentence wrapped
+                awkwardly even though the full tablet width was sitting
+                right there unused to the buttons' right.
+                Moving the row-share to `xl:` (1280px) instead means every
+                tablet width — landscape included — now gets the text block
+                as its own full-width row (buttons stack below), which is
+                comfortably enough room for the heading to sit on one line
+                and the intro paragraph to wrap far less. Only genuinely
+                wide desktop/laptop viewports (1280px+) still get the
+                side-by-side layout, which matches the "fix desktop
+                wrapping, don't touch tablet" instruction better than the
+                old `md:` breakpoint did — `md:` was never really "desktop,"
+                it was tablet-landscape width. text-4xl now applies for the
+                whole `lg:`+ range while still stacked (1024-1279px), which
+                is exactly where the old text-3xl compromise was papering
+                over the squeeze; no crowding risk there since buttons are
+                on their own row below until `xl:`. */}
             <h2 className="text-3xl lg:text-4xl font-serif font-black text-white tracking-tight">
               Refer, Earn & Grow with Dharma
             </h2>
-            <p className="text-sm text-white/70 max-w-2xl">
+            <p className="text-sm text-white/70">
               Invite the people in your life to Sri Dwar using your unique Dharmic ID. Every genuine booking they make stays
               linked to you, and earns you cashback up to their 8th successful booking.
             </p>
@@ -63,7 +74,7 @@ export default function ReferAndEarn({ onNavigate }: ReferAndEarnProps) {
                 eligibility, milestone rewards) undiscoverable unless a
                 devotee already knew to open the Plans page. One honest,
                 short line here — full detail stays on the Plans page. */}
-            <p className="text-[13px] text-white/50 max-w-2xl">
+            <p className="text-[13px] text-white/50">
               Your own contributions count too — as little as ₹5 makes you eligible for seasonal campaigns, ₹50+ starts earning cashback and milestone progress, and ₹100+ adds eligibility toward pilgrimage-related opportunities.
             </p>
           </div>

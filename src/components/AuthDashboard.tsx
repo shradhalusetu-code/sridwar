@@ -2237,7 +2237,7 @@ export default function AuthDashboard({
                           return (
                           <div
                             id={`booked-item-ledg-${idx}`}
-                            className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left overflow-hidden"
+                            className="h-full flex flex-col bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left overflow-hidden"
                           >
                             <div className="flex items-start gap-3">
                               <div className="shrink-0 w-9 h-9 rounded-full bg-[#5EEAD4]/10 border border-[#5EEAD4]/20 flex items-center justify-center">
@@ -2260,7 +2260,18 @@ export default function AuthDashboard({
                               </div>
                             </div>
                             <span className="text-[12px] text-white/50 font-mono font-medium block mt-2">Reference Key: {item.refId} | Date: {item.date}</span>
-                            <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                            {/* ✅ CARD-HEIGHT FIX: this card's own box (bg/border/rounded)
+                                previously had no h-full, so even though MobileCarousel's
+                                wrapper stretched to the tallest sibling, this visible box
+                                still only grew to its own content height — leaving shorter
+                                cards visibly shorter than a card with "Details" expanded.
+                                h-full + flex-col on the root, plus mt-auto here (replacing
+                                the old fixed mt-3) instead of a fixed top margin, lets any
+                                leftover stretched space collect above this footer so every
+                                card's footer lands at the same bottom edge — matching the
+                                same anchor-to-bottom pattern already used elsewhere in this
+                                codebase (see ReferralPlans.tsx's "Explore" button). */}
+                            <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5 text-xs">
                               <span className="font-bold text-[#FFB347]">Paid: ₹{item.price}</span>
                               <span className="bg-[#FFB347]/10 text-[#FFB347] border border-[#FFB347]/20 px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase animate-pulse">
                                 Sankalpa Scheduled

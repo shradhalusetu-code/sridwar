@@ -1466,7 +1466,7 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">🪔</span>
             <span className="min-w-0">
-              <p className="text-[13px] font-bold text-[#FFB347] leading-snug truncate">Register Local Pujari / Pandit</p>
+              <p className="text-[13px] font-bold text-[#FFB347] leading-snug truncate">Local Pujari / Pandit</p>
               <p className="text-[11px] text-white/40 truncate">Tap to fill the form</p>
             </span>
           </button>
@@ -1478,7 +1478,7 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">🧘</span>
             <span className="min-w-0">
-              <p className="text-[13px] font-bold text-[#5EEAD4] leading-snug truncate">Register Guru / Sant / Sadhu</p>
+              <p className="text-[13px] font-bold text-[#5EEAD4] leading-snug truncate">Guru / Sant / Sadhu</p>
               <p className="text-[11px] text-white/40 truncate">Tap to fill the form</p>
             </span>
           </button>
@@ -1490,7 +1490,7 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">📿</span>
             <span className="min-w-0">
-              <p className="text-[13px] font-bold text-white/70 leading-snug truncate">Register Dharmic Expert</p>
+              <p className="text-[13px] font-bold text-white/70 leading-snug truncate">Dharmic Expert</p>
               <p className="text-[11px] text-white/40 truncate">Jyotish, Vastu, Scholar…</p>
             </span>
           </button>
@@ -1502,7 +1502,7 @@ function DharmicExpertSection() {
           >
             <span className="text-lg shrink-0">🙏</span>
             <span className="min-w-0">
-              <p className="text-[13px] font-bold text-[#FFB347] leading-snug truncate">Register as Devotee</p>
+              <p className="text-[13px] font-bold text-[#FFB347] leading-snug truncate">Devotee</p>
               <p className="text-[11px] text-white/40 truncate">Pujas, prasad, darshan &amp; more</p>
             </span>
           </button>
@@ -3472,7 +3472,7 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
 
               {dropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-[#051F1A] border border-white/12 rounded-2xl shadow-2xl z-50 max-h-64 overflow-y-auto">
-                  {filtered.length > 0 ? (
+                  {searchQuery.trim().length > 0 && filtered.length > 0 ? (
                     <>
                       {filtered.map(t => (
                         <button
@@ -3532,27 +3532,39 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => {
-                  if (!selectedTemple) { alert("Please select or enter a temple / puja committee first."); return; }
-                  if (isNewTemple) { setStep("temple-reg"); } else { setStep("portal"); }
-                }}
-                className="flex-1 bg-gradient-to-r from-[#FFB347] to-[#FF9933] hover:from-[#F27D26] hover:to-[#E8851A] text-[#021816] font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm shadow-lg shadow-[#FFB347]/20"
-              >
-                <Heart className="w-4 h-4" /><span>Register as Devotee</span>
-              </button>
-              <button
-                onClick={() => setStep("temple-reg")}
-                className="flex-1 sm:flex-none bg-white/5 hover:bg-white/10 border border-white/15 hover:border-white/25 text-white font-semibold py-3.5 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all cursor-pointer text-sm"
-              >
-                <Building2 className="w-4 h-4 text-[#5EEAD4]" /><span>Register My Temple</span>
-              </button>
+            {/* ✅ "Register My Temple" replaced with these 5 type-specific
+                buttons per request. Each opens the exact same temple-reg
+                form/flow (setStep("temple-reg")) — same Google Forms +
+                Supabase sync on submit, nothing about the submission path
+                changed, only how the entry point is labeled.
+                ✅ Removed the "Register as Devotee" button that used to sit
+                here — it was a duplicate of the "Devotee" card already in
+                the Find & Register Dharmic Expert section above. */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-white/50 uppercase tracking-wider font-mono">
+                Register Your Temple / Committee
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {["Native Temple", "City Temple", "Puja Mandal", "Puja Committees", "Other Hindu Society"].map(label => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setStep("temple-reg")}
+                    className="bg-white/5 hover:bg-white/10 border border-white/15 hover:border-white/25 text-white font-semibold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer text-sm text-center"
+                  >
+                    <Building2 className="w-4 h-4 text-[#5EEAD4] shrink-0" /><span>{label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
+              {/* ✅ "32+ Temples Listed" badge removed per request — the other
+                  3 trust badges (Free Registration, Securely managed,
+                  Dharmic ID) are unchanged. TEMPLES_LIST itself is still
+                  imported/used above for the search dropdown — only this
+                  count badge was removed. */}
               {[
-                { icon: "🏛️", label: `${TEMPLES_LIST.length}+ Temples Listed` },
                 { icon: "🆓", label: "Free Registration" },
                 { icon: "🔒", label: "Securely managed by Sridwar Technology" },
                 { icon: "🪪", label: "Dharmic ID" },

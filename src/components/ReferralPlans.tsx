@@ -623,31 +623,34 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
           {/* Mobile/app: horizontal snap carousel — matches the Seva
               Offerings / Bazaar Offerings carousel pattern. Desktop (lg+):
               unchanged 5-column grid.
-              ✅ HEIGHT-MISMATCH FIX v2 (Diya Circle vs Kalash Circle):
-              the previous attempt dropped `h-full [&>*]:h-full` in favor of
-              plain flex-grow (`flex flex-col` wrapper + `flex-1` on
-              PlanTierCard's own root) on a theory that percentage-height
-              was the weak link on Android WebView. In practice this is the
-              ONE carousel in the whole app that stopped matching the
-              wrapper pattern every other carousel here uses successfully
-              (Temple Bazaar, Seva Offerings, Priest cards, Sacred
-              Resources, Report Temple Issues, etc. — all `h-full
-              [&>*]:h-full`), and it's exactly this carousel that kept
-              showing the mismatch — so the deviation, not percentage
-              height, looks like the actual cause. Fix: restored the same
-              `h-full [&>*]:h-full` wrapper every other carousel uses (the
-              outer track's `items-stretch` gives this wrapper a real,
-              already-resolved pixel height before `h-full` is ever read,
-              so there's no unresolved-percentage step here), and kept
-              `flex-1` on PlanTierCard's own root as a second, independent
-              mechanism on top of it — so the card fills its wrapper by
-              construction whichever mechanism is doing the work. */}
+              ✅ HEIGHT-MISMATCH FIX v3 (Diya Circle vs Kalash Circle) —
+              supersedes the v2 note that used to be here. v2 restored
+              `h-full [&>*]:h-full` on the theory that this track was the
+              one deviating from every other carousel's working pattern.
+              That theory has since been directly disproven in
+              shared/MobileCarousel.tsx (2026-09-01/02, verified with real
+              rendered measurements): `h-full` on a wrapper whose parent
+              track has no explicit height (auto, sized to `w-max` +
+              `overflow-x-auto`) creates a percentage-of-auto-height
+              container, which is self-referential/indeterminate — browsers
+              resolve it by falling back to each item's own natural content
+              height, silently defeating `items-stretch`, which is already
+              the complete, correct fix on its own. This track was never
+              migrated to match that finding after PlanTierCard's own
+              `flex-1` root was added, so it was carrying BOTH the
+              currently-correct mechanism (items-stretch + flex-1) AND the
+              disproven one (h-full) at the same time — the second one
+              actively undoing the first. Removed `h-full [&>*]:h-full`
+              here so this track matches shared/MobileCarousel.tsx's
+              verified-correct pattern; `flex-1` on PlanTierCard's root
+              (unchanged) is what actually fills the now-correctly-resolved
+              stretched height. */}
           <div className="lg:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-3 w-max pt-4 pb-1 items-stretch">
               {activeTiers.map((tier, index) => {
                 const qualifiedCount = activeCategory === "devotee" ? devoteeEngagementScore : qualifiedReferredDevoteeCount;
                 return (
-                  <div key={tier.id} className="snap-start shrink-0 h-full [&>*]:h-full flex flex-col w-[clamp(210px,62vw,360px)]">
+                  <div key={tier.id} className="snap-start shrink-0 flex flex-col w-[clamp(210px,62vw,360px)]">
                     <PlanTierCard
                       tier={tier}
                       billing={billing}
@@ -699,11 +702,15 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
           {/* Mobile/app: horizontal snap carousel — same Temple Bazaar top-6
               pattern used across the site, so all 3 cashback tier cards
               render at a fixed uniform width/height. Desktop (lg+):
-              unchanged 3-column grid. */}
+              unchanged 3-column grid.
+              ✅ Same h-full [&>*]:h-full removal as the tier carousel above
+              — CashbackTierCard already carries its own `flex flex-col
+              h-full`, so `items-stretch` on the track alone is sufficient
+              (see shared/MobileCarousel.tsx). */}
           <div className="sm:hidden -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex gap-3 w-max pt-4 pb-1 items-stretch">
               {COMMISSION_STRUCTURE.map((tier) => (
-                <div key={tier.bookingLabel} className="snap-start shrink-0 h-full [&>*]:h-full w-[clamp(170px,52vw,300px)]">
+                <div key={tier.bookingLabel} className="snap-start shrink-0 w-[clamp(170px,52vw,300px)]">
                   <CashbackTierCard tier={tier} />
                 </div>
               ))}
@@ -711,7 +718,7 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
           </div>
           <div className="hidden sm:grid grid-cols-3 gap-3 items-stretch">
             {COMMISSION_STRUCTURE.map((tier) => (
-              <div key={tier.bookingLabel} className="h-full [&>*]:h-full">
+              <div key={tier.bookingLabel}>
                 <CashbackTierCard tier={tier} />
               </div>
             ))}

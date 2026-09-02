@@ -2264,7 +2264,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                     cardWidthClassName="w-[clamp(240px,72vw,420px)]"
                     renderItem={(puja) => {
                       return (
-                        <div id={`puja-row-${puja.id}`}>
+                        <div id={`puja-row-${puja.id}`} className="h-full flex flex-col">
                           <PujaCategoryCard
                             puja={puja}
                             isDetailsOpen={isPujaDetailsOpen(puja.id)}
@@ -2358,7 +2358,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                   cardWidthClassName="w-[clamp(240px,72vw,420px)]"
                   renderItem={(puja) => {
                     return (
-                      <div id={`puja-row-${puja.id}`}>
+                      <div id={`puja-row-${puja.id}`} className="h-full flex flex-col">
                         <PujaCategoryCard
                           puja={puja}
                           isDetailsOpen={isPujaDetailsOpen(puja.id)}
