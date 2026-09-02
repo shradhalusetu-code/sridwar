@@ -221,45 +221,130 @@ export function StoneEngravingHomeSection({ onNavigate }: StoneEngravingHomeSect
           50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
         }
       `}</style>
-      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-        {/* ✅ IMAGE-VISIBILITY FIX (2026-08-27): given an explicit,
-            generous fixed height (independent of how tall the text column
-            next to it happens to be, especially now that the text
-            collapses by default) so it reads as a large, prominent,
-            section-cover-style image rather than shrinking to match a
-            short collapsed teaser. Left-center title placement (below)
-            already sits to the left of this image on desktop via the
-            order classes, with the whole row vertically centered by the
-            grid's `items-center`. */}
-        {/* ✅ FIX (2026-09-02 — reported: image cropped, information not
-            fully visible): this container's fixed aspect-[4/3] (mobile)
-            and fixed h-[420px] (desktop) never matched Your_Name.jpg's
-            real 3:2 proportions (1536×1024) — object-cover was cropping
-            the sides/top-bottom to force-fill that mismatched box, cutting
-            off part of the actual engraved-stone photo. Switched to
-            object-contain (the whole image always fits inside the box,
-            nothing cropped) with a background fill so any resulting
-            letterbox space reads as an intentional mat around the photo,
-            not a layout gap. */}
-        <div className="order-1 md:order-2 rounded-3xl overflow-hidden border border-white/10 shadow-2xl aspect-[4/3] md:aspect-auto md:h-[420px] bg-[#042825]">
-          {/* ✅ HOMEPAGE IMAGE SWAP: this section now uses yourNameImg
-              (Your_Name.jpg/.webp) instead of the shared stoneEngravingImg.
-              Every other <StoneEngravingNote> instance elsewhere in the app
-              (Contact, Auth Dashboard, Report an Issue, UPI Payment Modal,
-              Diya Circle, etc.) is untouched and still renders
-              stoneEngravingImg below. */}
+      {/* ✅ REDESIGNED (2026-09-02 — reported: letterbox bars look wrong;
+          wanted full-bleed like the Hero video section's background, with
+          info overlaid, but Shiva/grandmother/child/stone-wall text must
+          all stay visible): switched from a 2-column (text-left,
+          boxed-image-right) layout to a single full-width, full-bleed
+          image — same absolute-fill object-cover pattern Hero.tsx already
+          uses for its own background (`absolute inset-0 w-full h-full
+          object-cover`), not object-contain.
+          This image's real content genuinely spans nearly its entire
+          1536×1024 frame — Shiva sits at the far left (~x=150), the
+          engraved stone wall runs to the far right edge (~x=1536) — so
+          there is very little safe horizontal margin to crop. aspect-[3/2]
+          (mobile) up to aspect-[2/1] (desktop) stays close enough to the
+          image's own native 3:2 ratio that cropping only ever trims a
+          sliver of empty sky at the top and decorative ground at the
+          bottom — never the statue, the grandmother, the child, or any of
+          the engraved names. Verified by rendering this and visually
+          confirming all four are intact (see delivery notes).
+          The CTA is overlaid in a bottom gradient scrim — the one part of
+          the photo that's genuinely empty (stone pathway), so it never
+          sits on top of a face or a name. The fuller heading/shloka/
+          paragraph text moved BELOW the image instead of overlaid on it —
+          overlaying that much text across the image would have meant
+          darkening enough of it to make Shiva/the grandmother/the names
+          hard to see again, the exact problem being fixed. */}
+      <div className="max-w-5xl mx-auto">
+        <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl aspect-[3/2]">
           <OptimizedImage
             src={yourNameImg}
             webpSrc={yourNameImgWebp}
             alt={HOME_ALT_TEXT}
             loading="lazy"
-            className="w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
           />
+          {/* ✅ FIX (same-session correction, 2nd pass): at mobile widths
+              this image renders quite short in absolute pixels (aspect-3/2
+              genuinely shows the whole photo, verified — but a 390px-wide
+              screen only gets ~260px of height for it), so the same small
+              overlay that worked fine on desktop (verified: Shiva,
+              grandmother, child, and all three names fully visible) ended
+              up covering most of that short strip — hiding the
+              grandmother/child/names behind the text panel entirely.
+              Overlay now only appears from sm: (≥640px) up, where the
+              image is tall enough in real pixels for it to sit in the
+              empty pathway area without covering anyone. On mobile the
+              heading/CTA sit in their own block BELOW the now-uncovered,
+              fully visible image instead. */}
+          <div className="hidden sm:block absolute inset-x-0 bottom-0 h-[16%] bg-gradient-to-t from-black/90 to-transparent" />
+          <div className="hidden sm:flex absolute inset-x-0 bottom-0 p-4 sm:p-5 flex-row items-end justify-between gap-2">
+            <div>
+              <h2 className="font-serif text-base sm:text-xl font-bold text-white drop-shadow-lg">
+                Your Name, Engraved in Stone
+              </h2>
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                aria-expanded={expanded}
+                className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#FFD700] hover:text-[#FFE55C] transition-colors mt-0.5"
+              >
+                {expanded ? "Show less" : "Read the full details"}
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+            {onNavigate && (
+              <button
+                type="button"
+                id="stone-engraving-cta"
+                onClick={() => onNavigate("contact", "stone-name-engraving")}
+                className="relative shrink-0 inline-flex items-center justify-center bg-gradient-to-r from-[#B8860B] to-[#FFD700] hover:from-[#CD9B1D] hover:to-[#FFE55C] text-[#021816] font-extrabold py-2.5 px-4 rounded-xl text-[10px] sm:text-[11px] transition-all hover:scale-105 tracking-widest uppercase border border-[#FFD700]/70 cursor-pointer"
+                style={{
+                  boxShadow: "0 0 20px rgba(255, 215, 0, 0.45), 0 0 40px rgba(184, 134, 11, 0.25)",
+                  animation: "stoneCtaPulse 2s ease-in-out infinite",
+                }}
+              >
+                <span
+                  className="absolute inset-0 rounded-xl pointer-events-none"
+                  style={{ animation: "stoneCtaRing 2s ease-in-out infinite" }}
+                  aria-hidden="true"
+                />
+                Add Your Name to the Sacred Wall
+              </button>
+            )}
+          </div>
         </div>
-        <div className="space-y-4 text-white text-left order-2 md:order-1">
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold">
-            Your Name, Engraved in Stone
-          </h2>
+
+        {/* Mobile-only: same heading/CTA, below the (now fully visible,
+            uncovered) image instead of overlaid on it. */}
+        <div className="sm:hidden mt-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-serif text-lg font-bold text-white">
+              Your Name, Engraved in Stone
+            </h2>
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#FFB347] hover:text-[#FFC97A] transition-colors mt-0.5"
+            >
+              {expanded ? "Show less" : "Read the full details"}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+        </div>
+        {onNavigate && (
+          <button
+            type="button"
+            id="stone-engraving-cta-mobile"
+            onClick={() => onNavigate("contact", "stone-name-engraving")}
+            className="sm:hidden relative w-full mt-3 inline-flex items-center justify-center bg-gradient-to-r from-[#B8860B] to-[#FFD700] hover:from-[#CD9B1D] hover:to-[#FFE55C] text-[#021816] font-extrabold py-3.5 rounded-xl text-xs transition-all tracking-widest uppercase border border-[#FFD700]/70 cursor-pointer"
+            style={{
+              boxShadow: "0 0 20px rgba(255, 215, 0, 0.45), 0 0 40px rgba(184, 134, 11, 0.25)",
+              animation: "stoneCtaPulse 2s ease-in-out infinite",
+            }}
+          >
+            <span
+              className="absolute inset-0 rounded-xl pointer-events-none"
+              style={{ animation: "stoneCtaRing 2s ease-in-out infinite" }}
+              aria-hidden="true"
+            />
+            Add Your Name to the Sacred Wall
+          </button>
+        )}
+
+        <div className="mt-6 space-y-4 text-white text-left max-w-2xl mx-auto text-center sm:text-left">
           <blockquote className="border-l-2 border-[#FFB347]/50 pl-4 italic">
             <p className="text-white/80 text-base sm:text-lg">परोपकाराय सतां विभूतयः</p>
             <p className="text-[13px] text-white/50 not-italic mt-1">
@@ -270,41 +355,6 @@ export function StoneEngravingHomeSection({ onNavigate }: StoneEngravingHomeSect
           <p className="text-sm text-white/70 leading-relaxed">
             A devotee's name can become a quiet, lasting part of a temple's story — through this ongoing Seva, your name can find a lasting home in stone.
           </p>
-
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            aria-expanded={expanded}
-            className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#FFB347] hover:text-[#FFC97A] transition-colors"
-          >
-            {expanded ? "Show less" : "Read the full details"}
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
-          </button>
-
-          {/* Prominent CTA — same visual weight as "BOOK RITES NOW" /
-              "PRIEST DIRECTORY" under Featured Temple Experience, in a
-              gold/bronze palette that fits this section's stone-and-gold
-              theme. Routes to the Devotee Registration & Support form
-              with the matching Inquiry Type pre-selected. */}
-          {onNavigate && (
-            <button
-              type="button"
-              id="stone-engraving-cta"
-              onClick={() => onNavigate("contact", "stone-name-engraving")}
-              className="relative inline-flex w-full sm:w-auto items-center justify-center bg-gradient-to-r from-[#B8860B] to-[#FFD700] hover:from-[#CD9B1D] hover:to-[#FFE55C] text-[#021816] font-extrabold py-3.5 px-6 rounded-xl text-xs transition-all hover:scale-105 tracking-widest uppercase border border-[#FFD700]/70 cursor-pointer"
-              style={{
-                boxShadow: "0 0 20px rgba(255, 215, 0, 0.45), 0 0 40px rgba(184, 134, 11, 0.25)",
-                animation: "stoneCtaPulse 2s ease-in-out infinite",
-              }}
-            >
-              <span
-                className="absolute inset-0 rounded-xl pointer-events-none"
-                style={{ animation: "stoneCtaRing 2s ease-in-out infinite" }}
-                aria-hidden="true"
-              />
-              Add Your Name to the Sacred Wall
-            </button>
-          )}
 
           {expanded && (
             <p className="text-sm text-white/70 leading-relaxed animate-slideUp">
