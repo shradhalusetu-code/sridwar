@@ -155,12 +155,21 @@ export default function StoneEngravingNote({
           Issue, Hero, UPI Payment Modal, Diya Circle) instead of a fixed
           pixel box. `max-h` caps it on very wide cards so it still reads as
           a proportioned photo rather than an oversized banner. */}
+      {/* ✅ FIX (2026-09-02 — reported: image cropped, information not
+          fully visible): forcing a 16:9 box via aspect-[16/9] never matched
+          this image's real 3:2 proportions, so object-cover was cropping
+          it to fill that mismatched shape. Removed the forced aspect ratio
+          entirely — h-auto lets the image display at its own true
+          proportions (full width, no cropping possible), with max-h-72
+          kept only as a safety cap on very wide cards. object-contain is
+          now redundant once nothing forces a mismatched box, but kept as
+          a harmless safety net. */}
       <OptimizedImage
         src={stoneEngravingImg}
         webpSrc={stoneEngravingImgWebp}
         alt={ALT_TEXT}
         loading="lazy"
-        className="block w-full aspect-[16/9] max-h-72 rounded-xl object-cover border border-white/10"
+        className="block w-full h-auto max-h-72 rounded-xl object-contain border border-white/10"
       />
     </div>
   );
@@ -178,12 +187,40 @@ export default function StoneEngravingNote({
  * one-line teaser show by default; the complete explanation (with the
  * repeat-participation note) is tucked behind a "Read the full details"
  * toggle.
+ *
+ * ✅ ADDED — "Add Your Name to the Sacred Wall" CTA (directly below the
+ * "Read the full details" toggle): takes the devotee straight to the
+ * Devotee Registration & Support form (ContactUs.tsx) with its Inquiry
+ * Type pre-set to the matching "Place Your Name in Divine Presence"
+ * option, via the same onNavigate(page, offeringId) pattern already used
+ * elsewhere in App.tsx (see HomeCarousel / OnlinePuja's
+ * initialHighlightId). `onNavigate` is optional so this component still
+ * renders safely if a future caller omits it — the CTA simply won't show.
  */
-export function StoneEngravingHomeSection() {
+interface StoneEngravingHomeSectionProps {
+  onNavigate?: (page: string, offeringId?: string) => void;
+}
+
+export function StoneEngravingHomeSection({ onNavigate }: StoneEngravingHomeSectionProps = {}) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <section className="bg-[#021816] py-14 sm:py-20 px-4 sm:px-6 border-y border-white/5">
+      {/* Keyframes for the "Add Your Name to the Sacred Wall" CTA glow —
+          same pop-style treatment as TempleExperience.tsx's "BOOK RITES
+          NOW" / "PRIEST DIRECTORY" buttons, in a distinct gold/bronze
+          palette (rather than reusing their orange/teal) so this reads as
+          its own devotional moment rather than a duplicate booking CTA. */}
+      <style>{`
+        @keyframes stoneCtaPulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.45), 0 0 40px rgba(184,134,11,0.25); transform: scale(1); }
+          50%       { box-shadow: 0 0 32px rgba(255,215,0,0.75), 0 0 64px rgba(184,134,11,0.4); transform: scale(1.02); }
+        }
+        @keyframes stoneCtaRing {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); }
+          50%       { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); }
+        }
+      `}</style>
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center">
         {/* ✅ IMAGE-VISIBILITY FIX (2026-08-27): given an explicit,
             generous fixed height (independent of how tall the text column
@@ -194,7 +231,17 @@ export function StoneEngravingHomeSection() {
             already sits to the left of this image on desktop via the
             order classes, with the whole row vertically centered by the
             grid's `items-center`. */}
-        <div className="order-1 md:order-2 rounded-3xl overflow-hidden border border-white/10 shadow-2xl aspect-[4/3] md:aspect-auto md:h-[420px]">
+        {/* ✅ FIX (2026-09-02 — reported: image cropped, information not
+            fully visible): this container's fixed aspect-[4/3] (mobile)
+            and fixed h-[420px] (desktop) never matched Your_Name.jpg's
+            real 3:2 proportions (1536×1024) — object-cover was cropping
+            the sides/top-bottom to force-fill that mismatched box, cutting
+            off part of the actual engraved-stone photo. Switched to
+            object-contain (the whole image always fits inside the box,
+            nothing cropped) with a background fill so any resulting
+            letterbox space reads as an intentional mat around the photo,
+            not a layout gap. */}
+        <div className="order-1 md:order-2 rounded-3xl overflow-hidden border border-white/10 shadow-2xl aspect-[4/3] md:aspect-auto md:h-[420px] bg-[#042825]">
           {/* ✅ HOMEPAGE IMAGE SWAP: this section now uses yourNameImg
               (Your_Name.jpg/.webp) instead of the shared stoneEngravingImg.
               Every other <StoneEngravingNote> instance elsewhere in the app
@@ -206,7 +253,7 @@ export function StoneEngravingHomeSection() {
             webpSrc={yourNameImgWebp}
             alt={HOME_ALT_TEXT}
             loading="lazy"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
         </div>
         <div className="space-y-4 text-white text-left order-2 md:order-1">
@@ -233,6 +280,31 @@ export function StoneEngravingHomeSection() {
             {expanded ? "Show less" : "Read the full details"}
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
           </button>
+
+          {/* Prominent CTA — same visual weight as "BOOK RITES NOW" /
+              "PRIEST DIRECTORY" under Featured Temple Experience, in a
+              gold/bronze palette that fits this section's stone-and-gold
+              theme. Routes to the Devotee Registration & Support form
+              with the matching Inquiry Type pre-selected. */}
+          {onNavigate && (
+            <button
+              type="button"
+              id="stone-engraving-cta"
+              onClick={() => onNavigate("contact", "stone-name-engraving")}
+              className="relative inline-flex w-full sm:w-auto items-center justify-center bg-gradient-to-r from-[#B8860B] to-[#FFD700] hover:from-[#CD9B1D] hover:to-[#FFE55C] text-[#021816] font-extrabold py-3.5 px-6 rounded-xl text-xs transition-all hover:scale-105 tracking-widest uppercase border border-[#FFD700]/70 cursor-pointer"
+              style={{
+                boxShadow: "0 0 20px rgba(255, 215, 0, 0.45), 0 0 40px rgba(184, 134, 11, 0.25)",
+                animation: "stoneCtaPulse 2s ease-in-out infinite",
+              }}
+            >
+              <span
+                className="absolute inset-0 rounded-xl pointer-events-none"
+                style={{ animation: "stoneCtaRing 2s ease-in-out infinite" }}
+                aria-hidden="true"
+              />
+              Add Your Name to the Sacred Wall
+            </button>
+          )}
 
           {expanded && (
             <p className="text-sm text-white/70 leading-relaxed animate-slideUp">

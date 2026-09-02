@@ -225,11 +225,24 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">
             {product.isService ? <Flame className="w-4 h-4 text-orange-500" fill="currentColor" /> : <ShoppingBag className="w-4 h-4 text-[#5EEAD4]" />}
           </div>
-          <h4 className="text-lg font-serif font-bold text-white">{product.title}</h4>
+          {/* min-w-0 lets this flex item shrink below its text's natural
+              width — without it, line-clamp-2 has no effect: the h4 would
+              refuse to shrink/wrap inside the flex row and could instead
+              push the card wider or overflow, exactly like the fix already
+              relied on in SevaOfferingCard.tsx's clamped title. */}
+          <h4 className="text-lg font-serif font-bold text-white line-clamp-2 min-w-0">{product.title}</h4>
         </div>
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        {/* Badges — min-h reserves space for 2 wrapped rows so a 1-badge
+            product (e.g. "Digital Confirmation") and a 2-badge product
+            (e.g. "Temple Offering Available" + "Digital Confirmation")
+            take up the same vertical space in this section, whether or
+            not the 2-badge combination actually wraps to a second line at
+            the current card width. Without this, badge count (1 vs 2 in
+            data/bazaarOfferings.ts) was a second, independent source of
+            uneven card heights alongside the unclamped title/description
+            below. */}
+        <div className="flex flex-wrap gap-1.5 mb-3 min-h-[3.25rem]">
           {product.badges.map((b) => (
             <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[11px] text-white/55">
               <BadgeCheck className="w-2.5 h-2.5 text-[#5EEAD4]" /><span>{b}</span>
@@ -237,7 +250,7 @@ export default function BazaarOfferingCard({ product, isActive, onActivate, onOf
           ))}
         </div>
 
-        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{activeDescription}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3 line-clamp-3">{activeDescription}</p>
 
         {justAdded && (
           <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">

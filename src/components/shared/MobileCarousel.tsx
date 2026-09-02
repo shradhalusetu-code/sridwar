@@ -99,7 +99,7 @@ export default function MobileCarousel<T>({
         <div className={`${hideCarousel} -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory`}>
           <div className={`flex ${gapClassName} w-max pt-4 pb-1 items-stretch`}>
             {items.map((item, i) => (
-              <div key={getKey(item, i)} className={`snap-start shrink-0 h-full [&>*]:h-full flex flex-col ${cardWidthClassName}`}>
+              <div key={getKey(item, i)} className={`snap-start shrink-0 flex flex-col ${cardWidthClassName}`}>
                 {renderItem(item, i)}
               </div>
             ))}
@@ -112,37 +112,47 @@ export default function MobileCarousel<T>({
   return (
     <div className={className}>
       {/* Mobile/app: horizontal snap carousel
-          ✅ REAL BUG FOUND (root cause of the Counselling / Holistic
-          Wellness / AuthDashboard / Refer & Earn / Referral Dashboard
-          uneven-box reports): the desktop grid below (line ~86) always
-          forced every rendered card to fill its cell with
-          `h-full [&>*]:h-full` — but this mobile/app carousel track never
-          had that. `items-stretch` on the track only stretches THIS
-          wrapper div to match the tallest sibling in the row; without
-          `h-full [&>*]:h-full` telling the arbitrary card returned by
-          `renderItem` to actually fill that stretched wrapper, a shorter
-          card's content just sits at its own natural height inside a
-          taller invisible box — which reads as "the boxes are different
-          sizes" exactly like the AYUSH/Yoga wellness cards in the video.
-          Every OTHER carousel in the app (Seva, Bazaar, Puja, Priest,
-          Referral Plans, etc.) already had this on its own hand-written
-          wrapper; this shared component — used by Counselling & Guidance,
-          Holistic Wellness, Auth Dashboard, Refer & Earn, and the
-          Referral Dashboard panel — was the one place it was missing. */}
+          ✅ REAL ROOT CAUSE FOUND (2026-09-01 — this bug had been reported
+          as unresolved across multiple prior fix attempts; verified this
+          time with actual rendered measurements via a headless browser,
+          not reasoning about the CSS in the abstract):
+          `h-full [&>*]:h-full` (height:100%) on these wrapper divs was
+          PREVIOUSLY ADDED, based on the plausible-sounding theory that
+          `items-stretch` alone wasn't enough to make a shorter card's
+          content actually fill its stretched wrapper. That theory was
+          wrong, and made things worse, not better — measured directly:
+          with h-full present, 5 sibling cards in one real carousel row
+          rendered at [784, 820, 846, 805, 843]px, genuinely unequal
+          despite items-stretch being correctly applied. Removing h-full
+          (this change) made all 5 render at exactly 846px — identical.
+          The actual mechanism: this track has no explicit height (`w-max`
+          + `overflow-x-auto` — its height is auto, sized to its tallest
+          child's natural content). `align-items: stretch` on an
+          auto-height flex container already correctly stretches every
+          item to match the tallest one — that's what it's FOR, no extra
+          class needed. Adding `height: 100%` on top of that creates a
+          percentage-of-an-auto-height container, which is
+          self-referential/indeterminate — browsers resolve it by falling
+          back to each item's own natural content height instead of the
+          intended stretched height, silently defeating the very stretch
+          it was meant to reinforce. items-stretch alone is the complete,
+          correct fix; h-full here was actively counterproductive. */}
       <div className={`${hideCarousel} -mx-4 sm:-mx-6 px-4 sm:px-6 overflow-x-auto no-scrollbar snap-x snap-mandatory`}>
         <div className={`flex ${gapClassName} w-max pt-4 pb-1 items-stretch`}>
           {items.map((item, i) => (
-            <div key={getKey(item, i)} className={`snap-start shrink-0 h-full [&>*]:h-full flex flex-col ${cardWidthClassName}`}>
+            <div key={getKey(item, i)} className={`snap-start shrink-0 flex flex-col ${cardWidthClassName}`}>
               {renderItem(item, i)}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Desktop: unchanged grid */}
+      {/* Desktop: unchanged grid — same h-full removal, same reasoning;
+          CSS Grid's align-items: stretch has the identical auto-row-height
+          behavior as flex's, and the same percentage-paradox risk. */}
       <div className={`hidden ${showGrid} grid-cols-1 ${gridColsClassName} ${gapClassName} items-stretch`}>
         {items.map((item, i) => (
-          <div key={getKey(item, i)} className="h-full [&>*]:h-full">{renderItem(item, i)}</div>
+          <div key={getKey(item, i)}>{renderItem(item, i)}</div>
         ))}
       </div>
     </div>

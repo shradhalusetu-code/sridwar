@@ -26,13 +26,22 @@ interface ContactUsProps {
    * that page. Safe to omit; the banner simply won't be clickable/won't
    * navigate if absent (existing <ContactUs /> callers are unaffected). */
   onNavigate?: (page: string) => void;
+  /** ✅ ADDED — lets a caller (currently the homepage "Add Your Name to
+   *  the Sacred Wall" CTA in StoneEngravingNote.tsx, via App.tsx's
+   *  offeringDeepLinkId) land a devotee here with the Inquiry Type
+   *  already set to "Stone Name Engraving" ("Place Your Name in Divine
+   *  Presence"), instead of the default "Puja Clarification". Optional —
+   *  omitted callers keep the existing default untouched. Read once on
+   *  mount since this component unmounts/remounts every time
+   *  currentPage changes in App.tsx. */
+  initialInquiryType?: string;
 }
 
-export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
+export default function ContactUs({ onNavigate, initialInquiryType }: ContactUsProps = {}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [queryType, setQueryType] = useState("Puja Clarification");
+  const [queryType, setQueryType] = useState(initialInquiryType || "Puja Clarification");
   const [comment, setComment] = useState("");
   
   const [isSyncing, setIsSyncing] = useState(false);
@@ -396,6 +405,12 @@ export default function ContactUs({ onNavigate }: ContactUsProps = {}) {
                     <option value="Corporate Shradhalu Private Limited" className="bg-[#092320] text-white">Shradhalu Private Ltd corporate inquiry</option>
                     <option value="Feedback / Suggestions" className="bg-[#092320] text-white">Devotee Feedback & Suggestions</option>
                     <option value="Bespoke Family Pooja" className="bg-[#092320] text-white">Bespoke customized Family Puja schedule</option>
+                    {/* ✅ ADDED — reached via the homepage "Add Your Name to the
+                        Sacred Wall" CTA (StoneEngravingNote.tsx). Uses this
+                        SAME form + the SAME voluntary-contribution step below
+                        (StoneEngravingNote + amount tiers) — no separate or
+                        duplicate flow. */}
+                    <option value="Stone Name Engraving" className="bg-[#092320] text-white">Place Your Name in Divine Presence</option>
                   </select>
                 </div>
 

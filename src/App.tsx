@@ -920,7 +920,7 @@ export default function App() {
                 shown once here, above Devotee Experiences, so every visitor
                 understands it before they ever reach a contribution screen
                 elsewhere on the site. See StoneEngravingNote.tsx. */}
-            <StoneEngravingHomeSection />
+            <StoneEngravingHomeSection onNavigate={handleNavigate} />
 
             <DevoteeExperiences />
 
@@ -1069,7 +1069,10 @@ export default function App() {
         {currentPage === "contact" && (
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
-              <ContactUs onNavigate={handleNavigate} />
+              <ContactUs
+                onNavigate={handleNavigate}
+                initialInquiryType={offeringDeepLinkId === "stone-name-engraving" ? "Stone Name Engraving" : undefined}
+              />
               <FAQs />
             </Suspense>
           </div>

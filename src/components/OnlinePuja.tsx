@@ -675,7 +675,10 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
             <div className="p-1.5 rounded-lg bg-white/5 border border-white/15">
               <Flame className="w-4 h-4 text-orange-400" fill="currentColor" />
             </div>
-            <h4 className="text-lg font-serif font-bold text-white">{offering.title}</h4>
+            {/* min-w-0 lets this flex item actually shrink/wrap so
+                line-clamp-2 takes effect — same requirement as
+                SevaOfferingCard.tsx's clamped title. */}
+            <h4 className="text-lg font-serif font-bold text-white line-clamp-2 min-w-0">{offering.title}</h4>
           </div>
         </div>
 
@@ -686,7 +689,9 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
         {/* Badges — "Starts at ₹100" intentionally omitted here: the Simple
             Pujas section heading above already carries a single "Starts at
             ₹100" badge for the whole section, so repeating it on every card
-            was redundant duplicate text per card. */}
+            was redundant duplicate text per card. This badge set is a fixed
+            3-item list for every card here, so (unlike Bazaar) badge count
+            isn't itself a source of uneven heights within this carousel. */}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {["Digital Certificate", "Temple Priest Puja", "Evidence Shared"].map((b) => (
             <span key={b} className="flex items-center space-x-1 bg-white/4 border border-white/8 rounded-full px-2.5 py-0.5 text-[11px] text-white/55">
@@ -695,7 +700,7 @@ function SimplePujaCard({ offering, isActive, onActivate, onBook }: SimplePujaCa
           ))}
         </div>
 
-        <p className="text-[13px] text-white/70 leading-relaxed mb-3">{activeTier.description}</p>
+        <p className="text-[13px] text-white/70 leading-relaxed mb-3 line-clamp-3">{activeTier.description}</p>
 
         {justBooked && (
           <div className="flex items-start space-x-1.5 text-[13px] text-[#5EEAD4] bg-[#5EEAD4]/10 border border-[#5EEAD4]/25 rounded-xl px-3 py-2 mb-3">
@@ -991,7 +996,7 @@ function PujaCategoryCard({ puja, isDetailsOpen, onToggleDetails, onBook, onView
 
       {/* Body */}
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-serif font-black text-white text-sm leading-snug mb-1">{puja.name}</h3>
+        <h3 className="font-serif font-black text-white text-sm leading-snug mb-1 line-clamp-2">{puja.name}</h3>
         <p className="text-[12px] font-mono text-[#FFB347]/70 truncate mb-2">{puja.templeName}</p>
 
         {/* ✅ ADDED — "why this matters," visible at the point of decision
