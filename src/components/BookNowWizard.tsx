@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, FormEvent } from "react";
-import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database, ShoppingBasket } from "lucide-react";
+import { Check, ChevronRight, Download, RefreshCw, ShieldCheck, Database, ShoppingBasket, Lock } from "lucide-react";
 import { syncToGoogleForm, randomRefSuffix } from "../utils/googleFormSync";
 import { recordActivity } from "../lib/activities";
 import { SEVA_DISCLAIMER } from "../data/sevaOfferings";
@@ -92,6 +92,12 @@ interface WizardCopy {
   wishLabel: string;
   wishPlaceholder: string;
   submitLabel: string;
+  /** ✅ CLEAN CHECKOUT (2026-09-02): devotional, category-specific wording
+   *  for the payment step — used by both Step 2's "continue to payment"
+   *  button and passed straight through to UPIPaymentModal's own pay
+   *  button, so the exact same phrase carries through the whole flow
+   *  instead of switching to a generic "Pay Now" partway through. */
+  payButtonLabel: string;
   step3Heading: string;
   cardTitle: string;
   cardIntro: string;
@@ -106,7 +112,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
   puja_seva: {
     title: "Puja Sankalpa Portal",
     tagline: "Vedic Rites, Followed Faithfully",
-    stepLabels: ["Devotee Sankalpa", "GPay Gateway", "Blessing Cert"],
+    stepLabels: ["Devotee Sankalpa", "Secure Payment", "Blessing Cert"],
     introLabel: "🙏 Sanctify Your Rites:",
     introText: "Every ritual requires a heartfelt sankalpa representing your exact birth planetary coordinates, protecting against any distance barriers.",
     selectionLabel: "Puja Selected",
@@ -116,6 +122,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
     wishLabel: "Sankalpa Intent (Your Prayer Wish)",
     wishPlaceholder: "State your personal wish clearly, our pundits will read this during holy mantra recitation...",
     submitLabel: "Proceed to Secure Offering",
+    payButtonLabel: "Offer Your Puja Now",
     step3Heading: "Sankalpa Request Received!",
     cardTitle: "Sankalpa Request Acknowledgement",
     cardIntro: "This confirms that the sacred Sankalpa (intention) submitted by:",
@@ -128,7 +135,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
   counselling_guidance: {
     title: "Guidance Session Portal",
     tagline: "Confidential, Compassionate Support",
-    stepLabels: ["Guidance Details", "GPay Gateway", "Confirmation"],
+    stepLabels: ["Guidance Details", "Secure Payment", "Confirmation"],
     introLabel: "🙏 Confidential & Compassionate:",
     introText: "Share a little about what you'd like support with, and your chosen Pandit/guidance expert will reach out to confirm your session.",
     selectionLabel: "Guidance Selection",
@@ -138,6 +145,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
     wishLabel: "Guidance Need / Concern / Support Requirement",
     wishPlaceholder: "Briefly share what you'd like support with — this is shared only with your assigned guidance expert...",
     submitLabel: "Proceed to Secure Offering",
+    payButtonLabel: "Confirm Your Session Now",
     step3Heading: "Guidance Request Received!",
     cardTitle: "Guidance Request Acknowledgement",
     cardIntro: "This confirms that the confidential guidance request submitted by:",
@@ -150,7 +158,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
   holistic_wellness: {
     title: "Wellness & Yogic Sciences Enrollment",
     tagline: "Holistic Practices, Guided With Care",
-    stepLabels: ["Enrollment Details", "GPay Gateway", "Enrollment Confirmed"],
+    stepLabels: ["Enrollment Details", "Secure Payment", "Enrollment Confirmed"],
     introLabel: "🧘 Begin Your Practice:",
     introText: "Share your enrollment details and, where relevant, your preferred session date — your assigned instructor or wellness expert will confirm timing and any preparation needed.",
     selectionLabel: "Session / Program Selected",
@@ -160,6 +168,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
     wishLabel: "Health Goal / Focus Area (Optional)",
     wishPlaceholder: "Share what you'd like to work on — e.g. flexibility, stress relief, a health condition, or a specific practice you're curious about...",
     submitLabel: "Proceed to Secure Enrollment",
+    payButtonLabel: "Confirm Your Enrollment Now",
     step3Heading: "Enrollment Received!",
     cardTitle: "Wellness Enrollment Acknowledgement",
     cardIntro: "This confirms that the wellness enrollment submitted by:",
@@ -172,7 +181,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
   seva_offering: {
     title: "Seva Sankalp Portal",
     tagline: "Sponsor Seva, Serve With Devotion",
-    stepLabels: ["Seva Sankalp Details", "GPay Gateway", "Seva Certificate"],
+    stepLabels: ["Seva Sankalp Details", "Secure Payment", "Seva Certificate"],
     introLabel: "🙏 Offer With Devotion:",
     introText: "Every seva sponsorship carries your name and gotra in the Sankalp taken at the temple — a simple, heartfelt way to serve.",
     selectionLabel: "Seva Selected",
@@ -182,6 +191,7 @@ const WIZARD_CONTENT: Record<WizardCategory, WizardCopy> = {
     wishLabel: "Seva Sankalp Wish (Optional Prayer Intent)",
     wishPlaceholder: "State your personal wish clearly, our pundits will read this during the seva's Sankalp...",
     submitLabel: "Proceed to Secure Offering",
+    payButtonLabel: "Offer Your Seva Now",
     step3Heading: "Seva Sankalp Received!",
     cardTitle: "Seva Sankalp Acknowledgement",
     cardIntro: "This confirms that the seva Sankalp submitted by:",
@@ -215,8 +225,15 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
   // shared/CertificateRevealModal.tsx, the one implementation every
   // certificate download in the app now shares.
   const certificateReveal = useCertificateReveal();
+  // ✅ ADDED (2026-09-02): tracked alongside the hook's own state so the
+  // modal can also offer an independent PDF download of the same
+  // certificate — the hook itself only fetches the image eagerly; the PDF
+  // is fetched on demand from CertificateRevealModal only if the devotee
+  // actually taps for it, using this refId to build that URL.
+  const [certificateRevealRefId, setCertificateRevealRefId] = useState<string | null>(null);
   const openCertificateReveal = (certRefId: string, certDevoteeName: string) => {
     const safeName = (certDevoteeName || "Devotee").trim().replace(/\s+/g, "_");
+    setCertificateRevealRefId(certRefId);
     certificateReveal.open(`/api/certificates/service/${encodeURIComponent(certRefId)}`, `Sri-Dwar-Certificate-${safeName}.jpg`);
   };
   // Which of the two Step 1 buttons is currently submitting — drives which
@@ -576,7 +593,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
       >
         <div
-          className="bg-[#092320] w-full sm:rounded-3xl sm:max-w-xl shadow-2xl border border-white/10 animate-slideUp text-white flex flex-col"
+          className="bg-[#092320] w-full sm:rounded-3xl sm:max-w-xl lg:max-w-2xl shadow-2xl border border-white/10 animate-slideUp text-white flex flex-col"
           style={{
             // Percentage (not dvh — unsupported on older Android WebView, where the
             // property is silently dropped and the card can grow past the screen)
@@ -773,7 +790,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                           ? "w-full bg-transparent hover:bg-white/5 disabled:opacity-60 disabled:cursor-not-allowed text-white/80 font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 cursor-pointer flex items-center justify-center uppercase tracking-wider border-2 border-white/15 hover:border-white/25"
                           : "w-full bg-[#FFB347] hover:bg-[#F27D26] disabled:opacity-60 disabled:cursor-not-allowed text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all duration-300 shadow cursor-pointer flex items-center justify-center uppercase tracking-wider"
                       }>
-                      {isSyncingDetails && submitMode === "direct" ? "Saving Your Details…" : (onAddToCart ? `${copy.submitLabel} — Pay Now` : copy.submitLabel)}
+                      {isSyncingDetails && submitMode === "direct" ? "Saving Your Details…" : (onAddToCart ? "Continue Directly — Skip Cart" : copy.submitLabel)}
                     </button>
                   </div>
                 </form>
@@ -783,9 +800,9 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
               {step === 2 && (
                 <div className="space-y-6" id="upi-payment-step">
                   <div className="bg-[#021816] p-4 rounded-2xl border border-white/10 space-y-2 text-left">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-white/50 font-mono">{copy.selectionLabel}:</span>
-                      <span className="font-bold text-[#FFB347] truncate max-w-[200px]">{pujaName}</span>
+                    <div className="flex justify-between items-start gap-3 text-xs">
+                      <span className="text-white/50 font-mono shrink-0">{copy.selectionLabel}:</span>
+                      <span className="font-bold text-[#FFB347] text-right">{pujaName}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-white/50 font-mono">Devotee:</span>
@@ -801,12 +818,21 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-bold py-3.5 px-5 rounded-2xl text-xs transition-all shadow flex items-center justify-center space-x-2 cursor-pointer uppercase tracking-wider">
                       {isProcessingPayment
                         ? <><RefreshCw className="w-4 h-4 animate-spin" /><span>Preparing Payment...</span></>
-                        : <span>Pay ₹{price} via UPI / PhonePe 🙏</span>}
+                        : <span>{copy.payButtonLabel} — ₹{price} 🙏</span>}
                     </button>
                     <button onClick={() => setStep(1)} disabled={isProcessingPayment}
                       className="w-full text-xs text-white/55 hover:text-white py-2.5 font-bold cursor-pointer">
                       Go Back & Amend Details
                     </button>
+                    {/* ✅ Trust badge (2026-09-02): same reassurance mark as
+                        the actual Razorpay button one step ahead in
+                        UPIPaymentModal.tsx — kept lightweight here since
+                        this button's real job is just opening that next
+                        step, not charging anything itself. */}
+                    <div className="flex items-center justify-center space-x-1.5 pt-0.5">
+                      <Lock className="w-3 h-3 text-white/25" />
+                      <span className="text-[10px] text-white/25 font-mono uppercase tracking-wider">Secured by Razorpay</span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -988,6 +1014,11 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         bookingName={pujaName}
         devoteeName={devoteeName}
         refId={refId}
+        // ✅ CLEAN CHECKOUT (2026-09-02): same category-specific devotional
+        // label as Step 2's own button (copy.payButtonLabel), carried
+        // straight through so the wording never switches to something
+        // generic once the actual gateway opens.
+        payButtonLabel={copy.payButtonLabel}
         // ✅ DISCLAIMER CONSOLIDATION: this wizard already gated the
         // disclaimer once, back at Step 1 ("Details"), for every category it
         // serves (Puja, Seva, Counselling & Guidance, Holistic Wellness) —
@@ -1001,6 +1032,7 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         onClose={certificateReveal.close}
         imageBlob={certificateReveal.imageBlob}
         filename={certificateReveal.filename}
+        pdfUrl={certificateRevealRefId ? `/api/certificates/service/${encodeURIComponent(certificateRevealRefId)}/pdf` : undefined}
       />
     </>
   );

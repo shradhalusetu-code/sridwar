@@ -25,7 +25,24 @@ export function useCertificateReveal() {
     setFilename(revealFilename);
     setIsOpen(true); // opens immediately, showing "Preparing…" while the fetch is in flight
     try {
-      const res = await fetch(url);
+      // ✅ FIX (2026-09-02): the booking write this certificate depends on
+      // (recordActivity in BookNowWizard.tsx) is fire-and-forget — it isn't
+      // awaited before the devotee can reach the "Download Certificate"
+      // button. On a slow connection, or a very fast tap right after the
+      // success screen appears, this fetch could reach the server before
+      // that write has actually landed in Supabase, and the server
+      // correctly (and honestly) returns 404 "No booking found for this
+      // reference" — which reads to the devotee as a broken download.
+      // One short, silent retry closes that gap cheaply: if the first
+      // attempt 404s, wait briefly and try once more before actually
+      // showing an error. Any other error (500, network failure) is not
+      // retried — retrying those wouldn't help and would only delay a
+      // genuine failure message.
+      let res = await fetch(url);
+      if (res.status === 404) {
+        await new Promise((r) => setTimeout(r, 1500));
+        res = await fetch(url);
+      }
       if (!res.ok) throw new Error(`Server responded ${res.status}`);
       const blob = await res.blob();
       setImageBlob(blob);

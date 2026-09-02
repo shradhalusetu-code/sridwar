@@ -970,12 +970,14 @@ var init_certificateService = __esm({
 var import_express = __toESM(require("express"), 1);
 var import_path2 = __toESM(require("path"), 1);
 var import_fs2 = __toESM(require("fs"), 1);
+var import_crypto = __toESM(require("crypto"), 1);
 var import_helmet = __toESM(require("helmet"), 1);
 var import_zod = require("zod");
 var import_vite = require("vite");
 var import_genai = require("@google/genai");
 var import_supabase_js2 = require("@supabase/supabase-js");
 var import_dotenv = __toESM(require("dotenv"), 1);
+var import_pdf_lib2 = require("pdf-lib");
 import_dotenv.default.config();
 var app = (0, import_express.default)();
 var PORT = 3e3;
@@ -1183,6 +1185,154 @@ app.post("/api/refund-request", validateBody(refundRequestSchema), (req, res) =>
     reason
   });
   res.json({ status: "received", requestRefId });
+});
+var razorpayCreateOrderSchema = import_zod.z.object({
+  amount: import_zod.z.number().positive(),
+  refId: import_zod.z.string().min(1),
+  bookingName: import_zod.z.string().min(1),
+  devoteeName: import_zod.z.string().optional()
+});
+app.post("/api/razorpay/create-order", validateBody(razorpayCreateOrderSchema), async (req, res) => {
+  const { amount, refId, bookingName, devoteeName } = req.body;
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    console.error("[Razorpay] Missing RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET in server environment.");
+    res.status(500).json({ error: "Payment gateway is not configured on the server yet." });
+    return;
+  }
+  try {
+    const amountInPaise = Math.round(amount * 100);
+    const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    const response = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Basic ${auth}` },
+      body: JSON.stringify({
+        amount: amountInPaise,
+        currency: "INR",
+        receipt: refId.slice(0, 40),
+        // Razorpay caps receipt at 40 chars
+        payment_capture: 1,
+        // auto-capture — don't rely on the account default
+        notes: { refId, bookingName, devoteeName: devoteeName || "" }
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      console.error("[Razorpay] Order creation failed:", data);
+      res.status(502).json({ error: data?.error?.description || "Failed to start payment. Please try again." });
+      return;
+    }
+    appendAuditLog("razorpay_order_created", { refId, orderId: data.id, amount: amountInPaise, bookingName });
+    res.json({ order_id: data.id, amount: data.amount, currency: data.currency });
+  } catch (err) {
+    console.error("[Razorpay] Order creation error:", err?.message);
+    res.status(500).json({ error: "Failed to start payment. Please try again." });
+  }
+});
+var razorpayVerifySchema = import_zod.z.object({
+  razorpay_order_id: import_zod.z.string().min(1),
+  razorpay_payment_id: import_zod.z.string().min(1),
+  razorpay_signature: import_zod.z.string().min(1),
+  refId: import_zod.z.string().min(1),
+  amount: import_zod.z.number().positive(),
+  bookingName: import_zod.z.string().optional(),
+  devoteeName: import_zod.z.string().optional()
+});
+app.post("/api/razorpay/verify-payment", validateBody(razorpayVerifySchema), (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, refId, amount, bookingName, devoteeName } = req.body;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keySecret) {
+    console.error("[Razorpay] Missing RAZORPAY_KEY_SECRET in server environment.");
+    res.status(500).json({ verified: false, error: "Payment gateway is not configured on the server yet." });
+    return;
+  }
+  const expectedSignature = import_crypto.default.createHmac("sha256", keySecret).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest("hex");
+  let signatureValid = false;
+  try {
+    signatureValid = expectedSignature.length === razorpay_signature.length && import_crypto.default.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpay_signature));
+  } catch {
+    signatureValid = false;
+  }
+  if (!signatureValid) {
+    console.error("[Razorpay] Signature verification FAILED for", { refId, razorpay_order_id, razorpay_payment_id });
+    appendAuditLog("razorpay_signature_invalid", { refId, razorpay_order_id, razorpay_payment_id });
+    res.status(400).json({ verified: false, error: "Payment could not be verified." });
+    return;
+  }
+  appendAuditLog("razorpay_payment_verified", {
+    refId,
+    razorpay_order_id,
+    razorpay_payment_id,
+    amount,
+    bookingName,
+    devoteeName
+  });
+  res.json({ verified: true, paymentId: razorpay_payment_id });
+});
+function requireRazorpayLinkSecret(req, res) {
+  const configured = process.env.RAZORPAY_LINK_SECRET;
+  const provided = req.headers["x-razorpay-link-secret"];
+  if (!configured || provided !== configured) {
+    res.status(401).json({ error: "Unauthorized." });
+    return false;
+  }
+  return true;
+}
+app.post("/api/razorpay/create-payment-link", import_express.default.json(), async (req, res) => {
+  if (!requireRazorpayLinkSecret(req, res)) return;
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    res.status(500).json({ error: "Razorpay is not configured on the server." });
+    return;
+  }
+  const { refId, amount, name, email, phone, description } = req.body || {};
+  const amountNum = Number(amount);
+  const refIdStr = String(refId || "").trim().slice(0, 60);
+  if (!refIdStr || !Number.isFinite(amountNum) || amountNum <= 0) {
+    res.status(400).json({ error: "refId and a positive amount are required." });
+    return;
+  }
+  try {
+    const basicAuth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    const response = await fetch("https://api.razorpay.com/v1/payment_links/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${basicAuth}`
+      },
+      body: JSON.stringify({
+        amount: Math.round(amountNum * 100),
+        // Razorpay wants paise, not rupees
+        currency: "INR",
+        accept_partial: false,
+        reference_id: refIdStr,
+        description: String(description || "Sri Dwar \u2014 Sankalp Offering").slice(0, 2048),
+        customer: {
+          name: String(name || "Devotee").slice(0, 120),
+          email: email ? String(email).slice(0, 120) : void 0,
+          contact: phone ? String(phone).slice(0, 20) : void 0
+        },
+        notify: { sms: !!phone, email: !!email },
+        reminder_enable: true,
+        notes: { refId: refIdStr, source: "payment_reminder_email" }
+      })
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.short_url) {
+      console.error("[Razorpay] Payment Link creation failed:", response.status, data);
+      appendAuditLog("razorpay_payment_link_failed", { refId: refIdStr, status: response.status, error: data?.error?.description });
+      res.status(502).json({ error: "Could not create a payment link right now." });
+      return;
+    }
+    appendAuditLog("razorpay_payment_link_created", { refId: refIdStr, amount: amountNum, short_url: data.short_url });
+    res.json({ short_url: data.short_url, id: data.id });
+  } catch (err) {
+    console.error("[Razorpay] Payment Link request threw:", err?.message);
+    appendAuditLog("razorpay_payment_link_error", { refId: refIdStr, message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not create a payment link right now." });
+  }
 });
 app.get("/api/config", (req, res) => {
   res.json({
@@ -1525,6 +1675,35 @@ async function renderInquiryBannerJpeg(name, refId, _label) {
   const textLayer = await renderTextLayerPng(width, height, `${refEl}${devoteeEl}`);
   return base.composite([{ input: textLayer }]).jpeg({ quality: 88 }).toBuffer();
 }
+var EMAIL_ICON_GOLD = "#f4c563";
+var EMAIL_ICON_GLYPHS = {
+  facebook: `<circle cx="24" cy="24" r="24" fill="${EMAIL_ICON_GOLD}"/><path d="M27 16h-3c-2.2 0-4 1.8-4 4v3h-3v4h3v11h4V27h3.3l.7-4H24v-2.5c0-.9.4-1.5 1.7-1.5H27z" fill="#1a1a1a"/>`,
+  twitter: `<circle cx="24" cy="24" r="24" fill="${EMAIL_ICON_GOLD}"/><path d="M14 15l8.2 10.9L14 33h2.4l7.2-6.9 5.6 6.9H35l-8.7-11.5L34 15h-2.4l-6.6 6.4L19.6 15z" fill="#1a1a1a"/>`,
+  instagram: `<circle cx="24" cy="24" r="24" fill="${EMAIL_ICON_GOLD}"/><rect x="15" y="15" width="18" height="18" rx="5" fill="none" stroke="#1a1a1a" stroke-width="2.2"/><circle cx="24" cy="24" r="4.6" fill="none" stroke="#1a1a1a" stroke-width="2.2"/><circle cx="29.5" cy="18.5" r="1.4" fill="#1a1a1a"/>`,
+  youtube: `<circle cx="24" cy="24" r="24" fill="${EMAIL_ICON_GOLD}"/><rect x="14" y="17" width="20" height="14" rx="4" fill="#1a1a1a"/><path d="M21.5 20.5v7l6-3.5z" fill="${EMAIL_ICON_GOLD}"/>`,
+  linkedin: `<circle cx="24" cy="24" r="24" fill="${EMAIL_ICON_GOLD}"/><rect x="15" y="21" width="4" height="12" fill="#1a1a1a"/><circle cx="17" cy="16" r="2.2" fill="#1a1a1a"/><path d="M22 21h4v2c1-1.5 2.5-2.4 4.5-2.4 3.6 0 5.5 2.3 5.5 6.6V33h-4v-5.1c0-2-.8-3.3-2.6-3.3-1.7 0-2.9 1.2-3.4 2.4-.2.4-.2 1-.2 1.6V33h-4z" fill="#1a1a1a"/>`,
+  whatsapp: `<circle cx="24" cy="24" r="24" fill="${EMAIL_ICON_GOLD}"/><path d="M24 14c-6.6 0-12 5.4-12 12 0 2.2.6 4.2 1.6 6L13 34l8.2-2.5c1.5.8 3.2 1.2 4.8 1.2 6.6 0 12-5.4 12-12s-5.4-12-12-12z" fill="#1a1a1a"/><path d="M19.8 18.5c.4-.1.8-.1 1 .4.3.6.9 2 1 2.1.1.2.1.5 0 .7-.1.2-.2.4-.4.6-.2.2-.4.4-.2.8.3.5 1.1 1.7 2.4 2.7 1.6 1.3 2.9 1.7 3.4 1.8.4.1.6 0 .8-.2l1-1.1c.3-.3.5-.3.8-.2l2.1 1c.3.1.5.2.6.4.1.2.1 1-.3 1.9-.4.9-2.2 1.8-3 1.8-.8 0-1.7 0-5.6-2.3-3.9-2.3-5.9-6.4-6.1-6.7-.2-.3-1.4-1.9-1.4-3.6 0-1.7.9-2.5 1.2-2.9.3-.3.6-.4 1-.4z" fill="${EMAIL_ICON_GOLD}"/>`
+};
+app.get("/api/email/social-icon/:platform", async (req, res) => {
+  const platform = String(req.params.platform || "").toLowerCase();
+  const glyph = EMAIL_ICON_GLYPHS[platform];
+  if (!glyph) {
+    res.status(404).json({ error: "Unknown icon." });
+    return;
+  }
+  try {
+    const svg = `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">${glyph}</svg>`;
+    const { Resvg } = await import("@resvg/resvg-js");
+    const resvg = new Resvg(svg, { background: "rgba(0,0,0,0)" });
+    const png = resvg.render().asPng();
+    res.set("Content-Type", "image/png");
+    res.set("Cache-Control", "public, max-age=86400");
+    res.send(png);
+  } catch (err) {
+    appendAuditLog("email_social_icon_render_failed", { platform, message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not render icon." });
+  }
+});
 app.get("/api/email/inquiry-banner", async (req, res) => {
   const name = String(req.query.name || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 40);
   const refId = String(req.query.ref || "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, 40);
@@ -1547,6 +1726,17 @@ var TEMPLE_CERT_NAME_SLOT = { x: 767, y: 392, maxWidth: 560, maxSize: 30, minSiz
 var TEMPLE_CERT_TEMPLE_SLOT = { x: 767, y: 452, maxWidth: 560, maxSize: 26, minSize: 14 };
 var TEMPLE_CERT_DATE_SLOT = { x: 235, y: 892, maxWidth: 230, maxSize: 15, minSize: 10 };
 var TEMPLE_CERT_FIELD_COLOR = "#2b1806";
+async function wrapJpegAsPdf(jpegBuffer) {
+  const doc = await import_pdf_lib2.PDFDocument.create();
+  const jpg = await doc.embedJpg(jpegBuffer);
+  const scale = 0.5;
+  const pageWidth = jpg.width * scale;
+  const pageHeight = jpg.height * scale;
+  const page = doc.addPage([pageWidth, pageHeight]);
+  page.drawImage(jpg, { x: 0, y: 0, width: pageWidth, height: pageHeight });
+  const bytes = await doc.save();
+  return Buffer.from(bytes);
+}
 async function renderTempleVisitCertificateJpeg(name, temple, dateOfIssue) {
   const sharp = (await import("sharp")).default;
   const imagePath = import_path2.default.join(
@@ -1623,6 +1813,25 @@ app.get("/api/certificates/temple-visit/:refId", async (req, res) => {
   } catch (err) {
     const notFound = err?.message === "not_found";
     appendAuditLog("temple_visit_certificate_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No Temple Visit Certificate request found for this reference." : "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+app.get("/api/certificates/temple-visit/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderTempleVisitJpeg(refId);
+    const pdfBuffer = await wrapJpegAsPdf(jpegBuffer);
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Temple-Visit-Certificate-${refId}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("temple_visit_certificate_pdf_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(notFound ? 404 : 500).json({ error: notFound ? "No Temple Visit Certificate request found for this reference." : "Could not generate the certificate right now. Please try again shortly." });
   }
 });
@@ -1732,43 +1941,66 @@ app.get("/api/stats/community", async (req, res) => {
     res.status(500).json({ error: "Could not load community stats right now." });
   }
 });
+async function loadAndRenderServiceCertificateJpeg(refId) {
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) throw new Error("Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).");
+  const { data: activity, error: activityError } = await supabaseAdmin.from("activities").select("item_name, created_at, user_id, activity_type, metadata").eq("ref_id", refId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (activityError) throw new Error(activityError.message);
+  if (!activity) throw new Error("not_found");
+  const row = activity;
+  let devoteeName = (typeof row.metadata?.["devoteeName"] === "string" ? row.metadata["devoteeName"].trim() : "") || null;
+  if (!devoteeName) {
+    const { data: submission } = await supabaseAdmin.from("form_submissions").select("name").eq("ref_id", refId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    devoteeName = submission?.name || null;
+  }
+  if (!devoteeName && row.user_id) {
+    const { data: profile } = await supabaseAdmin.from("profiles").select("name").eq("id", row.user_id).maybeSingle();
+    devoteeName = profile?.name || null;
+  }
+  const serviceName = (row.item_name || "").trim() || "Sacred Offering";
+  const bookingDate = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  return renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, bookingDate, row.activity_type || "puja", refId);
+}
 app.get("/api/certificates/service/:refId", async (req, res) => {
   const refId = String(req.params.refId || "").trim().slice(0, 60);
   if (!refId) {
     res.status(400).json({ error: "A reference ID is required." });
     return;
   }
-  const supabaseAdmin = getSupabaseAdminClient();
-  if (!supabaseAdmin) {
-    res.status(500).json({ error: "Supabase is not configured on the server (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)." });
-    return;
-  }
   try {
-    const { data: activity, error: activityError } = await supabaseAdmin.from("activities").select("item_name, created_at, user_id, activity_type, metadata").eq("ref_id", refId).order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (activityError) throw new Error(activityError.message);
-    if (!activity) {
-      res.status(404).json({ error: "No booking found for this reference." });
-      return;
-    }
-    const row = activity;
-    let devoteeName = (typeof row.metadata?.["devoteeName"] === "string" ? row.metadata["devoteeName"].trim() : "") || null;
-    if (!devoteeName) {
-      const { data: submission } = await supabaseAdmin.from("form_submissions").select("name").eq("ref_id", refId).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      devoteeName = submission?.name || null;
-    }
-    if (!devoteeName && row.user_id) {
-      const { data: profile } = await supabaseAdmin.from("profiles").select("name").eq("id", row.user_id).maybeSingle();
-      devoteeName = profile?.name || null;
-    }
-    const serviceName = (row.item_name || "").trim() || "Sacred Offering";
-    const bookingDate = new Date(row.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-    const jpegBuffer = await renderServiceCertificateJpeg((devoteeName || "").trim() || "Devotee", serviceName, bookingDate, row.activity_type || "puja", refId);
+    const jpegBuffer = await loadAndRenderServiceCertificateJpeg(refId);
     res.set("Content-Type", "image/jpeg");
     res.set("Cache-Control", "private, max-age=300");
     res.set("Content-Disposition", `inline; filename="Sri-Dwar-Service-Certificate-${refId}.jpg"`);
     res.send(jpegBuffer);
   } catch (err) {
+    if (err?.message === "not_found") {
+      res.status(404).json({ error: "No booking found for this reference." });
+      return;
+    }
     appendAuditLog("service_certificate_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
+  }
+});
+app.get("/api/certificates/service/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderServiceCertificateJpeg(refId);
+    const pdfBuffer = await wrapJpegAsPdf(jpegBuffer);
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Certificate-${refId}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    if (err?.message === "not_found") {
+      res.status(404).json({ error: "No booking found for this reference." });
+      return;
+    }
+    appendAuditLog("service_certificate_pdf_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(500).json({ error: "Could not generate the certificate right now. Please try again shortly." });
   }
 });
@@ -1823,6 +2055,25 @@ app.get("/api/certificates/general/:refId", async (req, res) => {
   } catch (err) {
     const notFound = err?.message === "not_found";
     appendAuditLog("general_certificate_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the certificate right now." });
+  }
+});
+app.get("/api/certificates/general/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderGeneralCertificateJpeg(refId);
+    const pdfBuffer = await wrapJpegAsPdf(jpegBuffer);
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Certificate-${refId}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("general_certificate_pdf_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the certificate right now." });
   }
 });
@@ -1893,6 +2144,25 @@ app.get("/api/certificates/inquiry/:refId", async (req, res) => {
   } catch (err) {
     const notFound = err?.message === "not_found";
     appendAuditLog("inquiry_acknowledgement_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the acknowledgement certificate right now." });
+  }
+});
+app.get("/api/certificates/inquiry/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderRegisterTempleAcknowledgementJpeg(refId);
+    const pdfBuffer = await wrapJpegAsPdf(jpegBuffer);
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=300");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Acknowledgement-${refId}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("inquiry_acknowledgement_pdf_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(notFound ? 404 : 500).json({ error: notFound ? "No record found for this reference." : "Could not generate the acknowledgement certificate right now." });
   }
 });
@@ -1991,6 +2261,25 @@ app.get("/api/certificates/transaction/:refId", async (req, res) => {
   } catch (err) {
     const notFound = err?.message === "not_found";
     appendAuditLog("transaction_receipt_render_failed", { refId, message: err?.message || "unknown error" });
+    res.status(notFound ? 404 : 500).json({ error: notFound ? "No transaction found for this reference." : "Could not generate the receipt right now." });
+  }
+});
+app.get("/api/certificates/transaction/:refId/pdf", async (req, res) => {
+  const refId = String(req.params.refId || "").trim().slice(0, 60);
+  if (!refId) {
+    res.status(400).json({ error: "A reference ID is required." });
+    return;
+  }
+  try {
+    const jpegBuffer = await loadAndRenderTransactionJpeg(refId);
+    const pdfBuffer = await wrapJpegAsPdf(jpegBuffer);
+    res.set("Content-Type", "application/pdf");
+    res.set("Cache-Control", "private, max-age=120");
+    res.set("Content-Disposition", `inline; filename="Sri-Dwar-Transaction-${refId}.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    const notFound = err?.message === "not_found";
+    appendAuditLog("transaction_receipt_pdf_render_failed", { refId, message: err?.message || "unknown error" });
     res.status(notFound ? 404 : 500).json({ error: notFound ? "No transaction found for this reference." : "Could not generate the receipt right now." });
   }
 });

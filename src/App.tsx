@@ -73,7 +73,7 @@ import {
 } from "./utils/analytics";
 import {
   ChevronRight, ChevronDown, Heart, ShoppingBasket, Trash2, Calendar, ShieldAlert, Check, RefreshCw, X,
-  Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin, HeartHandshake
+  Linkedin, Instagram, Youtube, Twitter, Facebook, MessageCircle, Mail, MapPin, HeartHandshake, Lock
 } from "lucide-react";
 
 // Footer "Policies & Legal Documents" — module-level so it's defined once,
@@ -1209,7 +1209,14 @@ export default function App() {
                 flow, which could visually read as "floating"/centered next
                 to the tightly left-set list columns beside it. */}
             <div className="flex flex-col items-start space-y-4 lg:col-span-1">
-              <h4 className="invisible font-serif text-sm font-bold mb-4 uppercase tracking-wider" aria-hidden="true">Sri Dwar</h4>
+              {/* ✅ Matches the exact wrapper/box-model now used by all three
+                  heading columns to its right (a div/button with these same
+                  classes) — not just the same font classes on a bare <h4> —
+                  so this invisible spacer reserves precisely the same
+                  height their real headings occupy, keeping the logo's top
+                  edge flush with them instead of drifting by a pixel or two
+                  from box-model differences between element types. */}
+              <div className="invisible w-full flex items-center justify-between font-serif text-sm font-bold mb-4 uppercase tracking-wider" aria-hidden="true"><span>Sri Dwar</span></div>
               <SriDwarLogo variant="colored" iconSize="xl" showTagline={true} className="justify-start" />
               <p className="text-xs text-white/60 font-sans leading-relaxed text-left">
                 An AI-powered faith-tech platform built on Sri Dwar's proprietary technology, bridging holy distances with time-honoured rituals, live aartis, and trusted certifications.
@@ -1290,7 +1297,21 @@ export default function App() {
               </ul>
             </div>
             <div className="lg:col-span-1 flex flex-col">
-              <h4 className="font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider">Social Linkages</h4>
+              {/* ✅ FIX (2026-09-02): this heading was a plain <h4>, while
+                  Quick Devotions and Legal & Compliance both use a <button>
+                  wrapper (for their mobile accordion toggle) with its own
+                  box model (flex, justify-between, a hidden chevron child).
+                  Even with the same font classes, a <button> and an <h4>
+                  don't reliably render at an identical height across
+                  browsers, which is exactly why this column's heading sat
+                  slightly out of line with the other two. Using the same
+                  wrapper element (just without an accordion, since this
+                  column has nothing to collapse) guarantees the same box
+                  model as its neighbors instead of hoping two different
+                  tags end up the same height. */}
+              <div className="w-full flex items-center justify-between font-serif text-sm font-bold text-[#FFB347] mb-4 uppercase tracking-wider text-left">
+                <span>Social Linkages</span>
+              </div>
 
               <div className="flex flex-wrap gap-2.5">
                 <a
@@ -1371,6 +1392,15 @@ export default function App() {
                   <Mail className="w-4 h-4" />
                 </a>
               </div>
+              {/* ✅ Trust badge (2026-09-02): same "Secured by Razorpay"
+                  mark used near every payment button on the site, echoed
+                  here too since a footer trust signal is a familiar pattern
+                  from e-commerce sites devotees already know (Amazon,
+                  Flipkart). */}
+              <div className="flex items-center space-x-1.5 mt-4">
+                <Lock className="w-3.5 h-3.5 text-white/30" />
+                <span className="text-[11px] text-white/40 font-mono uppercase tracking-wider">Secured by Razorpay</span>
+              </div>
             </div>
 
           </div>
@@ -1385,7 +1415,14 @@ export default function App() {
               sits at a consistent position and aligns flush with every
               other footer row (Recognition & Downloads, copyright line). */}
           <div className="mb-8 border-t border-white/5 pt-4">
-            <p className="text-[12px] text-white/40 leading-relaxed italic max-w-3xl">
+            {/* ✅ FIX (2026-09-02): max-w-3xl (768px) was forcing this onto
+                two lines even on wide desktop viewports where the footer
+                column itself is far wider than that — the cap had nothing
+                to do with actual available space. Removed on lg+ screens so
+                it can sit on one line exactly as it reads in the design;
+                still wraps naturally on narrower phone/tablet widths where
+                one line genuinely wouldn't fit. */}
+            <p className="text-[12px] text-white/40 leading-relaxed italic max-w-3xl lg:max-w-none lg:whitespace-nowrap">
               Disclaimer: All temple names, deity portraits, rituals, trademarks, and associated media shown are intellectual property rights reserved under respective temple trusts & the company.
             </p>
           </div>

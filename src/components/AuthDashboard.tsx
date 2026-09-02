@@ -215,6 +215,14 @@ export default function AuthDashboard({
   const [showSankalpaForm, setShowSankalpaForm] = useState(false);
   const [sankalpaPhone, setSankalpaPhone] = useState("");
   const [sankalpaGotra, setSankalpaGotra] = useState("");
+  // ✅ FIX (2026-09-02 — reported bug: devotee stuck with a blank, locked
+  // "Devotee Name" field): this field used to be `readOnly`, showing only
+  // `pendingLogin?.name` with no way to type anything if that was empty —
+  // which happens for any account that never had a display name saved
+  // (common for OTP/guest-style logins). The Gotra field right below it
+  // already used the correct pattern (editable, pre-filled, but never
+  // locked); Devotee Name now matches it exactly.
+  const [sankalpaName, setSankalpaName] = useState("");
   const [sankalpaIntent, setSankalpaIntent] = useState("");
   const [contributionRefId, setContributionRefId] = useState("");
 
@@ -1434,6 +1442,11 @@ export default function AuthDashboard({
   // Step 4 — Sankalpa form submitted: sync to Google Form (Pending row) then open payment
   const handleSankalpaSubmit = (e: FormEvent) => {
     e.preventDefault();
+    const resolvedName = (sankalpaName || pendingLogin?.name || userProfile.name || "").trim();
+    if (!resolvedName) {
+      alert("Please enter your name to proceed.");
+      return;
+    }
     if (!sankalpaPhone.trim()) {
       alert("Please enter your WhatsApp number to proceed.");
       return;
@@ -1448,7 +1461,7 @@ export default function AuthDashboard({
     // corrected Final row (with real payment method) is sent from
     // finalizeContribution below, sharing the same Ref ID.
     syncToGoogleForm("seva_booking", {
-      name:         pendingLogin?.name || userProfile.name || "",
+      name:         resolvedName,
       email:        pendingLogin?.email || userProfile.email || "",
       phone:        sankalpaPhone.trim(),
       gotra:        sankalpaGotra || userGotra || undefined,
@@ -1477,7 +1490,7 @@ export default function AuthDashboard({
       ? TEMPLES_LIST.find((t) => t.id === selectedTempleId)?.name || "Selected Temple"
       : customMandapName || "Custom Mandap";
     syncToGoogleForm("seva_booking", {
-      name:         pendingLogin?.name || userProfile.name || "",
+      name:         (sankalpaName || pendingLogin?.name || userProfile.name || "").trim(),
       email:        pendingLogin?.email || userProfile.email || "",
       phone:        sankalpaPhone.trim(),
       gotra:        sankalpaGotra || userGotra || undefined,
@@ -3035,14 +3048,20 @@ export default function AuthDashboard({
                 🙏 Please confirm your details so our pandits can register this divine contribution Sankalpa in your name and Gotra.
               </p>
 
-              {/* Devotee name — pre-filled from login, read-only */}
+              {/* ✅ FIX (2026-09-02): was readOnly, pre-filled only from
+                  pendingLogin?.name with no fallback when that's empty —
+                  a devotee with no saved display name had no way to type
+                  one in at all. Now editable, same pre-fill-but-overridable
+                  pattern as Gotra right below it. */}
               <div>
-                <label className="block text-xs font-bold text-white/80 mb-1">Devotee Name</label>
+                <label className="block text-xs font-bold text-white/80 mb-1">Devotee Name *</label>
                 <input
                   type="text"
-                  readOnly
-                  value={pendingLogin?.name || ""}
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/20 border border-white/5 text-white/60 cursor-not-allowed"
+                  required
+                  value={sankalpaName || pendingLogin?.name || userProfile.name || ""}
+                  onChange={e => setSankalpaName(e.target.value)}
+                  placeholder="Enter your full name"
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                 />
               </div>
 
@@ -3115,7 +3134,7 @@ export default function AuthDashboard({
             ? TEMPLES_LIST.find(t => t.id === selectedTempleId)?.name || "Temple"
             : customMandapName || "Temple Redevelopment"
         }`}
-        devoteeName={pendingLogin?.name || "Devotee"}
+        devoteeName={sankalpaName || pendingLogin?.name || "Devotee"}
         refId={contributionRefId}
         isVoluntaryContribution={true}
       />

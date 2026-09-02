@@ -4,8 +4,16 @@
  */
 
 import { useState, useEffect } from "react";
-import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles, AlertTriangle } from "lucide-react";
+import { X, Check, Copy, ShieldCheck, RefreshCw, Gift, Sparkles, AlertTriangle, CreditCard, Lock } from "lucide-react";
 import { buildUpiQrDataUrl, buildUpiLink, UPI_ID } from "../utils/upiConfig";
+import {
+  RAZORPAY_KEY_ID,
+  isRazorpayConfigured,
+  loadRazorpayCheckoutScript,
+  createRazorpayOrder,
+  verifyRazorpayPayment,
+  openRazorpayCheckout,
+} from "../utils/razorpayConfig";
 import { isNativeAndroidApp } from "../utils/shareUrl";
 import CollapsibleSection from "./CollapsibleSection";
 import DisclaimerAcknowledge from "./DisclaimerAcknowledge";
@@ -135,7 +143,25 @@ interface UPIPaymentModalProps {
    *  Membership contribution) intentionally leave this false too, so the
    *  content isn't shown twice for one contribution. */
   isVoluntaryContribution?: boolean;
+  /** ✅ CLEAN CHECKOUT (2026-09-02): devotional label for the primary pay
+   *  button — e.g. "Offer Your Seva Now" for a Seva booking. Defaults to a
+   *  generic devotional phrase since this one modal is shared across Puja,
+   *  Seva, Guidance, Wellness, Bazaar and Contributions — only pass a
+   *  specific one where the booking type is unambiguous. */
+  payButtonLabel?: string;
 }
+
+// ✅ CLEAN CHECKOUT (2026-09-02): the manual UPI QR / Copy-UPI-ID / "I Have
+// Paid" flow is intentionally no longer shown in the live payment portal —
+// having two competing "how do I pay" paths side by side next to a real
+// gateway checkout read as cluttered/unprofessional; every major consumer
+// checkout (Amazon, Shopify, Flipkart) shows exactly ONE primary pay
+// action, not a menu of methods to choose between.
+//
+// The code below is deliberately KEPT, not deleted — flip this back to
+// true (or see the automatic fallback below) to bring it back instantly if
+// Razorpay is ever unreachable, without writing any of this again.
+const SHOW_MANUAL_UPI_FALLBACK = false;
 
 export default function UPIPaymentModal({
   isOpen,
@@ -152,6 +178,7 @@ export default function UPIPaymentModal({
   payeeValue,
   skipDisclaimer = false,
   isVoluntaryContribution = false,
+  payButtonLabel = "Complete Your Offering Securely",
 }: UPIPaymentModalProps) {
   const [copied, setCopied] = useState(false);
   // NOTE: "submitted" means the devotee tapped "I Have Paid" — i.e. a
@@ -168,6 +195,15 @@ export default function UPIPaymentModal({
   // as the rest of this component's local state (isOpen guard below).
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [showDisclaimerError, setShowDisclaimerError] = useState(false);
+  // ✅ RAZORPAY (2026-09-02): real, gateway-verified payments alongside the
+  // manual UPI QR flow below — see razorpayConfig.ts and server.ts.
+  // razorpaySucceeded is tracked separately from `submitted` (both end up
+  // true once a payment goes through either path) purely so the final
+  // status block below can show an accurate message per path — "verified
+  // instantly by Razorpay" vs "submitted, pending our team's manual check".
+  const [razorpayLoading, setRazorpayLoading] = useState(false);
+  const [razorpayError, setRazorpayError] = useState<string | null>(null);
+  const [razorpaySucceeded, setRazorpaySucceeded] = useState(false);
   // ✅ FIX (2026-08-26): QR is now generated locally (see upiConfig.ts) —
   // this holds the resulting data: URL. Starts null so the modal can show
   // a brief loading placeholder instead of a blank gap while it's
@@ -177,6 +213,12 @@ export default function UPIPaymentModal({
 
   const WHATSAPP_NUMBER = "919777645062";
   const effectiveAmount = allowCustomAmount ? (customAmount || minAmount) : (amount || 0);
+  // ✅ CLEAN CHECKOUT (2026-09-02): the manual UPI flow only ever renders as
+  // a genuine fallback — either the site owner has deliberately switched it
+  // back on (SHOW_MANUAL_UPI_FALLBACK), or Razorpay itself isn't configured
+  // in this environment. It is never shown at the same time as the
+  // Razorpay button.
+  const showManualFallback = SHOW_MANUAL_UPI_FALLBACK || !isRazorpayConfigured;
 
   // ✅ DIRECT-PAY GATING (2026-08-29): the "tap here to pay directly" link
   // below fires a `upi://pay...` deep link, which only does anything
@@ -242,17 +284,27 @@ export default function UPIPaymentModal({
   // payment intent needs verification) and, elsewhere on the site, as a
   // devotee-facing CONFIRMATION channel once a booking is actually
   // verified — neither of those is a payment method.
-  const sendOwnerWhatsAppAlert = () => {
+  // ✅ RAZORPAY (2026-09-02): accepts an optional Razorpay payment ID. When
+  // present, the alert is worded as an already-verified payment (no manual
+  // check needed) instead of the original "pending verification" wording —
+  // the no-arg call sites (the manual UPI "I Have Paid" path, unchanged
+  // below) keep exactly their original message.
+  const sendOwnerWhatsAppAlert = (razorpayPaymentId?: string) => {
     const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     const message = encodeURIComponent(
-      "🔔 *PAYMENT PENDING VERIFICATION — Sri Dwar*\n\n" +
+      (razorpayPaymentId
+        ? "✅ *PAYMENT VERIFIED — Sri Dwar (Razorpay)*\n\n"
+        : "🔔 *PAYMENT PENDING VERIFICATION — Sri Dwar*\n\n") +
       "📿 *Service:* " + bookingName + "\n" +
       "👤 *Devotee:* " + devoteeName + "\n" +
       "💰 *Amount:* ₹" + effectiveAmount + "\n" +
-      "💳 *Method:* UPI\n" +
+      "💳 *Method:* " + (razorpayPaymentId ? "Razorpay" : "UPI") + "\n" +
       "🔖 *Ref ID:* " + refId + "\n" +
+      (razorpayPaymentId ? "🧾 *Payment ID:* " + razorpayPaymentId + "\n" : "") +
       "🕐 *Time:* " + now + " IST\n\n" +
-      "Devotee has submitted this payment — please verify it landed before confirming the booking. 🙏"
+      (razorpayPaymentId
+        ? "This payment has already been verified automatically by Razorpay — no manual check needed. 🙏"
+        : "Devotee has submitted this payment — please verify it landed before confirming the booking. 🙏")
     );
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + message, "_blank");
   };
@@ -263,17 +315,26 @@ export default function UPIPaymentModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleConfirmPayment = () => {
-    if (submitted) return; // guard against double-tap before re-render
+  // ✅ RAZORPAY (2026-09-02): shared by both the manual "I Have Paid" button
+  // and the new "Pay Now" (Razorpay) button below — same amount/disclaimer
+  // checks apply to either path. Extracted out of handleConfirmPayment
+  // without changing its own behavior.
+  const validateBeforePayment = (): boolean => {
     if (allowCustomAmount && (!customAmount || Number(customAmount) < minAmount)) {
       alert("Minimum divine contribution is ₹" + minAmount);
-      return;
+      return false;
     }
     if (!skipDisclaimer && !disclaimerAccepted) {
       setShowDisclaimerError(true);
       document.getElementById("upi-disclaimer-acknowledge")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleConfirmPayment = () => {
+    if (submitted) return; // guard against double-tap before re-render
+    if (!validateBeforePayment()) return;
     setSubmitted(true);
     sendOwnerWhatsAppAlert();
     // ✅ IMMEDIATE ACKNOWLEDGEMENT (2026-08-29): fire onPaymentConfirmed
@@ -287,6 +348,87 @@ export default function UPIPaymentModal({
     // is visible before the parent unmounts this modal — it is not a
     // wait for verification.
     setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "UPI" }); }, 1500);
+  };
+
+  // ✅ RAZORPAY (2026-09-02): opens Razorpay Checkout for cards/UPI/
+  // netbanking/wallets, backed by a server-created Order and a
+  // server-side signature check (see razorpayConfig.ts + server.ts).
+  // On success this calls the EXACT SAME onPaymentConfirmed({ amount,
+  // method: "UPI" }) contract as the manual path above — deliberately —
+  // so every one of this modal's 14 call sites across the app (booking
+  // wizard, subscriptions, bazaar, contributions, etc.) keeps working
+  // completely unchanged; only this file needed to change.
+  const handlePayWithRazorpay = async () => {
+    if (submitted || razorpaySucceeded || razorpayLoading) return;
+    if (!validateBeforePayment()) return;
+
+    setRazorpayError(null);
+    setRazorpayLoading(true);
+    try {
+      await loadRazorpayCheckoutScript();
+      const order = await createRazorpayOrder({
+        amount: Number(effectiveAmount),
+        refId,
+        bookingName,
+        devoteeName,
+      });
+
+      openRazorpayCheckout(
+        {
+          key: RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.order_id,
+          name: "Sri Dwar",
+          description: bookingName,
+          prefill: { name: devoteeName },
+          notes: { refId },
+          theme: { color: "#FFB347" },
+          handler: async (response) => {
+            try {
+              const verified = await verifyRazorpayPayment({
+                ...response,
+                refId,
+                amount: Number(effectiveAmount),
+                bookingName,
+                devoteeName,
+              });
+              if (!verified) {
+                setRazorpayError("We couldn't verify this payment. If money was deducted, please contact us with your Ref ID — do not pay again.");
+                setRazorpayLoading(false);
+                return;
+              }
+              setRazorpaySucceeded(true);
+              setSubmitted(true);
+              // ✅ CLEAN CHECKOUT (2026-09-02): no forced WhatsApp popup here
+              // anymore. Razorpay's signature check above is the actual
+              // verification — the team no longer needs a manual "please go
+              // check this landed" ping (that alert existed for the
+              // self-reported manual-UPI flow, where nothing was verified
+              // automatically). server.ts's /api/razorpay/verify-payment
+              // already writes an audit-log entry for every verified
+              // payment, which is the durable record the team needs;
+              // sendOwnerWhatsAppAlert() is kept, unused here, for the
+              // manual-fallback path below. A devotee should never have
+              // their own browser/app yanked into WhatsApp as a side effect
+              // of paying — sharing a confirmation is something THEY choose
+              // to do afterward (see the Download/Share buttons already on
+              // their Dashboard and booking confirmation screens), not
+              // something that happens to them.
+              setTimeout(() => { onPaymentConfirmed({ amount: Number(effectiveAmount), method: "UPI" }); }, 1200);
+            } catch {
+              setRazorpayError("We couldn't verify this payment. If money was deducted, please contact us with your Ref ID — do not pay again.");
+              setRazorpayLoading(false);
+            }
+          },
+          modal: { ondismiss: () => setRazorpayLoading(false) },
+        },
+        (message) => { setRazorpayError(message); setRazorpayLoading(false); }
+      );
+    } catch (err: any) {
+      setRazorpayError(err?.message || "Could not start payment. Please try again in a moment, or contact us if this continues.");
+      setRazorpayLoading(false);
+    }
   };
 
   return (
@@ -309,7 +451,7 @@ export default function UPIPaymentModal({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="bg-gradient-to-b from-[#0B2B27] to-[#0F3530] w-full sm:rounded-3xl sm:max-w-sm border border-white/10 shadow-2xl animate-slideUp text-white flex flex-col"
+        className="bg-gradient-to-b from-[#0B2B27] to-[#0F3530] w-full sm:rounded-3xl sm:max-w-sm lg:max-w-lg border border-white/10 shadow-2xl animate-slideUp text-white flex flex-col"
         style={{ maxHeight: "100%" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -320,7 +462,14 @@ export default function UPIPaymentModal({
         >
           <div className="min-w-0 flex-1">
             <h3 className="font-serif text-sm font-bold text-white leading-snug break-words">Complete Your Sacred Offering</h3>
-            <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">PhonePe · GPay · Paytm · BHIM</p>
+            {/* ✅ CLEAN CHECKOUT (2026-09-02): this used to always say "PhonePe
+                · GPay · Paytm · BHIM" even when Razorpay (which also accepts
+                cards and netbanking, not just UPI apps) is the only method
+                actually shown below — inaccurate as soon as Razorpay went
+                live. Now reflects whichever path is actually showing. */}
+            <p className="text-[12px] font-mono text-[#FFB347] uppercase tracking-wider leading-snug break-words">
+              {showManualFallback ? "PhonePe · GPay · Paytm · BHIM" : "Cards · UPI · Netbanking — Secured by Razorpay"}
+            </p>
           </div>
           <button onClick={onClose} className="text-white/60 hover:text-white p-1.5 bg-white/5 rounded-full border border-white/10 shrink-0 w-8 h-8 flex items-center justify-center ml-2">
             <X className="w-4 h-4" />
@@ -430,6 +579,85 @@ export default function UPIPaymentModal({
               </div>
             )}
 
+            {/* ✅ RAZORPAY (2026-09-02): primary, gateway-verified payment
+                path — cards/UPI/netbanking/wallets via Razorpay Checkout.
+                Hidden automatically if VITE_RAZORPAY_KEY_ID isn't set
+                (isRazorpayConfigured), so an unconfigured environment
+                falls back to exactly the original manual-UPI-only modal
+                instead of showing a button that would fail. Hidden after
+                `submitted` (either path) alongside the rest of the "how to
+                pay" UI below, to prevent a devotee paying twice. */}
+            {isRazorpayConfigured && !submitted && (
+              <div className="space-y-1.5">
+                <button
+                  onClick={handlePayWithRazorpay}
+                  disabled={razorpayLoading}
+                  className="w-full bg-[#5EEAD4] hover:bg-[#4dd8c2] disabled:opacity-60 text-[#021816] font-extrabold py-4 rounded-xl text-xs transition-all tracking-widest uppercase shadow-lg flex items-center justify-center space-x-2"
+                >
+                  {razorpayLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Opening secure checkout…</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <div className="text-left">
+                        <span className="block">{payButtonLabel} — ₹{effectiveAmount}</span>
+                        <span className="block text-[11px] font-normal opacity-70 normal-case tracking-normal">Cards · UPI · Netbanking — secured by Razorpay</span>
+                      </div>
+                    </>
+                  )}
+                </button>
+                {razorpayError && (
+                  <p className="text-[11px] text-[#F27D26] text-center leading-relaxed px-1">{razorpayError}</p>
+                )}
+                {/* ✅ Trust badge (2026-09-02): a small, distinct "secured by"
+                    mark near the actual pay action — the same reassurance
+                    pattern every major checkout (Amazon, Flipkart, Shopify)
+                    places right next to its payment button, not just as
+                    part of the button's own subtitle text above. No logo
+                    image (no Razorpay brand asset ships in this repo) — a
+                    lock glyph + text reads clearly at this size and never
+                    breaks if an image fails to load. */}
+                <div className="flex items-center justify-center space-x-1.5 pt-0.5">
+                  <Lock className="w-3 h-3 text-white/30" />
+                  <span className="text-[10px] text-white/30 font-mono uppercase tracking-wider">Secured by Razorpay</span>
+                </div>
+              </div>
+            )}
+
+            {/* ✅ CLEAN CHECKOUT (2026-09-02): showManualFallback is true only
+                when Razorpay genuinely isn't configured/reachable — never
+                shown side-by-side with the Razorpay button. Previously this
+                divider was gated on isRazorpayConfigured but the QR section
+                right below it was NOT (see the next comment) — meaning both
+                payment methods were showing at once whenever Razorpay was
+                configured, which is exactly the cluttered "two ways to pay"
+                look this whole change removes. */}
+            {showManualFallback && !submitted && (
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-[12px] text-white/30 font-mono">PAY VIA UPI</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+            )}
+
+            {/* Everything below (QR code, Copy UPI, "I Have Paid") is the
+                original manual-UPI flow. It is intentionally NOT shown in
+                the live payment portal anymore when Razorpay is configured
+                — see SHOW_MANUAL_UPI_FALLBACK above. It still exists as an
+                automatic fallback if Razorpay is ever unreachable/
+                unconfigured, so a devotee is never left with zero ways to
+                pay. Hidden once `submitted` is true (either path) so a
+                devotee can't attempt to pay twice for one booking.
+                ✅ BUG FIXED (2026-09-02): this block used to render on
+                `!submitted` alone, with no isRazorpayConfigured check at
+                all — meaning it showed at the same time as the Razorpay
+                button whenever Razorpay WAS configured, not only as a
+                fallback. */}
+            {showManualFallback && !submitted && (
+            <>
             {/* Dynamic UPI QR Code — generated locally in-browser (see
                 upiConfig.ts), no external image service to fail. */}
             <div className="flex flex-col items-center space-y-2">
@@ -495,17 +723,45 @@ export default function UPIPaymentModal({
                 <span>{copied ? "Copied!" : "Copy UPI"}</span>
               </button>
             </div>
+            </>
+            )}
 
             <div className="text-[12px] text-white/40 font-mono text-center">
               Booking for: <span className="text-white/70 font-bold">{devoteeName}</span>
             </div>
 
+            {/* ✅ CLEAN CHECKOUT (2026-09-02): this box's wording now depends
+                on which path actually happened. Razorpay is verified
+                instantly (the signature check above), so telling a devotee
+                "3 working days" and pointing them at WhatsApp — copy that
+                only ever made sense for the old manually-reviewed path — was
+                inaccurate and needlessly slow-sounding for what's now the
+                normal case. The devotee's certificate/confirmation is still
+                delivered by email automatically (unchanged, server-side);
+                this only fixes what the devotee is TOLD will happen. */}
             <div className="flex items-start space-x-2 bg-[#5EEAD4]/8 border border-[#5EEAD4]/20 px-3 py-2.5 rounded-xl text-[12px] text-[#5EEAD4] font-mono">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              <span>An acknowledgement certificate will be shared with you on WhatsApp & Email within 3 working days of payment confirmation. 🙏</span>
+              <span>
+                {razorpaySucceeded
+                  ? "Your payment is confirmed. A confirmation email is on its way, and your certificate will be available to download from your Dashboard once it's ready. 🙏"
+                  : "An acknowledgement certificate will be shared with you on WhatsApp & Email within 3 working days of payment confirmation. 🙏"}
+              </span>
             </div>
 
-            {!submitted ? (
+            {/* ✅ CLEAN CHECKOUT (2026-09-02): the "I Have Paid" button and
+                its "Verification Pending" status only ever apply to the
+                manual-UPI path — this used to render on `!submitted` alone
+                with no showManualFallback check, so it would appear even
+                with the manual QR section above it hidden, as an orphaned
+                button with nothing for it to confirm. Now: Razorpay success
+                shows its own clean confirmation only; the manual path below
+                is unchanged. */}
+            {razorpaySucceeded ? (
+              <div className="w-full bg-[#5EEAD4]/12 border border-[#5EEAD4]/30 text-[#5EEAD4] font-bold py-4 rounded-xl text-xs flex items-center justify-center space-x-2">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>✅ Payment Verified via Razorpay</span>
+              </div>
+            ) : showManualFallback && !submitted ? (
               <button onClick={handleConfirmPayment}
                 className="w-full bg-[#FFB347] hover:bg-[#F27D26] text-[#021816] font-extrabold py-4 rounded-xl text-xs transition-all tracking-widest uppercase shadow-lg flex items-center justify-center space-x-2">
                 <Check className="w-4 h-4" />
@@ -514,15 +770,17 @@ export default function UPIPaymentModal({
                   <span className="block text-[11px] font-normal opacity-70 normal-case tracking-normal">Sends instant WhatsApp alert to our team</span>
                 </div>
               </button>
-            ) : (
+            ) : showManualFallback ? (
               <div className="w-full bg-[#5EEAD4]/12 border border-[#5EEAD4]/30 text-[#5EEAD4] font-bold py-4 rounded-xl text-xs flex items-center justify-center space-x-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 <span>🙏 Payment Noted — Verification Pending</span>
               </div>
-            )}
+            ) : null}
 
             <p className="text-[11px] text-white/20 text-center font-mono pb-1">
-              Our team confirms bookings within 2 hours via WhatsApp & Email. 🙏
+              {razorpaySucceeded
+                ? "You can download or share your confirmation anytime from your Dashboard. 🙏"
+                : "Our team confirms bookings within 2 hours via WhatsApp & Email. 🙏"}
             </p>
 
           </div>

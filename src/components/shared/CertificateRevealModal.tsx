@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Download, Share2 } from "lucide-react";
+import { X, Download, Share2, FileText } from "lucide-react";
 import { shareOrDownloadBlob } from "../../utils/shareCertificate";
 
 // ─── Certificate Reveal Modal ────────────────────────────────────────────
@@ -22,6 +22,13 @@ interface CertificateRevealModalProps {
   filename: string;
   shareTitle?: string;
   shareText?: string;
+  /** ✅ ADDED (2026-09-02): when provided, shows a separate "PDF" action
+   *  that fetches this URL on demand (only when tapped — never
+   *  pre-fetched, so devotees who only want the image never pay for the
+   *  extra download) and shares/saves it as its own file, independent of
+   *  the image above. Omit this prop to keep the modal exactly as it was
+   *  (image-only) for any caller that doesn't have a PDF route yet. */
+  pdfUrl?: string;
 }
 
 export default function CertificateRevealModal({
@@ -31,10 +38,12 @@ export default function CertificateRevealModal({
   filename,
   shareTitle = "My Sri Dwar Certificate",
   shareText = "Jai Jagannath! Here is my Certificate from Sri Dwar.",
+  pdfUrl,
 }: CertificateRevealModalProps) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isActing, setIsActing] = useState(false);
+  const [isActingPdf, setIsActingPdf] = useState(false);
   const [actionError, setActionError] = useState("");
 
   // Build the object URL once per blob, and clean it up when this modal
@@ -72,6 +81,31 @@ export default function CertificateRevealModal({
       }
     } finally {
       setIsActing(false);
+    }
+  };
+
+  // ✅ ADDED (2026-09-02): fetched fresh on tap, not eagerly alongside the
+  // image — a devotee who only ever wants the image (the common case)
+  // never pays the bandwidth/server cost of generating a PDF they didn't
+  // ask for.
+  const handleDownloadPdf = async () => {
+    if (!pdfUrl) return;
+    setActionError("");
+    setIsActingPdf(true);
+    try {
+      const res = await fetch(pdfUrl);
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const blob = await res.blob();
+      const pdfFilename = filename.replace(/\.(jpe?g|png)$/i, "") + ".pdf";
+      const result = await shareOrDownloadBlob(blob, pdfFilename, shareTitle, shareText);
+      if (result.status === "error") {
+        setActionError("Could not save your PDF right now. Please try again shortly.");
+      }
+    } catch (e) {
+      console.error("Certificate PDF fetch failed:", e);
+      setActionError("Could not load your PDF right now. Please try again shortly.");
+    } finally {
+      setIsActingPdf(false);
     }
   };
 
@@ -131,7 +165,7 @@ export default function CertificateRevealModal({
               className="inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-50 border border-white/15 text-white/80 text-xs font-bold uppercase tracking-wide py-3 rounded-xl transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-[#5EEAD4]" />
-              {isActing ? "Preparing…" : "Save"}
+              {isActing ? "Preparing…" : "Save Image"}
             </button>
             <button
               type="button"
@@ -143,6 +177,22 @@ export default function CertificateRevealModal({
               {isActing ? "Preparing…" : "Share"}
             </button>
           </div>
+          {/* ✅ ADDED (2026-09-02): a separate, independent PDF download —
+              only shown when the caller passed a pdfUrl (i.e. this
+              certificate type actually has a PDF route). Full-width, its
+              own row, so it reads as a distinct file/format rather than a
+              third option crammed into the image's own action row. */}
+          {pdfUrl && (
+            <button
+              type="button"
+              disabled={isActingPdf}
+              onClick={handleDownloadPdf}
+              className="mt-2.5 w-full inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-50 border border-white/15 text-white/80 text-xs font-bold uppercase tracking-wide py-3 rounded-xl transition-all cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5 text-[#FFB347]" />
+              {isActingPdf ? "Preparing PDF…" : "Also Download as PDF"}
+            </button>
+          )}
         </div>
       </div>
     </div>
