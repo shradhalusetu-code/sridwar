@@ -4,7 +4,7 @@
  * Sits below the Online Puja section as its own richly-designed segment.
  */
 
-import { useState, ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import {
   ChevronRight, ChevronDown, Clock, Users, Award, Leaf, Heart,
   Flame, Moon, Sun, Wind, Droplets, Zap, Shield, BookOpen, Star
@@ -431,6 +431,7 @@ function ServiceCard({
 
   return (
     <div
+      id={service.id}
       className="relative flex flex-col h-full rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-2xl group"
       style={{
         background: service.categoryBg,
@@ -601,6 +602,10 @@ interface HolisticWellnessProps {
    *  always visible, since the site scrolls freely. Defaults to false so
    *  this still shows everything if a caller forgets to pass it. */
   isAndroidApp?: boolean;
+  /** Deep-link from the homepage carousel (or anywhere else) — matches a
+   *  SERVICES id (e.g. "hatha-yoga") and opens/scrolls to that exact
+   *  service card instead of landing on the page header. */
+  initialHighlightId?: string | null;
 }
 
 // Cards always shown on the Android app before "Show More" — the website
@@ -608,13 +613,13 @@ interface HolisticWellnessProps {
 // visibleCards below).
 const ANDROID_VISIBLE_COUNT = 4;
 
-export default function HolisticWellness({ onBookService, isAndroidApp = false }: HolisticWellnessProps) {
+export default function HolisticWellness({ onBookService, isAndroidApp = false, initialHighlightId }: HolisticWellnessProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [accordionOpen, setAccordionOpen] = useState(false);
   // ✅ ACCORDION FIX: one shared "which service's benefits are open" value
   // covering BOTH the always-visible cards and the "Show more" cards below —
   // see ServiceCard's isOpen/onToggleExpanded prop comment above.
-  const { isOpen: isBenefitsOpen, toggle: toggleBenefits } = useSingleOpen<string>();
+  const { isOpen: isBenefitsOpen, toggle: toggleBenefits, open: openBenefits } = useSingleOpen<string>();
 
   const filtered = activeCategory === "all"
     ? SERVICES
@@ -624,6 +629,28 @@ export default function HolisticWellness({ onBookService, isAndroidApp = false }
   const visibleCards  = filtered.slice(0, visibleCount);
   const hiddenCards   = filtered.slice(visibleCount);
   const hasHidden     = hiddenCards.length > 0;
+
+  // Deep-link from the homepage carousel (or anywhere else that passes
+  // initialHighlightId): switch to "all" so the matching service is
+  // guaranteed to be in the filtered list regardless of category, open the
+  // Android "Show more" accordion if it's hidden behind that, expand its
+  // benefits, then scroll it into view. Runs once per mount;
+  // HolisticWellness is unmounted/remounted whenever currentPage changes
+  // in App.tsx, so a fresh id always re-triggers this correctly.
+  useEffect(() => {
+    if (!initialHighlightId) return;
+    const match = SERVICES.find((s) => s.id === initialHighlightId);
+    if (!match) return;
+    setActiveCategory("all");
+    const indexAmongAll = SERVICES.indexOf(match);
+    if (isAndroidApp && indexAmongAll >= ANDROID_VISIBLE_COUNT) setAccordionOpen(true);
+    openBenefits(match.id);
+    const timer = setTimeout(() => {
+      document.getElementById(match.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialHighlightId]);
 
   const handleBook = (title: string, price: number) => {
     if (onBookService) {

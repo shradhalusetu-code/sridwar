@@ -261,14 +261,53 @@ export default function AuthDashboard({
   const [formSubmissions, setFormSubmissions] = useState<FormSubmissionRecord[]>([]);
 
   // ── Ledger pagination ───────────────────────────────────────────────────
-  // Both "My Spiritual Transactions Ledger" (bookedItems) and "All Account
-  // Activity" (activityRecords) show their latest 6 entries as a carousel
-  // by default; everything past that is collapsed. Each "Show more" tap
-  // reveals 10 more, and can be tapped again to reveal 10 more after that.
-  const LEDGER_CAROUSEL_COUNT = 6;
+  // ✅ CHANGED (Profile ledger fix): both "My Spiritual Transactions Ledger"
+  // (bookedItems) and "All Account Activity" (activityRecords) now show only
+  // their latest 2 entries by default — was 6 — with everything else
+  // collapsed behind "Show more". Each "Show more" tap still reveals 10 more
+  // at a time, unchanged. A single shared constant, so both sections always
+  // stay in sync with each other.
+  const LEDGER_CAROUSEL_COUNT = 2;
   const LEDGER_PAGE_SIZE = 10;
   const [bookedLedgerVisible, setBookedLedgerVisible] = useState(LEDGER_CAROUSEL_COUNT);
   const [activityLedgerVisible, setActivityLedgerVisible] = useState(LEDGER_CAROUSEL_COUNT);
+
+  // ✅ ADDED (Profile ledger fix) — "Delete" for a pending/failed activity.
+  // activities is an intentionally append-only Supabase table (no update/
+  // delete policy for regular users — see supabase_schema.sql and the
+  // "Pay Now retry" comment below), so this can never actually delete the
+  // real audit record — nor should it, since Sri Dwar's team still needs it
+  // for reconciliation even if a devotee abandons the payment. Instead this
+  // just hides that record from THIS device's view from now on (persisted
+  // to localStorage, same pattern as sridwar_sacred_profile above), which
+  // is what a devotee asking to "delete a pending payment" actually wants:
+  // one less stuck-looking card cluttering their own Profile.
+  const PENDING_DISMISS_KEY = "sridwar_dismissed_pending_activities";
+  const [dismissedActivityIds, setDismissedActivityIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(PENDING_DISMISS_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const handleDismissPendingActivity = (rec: ActivityRecord) => {
+    const ok = window.confirm(
+      `Remove "${rec.itemName}" from your list? This only removes it from your view here — if any amount was actually deducted, please contact Sri Dwar instead of retrying, rather than deleting this.`
+    );
+    if (!ok) return;
+    setDismissedActivityIds((prev) => {
+      const next = new Set(prev);
+      next.add(rec.id);
+      try {
+        localStorage.setItem(PENDING_DISMISS_KEY, JSON.stringify(Array.from(next)));
+      } catch {
+        // Best-effort — if storage is unavailable/full, the dismiss still
+        // applies for the rest of this session via React state above.
+      }
+      return next;
+    });
+  };
 
   // ── "Pay Now" retry for a pending/failed "All Account Activity" row ──────
   // activities is an intentionally append-only ledger from the devotee's own
@@ -963,6 +1002,18 @@ export default function AuthDashboard({
       return next;
     });
   };
+  // ✅ ADDED (Profile ledger field-trim, 2026-09-03): same collapse/expand
+  // pattern as expandedBookedItems above, for "All Account Activity"
+  // cards — the booking stepper and Receipt/Certificate/Book Again
+  // buttons (renderActivityExtras) now only show once a card is expanded.
+  const [expandedActivityCards, setExpandedActivityCards] = useState<Set<string>>(new Set());
+  const toggleActivityCardExpanded = (key: string) => {
+    setExpandedActivityCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
   const getPujaIcon = (name: string) => {
     const n = (name || "").toLowerCase();
     if (/raksha|kavach|protection|armed forces|shield/.test(n)) return Shield;
@@ -996,7 +1047,47 @@ export default function AuthDashboard({
   };
 
   /** Renders the Receipt/Certificate download row for one activity record — shared by both the carousel and "show more" list below so they never drift apart. */
-  const renderActivityDownloadButtons = (rec: ActivityRecord) => {
+  // ✅ SPLIT (Profile ledger field-trim, 2026-09-03): this used to be one
+  // function mixing "core, always-relevant" actions (Complete Payment,
+  // Delete) with "supplementary, can wait" ones (Receipt/Certificate
+  // downloads, Book Again). Per the requirement — "For other activities,
+  // show title, reference ID, price, and payment status. Put remaining
+  // details/activities under Show More" alongside "Pending payments:
+  // clearly show... Complete Payment option" — those two groups now need
+  // to render differently: renderPendingActions always shows on the card
+  // face (never collapsed, since a devotee must never have to dig for a
+  // stuck payment's fix), renderActivityExtras only shows once "Details"
+  // is expanded.
+  const renderPendingActions = (rec: ActivityRecord) => {
+    const canRetryPayment = rec.paymentStatus === "pending_verification" || rec.paymentStatus === "failed";
+    if (!canRetryPayment) return null;
+    return (
+      <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/5">
+        <button
+          type="button"
+          onClick={() => handleOpenRetryPayment(rec)}
+          className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FFB347]/15 hover:bg-[#FFB347]/25 border border-[#FFB347]/40 text-[#FFB347] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+        >
+          <RefreshCw className="w-3 h-3" />
+          Complete Payment
+        </button>
+        {/* ✅ ADDED (Profile ledger fix) — "Delete" for a pending/failed
+            row, wherever this row is shown (main ledger or Pending & Cart
+            Services below) — see handleDismissPendingActivity above for
+            what this actually does and why. */}
+        <button
+          type="button"
+          onClick={() => handleDismissPendingActivity(rec)}
+          className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-red-950/30 border border-white/15 hover:border-red-500/30 text-white/50 hover:text-red-300 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+        >
+          <Trash2 className="w-3 h-3" />
+          Delete
+        </button>
+      </div>
+    );
+  };
+
+  const renderActivityExtras = (rec: ActivityRecord) => {
     const safeName = (userProfile.name || "Devotee").trim().replace(/\s+/g, "_");
     const isPaid = rec.paymentStatus === "confirmed";
     // ✅ FIX (2026-08-29 — explicit clarification): this certificate is a
@@ -1009,11 +1100,7 @@ export default function AuthDashboard({
     // prepared by Sri Dwar's team after the rite is actually performed and
     // emailed directly — this button was never meant to be that.
     const showCertificate = rec.activityType === "puja" || rec.activityType === "seva";
-    // ✅ ADDED — "If payment is pending, show Pay Now" (Profile ledger fix):
-    // lets a devotee resubmit payment for a row still awaiting verification
-    // or explicitly marked failed, without needing to start the booking over.
-    const canRetryPayment = rec.paymentStatus === "pending_verification" || rec.paymentStatus === "failed";
-    if (!isPaid && !showCertificate && !canRetryPayment) return null;
+    if (!isPaid && !showCertificate) return null;
     // ✅ FIX (2026-08-29 — architecture reversal, explicitly requested):
     // Certificate (JPG) and Confirmation (plain-text PDF, generated
     // separately client-side by downloadConfirmationMessage() in
@@ -1047,21 +1134,11 @@ export default function AuthDashboard({
             {loadingDocKey === `${rec.id}-cert` ? "..." : "Certificate"}
           </button>
         )}
-        {canRetryPayment && (
-          <button
-            type="button"
-            onClick={() => handleOpenRetryPayment(rec)}
-            className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FFB347]/15 hover:bg-[#FFB347]/25 border border-[#FFB347]/40 text-[#FFB347] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
-          >
-            <RefreshCw className="w-3 h-3" />
-            Pay Now
-          </button>
-        )}
         {/* ✅ ADDED — "Book Again" (Amazon/Flipkart's "Buy Again", adapted):
             only for a genuine puja/seva that's actually paid, and only
             when onBookAgain was actually passed in — never shown for a
             failed/pending booking, since re-offering the same wizard for
-            those is what the "Pay Now" retry button above already is. */}
+            those is what the Complete Payment retry button already is. */}
         {showCertificate && isPaid && onBookAgain && (
           <button
             type="button"
@@ -1104,6 +1181,18 @@ export default function AuthDashboard({
     }
     return { label: "Pending Verification", cls: "bg-[#FFB347]/10 text-[#FFB347] border-[#FFB347]/20" };
   };
+
+  // ✅ ADDED (Profile ledger fix) — activityRecords with any devotee-
+  // dismissed rows removed (see handleDismissPendingActivity above); used
+  // everywhere "All Account Activity" renders below, so a dismissed row
+  // disappears from every view of it, not just "Pending & Cart Services".
+  const visibleActivityRecords = activityRecords.filter((rec) => !dismissedActivityIds.has(rec.id));
+  // Same records, narrowed to ones still awaiting payment — surfaced
+  // prominently in "Pending & Cart Services" below, always with a
+  // Complete Payment option per that section's requirement.
+  const pendingActivityRecords = visibleActivityRecords.filter(
+    (rec) => rec.paymentStatus === "pending_verification" || rec.paymentStatus === "failed"
+  );
 
   // ✅ ADDED — booking-journey progress stepper for genuine Puja/Seva
   // activities, in the spirit of a delivery tracker (Amazon/Flipkart) but
@@ -2209,6 +2298,67 @@ export default function AuthDashboard({
                 </button>
               </div>
 
+              {/* ✅ ADDED (Profile ledger fix) — PENDING & CART SERVICES:
+                  every activity still awaiting payment (pending_verification
+                  or failed), surfaced together in one place so a devotee
+                  never has to hunt through the full ledger below to find
+                  something they still owe on. Always shows Complete Payment
+                  + Delete for every row here — that's the whole point of
+                  this section, so unlike the ledgers below it's never
+                  paginated/collapsed. Renders nothing when there's nothing
+                  pending, same as "My Requests & Submissions" further down. */}
+              {pendingActivityRecords.length > 0 && (
+                <div className="w-full max-w-md mt-6 text-left" id="pending-cart-services">
+                  <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
+                    Pending & Cart Services
+                  </h3>
+                  <div className="space-y-3">
+                    {pendingActivityRecords.map((rec) => {
+                      const badge = paymentStatusBadge(rec.paymentStatus);
+                      return (
+                        <div
+                          key={rec.id}
+                          id={`pending-cart-${rec.id}`}
+                          className="bg-[#092320] border border-[#FFB347]/25 p-4 rounded-2xl shadow-sm text-left"
+                        >
+                          <span className="text-[11px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
+                            {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
+                          </span>
+                          <h4 className="font-serif text-sm font-bold text-white pr-4">{rec.itemName}</h4>
+                          <span className="text-[12px] text-white/50 font-mono font-medium block">
+                            Ref: {rec.refId}
+                          </span>
+                          <div className="flex justify-between items-center mt-3 pt-3 border-t border-white/5 text-xs">
+                            <span className="font-bold text-[#FFB347]">₹{rec.amount}</span>
+                            <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold uppercase border ${badge.cls}`}>
+                              {badge.label}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRetryPayment(rec)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FFB347]/15 hover:bg-[#FFB347]/25 border border-[#FFB347]/40 text-[#FFB347] rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              Complete Payment
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDismissPendingActivity(rec)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-white/5 hover:bg-red-950/30 border border-white/15 hover:border-red-500/30 text-white/50 hover:text-red-300 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* MY SPIRITUAL TRANSACTIONS LEDGER — moved directly below the ID card */}
               <div className="w-full max-w-md mt-6 text-left">
                 <h3 className="font-serif text-lg font-bold text-white border-b border-white/10 pb-2 mb-4">
@@ -2361,20 +2511,34 @@ export default function AuthDashboard({
                     {activityDownloadError}
                   </p>
                 )}
-                {activityRecords.length > 0 ? (
+                {visibleActivityRecords.length > 0 ? (
                   <>
                     {/* Latest 6, as a swipeable carousel on mobile/app */}
                     <MobileCarousel
-                      items={activityRecords.slice(0, LEDGER_CAROUSEL_COUNT)}
+                      items={visibleActivityRecords.slice(0, LEDGER_CAROUSEL_COUNT)}
                       getKey={(rec) => `activity-carousel-${rec.id}`}
                       desktopGridClassName="lg:grid-cols-2"
                       cardWidthClassName="w-[clamp(210px,62vw,360px)]"
                       renderItem={(rec) => {
                         const badge = paymentStatusBadge(rec.paymentStatus);
+                        // ✅ FIELD-TRIM (2026-09-03): card face now shows only
+                        // what was asked for — title, reference ID, price,
+                        // payment status — plus Complete Payment/Delete
+                        // whenever a payment is actually stuck (that one's
+                        // covered by the separate "Pending payments must
+                        // clearly show..." requirement, so it's never
+                        // collapsed). The booking stepper and Receipt/
+                        // Certificate/Book Again buttons are genuinely
+                        // "remaining details," not core fields — same
+                        // Details ▼/▲ toggle already used on the Transaction
+                        // Ledger card above, for a consistent interaction.
+                        const cardKey = `activity-${rec.id}`;
+                        const isExpanded = expandedActivityCards.has(cardKey);
+                        const hasExtras = renderBookingStepper(rec) !== null || renderActivityExtras(rec) !== null;
                         return (
                           <div
                             id={`synced-activity-${rec.id}`}
-                            className="bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
+                            className="h-full flex flex-col bg-[#092320] border border-white/10 p-4 rounded-2xl shadow-sm text-left relative overflow-hidden"
                           >
                             <span className="text-[11px] text-[#5EEAD4] font-mono uppercase tracking-wider block mb-1">
                               {ACTIVITY_TYPE_LABELS[rec.activityType] || "Offering"}
@@ -2389,8 +2553,19 @@ export default function AuthDashboard({
                                 {badge.label}
                               </span>
                             </div>
-                            {renderBookingStepper(rec)}
-                            {renderActivityDownloadButtons(rec)}
+                            {renderPendingActions(rec)}
+                            {hasExtras && (
+                              <button
+                                type="button"
+                                onClick={() => toggleActivityCardExpanded(cardKey)}
+                                className="text-[10px] font-bold text-[#5EEAD4]/70 hover:text-[#5EEAD4] uppercase tracking-wide mt-3 pt-3 border-t border-white/5 text-left cursor-pointer"
+                              >
+                                {isExpanded ? "Show less ▲" : "Details ▼"}
+                              </button>
+                            )}
+                            {isExpanded && renderBookingStepper(rec)}
+                            {isExpanded && renderActivityExtras(rec)}
+                            <div className="flex-1" />
                           </div>
                         );
                       }}
@@ -2398,10 +2573,13 @@ export default function AuthDashboard({
 
                     {/* Beyond the latest 6 — collapsed by default, "Show
                         more" reveals 10 more at a time. */}
-                    {activityRecords.length > LEDGER_CAROUSEL_COUNT && (
+                    {visibleActivityRecords.length > LEDGER_CAROUSEL_COUNT && (
                       <div className="space-y-3 mt-3">
-                        {activityRecords.slice(LEDGER_CAROUSEL_COUNT, activityLedgerVisible).map((rec) => {
+                        {visibleActivityRecords.slice(LEDGER_CAROUSEL_COUNT, activityLedgerVisible).map((rec) => {
                           const badge = paymentStatusBadge(rec.paymentStatus);
+                          const cardKey = `activity-${rec.id}`;
+                          const isExpanded = expandedActivityCards.has(cardKey);
+                          const hasExtras = renderBookingStepper(rec) !== null || renderActivityExtras(rec) !== null;
                           return (
                             <div
                               key={rec.id}
@@ -2421,18 +2599,28 @@ export default function AuthDashboard({
                                   {badge.label}
                                 </span>
                               </div>
-                              {renderBookingStepper(rec)}
-                              {renderActivityDownloadButtons(rec)}
+                              {renderPendingActions(rec)}
+                              {hasExtras && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleActivityCardExpanded(cardKey)}
+                                  className="text-[10px] font-bold text-[#5EEAD4]/70 hover:text-[#5EEAD4] uppercase tracking-wide mt-3 pt-3 border-t border-white/5 text-left cursor-pointer"
+                                >
+                                  {isExpanded ? "Show less ▲" : "Details ▼"}
+                                </button>
+                              )}
+                              {isExpanded && renderBookingStepper(rec)}
+                              {isExpanded && renderActivityExtras(rec)}
                             </div>
                           );
                         })}
-                        {activityLedgerVisible < activityRecords.length && (
+                        {activityLedgerVisible < visibleActivityRecords.length && (
                           <button
                             type="button"
                             onClick={() => setActivityLedgerVisible((v) => v + LEDGER_PAGE_SIZE)}
                             className="w-full flex items-center justify-center gap-1.5 text-[12px] font-bold text-[#5EEAD4] hover:text-[#7FF4DE] uppercase tracking-wide py-2 border border-white/10 rounded-xl"
                           >
-                            Show {Math.min(LEDGER_PAGE_SIZE, activityRecords.length - activityLedgerVisible)} more
+                            Show {Math.min(LEDGER_PAGE_SIZE, visibleActivityRecords.length - activityLedgerVisible)} more
                           </button>
                         )}
                       </div>

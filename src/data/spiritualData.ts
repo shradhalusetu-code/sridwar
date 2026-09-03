@@ -277,7 +277,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     unitPrice: 470,
     unitDurationMinutes: 10,
     duration: "75 minutes",
-    imageUrl: import.meta.env.BASE_URL + "images/maa.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/deity_maa_sarala_1781874159752.jpg"
   },
   {
     id: "puja-career-ganesha",
@@ -294,7 +294,7 @@ export const ON_LINE_PUJAS: Puja[] = [
     unitPrice: 600,
     unitDurationMinutes: 10,
     duration: "45 minutes",
-    imageUrl: import.meta.env.BASE_URL + "images/puja_1.jpg"
+    imageUrl: import.meta.env.BASE_URL + "images/deity_jagannath_1781872890111.jpg"
   },
   {
     id: "puja-marriage-milani",

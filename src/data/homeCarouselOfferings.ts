@@ -20,9 +20,16 @@
  * .ts, bazaarOfferings.ts) — so every card is guaranteed to be high-
  * definition and visually consistent with the page it links to.
  *
- * A tap/click on a card navigates straight to that offering's real page
- * (via the existing onNavigate prop) and lands on that page's own header —
- * it does not scroll to or highlight a specific card within the page.
+ * A tap/click on a card navigates straight to that offering's real page AND
+ * deep-links to that exact card (via onNavigate(page, id) -> App.tsx's
+ * offeringDeepLinkId -> each destination page's initialHighlightId prop),
+ * so the devotee lands scrolled-to and highlighted on the same card they
+ * tapped, not just the top of the page. Every `id` below MUST exactly
+ * match the real id used on that card's destination page (SIMPLE_PUJAS /
+ * SEVA_OFFERINGS / BAZAAR_PRODUCTS / CounsellingGuidance's SERVICES /
+ * HolisticWellness's SERVICES) — a mismatched id silently falls back to
+ * landing on the page header instead of erroring, so double-check the id
+ * against the destination file whenever a card is added or changed here.
  *
  * Kept as plain data (no JSX) so cards can be reordered, translated, or
  * later swapped for live CMS data without touching HomeCarousel.tsx.
@@ -78,7 +85,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
 
   // ── Pujas ──────────────────────────────────────────────────────────────
   {
-    id: "basic-sankalp-puja",
+    id: "simple-puja-basic-sankalp",
     title: "Basic Sankalp Puja",
     description: "A simple, heartfelt Sankalp offered in your name and Gotra to begin the day with blessings.",
     image: img("deity_jagannath_1781872890111.jpg"),
@@ -87,7 +94,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     imagePosition: "center 20%",
   },
   {
-    id: "mansik-ichha-puja",
+    id: "simple-puja-mansik-ichha",
     title: "Mansik Ichha Puja",
     description: "A focused Sankalp where your personal wish is respectfully expressed through mantra and Dhoop offering.",
     image: img("deity_lingaraj_1781872903761.jpg"),
@@ -116,7 +123,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
 
   // ── Counselling & Guidance ───────────────────────────────────────────────
   {
-    id: "counselling-marriage-family-planning",
+    id: "marriage-family-planning",
     title: "Marriage & Family Life Planning",
     description: "Preventive, forward-looking guidance for marriage readiness, newly-married adjustment, and family life.",
     image: img("counselling/marriage-family-planning.jpg"),
@@ -124,7 +131,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     badge: "Life Guidance",
   },
   {
-    id: "counselling-mental-emotional-wellbeing",
+    id: "emotional-wellbeing",
     title: "Mental & Emotional Wellbeing",
     description: "A safe, non-judgemental space to talk, understand your emotions, and build everyday emotional strength.",
     image: img("counselling/emotional-wellbeing.jpg"),
@@ -134,7 +141,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
 
   // ── Products (Temple Bazaar) ────────────────────────────────────────────
   {
-    id: "bazaar-bhog-offerings",
+    id: "bazaar-new-bhog",
     title: "Bhog Offerings",
     description: "Sponsor a sacred Bhog offered to the deity on your behalf, shared with devotees as Prasad.",
     image: img("Mahaprasad Seva.jpg"),
@@ -144,7 +151,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
 
   // ── Holistic Wellness (Yoga Sessions) ───────────────────────────────────
   {
-    id: "wellness-hatha-yoga",
+    id: "hatha-yoga",
     title: "Hatha Yoga Session",
     description: "Traditional Hatha yoga in the Sivananda lineage, balancing solar and lunar energies through asana and breath.",
     image: img("Hatha Yoga.jpg"),
@@ -152,7 +159,7 @@ export const HOME_CAROUSEL_CARDS: CarouselCard[] = [
     badge: "Classical Practice",
   },
   {
-    id: "wellness-ashtanga-vinyasa",
+    id: "ashtanga-yoga",
     title: "Ashtanga Vinyasa Flow",
     description: "A structured, heat-building practice following Patanjali's eight-limbed path of synchronised breath and movement.",
     image: img("Ashtanga Vinyasa.jpg"),

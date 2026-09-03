@@ -82,12 +82,12 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
         
         {/* Header Block Section */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-6">
-          <div className="text-left space-y-2">
+          <div className="text-left space-y-2 w-full">
             <span className="text-xs font-semibold text-[#FFB347]/80 tracking-wider font-mono">Revered shrines network</span>
             <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight">
               Featured Temple Experience
             </h2>
-            <p className="text-sm text-white/70 max-w-xl">
+            <p className="text-sm text-white/70 max-w-xl md:max-w-none">
               Explore India's most divine shrines and begin your devotional experience with a single selection.
             </p>
             {onNavigate && (

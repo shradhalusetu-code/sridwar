@@ -11,9 +11,9 @@
  * buttons, no lane tabs, and (intentionally) no section heading/subheading
  * above the row — this section is the carousel itself, nothing else. The
  * whole card is clickable/tappable and routes straight to that offering's
- * real page via the existing onNavigate prop used throughout App.tsx — a
- * tap always lands on that page's own header, never a scroll-to/highlight
- * of a specific card within the page.
+ * real page AND deep-links to that exact card on it (scrolled-to and
+ * highlighted), via onNavigate(page, id) — see homeCarouselOfferings.ts's
+ * doc comment for how each card's id must match its destination page.
  *
  * Navigation is a prev/next arrow pinned to the left and right edge of the
  * carousel itself (overlaid on the row, vertically centered), so devotees
@@ -29,7 +29,7 @@ import { gaNavClick } from "../utils/analytics";
 import { sectionTopPadding } from "../utils/androidSpacing";
 
 interface HomeCarouselProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, offeringId?: string) => void;
   /** Since this carousel is the first element on the homepage, it must
    *  supply its own top clearance under the fixed Navbar + Android status
    *  bar on the Capacitor app — <main> only pads for this on web (see
@@ -261,9 +261,11 @@ export default function HomeCarousel({ onNavigate, isAndroidApp = false }: HomeC
 
   const handleCardClick = (card: CarouselCard) => {
     gaNavClick(`home_carousel_${card.id}`, "home_carousel");
-    // Always a plain page navigation — lands on that page's own header,
-    // never a scroll-to/highlight of a specific card within the page.
-    onNavigate(card.targetPage);
+    // Deep-links straight to this exact card on its destination page
+    // (scrolled-to and highlighted), not just the page header — see
+    // App.tsx's handleNavigate(page, offeringId) / offeringDeepLinkId and
+    // each destination page's initialHighlightId prop.
+    onNavigate(card.targetPage, card.id);
   };
 
   const handleArrowClick = (direction: "prev" | "next") => {

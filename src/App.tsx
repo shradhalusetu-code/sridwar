@@ -1009,6 +1009,7 @@ export default function App() {
               />
               <HolisticWellness
                 isAndroidApp={isAndroidApp}
+                initialHighlightId={offeringDeepLinkId}
                 onBookService={(serviceName, price) => {
                   setWizardDefaults({ pujaName: serviceName, price, category: "holistic_wellness" });
                   setIsBookNowOpen(true);
@@ -1165,6 +1166,7 @@ export default function App() {
               <CounsellingGuidance
                 onNavigate={handleNavigate}
                 isAndroidApp={isAndroidApp}
+                initialHighlightId={offeringDeepLinkId}
                 onBookSession={(label, price) => {
                   setWizardDefaults({ pujaName: label, price, category: "counselling_guidance" });
                   setIsBookNowOpen(true);

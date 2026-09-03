@@ -1994,7 +1994,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
                 <Flame className="w-4 h-4 text-orange-400" fill="currentColor" />
                 Simple Pujas
               </h3>
-              <p className="text-[13px] text-white/60 mt-1 max-w-2xl">
+              <p className="text-[13px] text-white/60 mt-1 max-w-2xl md:max-w-none">
                 Worship, prayer, ritual, ceremony, and devotion-based pujas — affordable, structured Sankalp offerings starting at ₹100.
               </p>
             </div>
@@ -2027,7 +2027,7 @@ export default function OnlinePuja({ onBookNowClick, onViewPriestProfile, initia
           />
 
           {/* Disclaimer */}
-          <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl">
+          <p className="text-[12px] text-white/35 font-mono mt-6 leading-relaxed max-w-2xl md:max-w-none">
             Offerings and sevas are performed with devotion as per temple process. Timings may vary depending on temple schedule, festival rush, priest availability, and temple rituals.
           </p>
         </div>

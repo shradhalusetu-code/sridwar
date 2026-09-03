@@ -25,7 +25,7 @@
  * icon-chip wrapper; no structural change needed.
  */
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   ChevronLeft, ChevronRight, ArrowRight, Compass, Brain, HeartHandshake, Users,
   GraduationCap, Briefcase, Gem, Scale, Sunset, HelpCircle, ShieldCheck, Lock,
@@ -697,9 +697,13 @@ interface CounsellingGuidanceProps {
    *  still renders its full, always-visible-website behaviour if a caller
    *  forgets to pass it. */
   isAndroidApp?: boolean;
+  /** Deep-link from the homepage carousel (or anywhere else) — matches a
+   *  SERVICES id (e.g. "marriage-family-planning") and opens/scrolls to
+   *  that exact guidance card instead of landing on the page header. */
+  initialHighlightId?: string | null;
 }
 
-export default function CounsellingGuidance({ onNavigate, onBookSession, isAndroidApp = false }: CounsellingGuidanceProps) {
+export default function CounsellingGuidance({ onNavigate, onBookSession, isAndroidApp = false, initialHighlightId }: CounsellingGuidanceProps) {
   const [guidanceAccordionOpen, setGuidanceAccordionOpen] = useState(false);
   // ✅ ACCORDION FIX: single shared "which guidance card is expanded" value
   // for phone/tablet (see ServiceCard's expanded/onExpand/onCollapse prop
@@ -780,6 +784,20 @@ export default function CounsellingGuidance({ onNavigate, onBookSession, isAndro
     }, isHidden ? 100 : 0);
     return () => window.clearTimeout(timer);
   };
+
+  // Deep-link from the homepage carousel (or anywhere else that passes
+  // initialHighlightId): open and scroll to the matching guidance card,
+  // same as tapping its "who it's for" chip. Runs once per mount;
+  // CounsellingGuidance is unmounted/remounted whenever currentPage
+  // changes in App.tsx, so a fresh id always re-triggers this correctly.
+  useEffect(() => {
+    if (!initialHighlightId) return;
+    const match = SERVICES.find((s) => s.id === initialHighlightId);
+    if (!match) return;
+    openGuidanceCard(match.id);
+    return scrollToChip(match.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialHighlightId]);
 
   return (
     <section
