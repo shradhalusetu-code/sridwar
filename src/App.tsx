@@ -1024,6 +1024,7 @@ export default function App() {
             <Suspense fallback={pageLoadingFallback}>
               <PriestSection
                 initialPriestId={priestDeepLinkId}
+                initialTempleSearch={offeringDeepLinkId}
                 onBack={() => {
                   setPriestDeepLinkId(null);
                   handleNavigate("puja");

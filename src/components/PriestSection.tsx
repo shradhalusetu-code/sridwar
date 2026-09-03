@@ -16,6 +16,17 @@ import MobileCarousel from "./shared/MobileCarousel";
 interface PriestSectionProps {
   /** Optional: pre-select a priest (e.g. coming from the Online Puja priest filter) */
   initialPriestId?: string | null;
+  /** ✅ ADDED (2026-09-03): pre-fills the existing search box with a temple
+   *  name (e.g. from TempleExperience.tsx's "View Priest Directory" —
+   *  see selectedTemple.name there) so a devotee lands on priests who
+   *  actually serve that temple, not just the page header. Reuses the
+   *  search box's own existing matching logic (see filteredPriests below,
+   *  which already checks p.templesAssociated) rather than building a
+   *  separate filter mechanism — templesAssociated is real, deliberately
+   *  populated data (each priest's real associated temple(s), in the same
+   *  "Temple Name — City" format Temple.name uses), not a fabricated
+   *  city-proximity guess. */
+  initialTempleSearch?: string | null;
   onBack?: () => void;
 }
 
@@ -75,9 +86,15 @@ function StarRating({ rating }: { rating?: number }) {
 // simply isn't in the currently-viewed group.
 const PRIEST_BATCH_SIZE = 30;
 
-export default function PriestSection({ initialPriestId = null, onBack }: PriestSectionProps) {
+export default function PriestSection({ initialPriestId = null, initialTempleSearch = null, onBack }: PriestSectionProps) {
   const [selectedPriestId, setSelectedPriestId] = useState<string | null>(initialPriestId);
-  const [search, setSearch] = useState("");
+  // ✅ ADDED (2026-09-03): lazy-initialized from initialTempleSearch, not a
+  // separate useEffect — PriestSection is fully unmounted/remounted every
+  // time currentPage changes in App.tsx (same pattern already relied on by
+  // CounsellingGuidance/HolisticWellness's own deep-link effects), so a
+  // fresh prop value on each arrival already gives a fresh initial state
+  // here without needing to react to prop changes after mount.
+  const [search, setSearch] = useState(() => initialTempleSearch || "");
   const [expertiseFilter, setExpertiseFilter] = useState<string>("all");
   const [priestGroupIndex, setPriestGroupIndex] = useState(0);
   // Anchor used to scroll the freshly-shown section (detail or listing) into

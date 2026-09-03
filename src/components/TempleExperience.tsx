@@ -13,7 +13,7 @@ import MobileCarousel from "./shared/MobileCarousel";
 interface TempleExperienceProps {
   onBookPuja: (templeName: string, deityName: string) => void;
   onExploreTemple: (temple: Temple) => void;
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: string, offeringId?: string) => void;
 }
 
 export default function TempleExperience({ onBookPuja, onExploreTemple, onNavigate }: TempleExperienceProps) {
@@ -482,7 +482,7 @@ export default function TempleExperience({ onBookPuja, onExploreTemple, onNaviga
                   {onNavigate && (
                     <button
                       id={`spotlight-priest-directory-${selectedTemple.id}`}
-                      onClick={() => onNavigate("priests")}
+                      onClick={() => onNavigate("priests", selectedTemple.name)}
                       className="relative flex-1 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] hover:from-[#0D9488] hover:to-[#2DD4BF] text-white font-extrabold py-3.5 px-5 rounded-xl text-xs transition-all hover:scale-105 tracking-widest uppercase border border-[#5EEAD4]/60 cursor-pointer"
                       style={{
                         boxShadow: "0 0 20px rgba(20, 184, 166, 0.5), 0 0 40px rgba(20, 184, 166, 0.25)",
