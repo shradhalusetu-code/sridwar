@@ -556,7 +556,7 @@ export default function ContactUs({ onNavigate, initialInquiryType }: ContactUsP
             </div>
             <div>
               <h3 className="font-serif text-lg font-bold text-white">Raise Temple Issues With Elected Representatives</h3>
-              <p className="text-xs text-white/60 mt-1 max-w-xl">
+              <p className="text-xs text-white/60 mt-1 max-w-xl md:max-w-none">
                 <span className="block text-white font-semibold mb-1">Protect What Our Ancestors Preserved</span>
                 From the smallest village shrine to great temple celebrations, help bring attention to what
                 matters. Share your concerns, suggestions, and ideas, and direct them to the appropriate

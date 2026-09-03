@@ -960,7 +960,7 @@ export default function SevaExperience({ onSponsorSeva, initialHighlightId = nul
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-serif text-lg font-bold text-white">Counselling & Guidance</h3>
                 </div>
-                <p className="text-[13px] text-white/60 leading-relaxed mt-1.5 max-w-xl">
+                <p className="text-[13px] text-white/60 leading-relaxed mt-1.5 max-w-xl md:max-w-none">
                   Confidential, wellbeing-oriented guidance for individuals, students, couples, families,
                   professionals & seniors — from experienced Pandits and Dharmic experts, offered in good faith as
                   personal and spiritual guidance, never as medical, psychiatric, or legal advice, and with no

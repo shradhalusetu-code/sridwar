@@ -954,7 +954,7 @@ export default function App() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-serif text-base sm:text-lg font-bold text-white">Counselling & Guidance</h3>
                     </div>
-                    <p className="text-xs text-white/55 leading-relaxed mt-1 max-w-2xl">
+                    <p className="text-xs text-white/55 leading-relaxed mt-1 max-w-2xl md:max-w-none">
                       Affordable, confidential guidance for individuals, students, couples, families, professionals & seniors —
                       from experienced Pandits and Dharmic experts, focused on strengthening families, not creating separation.
                     </p>

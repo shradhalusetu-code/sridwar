@@ -604,10 +604,10 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
                 Annual is selected, so that per-tier detail is unaffected. */}
           </div>
 
-          <p className="text-[13px] text-white/50 mb-3 max-w-2xl">{activeCategoryMeta.intro}</p>
+          <p className="text-[13px] text-white/50 mb-3 max-w-2xl md:max-w-none">{activeCategoryMeta.intro}</p>
 
           {activeCategory === "devotee" && (
-            <p className="text-[13px] text-white/60 mb-4 max-w-2xl">
+            <p className="text-[13px] text-white/60 mb-4 max-w-2xl md:max-w-none">
               On top of your standard booking cashback, each Devotee Referral Circle tier earns an{" "}
               <span className="font-black text-[#FFB347]">additional</span> referral cashback:{" "}
               {(activeTiers as DevoteeReferralTier[]).map((tier, i, arr) => (
