@@ -395,6 +395,24 @@ function _findByHeader_(headers, values, pattern) {
   return idx >= 0 ? values[idx] : "";
 }
 
+// ✅ FIX (2026-09-03 — reported bug: a devotee's email address showing up
+// as the service/puja name in a payment reminder email, e.g. "your
+// Sankalp for the kunurana1995@gmail.com is still awaiting..."): the exact
+// upstream cause is a specific sheet row's column layout (not reproducible
+// without seeing that live row — Google Forms can shift which cell a
+// value lands in when a conditional question was skipped), but regardless
+// of that root cause, an itemName that IS an email address is never
+// correct and should never reach a devotee-facing email. This is a
+// last-line-of-defence guard, not a fix for the sheet layout itself — if
+// itemName looks like an email, treat it as if the column had been blank,
+// so every caller's existing `ctx.itemName || resolvedLabel` fallback
+// (already correct, already tested) kicks in exactly as it does for a
+// genuinely empty cell.
+function _sanitizeItemName_(value) {
+  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(String(value))) return "";
+  return value;
+}
+
 function _findEmail_(headers, values) {
   // Prefer a real email-address column, but also support common Google Form
   // headings and website-synced sheets where the email is embedded in text.
@@ -552,7 +570,7 @@ function extractRowContext_(headers, values, meta) {
     rashi: _normalizeText_(_findByHeader_(headers, values, /rashi|moon sign/i)),
     deity: _normalizeText_(_findByHeader_(headers, values, /deity|god|goddess/i)),
     temple: _normalizeText_(_findByHeader_(headers, values, /temple/i)),
-    itemName: _normalizeText_(_findByHeader_(headers, values, /puja selected|seva selected|service selected|service name|puja name|seva name|temple visited/i)),
+    itemName: _sanitizeItemName_(_normalizeText_(_findByHeader_(headers, values, /puja selected|seva selected|service selected|service name|puja name|seva name|temple visited/i))),
     panditName: panditName && !/^any approved/i.test(panditName) ? panditName : "",
     formType: _normalizeText_(_findByHeader_(headers, values, /^type$/i) || _findByHeader_(headers, values, /query\s*type|form\s*type/i)),
     refId: ref || "",

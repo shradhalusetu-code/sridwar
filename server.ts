@@ -1653,6 +1653,18 @@ async function renderServiceCertificateJpeg(
 // individual devotee's data) and cached for 30 minutes since these numbers
 // don't need to be second-by-second live to build trust — they need to be
 // true.
+// ✅ ADDED (2026-09-03): deliberately the lightest possible route on this
+// server — no database call, no file read, nothing — specifically for the
+// GitHub Actions keep-alive workflow (.github/workflows/keep-alive.yml) to
+// ping every ~10 minutes so Render's free tier never spins down from
+// inactivity. Any route would technically keep the service warm, but a
+// route that does real work (a Supabase query, a certificate render)
+// would waste effort on every single ping, all day, forever, for no
+// reason — this one costs Render nothing to answer.
+app.get("/api/ping", (req, res) => {
+  res.json({ ok: true, time: new Date().toISOString() });
+});
+
 app.get("/api/stats/community", async (req, res) => {
   const supabaseAdmin = getSupabaseAdminClient();
   if (!supabaseAdmin) {

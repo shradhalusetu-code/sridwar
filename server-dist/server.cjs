@@ -1918,6 +1918,9 @@ async function renderServiceCertificateJpeg(name, serviceName, performedDate, ac
   const textLayer = await renderTextLayerPng(width, height, `${nameEl}${serviceEl}${dateEl}`);
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
+app.get("/api/ping", (req, res) => {
+  res.json({ ok: true, time: (/* @__PURE__ */ new Date()).toISOString() });
+});
 app.get("/api/stats/community", async (req, res) => {
   const supabaseAdmin = getSupabaseAdminClient();
   if (!supabaseAdmin) {

@@ -407,8 +407,73 @@ function _blessingClosing_() {
  * see the note on /api/razorpay/create-order in server.ts for the natural
  * next step here.
  */
-function _payNowButton_() {
-  return _ctaButton_("Complete Your Sankalp", "https://razorpay.me/@sridwar");
+/**
+ * Creates a real, per-booking Razorpay Payment Link via server.ts (which
+ * calls Razorpay's own API using the account's key/secret — never done
+ * directly from Apps Script) with the exact amount and reference locked
+ * in, so the devotee never has to type an amount themselves. Falls back to
+ * the static https://razorpay.me/@sridwar link — with an amount devotees
+ * do have to enter themselves — on ANY failure (network, cold-start
+ * timeout, misconfiguration): a slightly less convenient working link
+ * beats a broken one in the reminder email that most needs to actually get
+ * someone to pay.
+ * ✅ WIRED UP (2026-09-03): the server-side endpoint for this
+ * (/api/razorpay/create-payment-link) already existed but was never
+ * actually called from here — this function was still generating the
+ * plain static link only. Same retry/cold-start handling as
+ * _fetchCertificateImageBlob_ above.
+ */
+function _createRazorpayPaymentLink_(refId, amount, name, email, phone) {
+  const apiBase = PropertiesService.getScriptProperties().getProperty("SRIDWAR_ADMIN_API_BASE");
+  const linkSecret = PropertiesService.getScriptProperties().getProperty("RAZORPAY_LINK_SECRET");
+  const FALLBACK_URL = "https://razorpay.me/@sridwar";
+  if (!apiBase || !linkSecret || !refId || !amount) return FALLBACK_URL;
+
+  const url = apiBase.replace(/\/$/, "") + "/api/razorpay/create-payment-link";
+  const payload = {
+    refId: refId,
+    amount: amount,
+    name: name || "Devotee",
+    email: email || undefined,
+    phone: phone || undefined,
+    description: "Sri Dwar — Sankalp Offering (Ref " + refId + ")",
+  };
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = UrlFetchApp.fetch(url, {
+        method: "post",
+        contentType: "application/json",
+        headers: { "x-razorpay-link-secret": linkSecret },
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true,
+      });
+      if (res.getResponseCode() === 200) {
+        const data = JSON.parse(res.getContentText());
+        if (data && data.short_url) return data.short_url;
+      }
+      logError_("razorpay_payment_link", "Attempt " + attempt + ": HTTP " + res.getResponseCode() + " from " + url);
+    } catch (e) {
+      logError_("razorpay_payment_link", "Attempt " + attempt + ": " + e);
+    }
+    if (attempt === 1) Utilities.sleep(8000); // matches the longer cold-start-tolerant wait used elsewhere in this file
+  }
+  return FALLBACK_URL; // never leave the email with no working way to pay
+}
+
+/**
+ * "Complete Your Sankalp" button — links to a real, per-booking Razorpay
+ * Payment Link with the exact amount pre-filled and locked (via
+ * _createRazorpayPaymentLink_ above), so the devotee can pay by card, UPI,
+ * or netbanking without needing to log in OR type an amount in themselves.
+ * Falls back to the static razorpay.me/@sridwar link automatically if
+ * link creation fails for any reason.
+ */
+function _payNowButton_(refId, amount, name, email, phone) {
+  const url = refId && amount
+    ? _createRazorpayPaymentLink_(refId, amount, name, email, phone)
+    : "https://razorpay.me/@sridwar";
+  return _ctaButton_("Complete Your Sankalp", url);
 }
 
 /**
@@ -431,9 +496,24 @@ function _payNowButton_() {
 // the real composited image instead of falling back to plain text.
 // Utilities.sleep() blocks synchronously, which is fine here — Apps
 // Script's email-sending functions are already synchronous end to end.
+// ✅ FIX (2026-09-03 — reported bug: emails arriving without their
+// certificate/transaction image, falling back to plain text): this used
+// to make 2 attempts with only a 4-second gap between them. Render's free
+// tier can take 30-60 seconds to wake from a cold start (documented
+// elsewhere in this file and in confirmedpaymentpoller.gs) — a devotee's
+// payment-reminder or booking-confirmation email firing while the server
+// was asleep would fail BOTH attempts well before the server ever
+// finished waking up, and silently fall back to text-only. Now makes 3
+// attempts with a longer, increasing wait (8s, then 20s) — comfortably
+// covers a genuine cold start while still finishing well within Apps
+// Script's execution time limits. The real, permanent fix is keeping the
+// server from going idle in the first place (see the keep-alive ping
+// workflow, separate from this file) — this is the safety net for
+// whenever that isn't enough on its own.
 function _fetchCertificateImageBlob_(url, blobName, logContext) {
   if (!url) return null;
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  const RETRY_WAITS_MS = [8000, 20000]; // gaps between attempts 1→2 and 2→3
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
       if (res.getResponseCode() === 200) {
@@ -443,8 +523,8 @@ function _fetchCertificateImageBlob_(url, blobName, logContext) {
     } catch (e) {
       logError_(logContext, `Attempt ${attempt}: ${e}`);
     }
-    if (attempt === 1) {
-      Utilities.sleep(4000); // give a cold-starting server time to wake up before retrying
+    if (attempt < 3) {
+      Utilities.sleep(RETRY_WAITS_MS[attempt - 1]); // give a cold-starting server real time to wake up before retrying
     }
   }
   return null;
@@ -693,7 +773,7 @@ function buildBookingConfirmationEmail_(d) {
     <div style="max-width:470px;margin:14px auto 0;color:#c9d6d2;font-size:13px;line-height:1.7;">
       <b style="color:#e8f0ee;">What happens next:</b> ${whatsNextLine}
     </div>
-    ${isPending ? `<div style="max-width:470px;margin:14px auto 0;text-align:center;">${_payNowButton_()}</div>` : ""}
+    ${isPending ? `<div style="max-width:470px;margin:14px auto 0;text-align:center;">${_payNowButton_(d.refId, d.amount, d.name)}</div>` : ""}
     <div style="max-width:470px;margin:12px auto 0;color:#9fb2ad;font-size:11px;line-height:1.6;">
       ${disclaimerText}
     </div>
@@ -738,7 +818,7 @@ function buildPaymentReminderEmail_(d) {
       ${bodyLine}
     </div>
     <div style="max-width:470px;margin:14px auto 0;text-align:center;">
-      ${_payNowButton_()}
+      ${_payNowButton_(d.refId, d.amount, d.name)}
     </div>
     <div style="max-width:470px;margin:14px auto 0;color:#c9d6d2;font-size:12px;line-height:1.6;">
       If you've already paid, please disregard this note — it may simply have crossed paths with your payment.

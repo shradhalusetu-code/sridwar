@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// ✅ ADDED (2026-09-03): completes the Turnstile bot-protection feature —
+// verifyHuman() already existed, already fails open whenever Turnstile
+// isn't configured/reachable (never blocks a real devotee over an
+// infrastructure gap), and was already documented as belonging here. It
+// just was never actually called from anywhere until now.
+import { verifyHuman } from "./turnstile";
+
 interface SyncConfig {
   formUrl: string;
   mappedFields: {
@@ -628,6 +635,18 @@ export async function syncToGoogleForm(
   // Deduplication: drop the same submission if fired again within 5 seconds
   if (_isDuplicate(formType, data)) return false;
 
+  // ✅ ADDED (2026-09-03): the shared bot-protection gate — see
+  // verifyHuman()'s own extensive comments in turnstile.ts for exactly
+  // when this blocks vs. lets a submission through. In short: only a
+  // genuine, confirmed-bot token gets rejected here; any kind of
+  // "verification unavailable" (not configured, network hiccup, etc.)
+  // always lets a real devotee's submission proceed exactly as before
+  // this feature existed.
+  if (!(await verifyHuman())) {
+    console.warn(`[Google Forms Sync]: Submission blocked for ${formType} — failed bot verification.`);
+    return false;
+  }
+
   const config = getSyncConfig(formType);
   if (!config.isEnabled) {
     console.log(`[Google Forms Sync]: Skipping, disabled for ${formType}`);
@@ -1026,6 +1045,19 @@ export async function postPendingRow(
 ): Promise<boolean> {
   if (_pendingSentRefs.has(refId)) {
     console.log(`[Google Forms Sync]: Pending row already sent for ${refId}, skipping duplicate.`);
+    return false;
+  }
+  // ✅ ADDED (2026-09-03): same shared gate as syncToGoogleForm above —
+  // appropriate here since this fires BEFORE any payment exists yet
+  // (it's the initial "devotee started this booking" record). Deliberately
+  // NOT added to postFinalRow below — that one fires at the moment a real
+  // Razorpay payment is confirmed, and blocking that record over a bot
+  // check would risk leaving an already-successful payment without a
+  // finalized booking, which is a far worse outcome than the redundant
+  // protection is worth (Razorpay's own fraud checks already vetted that
+  // transaction).
+  if (!(await verifyHuman())) {
+    console.warn(`[Google Forms Sync]: Pending row blocked for ${refId} — failed bot verification.`);
     return false;
   }
   _pendingSentRefs.add(refId);

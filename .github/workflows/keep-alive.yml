@@ -1,0 +1,38 @@
+name: Keep Render Service Awake
+
+# ✅ ADDED (2026-09-03): Render's free tier spins down your service after
+# ~15 minutes of no traffic, and takes 30-60 seconds to wake back up on
+# the next real request — the actual root cause behind several bugs this
+# project has hit (blank pages, missing certificate images in emails).
+# This workflow pings the server every 10 minutes, comfortably inside that
+# 15-minute window, so it never has the chance to go idle in the first
+# place. Free — GitHub Actions has no cost for scheduled workflows on a
+# public repo.
+#
+# IMPORTANT: pings the raw https://sridwar-api.onrender.com URL directly,
+# NOT sridwar.com. Going through sridwar.com would route through
+# Cloudflare first — if Cloudflare ever served a cached response (now or
+# in the future) without forwarding the request to Render, the ping would
+# never actually reach the server it's meant to keep awake, silently
+# defeating the entire point of this workflow.
+#
+# Note: GitHub does not guarantee scheduled workflows fire at the exact
+# minute — under load, a run can be delayed by a few minutes. A 10-minute
+# interval leaves enough buffer that this doesn't matter in practice; if
+# pings ever seem to be arriving less reliably than expected, shortening
+# to */5 is the adjustment to make.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # lets you manually trigger a run from the Actions tab, useful for testing this workflow itself
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the server
+        run: |
+          curl -sf -o /dev/null -w "Render responded: %{http_code} in %{time_total}s\n" \
+            https://sridwar-api.onrender.com/api/ping \
+            || echo "Ping failed — service may have been cold-starting or briefly down. Not treated as a workflow failure, since an occasional miss isn't worth an email alert."
