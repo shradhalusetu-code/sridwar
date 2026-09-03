@@ -340,6 +340,8 @@ function PlanTierCard({ tier, billing, onSelect, unlocked, unlockRequirement, us
               amount={diyaAmount}
               bookingName="Diya Circle Voluntary Contribution"
               devoteeName={diyaName || "Devotee"}
+              devoteePhone={diyaPhone}
+              devoteeEmail={diyaEmail}
               refId={diyaRefIdRef.current}
               allowCustomAmount={true}
               minAmount={5}

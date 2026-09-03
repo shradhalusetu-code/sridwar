@@ -1185,6 +1185,8 @@ export default function TemplateBazaar({ onNavigate, initialHighlightId = null, 
           amount={selectedItem.price}
           bookingName={selectedItem.name}
           devoteeName={devoteeName || "Devotee"}
+          devoteePhone={devoteePhone}
+          devoteeEmail={devoteeEmail}
           refId={refId}
         />
       )}

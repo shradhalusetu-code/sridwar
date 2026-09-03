@@ -983,6 +983,8 @@ function DevoteeRegistrationSection({ onBack }: { onBack: () => void }) {
           amount={Number(form.donationAmount)}
           bookingName={`Sri Dwar Devotee Registration Divine Contribution — ${form.name}${form.donationNote ? ` (${form.donationNote})` : ""}`}
           devoteeName={form.name}
+          devoteePhone={form.phone}
+          devoteeEmail={form.email}
           refId={upiRefId}
           isVoluntaryContribution={true}
         />
@@ -1792,6 +1794,8 @@ function DharmicExpertSection() {
           amount={Number(form.donationAmount)}
           bookingName={`Dharmic Expert Directory Divine Contribution — ${form.fullName}${form.donationNote ? ` (${form.donationNote})` : ""}`}
           devoteeName={form.fullName}
+          devoteePhone={form.phone}
+          devoteeEmail={form.email}
           refId={upiRefId}
           isVoluntaryContribution={true}
         />
@@ -3021,6 +3025,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           amount={Number(templeRegDonationAmount)}
           bookingName={`Temple Registration Divine Contribution — ${templeReg.templeName}${templeRegDonationNote ? ` (${templeRegDonationNote})` : ""}`}
           devoteeName={templeReg.contactName}
+          devoteePhone={templeReg.contactPhone}
+          devoteeEmail={templeReg.contactEmail}
           refId={templeRegRefIdRef.current}
           isVoluntaryContribution={true}
         />
@@ -3274,6 +3280,8 @@ export default function TempleRegister({ standaloneTempleReg, onNavigate, onOpen
           amount={Number(donationAmount)}
           bookingName={`Temple Divine Contribution — ${selectedTemple.split("—")[0].trim()}${donationNote ? ` (${donationNote})` : ""}`}
           devoteeName={devotee.name}
+          devoteePhone={devotee.phone}
+          devoteeEmail={devotee.email}
           refId={donationRefId}
           isVoluntaryContribution={true}
         />

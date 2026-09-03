@@ -755,6 +755,8 @@ export default function ReportTempleIssues({ onNavigate }: ReportTempleIssuesPro
                     amount={donationAmount}
                     bookingName="Sri Dwar Temple Preservation Contribution"
                     devoteeName={name}
+                    devoteePhone={phone}
+                    devoteeEmail={email}
                     refId={refId}
                     allowCustomAmount={true}
                     minAmount={5}

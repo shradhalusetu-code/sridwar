@@ -11,6 +11,10 @@
     "lint": "tsc --noEmit",
     "optimize:images": "node scripts/optimize-webp-images.mjs"
   },
+  "overrides": {
+    "uuid": "^14.0.1",
+    "qs": "^6.16.0"
+  },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
     "@capacitor/app": "^8.1.0",

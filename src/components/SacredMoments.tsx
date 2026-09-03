@@ -315,6 +315,8 @@ export default function SacredMoments() {
               amount={prayerContribAmount}
               bookingName="Prayer Wall Voluntary Contribution"
               devoteeName={prayerContribName || "Devotee"}
+              devoteePhone={prayerContribPhone}
+              devoteeEmail={prayerContribEmail}
               refId={prayerContribRefId}
               allowCustomAmount={true}
               minAmount={5}

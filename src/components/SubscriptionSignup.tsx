@@ -539,6 +539,8 @@ export default function SubscriptionSignup({
         amount={amount}
         bookingName={`${tier.name} (${categoryLabel} — ${billing === "monthly" ? "Monthly" : "Annual"})`}
         devoteeName={name}
+        devoteePhone={phone}
+        devoteeEmail={email}
         refId={refId}
       />
     </>

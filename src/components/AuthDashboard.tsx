@@ -3334,6 +3334,8 @@ export default function AuthDashboard({
             : customMandapName || "Temple Redevelopment"
         }`}
         devoteeName={sankalpaName || pendingLogin?.name || "Devotee"}
+        devoteePhone={sankalpaPhone}
+        devoteeEmail={pendingLogin?.email || userProfile.email || undefined}
         refId={contributionRefId}
         isVoluntaryContribution={true}
       />
@@ -3349,6 +3351,7 @@ export default function AuthDashboard({
           amount={retryPaymentTarget.amount}
           bookingName={retryPaymentTarget.itemName}
           devoteeName={userProfile.name || "Devotee"}
+          devoteeEmail={userProfile.email || undefined}
           refId={retryRefId}
           skipDisclaimer
         />

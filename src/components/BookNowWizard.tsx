@@ -824,14 +824,14 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
                       className="w-full text-xs text-white/55 hover:text-white py-2.5 font-bold cursor-pointer">
                       Go Back & Amend Details
                     </button>
-                    {/* ✅ Trust badge (2026-09-02): same reassurance mark as
-                        the actual Razorpay button one step ahead in
-                        UPIPaymentModal.tsx — kept lightweight here since
-                        this button's real job is just opening that next
-                        step, not charging anything itself. */}
-                    <div className="flex items-center justify-center space-x-1.5 pt-0.5">
-                      <Lock className="w-3 h-3 text-white/25" />
-                      <span className="text-[10px] text-white/25 font-mono uppercase tracking-wider">Secured by Razorpay</span>
+                    {/* ✅ FIX (2026-09-03 — reported: too small/hard to
+                        read): enlarged to match the same size/contrast now
+                        used on the actual Razorpay button one step ahead in
+                        UPIPaymentModal.tsx, for a consistent, clearly
+                        legible trust signal across both steps. */}
+                    <div className="flex items-center justify-center space-x-2 pt-1">
+                      <Lock className="w-5 h-5 text-[#5EEAD4]" />
+                      <span className="text-sm text-white/70 font-mono uppercase tracking-wider font-bold">Secured by Razorpay</span>
                     </div>
                   </div>
                 </div>
@@ -1013,6 +1013,8 @@ export default function BookNowWizard({ isOpen, onClose, defaultPujaName = "", d
         amount={price}
         bookingName={pujaName}
         devoteeName={devoteeName}
+        devoteePhone={phone}
+        devoteeEmail={email}
         refId={refId}
         // ✅ CLEAN CHECKOUT (2026-09-02): same category-specific devotional
         // label as Step 2's own button (copy.payButtonLabel), carried

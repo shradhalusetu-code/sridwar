@@ -861,6 +861,8 @@ export default function Hero({ currentLanguage, isAndroidApp = false, onNavigate
         amount={upiAmount}
         bookingName="Darshan Certificate Divine Contribution"
         devoteeName={name}
+        devoteePhone={phone}
+        devoteeEmail={email}
         refId={refId}
         isVoluntaryContribution={true}
       />

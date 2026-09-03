@@ -280,6 +280,8 @@ export default function ContactUs({ onNavigate, initialInquiryType }: ContactUsP
                 amount={donationAmount}
                 bookingName="Sri Dwar Temple Divine Contribution"
                 devoteeName={name}
+                devoteePhone={phone}
+                devoteeEmail={email}
                 refId={refId}
                 allowCustomAmount={true}
                 minAmount={5}

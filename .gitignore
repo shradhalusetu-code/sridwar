@@ -130,8 +130,17 @@ android/app/src/main/assets/capacitor.plugins.json
 android/app/src/main/res/xml/config.xml
 
 # ── Local reference material — not deployed, not pushed to GitHub ───────
-# Old-files archive + Google Apps Script source copies, kept locally for
-# your own reference (and so I can read them accurately in future chats).
-# Never touched by `vite build` or the Render build command either way —
-# this line just keeps it out of git/GitHub too.
-docs/
+# Old-files archive (docs/archive) is kept locally only, for your own
+# reference (and so I can read it accurately in future chats). Never
+# touched by `vite build` or the Render build command either way.
+#
+# docs/google_appscripts/ is the ONE exception, tracked in git on purpose:
+# it's the actual Google Apps Script source (EmailTemplates.gs, config.gs,
+# triggers.gs, etc.) that lives in your Apps Script project, not on
+# Render/Vite. It contains no secrets — anything sensitive there is read
+# from Apps Script's own Script Properties, never hardcoded — so there's
+# no security reason to keep it out of git, and tracking it means changes
+# actually flow through the same pull/push workflow as everything else
+# instead of needing a separate manual copy-paste each time.
+docs/*
+!docs/google_appscripts/

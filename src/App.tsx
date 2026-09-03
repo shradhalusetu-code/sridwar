@@ -1395,13 +1395,39 @@ export default function App() {
                   <Mail className="w-4 h-4" />
                 </a>
               </div>
-              {/* ✅ Trust badge (2026-09-02): same "Secured by Razorpay"
-                  mark used near every payment button on the site, echoed
-                  here too since a footer trust signal is a familiar pattern
-                  from e-commerce sites devotees already know (Amazon,
-                  Flipkart). */}
-              <div className="flex items-center space-x-1.5 mt-4">
-                <Lock className="w-3.5 h-3.5 text-white/30" />
+              {/* ✅ FIX (2026-09-03): now shows the actual Razorpay logo, not
+                  just a generic lock icon — placed inside a small white
+                  chip since Razorpay's logo is navy-blue-on-transparent and
+                  would read as muddy/low-contrast directly on this dark
+                  green footer. A light chip is also the standard way
+                  payment-provider logos appear in footers on dark-themed
+                  sites generally (keeps the brand's real logo colors
+                  intact rather than recoloring their mark, while still
+                  looking intentional against the theme, not just pasted
+                  on). Sized to sit comfortably in a footer row, not
+                  dominate it. */}
+              <div className="flex items-center space-x-2 mt-4">
+                <span className="inline-flex items-center bg-white rounded-md px-2 py-1 shadow-sm">
+                  <img
+                    src="/images/razorpay-logo.svg"
+                    alt="Razorpay"
+                    className="h-3 w-auto"
+                    // ✅ DEFENSIVE FALLBACK (2026-09-03): if this image ever
+                    // fails to load for any reason (wrong deploy path, a
+                    // future accidental file move, etc.), hide the broken-
+                    // image icon and fall back to plain text inside the
+                    // same white chip — "Secured by Razorpay" still reads
+                    // clearly either way, nothing ever looks visibly broken.
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      img.style.display = "none";
+                      const fallback = document.createElement("span");
+                      fallback.textContent = "Razorpay";
+                      fallback.className = "text-[11px] font-bold text-[#072654]";
+                      img.parentElement?.appendChild(fallback);
+                    }}
+                  />
+                </span>
                 <span className="text-[11px] text-white/40 font-mono uppercase tracking-wider">Secured by Razorpay</span>
               </div>
             </div>

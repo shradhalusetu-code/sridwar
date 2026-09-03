@@ -112,6 +112,17 @@ interface UPIPaymentModalProps {
   amount: number | null;
   bookingName: string;
   devoteeName: string;
+  /** ✅ FIX (2026-09-03 — reported bug: Razorpay's checkout asks for phone
+   *  number and email again, right after the devotee already gave them in
+   *  this app's own form one step earlier). Optional so every existing
+   *  caller keeps compiling untouched, but every caller that already
+   *  collects a phone number (nearly all of them — it's mandatory in
+   *  BookNowWizard, AuthDashboard's Divine Contribution flow, etc.) should
+   *  pass it through here, straight into Razorpay's own `prefill.contact`/
+   *  `prefill.email`, so that screen is skipped or pre-filled entirely
+   *  instead of asking a second time. */
+  devoteePhone?: string;
+  devoteeEmail?: string;
   refId: string;
   allowCustomAmount?: boolean;
   minAmount?: number;
@@ -170,6 +181,8 @@ export default function UPIPaymentModal({
   amount,
   bookingName,
   devoteeName,
+  devoteePhone,
+  devoteeEmail,
   refId,
   allowCustomAmount = false,
   minAmount = 5,
@@ -271,6 +284,26 @@ export default function UPIPaymentModal({
       });
     return () => { cancelled = true; };
   }, [isOpen, effectiveAmount, upiTransactionNote]);
+
+  // ✅ FIX (2026-09-03 — reported bug: Razorpay Checkout takes 5-10 seconds
+  // to actually open after tapping Pay): loadRazorpayCheckoutScript() used
+  // to only ever be called inside handlePayWithRazorpay, i.e. AFTER the
+  // devotee had already tapped Pay — meaning that tap was the first moment
+  // the ~150KB checkout.js script started downloading, and Checkout
+  // couldn't open until it finished. This modal is on screen for several
+  // seconds before anyone taps Pay (reading the amount, the "contribution
+  // also brings you" panel, etc.) — genuinely idle time the script can
+  // download during instead. Preloading here means the script is usually
+  // already cached by the time Pay is tapped, so opening Checkout is
+  // effectively instant; loadRazorpayCheckoutScript()'s own promise-cache
+  // (see razorpayConfig.ts) means this never double-loads it even if the
+  // devotee taps Pay before this finishes. Silently ignored if it fails —
+  // handlePayWithRazorpay's own call is still the real, user-facing
+  // attempt and surfaces a proper error if the script genuinely can't load.
+  useEffect(() => {
+    if (!isOpen || showManualFallback) return;
+    loadRazorpayCheckoutScript().catch(() => { /* handlePayWithRazorpay will retry and surface the real error */ });
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -381,7 +414,19 @@ export default function UPIPaymentModal({
           order_id: order.order_id,
           name: "Sri Dwar",
           description: bookingName,
-          prefill: { name: devoteeName },
+          prefill: {
+            name: devoteeName,
+            // ✅ FIX (2026-09-03): previously only `name` was ever prefilled,
+            // so Razorpay's own checkout screen always asked the devotee to
+            // type their phone number and email AGAIN, right after they'd
+            // already given both in this app's own form. Both are optional
+            // props (see UPIPaymentModalProps above) — omitted entirely
+            // (rather than sent as empty strings) for the handful of callers
+            // that don't collect one, so Razorpay's own validation doesn't
+            // choke on a blank prefilled field.
+            ...(devoteePhone ? { contact: devoteePhone } : {}),
+            ...(devoteeEmail ? { email: devoteeEmail } : {}),
+          },
           notes: { refId },
           theme: { color: "#FFB347" },
           handler: async (response) => {
@@ -612,17 +657,14 @@ export default function UPIPaymentModal({
                 {razorpayError && (
                   <p className="text-[11px] text-[#F27D26] text-center leading-relaxed px-1">{razorpayError}</p>
                 )}
-                {/* ✅ Trust badge (2026-09-02): a small, distinct "secured by"
-                    mark near the actual pay action — the same reassurance
-                    pattern every major checkout (Amazon, Flipkart, Shopify)
-                    places right next to its payment button, not just as
-                    part of the button's own subtitle text above. No logo
-                    image (no Razorpay brand asset ships in this repo) — a
-                    lock glyph + text reads clearly at this size and never
-                    breaks if an image fails to load. */}
-                <div className="flex items-center justify-center space-x-1.5 pt-0.5">
-                  <Lock className="w-3 h-3 text-white/30" />
-                  <span className="text-[10px] text-white/30 font-mono uppercase tracking-wider">Secured by Razorpay</span>
+                {/* ✅ FIX (2026-09-03 — reported: too small/hard to read):
+                    was w-3 icon + text-[10px] at 30% opacity — genuinely
+                    hard to read at that size. Enlarged the icon, text, and
+                    contrast so this reads clearly as a real trust signal
+                    next to the pay action, not barely-visible fine print. */}
+                <div className="flex items-center justify-center space-x-2 pt-1">
+                  <Lock className="w-5 h-5 text-[#5EEAD4]" />
+                  <span className="text-sm text-white/70 font-mono uppercase tracking-wider font-bold">Secured by Razorpay</span>
                 </div>
               </div>
             )}
