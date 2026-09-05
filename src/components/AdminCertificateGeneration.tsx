@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import {
-  renderCertificate, compressImageToUnderSize, SERVICE_TYPE_OPTIONS, RELATIONSHIP_OPTIONS,
+  renderCertificate, compressImageToUnderSize, RELATIONSHIP_OPTIONS,
   CertificateData,
 } from "../utils/certificateTemplate";
 
@@ -27,6 +27,7 @@ interface AdminCertificateGenerationProps {
 
 type AccessState = "checking" | "staff" | "vendor" | "denied";
 type Member = { name: string; relationship: string };
+type OptionType = "city" | "deity" | "temple" | "service";
 
 const MAX_MEMBERS = 6;
 const emptyMember = (): Member => ({ name: "", relationship: "" });
@@ -46,10 +47,15 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const [temple, setTemple] = useState("");
 
   // ── Dropdown option lists (server-backed, "Add & Save") ──
+  // ✅ CHANGED (2026-09-05): Service is now ALSO server-backed here, same
+  // as City/Deity/Temple — replaces the old hardcoded, all-services
+  // dropdown per explicit instruction to only show Puja/engraving options
+  // and let anyone add a Puja name that isn't in the list yet.
   const [cityOptions, setCityOptions] = useState<string[]>([]);
   const [deityOptions, setDeityOptions] = useState<string[]>([]);
   const [templeOptions, setTempleOptions] = useState<string[]>([]);
-  const [addingOption, setAddingOption] = useState<"city" | "deity" | "temple" | null>(null);
+  const [serviceOptions, setServiceOptions] = useState<string[]>([]);
+  const [addingOption, setAddingOption] = useState<OptionType | null>(null);
   const [newOptionValue, setNewOptionValue] = useState("");
 
   // ── Photos ──
@@ -97,24 +103,26 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
     });
   }, [sessionToken]);
 
-  // Once authorized: fetch a fresh Reference ID and the three dropdown lists.
+  // Once authorized: fetch a fresh Reference ID and the four dropdown lists.
   useEffect(() => {
     if (access !== "staff" && access !== "vendor") return;
     (async () => {
       try {
-        const [refRes, cityRes, deityRes, templeRes] = await Promise.all([
+        const [refRes, cityRes, deityRes, templeRes, serviceRes] = await Promise.all([
           authFetch("/api/admin/certificates/new-ref-id"),
           authFetch("/api/admin/certificates/options/city"),
           authFetch("/api/admin/certificates/options/deity"),
           authFetch("/api/admin/certificates/options/temple"),
+          authFetch("/api/admin/certificates/options/service"),
         ]);
-        const [refData, cityData, deityData, templeData] = await Promise.all([
-          refRes.json(), cityRes.json(), deityRes.json(), templeRes.json(),
+        const [refData, cityData, deityData, templeData, serviceData] = await Promise.all([
+          refRes.json(), cityRes.json(), deityRes.json(), templeRes.json(), serviceRes.json(),
         ]);
         if (refData.refId) setRefId(refData.refId);
         if (cityData.options) setCityOptions(cityData.options);
         if (deityData.options) setDeityOptions(deityData.options);
         if (templeData.options) setTempleOptions(templeData.options);
+        if (serviceData.options) setServiceOptions(serviceData.options);
       } catch {
         setRefIdError("Could not load starting data. Please refresh the page.");
       }
@@ -167,7 +175,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const addMemberRow = () => setMembers((prev) => (prev.length < MAX_MEMBERS ? [...prev, emptyMember()] : prev));
   const removeMemberRow = (index: number) => setMembers((prev) => prev.filter((_, i) => i !== index));
 
-  const handleAddOption = async (type: "city" | "deity" | "temple") => {
+  const handleAddOption = async (type: OptionType) => {
     const value = newOptionValue.trim();
     if (!value) return;
     const res = await authFetch(`/api/admin/certificates/options/${type}`, {
@@ -176,9 +184,12 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
       body: JSON.stringify({ value }),
     });
     if (res.ok) {
-      const setter = type === "city" ? setCityOptions : type === "deity" ? setDeityOptions : setTempleOptions;
+      const setter = type === "city" ? setCityOptions : type === "deity" ? setDeityOptions : type === "temple" ? setTempleOptions : setServiceOptions;
       setter((prev) => [...prev, value].sort());
-      if (type === "city") setCity(value); else if (type === "deity") setDeity(value); else setTemple(value);
+      if (type === "city") setCity(value);
+      else if (type === "deity") setDeity(value);
+      else if (type === "temple") setTemple(value);
+      else setServiceType(value);
       setAddingOption(null);
       setNewOptionValue("");
     }
@@ -368,20 +379,15 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                     className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Service *</label>
-                  <select
-                    value={serviceType} onChange={(e) => setServiceType(e.target.value)}
-                    className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white"
-                  >
-                    <option value="">Select one service…</option>
-                    {SERVICE_TYPE_OPTIONS.map((group) => (
-                      <optgroup key={group.group} label={group.group}>
-                        {group.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
+                {/* ✅ CHANGED (2026-09-05): Service is now the same
+                    server-backed "Add & Save" dropdown as City/Deity/
+                    Temple — only Puja names and Stone Name Engraving are
+                    seeded (per explicit instruction to not show every
+                    service type), and anyone can add a Puja name that
+                    isn't listed yet. */}
+                <OptionDropdown label="Service" value={serviceType} setValue={setServiceType} options={serviceOptions} type="service"
+                  canAdd adding={addingOption === "service"} setAdding={setAddingOption}
+                  newValue={newOptionValue} setNewValue={setNewOptionValue} onAdd={() => handleAddOption("service")} />
                 <div>
                   <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Date *</label>
                   <input
@@ -392,19 +398,21 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
               </div>
 
               {/* City / Deity / Temple dropdowns with Add & Save */}
+              {/* ✅ CHANGED (2026-09-05): canAdd is no longer staff-only —
+                  an empty Temple list (a real seeding bug, now fixed) with
+                  no way for a vendor to add one was blocking vendors from
+                  finishing a certificate at all. Any authorized user can
+                  now add a missing City/Deity/Temple/Service entry. */}
               <div className="bg-[#092320] border border-white/10 rounded-2xl p-4 space-y-3">
                 <OptionDropdown label="City" value={city} setValue={setCity} options={cityOptions} type="city"
-                  canAdd={access === "staff"} adding={addingOption === "city"} setAdding={setAddingOption}
+                  canAdd adding={addingOption === "city"} setAdding={setAddingOption}
                   newValue={newOptionValue} setNewValue={setNewOptionValue} onAdd={() => handleAddOption("city")} />
                 <OptionDropdown label="Deity" value={deity} setValue={setDeity} options={deityOptions} type="deity"
-                  canAdd={access === "staff"} adding={addingOption === "deity"} setAdding={setAddingOption}
+                  canAdd adding={addingOption === "deity"} setAdding={setAddingOption}
                   newValue={newOptionValue} setNewValue={setNewOptionValue} onAdd={() => handleAddOption("deity")} />
                 <OptionDropdown label="Temple" value={temple} setValue={setTemple} options={templeOptions} type="temple"
-                  canAdd={access === "staff"} adding={addingOption === "temple"} setAdding={setAddingOption}
+                  canAdd adding={addingOption === "temple"} setAdding={setAddingOption}
                   newValue={newOptionValue} setNewValue={setNewOptionValue} onAdd={() => handleAddOption("temple")} />
-                {access === "vendor" && (
-                  <p className="text-[11px] text-white/30">Only Sri Dwar staff can add new City/Deity/Temple options.</p>
-                )}
               </div>
 
               {/* Members — up to 6 rows */}
@@ -518,8 +526,8 @@ function PhotoPicker({ dataUrl, processing, onSelect }: { dataUrl: string | null
 function OptionDropdown({
   label, value, setValue, options, type, canAdd, adding, setAdding, newValue, setNewValue, onAdd,
 }: {
-  label: string; value: string; setValue: (v: string) => void; options: string[]; type: "city" | "deity" | "temple";
-  canAdd: boolean; adding: boolean; setAdding: (t: "city" | "deity" | "temple" | null) => void;
+  label: string; value: string; setValue: (v: string) => void; options: string[]; type: OptionType;
+  canAdd: boolean; adding: boolean; setAdding: (t: OptionType | null) => void;
   newValue: string; setNewValue: (v: string) => void; onAdd: () => void;
 }) {
   return (

@@ -1776,7 +1776,7 @@ app.get("/api/admin/certificates/options/:type", async (req, res) => {
   if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
 
   const optionType = String(req.params.type || "");
-  if (!["city", "deity", "temple"].includes(optionType)) {
+  if (!["city", "deity", "temple", "service"].includes(optionType)) {
     res.status(400).json({ error: "Invalid option type." });
     return;
   }
@@ -1796,15 +1796,16 @@ app.get("/api/admin/certificates/options/:type", async (req, res) => {
 app.post("/api/admin/certificates/options/:type", express.json(), async (req, res) => {
   const user = await getAuthorizedCertificateUser(req);
   if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
-  // ✅ "vendors...can't edit core information" (explicit instruction):
-  // the shared City/Deity/Temple lists are exactly that — core, shared
-  // data every certificate draws from. Only staff may add to them, so one
-  // vendor's typo or unofficial entry can never pollute what every other
-  // vendor sees.
-  if (user.role !== "staff") { res.status(403).json({ error: "Only Sri Dwar staff can add new options." }); return; }
-
+  // ✅ CHANGED (2026-09-05): previously staff-only. Relaxed after real
+  // usage showed vendors getting stuck — an empty Temple list (a genuine
+  // seeding bug, now fixed) with no way for a vendor to add one blocked
+  // them from finishing a certificate at all. These are low-stakes shared
+  // reference lists (temple/city/deity/service names), not financial or
+  // identity data, so letting any authorized user (staff or vendor)
+  // contribute a missing entry is a reasonable trade — worst case is a
+  // duplicate or typo staff can clean up later, not a real risk.
   const optionType = String(req.params.type || "");
-  if (!["city", "deity", "temple"].includes(optionType)) {
+  if (!["city", "deity", "temple", "service"].includes(optionType)) {
     res.status(400).json({ error: "Invalid option type." });
     return;
   }

@@ -66,24 +66,31 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   templeSlot: { x: 185, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Below "DATE OF PUJA" (centered at x≈1125), same label/divider heights.
   dateSlot: { x: 1125, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
-  // Below "This is to certify that" and its decorative divider at y≈352 —
-  // the certificate's own largest open space (the "PUJA PERFORMED" banner
-  // doesn't start until y≈615, confirmed by direct measurement — this
-  // isn't the tight gap it first looked like), so this is the biggest
-  // text on the page, matching how every other Sri Dwar certificate
-  // treats the devotee's name.
-  devoteeNameSlot: { x: 725, y: 435, maxWidth: 420, font: "bold 38px Georgia, serif", color: "#5a1e08", align: "center" },
-  // Below the "PUJA PERFORMED" banner — banner spans y≈615–660 (measured
-  // directly; noticeably lower than it first appears at a glance).
-  pujaNameSlot: { x: 725, y: 700, maxWidth: 440, font: "22px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ RE-MEASURED (2026-09-05) against the reference sample the founder
+  // supplied (Sample_Certificate.png — a real composited example showing
+  // exactly where this should sit): y=505, truly centered between "This
+  // is to certify that"'s divider (≈380) and the "PUJA PERFORMED" banner
+  // (≈620) — my first measurement (435) was too high, closer to the
+  // divider than centered.
+  devoteeNameSlot: { x: 725, y: 505, maxWidth: 420, font: "bold 38px Georgia, serif", color: "#5a1e08", align: "center" },
+  // ✅ RE-MEASURED (2026-09-05) against the same reference sample: y=740,
+  // comfortably below the "PUJA PERFORMED" banner's actual bottom edge
+  // (≈670) — my first measurement (700) was too tight against the banner.
+  pujaNameSlot: { x: 725, y: 740, maxWidth: 440, font: "22px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Below the barcode box — the box's own bottom edge is at y≈903
   // (measured directly; also noticeably lower than a first glance
   // suggests), with the certificate's outer wooden frame starting around
   // y≈940, leaving a tight but clean gap for a single line.
   refIdSlot: { x: 245, y: 925, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
-  // The empty arched frame, top-right — inner clear area only (the frame
-  // border itself sits outside these bounds).
-  photoFrame: { x: 1032, y: 288, width: 190, height: 335 },
+  // ✅ RE-MEASURED (2026-09-05): the earlier x=1032 was genuinely wrong —
+  // measured again directly against the reference sample and the
+  // artwork's own arch-frame border lines. The frame's actual inner
+  // rectangular opening (below the arch's curved top, which a rectangular
+  // photo can't fill anyway) is x≈1135–1325, y≈345–690. This was very
+  // likely the root cause of the photo appearing shifted/misplaced —
+  // being drawn ~100px to the left of where the frame graphic actually
+  // is, not a distortion in the photo itself.
+  photoFrame: { x: 1135, y: 345, width: 190, height: 345 },
 };
 
 // Falls back to the Jagannath layout if no deity-specific design exists
@@ -92,8 +99,19 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
 // one is supplied. Never fails to render entirely.
 const CERTIFICATE_LAYOUTS: CertificateLayout[] = [JAGANNATH_LAYOUT];
 
-function selectLayout(deity: string): CertificateLayout {
-  return CERTIFICATE_LAYOUTS.find((l) => l.matchDeity.test(deity)) || JAGANNATH_LAYOUT;
+// ✅ CHANGED (2026-09-05 — explicit instruction: "If a user selects
+// Jagannath, the certificate should display only the Jagannath
+// certificate design. It should not show any other deity or temple
+// certificate design"): previously fell back to the Jagannath layout for
+// EVERY deity, meaning selecting e.g. "Goddess Durga" silently showed the
+// Jagannath artwork — misleading, since it looks like a real match. Now
+// returns null when no matching design exists yet, and the caller (below)
+// shows a plain "design coming soon" placeholder instead of any real
+// temple's artwork. As the 15 major-deity designs mentioned are supplied,
+// each just becomes one more entry in CERTIFICATE_LAYOUTS above — nothing
+// else about this function or the form changes.
+function selectLayout(deity: string): CertificateLayout | null {
+  return CERTIFICATE_LAYOUTS.find((l) => l.matchDeity.test(deity)) || null;
 }
 
 export const CERTIFICATE_WIDTH = JAGANNATH_LAYOUT.width;
@@ -123,7 +141,41 @@ function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement,
   // Cover-fit — fills the frame without distorting the photo's aspect ratio.
   const scale = Math.max(frame.width / img.width, frame.height / img.height);
   const dw = img.width * scale, dh = img.height * scale;
-  ctx.drawImage(img, frame.x + (frame.width - dw) / 2, frame.y + (frame.height - dh) / 2, dw, dh);
+  const dx = frame.x + (frame.width - dw) / 2, dy = frame.y + (frame.height - dh) / 2;
+  ctx.drawImage(img, dx, dy, dw, dh);
+
+  // ✅ ADDED (2026-09-05 — "make sure the photo's background is removed
+  // or made clear... so the photo blends naturally with the certificate's
+  // background design"): true AI background removal (cutting out just
+  // the person) needs either a paid API or a heavy ML library — not the
+  // right trade-off for a bootstrapped budget, and risky to add untested.
+  // This instead feathers the photo's own edges into transparency with a
+  // soft gradient, so instead of a harsh rectangular photo sitting on the
+  // parchment, it fades naturally into the artwork the same way a
+  // vignette-framed portrait would. Genuinely free (pure canvas, no new
+  // dependency), and the visual goal — no harsh rectangle — is met either
+  // way.
+  const featherWidth = Math.round(Math.min(frame.width, frame.height) * 0.24);
+  ctx.globalCompositeOperation = "destination-in";
+  const fadeMask = ctx.createLinearGradient(frame.x, 0, frame.x + frame.width, 0);
+  // A radial-feeling fade approximated with two linear passes (canvas has
+  // no built-in "fade all four edges" gradient) — one horizontal, one
+  // vertical, multiplied together via two destination-in passes.
+  fadeMask.addColorStop(0, "rgba(0,0,0,0)");
+  fadeMask.addColorStop(Math.min(featherWidth / frame.width, 0.45), "rgba(0,0,0,1)");
+  fadeMask.addColorStop(Math.max(1 - featherWidth / frame.width, 0.55), "rgba(0,0,0,1)");
+  fadeMask.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = fadeMask;
+  ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
+
+  const fadeMaskV = ctx.createLinearGradient(0, frame.y, 0, frame.y + frame.height);
+  fadeMaskV.addColorStop(0, "rgba(0,0,0,0)");
+  fadeMaskV.addColorStop(Math.min(featherWidth / frame.height, 0.45), "rgba(0,0,0,1)");
+  fadeMaskV.addColorStop(Math.max(1 - featherWidth / frame.height, 0.55), "rgba(0,0,0,1)");
+  fadeMaskV.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = fadeMaskV;
+  ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
+
   ctx.restore();
 }
 
@@ -157,12 +209,55 @@ function drawSlot(ctx: CanvasRenderingContext2D, slot: TextSlot, text: string) {
   wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25), slot.align);
 }
 
+// ✅ ADDED (2026-09-05 — explicit instruction):
+//   - no family members added -> just the devotee's name ("Kunu Rana")
+//   - at least one family-relationship member added -> "Kunu Rana and Family"
+//   - only friends added, no family -> "Kunu Rana and Friends"
+//   - both a family member AND a friend added -> "and Family" takes
+//     priority (a devotee's family is still present even if a friend also
+//     came along; "Family" is the more inclusive, natural-sounding word
+//     here). Never lists individual members' names or relationships on
+//     the certificate itself — those stay admin/reference-only, exactly
+//     as instructed.
+function buildDisplayName(devoteeName: string, members: { name: string; relationship: string }[]): string {
+  const named = members.filter((m) => m.name.trim());
+  if (named.length === 0) return devoteeName;
+  const hasFamily = named.some((m) => m.relationship && m.relationship !== "Friend");
+  return `${devoteeName} and ${hasFamily ? "Family" : "Friends"}`;
+}
+
+// Shown instead of any real temple's artwork when the selected deity has
+// no matching design yet — see selectLayout()'s comment above for why
+// silently falling back to an unrelated design was wrong.
+function drawComingSoonPlaceholder(ctx: CanvasRenderingContext2D, width: number, height: number, deity: string) {
+  ctx.fillStyle = "#f5ecd8";
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = "#b8860b";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(24, 24, width - 48, height - 48);
+  ctx.fillStyle = "#7a2e0e";
+  ctx.font = "italic 28px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Sri Dwar", width / 2, height / 2 - 30);
+  ctx.font = "bold 32px Georgia, serif";
+  ctx.fillStyle = "#5a1e08";
+  const label = deity ? `${deity} Certificate Design Coming Soon` : "Select a Deity to Preview";
+  wrapText(ctx, label, width / 2, height / 2 + 20, width - 300, 40, "center");
+}
+
 export async function renderCertificate(canvas: HTMLCanvasElement, data: CertificateData) {
   const layout = selectLayout(data.deity);
-  canvas.width = layout.width;
-  canvas.height = layout.height;
+  canvas.width = CERTIFICATE_WIDTH;
+  canvas.height = CERTIFICATE_HEIGHT;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
+
+  if (!layout) {
+    // No design exists yet for this deity — a plain placeholder, never a
+    // different temple's real artwork (see selectLayout()'s comment).
+    drawComingSoonPlaceholder(ctx, CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT, data.deity);
+    return;
+  }
 
   try {
     const bg = await loadCachedImage(layout.backgroundUrl);
@@ -182,36 +277,21 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
 
   drawSlot(ctx, layout.templeSlot, data.temple);
   drawSlot(ctx, layout.dateSlot, data.pujaDate ? new Date(data.pujaDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "");
-  drawSlot(ctx, layout.devoteeNameSlot, data.devoteeName || "Devotee Name");
+  drawSlot(ctx, layout.devoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members));
   drawSlot(ctx, layout.pujaNameSlot, data.serviceType);
   drawSlot(ctx, layout.refIdSlot, data.refId ? `Ref: ${data.refId}` : "");
-
-  // Family members, names only — never relationships — placed just below
-  // the devotee name, using whatever room remains before the "PUJA
-  // PERFORMED" banner.
-  if (data.members.length > 0) {
-    const names = data.members.map((m) => m.name).filter(Boolean).join("  \u2022  ");
-    if (names) {
-      ctx.font = "18px Georgia, serif";
-      ctx.fillStyle = "#5a4a2a";
-      wrapText(ctx, names, layout.devoteeNameSlot.x, layout.devoteeNameSlot.y + 55, layout.devoteeNameSlot.maxWidth, 24, "center");
-    }
-  }
 }
 
-
-// Every option this form currently offers for the single-select Service
-// dropdown — grouped for a friendlier <select>, per "Pujas, Sevas,
-// Products, Holistic Services, Guidance Sevas, Stone Engraving, and other
-// relevant options."
-export const SERVICE_TYPE_OPTIONS: { group: string; options: string[] }[] = [
-  { group: "Puja", options: ["Online Puja", "Simple Puja / Sankalpa", "Family & Marriage Puja"] },
-  { group: "Seva", options: ["Temple Seva Sponsorship", "Annadanam Seva", "Gau Seva", "Diya Lighting Seva"] },
-  { group: "Products", options: ["Temple Bazaar Product / Prasad"] },
-  { group: "Holistic Services", options: ["Yoga & Wellness Session", "Ayurveda / Panchakarma"] },
-  { group: "Guidance Seva", options: ["Astrology Consultation", "Vastu Guidance", "Life Counselling"] },
-  { group: "Other", options: ["Stone Name Engraving", "Darshan Certificate", "Temple Redevelopment Contribution"] },
-];
+// ✅ REMOVED (2026-09-05): SERVICE_TYPE_OPTIONS (the old hardcoded,
+// grouped Puja/Seva/Products/Holistic/Guidance/Other dropdown) — per
+// explicit instruction: "do not show all the services. Only show the
+// various Puja options and temple engraving options... add a new Puja
+// name, as some Pujas may be unique to us." Service is now a
+// database-backed option type exactly like City/Deity/Temple (see
+// server.ts's /api/admin/certificates/options/service and the seed data
+// in admin_certificates_migration.sql, seeded with real puja names + Stone
+// Name Engraving), with the same "Add & Save" flow — AdminCertificateGeneration.tsx
+// fetches it the same way it fetches City/Deity/Temple now.
 
 export const RELATIONSHIP_OPTIONS = [
   "Father", "Mother", "Son", "Daughter", "Granddaughter", "Grandson",

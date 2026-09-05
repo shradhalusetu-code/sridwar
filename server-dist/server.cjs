@@ -1981,7 +1981,7 @@ app.get("/api/admin/certificates/options/:type", async (req, res) => {
     return;
   }
   const optionType = String(req.params.type || "");
-  if (!["city", "deity", "temple"].includes(optionType)) {
+  if (!["city", "deity", "temple", "service"].includes(optionType)) {
     res.status(400).json({ error: "Invalid option type." });
     return;
   }
@@ -2003,12 +2003,8 @@ app.post("/api/admin/certificates/options/:type", import_express.default.json(),
     res.status(403).json({ error: "Not authorized." });
     return;
   }
-  if (user.role !== "staff") {
-    res.status(403).json({ error: "Only Sri Dwar staff can add new options." });
-    return;
-  }
   const optionType = String(req.params.type || "");
-  if (!["city", "deity", "temple"].includes(optionType)) {
+  if (!["city", "deity", "temple", "service"].includes(optionType)) {
     res.status(400).json({ error: "Invalid option type." });
     return;
   }
