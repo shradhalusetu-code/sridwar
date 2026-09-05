@@ -96,6 +96,36 @@ function _socialLinksFooter_() {
 }
 
 /**
+ * ✅ ADDED (2026-09-05 — brand-consistency audit, explicit instruction:
+ * "every email... consistently includes our company branding, including
+ * the logo, header, footer, company details, disclaimer"):
+ *
+ * Before this, the "Shradhalu Private Limited · Jajpur Road, Odisha,
+ * India" legal-entity line only existed in ONE template
+ * (buildAcknowledgementEmail_) — Welcome, Booking Confirmation, Payment
+ * Reminder, and Certificate Ready all sent without it, and Booking
+ * Confirmation / Payment Reminder didn't even have a website link in
+ * their footer at all. Rather than hand-edit five slightly-different
+ * footer blocks (real risk of making them drift further apart), this is
+ * one shared helper now dropped into every template's footer, right
+ * before _socialLinksFooter_() — so the same website link, support
+ * email, and company legal line appear in identical wording/styling on
+ * every outbound Sri Dwar email from here on. Only this file changed;
+ * no template's own copy, disclaimer, or layout was touched otherwise.
+ */
+function _brandFooterLine_() {
+  const b = CONFIG.BRAND;
+  return `
+    <div style="color:#c9d6d2;font-size:11px;margin-bottom:6px;">
+      <a href="${b.website}" style="color:${b.gold};text-decoration:underline;">${b.website.replace('https://', '')}</a>
+      &nbsp;&middot;&nbsp; <a href="mailto:${b.supportEmail}" style="color:${b.gold};text-decoration:underline;">${b.supportEmail}</a>
+    </div>
+    <div style="color:#9fb2ad;font-size:10px;margin-bottom:8px;">
+      Shradhalu Private Limited &middot; Jajpur Road, Odisha, India
+    </div>`;
+}
+
+/**
  * ─── Plain, image-free panel system ─────────────────────────────────────
  * ✅ ROOT-CAUSE FIX (2026-08-29): every template in this file used to draw
  * its header wordmark, greeting, detail boxes, and shloka/footer notes as
@@ -173,10 +203,7 @@ function _wrapEmailHtml_(innerHtml, preheader) {
           <!-- Footer: plain text on the same dark-green theme background — matches the site, never black, no white boxes. -->
           <tr><td style="padding:22px 16px 8px;text-align:center;">
             <div style="color:${b.gold};font-size:13px;margin-bottom:8px;">${EMOJI.prayer} With folded hands and heartfelt blessings, Team ${b.name}</div>
-            <div style="color:#c9d6d2;font-size:11px;margin-bottom:8px;">
-              <a href="${b.website}" style="color:${b.gold};text-decoration:underline;">${b.website.replace('https://','')}</a>
-              &nbsp;&middot;&nbsp; <a href="mailto:${b.supportEmail}" style="color:${b.gold};text-decoration:underline;">${b.supportEmail}</a>
-            </div>
+            ${_brandFooterLine_()}
             ${_socialLinksFooter_()}
           </td></tr>
 
@@ -622,11 +649,7 @@ function buildWelcomeEmail_(d) {
     </div>
     <div style="max-width:470px;margin:20px auto 0;padding-top:14px;border-top:1px solid rgba(244,197,99,0.25);text-align:center;">
       <div style="font-size:13px;color:${CONFIG.BRAND.gold};font-weight:bold;">${EMOJI.prayer} With folded hands, Team ${CONFIG.BRAND.name}</div>
-      <div style="color:#c9d6d2;font-size:11px;margin-top:8px;">
-        <a href="${CONFIG.BRAND.website}" style="color:${CONFIG.BRAND.gold};text-decoration:underline;">${CONFIG.BRAND.website.replace('https://','')}</a>
-        &nbsp;&middot;&nbsp;
-        <a href="mailto:${CONFIG.BRAND.supportEmail}" style="color:${CONFIG.BRAND.gold};text-decoration:underline;">${CONFIG.BRAND.supportEmail}</a>
-      </div>
+      <div style="margin-top:8px;">${_brandFooterLine_()}</div>
       ${_socialLinksFooter_()}
     </div>
   `;
@@ -779,6 +802,7 @@ function buildBookingConfirmationEmail_(d) {
     </div>
     <div style="max-width:470px;margin:16px auto 0;padding-top:14px;border-top:1px solid rgba(244,197,99,0.25);text-align:center;">
       <div style="font-size:13px;color:${CONFIG.BRAND.gold};font-weight:bold;">${EMOJI.prayer} With folded hands, Team ${CONFIG.BRAND.name}</div>
+      <div style="margin-top:8px;">${_brandFooterLine_()}</div>
       ${_socialLinksFooter_()}
     </div>
   `;
@@ -829,6 +853,7 @@ function buildPaymentReminderEmail_(d) {
     </div>
     <div style="max-width:470px;margin:16px auto 0;padding-top:14px;border-top:1px solid rgba(244,197,99,0.25);text-align:center;">
       <div style="font-size:13px;color:${CONFIG.BRAND.gold};font-weight:bold;">${EMOJI.prayer} With folded hands, Team ${CONFIG.BRAND.name}</div>
+      <div style="margin-top:8px;">${_brandFooterLine_()}</div>
       ${_socialLinksFooter_()}
     </div>
   `;
@@ -908,6 +933,7 @@ function buildCertificateReadyEmail_(d) {
     </div>
     <div style="max-width:470px;margin:20px auto 0;padding-top:14px;border-top:1px solid rgba(244,197,99,0.25);text-align:center;">
       <div style="font-size:13px;color:${CONFIG.BRAND.gold};font-weight:bold;">${EMOJI.prayer} With folded hands, Team ${CONFIG.BRAND.name}</div>
+      <div style="margin-top:8px;">${_brandFooterLine_()}</div>
       ${_socialLinksFooter_()}
     </div>
   `;

@@ -122,11 +122,134 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   photoFrame: { x: 1148, y: 405, width: 245, height: 300 },
 };
 
-// Falls back to the Jagannath layout if no deity-specific design exists
-// yet — the certificate still generates correctly for every other deity,
-// it just visually looks like a Jagannath-temple design until a matching
-// one is supplied. Never fails to render entirely.
-const CERTIFICATE_LAYOUTS: CertificateLayout[] = [JAGANNATH_LAYOUT];
+// ── Mahadev (Lord Shiva) ──────────────────────────────────────────────
+// ✅ Verified via an actual render test earlier this session — every
+// value below was tested, not just measured once and assumed correct.
+const MAHADEV_LAYOUT: CertificateLayout = {
+  matchDeity: /shiva|mahadev/i,
+  backgroundUrl: `${BASE_URL}images/Mahadev-Certificate.jpg`,
+  width: 1536,
+  height: 1024,
+  // This one design places the temple name INLINE with "PERFORMED AT"
+  // (same line, to its right) — confirmed from the founder's filled
+  // reference example ("Cuttack" sits right beside the label). Every
+  // other design in this file puts it on its own line below the label.
+  templeSlot: { x: 350, y: 138, maxWidth: 280, font: "700 20px Georgia, serif", color: "#1a2a3a", align: "left" },
+  dateSlot: { x: 1165, y: 197, maxWidth: 260, font: "600 18px Georgia, serif", color: "#1a2a3a", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#0f2a3a", align: "center" },
+  // Puja name sits ABOVE "PUJA PERFORMED" on this design (confirmed) —
+  // reversed from Jagannath, correct as-is.
+  pujaNameSlot: { x: 730, y: 580, maxWidth: 460, font: "22px Georgia, serif", color: "#1a2a3a", align: "center" },
+  refIdSlot: { x: 270, y: 798, maxWidth: 300, font: "600 15px Georgia, serif", color: "#2a3a4a", align: "center" },
+  // Re-measured with a fine grid, then confirmed via an actual test
+  // render: true inner opening x≈1150–1330, y≈370–690.
+  photoFrame: { x: 1155, y: 390, width: 170, height: 290 },
+};
+
+// ── Ganesh ────────────────────────────────────────────────────────────
+// ✅ Fully re-measured with fine (25px) grids at every zone (label,
+// divider, banner, sloka, frame) — including discovering this design has
+// the same "sloka sits immediately below the banner" issue as Jagannath,
+// so puja name goes ABOVE the banner here too, not below it.
+const GANESH_LAYOUT: CertificateLayout = {
+  matchDeity: /ganesh/i,
+  backgroundUrl: `${BASE_URL}images/Ganesh.jpg`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // Divider at y≈375; devotee name centered in the space below it.
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#5a1e08", align: "center" },
+  // "PUJA PERFORMED" banner top edge is at y≈685 — the sloka begins
+  // almost immediately below it (y≈735), so this sits just above the
+  // banner instead, with a smaller font for a safe, reliable fit.
+  pujaNameSlot: { x: 730, y: 652, maxWidth: 460, font: "18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug, caught via an actual test
+  // render): my first estimate (y=815) rendered directly on top of the
+  // deity illustration, nowhere near the barcode. Measured the actual
+  // barcode box directly: it sits much lower than assumed, y≈825–895 —
+  // matching the same "lower than expected" pattern already confirmed on
+  // Jagannath's barcode.
+  refIdSlot: { x: 260, y: 915, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
+  // Re-measured with a fine grid: true inner opening x≈1150–1395,
+  // y≈390–705.
+  photoFrame: { x: 1155, y: 395, width: 235, height: 305 },
+};
+
+// ── Hanuman ───────────────────────────────────────────────────────────
+// ✅ Photo frame fully re-measured with a fine grid. Text positions use
+// the same confirmed pattern as Ganesh (same general artwork structure —
+// divider, banner, sloka spacing all looked consistent on a visual
+// pass) rather than being individually crop-measured field-by-field —
+// worth a real test render before fully relying on the exact Y values,
+// same caveat as before.
+const HANUMAN_LAYOUT: CertificateLayout = {
+  matchDeity: /hanuman/i,
+  backgroundUrl: `${BASE_URL}images/Hanuman.jpg`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
+  devoteeNameSlot: { x: 730, y: 455, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf8e8", align: "center" },
+  pujaNameSlot: { x: 730, y: 630, maxWidth: 460, font: "18px Georgia, serif", color: "#f5f0d8", align: "center" },
+  // ✅ ADJUSTED (2026-09-05): applying the same correction confirmed on
+  // Ganesh and Jagannath's barcode/refId position — genuinely sits lower
+  // than a first-glance estimate suggests. Not individually re-measured
+  // with a fresh crop for this specific design, so still worth a real
+  // test render to confirm exactly.
+  refIdSlot: { x: 260, y: 910, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8dfc0", align: "center" },
+  // Re-measured with a fine grid: true inner opening x≈1150–1400,
+  // y≈390–690.
+  photoFrame: { x: 1155, y: 395, width: 240, height: 290 },
+};
+
+// ── Maa Durga ─────────────────────────────────────────────────────────
+// ✅ Photo frame fully re-measured with a fine grid. Same caveat on text
+// positions as Hanuman above.
+const MAA_DURGA_LAYOUT: CertificateLayout = {
+  matchDeity: /durga/i,
+  backgroundUrl: `${BASE_URL}images/${encodeURIComponent("Maa Durga.jpg")}`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3d0", align: "center" },
+  pujaNameSlot: { x: 730, y: 615, maxWidth: 460, font: "18px Georgia, serif", color: "#f5e6a8", align: "center" },
+  // Same correction pattern as Ganesh/Jagannath/Hanuman above.
+  refIdSlot: { x: 260, y: 895, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d494", align: "center" },
+  // Re-measured with a fine grid: true inner opening x≈1180–1400,
+  // y≈380–700.
+  photoFrame: { x: 1185, y: 385, width: 210, height: 310 },
+};
+
+// ── Maa Tarini ────────────────────────────────────────────────────────
+// ✅ Photo frame fully re-measured with a fine grid. Text positions
+// originally referenced the founder's filled example for this design —
+// applying the same safety-margin correction confirmed necessary on
+// Mahadev (also sourced from a filled reference, and needed real
+// adjustment after a test render) rather than the raw eyeballed values.
+const MAA_TARINI_LAYOUT: CertificateLayout = {
+  matchDeity: /tarini/i,
+  backgroundUrl: `${BASE_URL}images/${encodeURIComponent("Maa Tarini.jpg")}`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 195, y: 218, maxWidth: 280, font: "700 19px Georgia, serif", color: "#f5e6c8", align: "center" },
+  dateSlot: { x: 1150, y: 218, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6c8", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3e0", align: "center" },
+  pujaNameSlot: { x: 730, y: 620, maxWidth: 460, font: "18px Georgia, serif", color: "#f5e6c8", align: "center" },
+  // Same correction pattern as Ganesh/Jagannath/Hanuman/Durga above.
+  refIdSlot: { x: 265, y: 908, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d4a8", align: "center" },
+  // Re-measured with a fine grid: true inner opening x≈1120–1400,
+  // y≈400–705.
+  photoFrame: { x: 1125, y: 405, width: 270, height: 295 },
+};
+
+// Falls back to null (a plain "coming soon" placeholder, never a
+// different deity's real artwork — see selectLayout() below) if the
+// selected deity has no matching design yet.
+const CERTIFICATE_LAYOUTS: CertificateLayout[] = [
+  JAGANNATH_LAYOUT, MAHADEV_LAYOUT, MAA_TARINI_LAYOUT, GANESH_LAYOUT, HANUMAN_LAYOUT, MAA_DURGA_LAYOUT,
+];
 
 // ✅ CHANGED (2026-09-05 — explicit instruction: "If a user selects
 // Jagannath, the certificate should display only the Jagannath
@@ -232,10 +355,35 @@ function drawSlot(ctx: CanvasRenderingContext2D, slot: TextSlot, text: string) {
   ctx.font = slot.font;
   ctx.fillStyle = slot.color;
   ctx.textAlign = slot.align;
+  // ✅ ADDED (2026-09-05 — real legibility issue found via a test
+  // render): a few designs' puja-name slot sits over a busy scenic
+  // illustration (temple towers, sky) rather than plain parchment,
+  // making the text hard to read there. A soft shadow behind the text
+  // lifts it off a busy background without needing per-design special-
+  // casing — but the shadow has to contrast with the TEXT color, not
+  // assume dark text: Jagannath/Ganesh/Maa Durga use dark brown text (so
+  // a light shadow helps), while Mahadev/Hanuman/Maa Tarini use light
+  // cream/white text on darker themes (a light shadow there would be
+  // invisible or muddy — a dark shadow is what actually helps).
+  const isLightText = isLightColor(slot.color);
+  ctx.shadowColor = isLightText ? "rgba(20, 15, 5, 0.7)" : "rgba(253, 246, 224, 0.85)";
+  ctx.shadowBlur = 4;
   // Long values (a long temple name, a long puja name) wrap onto a second
   // centered line rather than overflowing past their column — same
   // approach server.ts already uses for the email/acknowledgement JPGs.
   wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25), slot.align);
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = "transparent";
+}
+
+// Simple perceived-luminance check on a hex color — used only to decide
+// which direction drawSlot()'s legibility shadow should go.
+function isLightColor(hex: string): boolean {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 150;
 }
 
 // ✅ ADDED (2026-09-05 — explicit instruction):

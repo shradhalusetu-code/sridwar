@@ -1481,66 +1481,62 @@ export default function App() {
               aria-expanded={!!footerOpenSections.recognitionDownloads}
               className="w-full flex items-center justify-between text-[12px] font-mono font-bold text-white/60 uppercase tracking-widest text-left lg:pointer-events-none lg:cursor-default mb-1"
             >
-              <span>Recognition & App Downloads</span>
+              <span>App Downloads</span>
               <ChevronDown className={`w-4 h-4 lg:hidden transition-transform ${footerOpenSections.recognitionDownloads ? "rotate-180" : ""}`} />
             </button>
-            <div className={`${footerOpenSections.recognitionDownloads ? "grid" : "hidden"} lg:!grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8`}>
-
-              <div className="space-y-2 text-left lg:pr-6">
-                <p className="text-[12px] font-mono font-bold text-white/30 uppercase tracking-widest">
-                  Government of India Initiatives
-                </p>
-                <p className="text-[13px] text-white/55 leading-relaxed">
-                  Recognized by <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">Startup Odisha</strong>, <strong className="text-white/75">Digital India</strong>, <strong className="text-white/75">FSSAI</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, and <strong className="text-white/75">GeM Registration</strong>.
-                </p>
-                <p className="text-[13px] text-white/55 leading-relaxed">
-                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
-                </p>
+            {/* ✅ CHANGED (2026-09-05): the "Government of India Initiatives"
+                recognition column and the "Additional Certifications /
+                applications under process" column were both removed at the
+                user's explicit request — their CA hasn't confirmed the
+                details yet, to be re-added later once confirmed, and
+                RecognizedBy.tsx (the homepage carousel) already has its own
+                dedicated section for confirmed recognitions. With both
+                columns gone, this is now a single full-width block, and the
+                Android/iOS store buttons below were enlarged to fill the
+                freed-up space instead of sitting cramped in a half-width
+                column. */}
+            <div className={`${footerOpenSections.recognitionDownloads ? "block" : "hidden"} lg:!block space-y-3 text-left`}>
+              <div className="flex items-center space-x-2">
+                <span className="text-base">📱</span>
+                <span className="text-[12px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Now on Android</span>
               </div>
-              <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
-                <div className="flex items-center space-x-2">
-                  <span className="text-base">📱</span>
-                  <span className="text-[12px] font-mono font-bold text-[#5EEAD4]/80 uppercase tracking-widest">Sri Dwar Mobile App — Now on Android</span>
-                </div>
-                <p className="text-[12px] text-white/50 leading-relaxed">
-                  Live darshans, one-tap puja booking, daily prayers, and personalised guidance. Available now on Android, with iOS on the way.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <a
-                    href="https://play.google.com/store/apps/details?id=com.shradhalu.sridwar"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => gaAppDownloadClick("play_store", "footer")}
-                    aria-label="Get Sri Dwar on Google Play"
-                    className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 hover:bg-[#0F241F] rounded-xl px-3.5 py-2.5 min-w-[150px] transition-all cursor-pointer"
-                  >
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white/8 border border-white/10">
-                      <svg viewBox="0 0 24 24" width="19" height="19">
-                        <path fill="#4285F4" d="M4,3.6 L12.8,8.2 L9.9,11.2 Z" />
-                        <path fill="#EA4335" d="M12.8,8.2 L20,12 L9.9,11.2 Z" />
-                        <path fill="#FBBC04" d="M20,12 L12.8,15.8 L9.9,11.2 Z" />
-                        <path fill="#34A853" d="M12.8,15.8 L4,20.4 L9.9,11.2 Z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <span className="block text-[9px] text-[#5EEAD4]/80 uppercase tracking-widest font-mono">Download on</span>
-                      <span className="block text-[13px] font-bold text-white">Google Play</span>
-                    </div>
-                  </a>
-                  <div className="flex items-center space-x-2.5 bg-[#0A1A18] border border-white/10 rounded-xl px-3.5 py-2.5 min-w-[150px] cursor-not-allowed opacity-80">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#1C1C1E]">
-                      <svg viewBox="0 0 24 24" width="19" height="19" fill="white">
-                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <span className="block text-[9px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
-                      <span className="block text-[13px] font-bold text-white">App Store</span>
-                    </div>
+              <p className="text-[13px] text-white/50 leading-relaxed max-w-2xl">
+                Live darshans, one-tap puja booking, daily prayers, and personalised guidance. Available now on Android, with iOS on the way.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.shradhalu.sridwar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => gaAppDownloadClick("play_store", "footer")}
+                  aria-label="Get Sri Dwar on Google Play"
+                  className="flex-1 flex items-center justify-center space-x-3 bg-[#0A1A18] border border-white/10 hover:border-[#5EEAD4]/40 hover:bg-[#0F241F] rounded-2xl px-5 py-4 transition-all cursor-pointer"
+                >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/8 border border-white/10">
+                    <svg viewBox="0 0 24 24" width="26" height="26">
+                      <path fill="#4285F4" d="M4,3.6 L12.8,8.2 L9.9,11.2 Z" />
+                      <path fill="#EA4335" d="M12.8,8.2 L20,12 L9.9,11.2 Z" />
+                      <path fill="#FBBC04" d="M20,12 L12.8,15.8 L9.9,11.2 Z" />
+                      <path fill="#34A853" d="M12.8,15.8 L4,20.4 L9.9,11.2 Z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] text-[#5EEAD4]/80 uppercase tracking-widest font-mono">Download on</span>
+                    <span className="block text-lg font-bold text-white">Google Play</span>
+                  </div>
+                </a>
+                <div className="flex-1 flex items-center justify-center space-x-3 bg-[#0A1A18] border border-white/10 rounded-2xl px-5 py-4 cursor-not-allowed opacity-80">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-[#1C1C1E]">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="white">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="block text-[11px] text-white/40 uppercase tracking-widest font-mono">Coming Soon</span>
+                    <span className="block text-lg font-bold text-white">App Store</span>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
           <div className="pt-6 border-t border-white/8 mb-4">
