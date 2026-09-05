@@ -545,10 +545,32 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
               )}
             </div>
 
-            {/* ── RIGHT: live preview ── */}
-            <div className="lg:sticky lg:top-6 self-start space-y-3">
+            {/* ── RIGHT: live preview ──
+                ✅ CHANGED (2026-09-05 — "properly aligned to the android
+                app... completely broken... dimensions... not working"):
+                removed `lg:sticky lg:top-6` here. Position: sticky has
+                real, documented compatibility bugs in some Android
+                WebView versions (this project already hit a comparable
+                Android-only, works-fine-on-website issue before — see
+                capacitor.config.ts's allowNavigation notes on the
+                YouTube iframe). Sticky was a desktop-only nice-to-have
+                (keeps the preview visible while scrolling the form) —
+                removing it costs nothing functionally and avoids the
+                risk entirely on any Android WebView where sticky
+                positioning miscalculates and breaks the surrounding
+                layout, which matches exactly what was reported. */}
+            <div className="self-start space-y-3">
               <div className="bg-white rounded-2xl p-3 shadow-2xl">
-                <canvas ref={canvasRef} className="w-full h-auto rounded-lg" />
+                {/* ✅ ADDED: explicit width/height attributes (not just
+                    CSS) — a canvas with no HTML width/height defaults to
+                    300×150 until JS sets it, and some WebView engines
+                    don't correctly re-flow surrounding layout when a
+                    canvas's intrinsic size changes after first paint.
+                    Setting the real 1536×1024 dimensions up front (the
+                    same size renderCertificate() always uses) means the
+                    layout is correctly sized from the very first paint,
+                    with no dependency on JS execution timing. */}
+                <canvas ref={canvasRef} width={1536} height={1024} className="w-full h-auto rounded-lg" style={{ aspectRatio: "1536 / 1024" }} />
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={handlePrint} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs font-bold uppercase tracking-wide py-3 rounded-xl">

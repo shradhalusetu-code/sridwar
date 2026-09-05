@@ -107,11 +107,22 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   // start (y≈690) is only ~40px — tighter than my previous measurement
   // found. Moved to y=675 with a smaller 16px font for a safe margin on
   // both sides.
-  pujaNameSlot: { x: 828, y: 675, maxWidth: 460, font: "16px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ CHANGED (2026-09-05 — for consistency with every other design,
+  // which all place this above the banner): moved from the tight ~40px
+  // gap below the banner to the more spacious area above it instead —
+  // verified there's genuine room between the devotee name (y=505) and
+  // the banner's top edge (y≈600).
+  pujaNameSlot: { x: 828, y: 575, maxWidth: 460, font: "18px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Below the barcode box — the box's own bottom edge is at y≈903
   // (measured directly; also noticeably lower than a first glance
   // suggests), with the certificate's outer wooden frame starting around
   // y≈940, leaving a tight but clean gap for a single line.
+  // ✅ REVERTED (2026-09-05): tried moving this inside the barcode box
+  // (in the ~25px gap between the barcode graphic and the box's bottom
+  // border), but a test render showed it actually overlapping the
+  // barcode bars — that gap is real but too tight to use reliably.
+  // Reverted to below the box, which is verified working across every
+  // design without overlap risk.
   refIdSlot: { x: 245, y: 925, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
   // ✅ RE-MEASURED AGAIN (2026-09-05): a render test with a realistic
   // portrait photo revealed the photo actually overlapping the frame's
@@ -132,7 +143,7 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   // narrow relative to its height, which is exactly why photos looked
   // squeezed into an unnaturally tall, narrow strip. Sized with a small
   // safety margin inside the newly-confirmed border lines.
-  photoFrame: { x: 1148, y: 405, width: 245, height: 300 },
+  photoFrame: { x: 1152, y: 405, width: 230, height: 300 },
 };
 
 // ── Mahadev (Lord Shiva) ──────────────────────────────────────────────
