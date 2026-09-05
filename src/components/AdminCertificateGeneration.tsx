@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import {
-  renderCertificate, compressImageToUnderSize, RELATIONSHIP_OPTIONS,
+  renderCertificate, compressImageToUnderSize, removeStudioBackground, RELATIONSHIP_OPTIONS,
   CertificateData,
 } from "../utils/certificateTemplate";
 
@@ -159,13 +159,24 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
     setPhotoProcessing(kind);
     try {
       const dataUrl = await compressImageToUnderSize(file);
+      // ✅ ADDED (2026-09-05): chroma-key background removal, run once
+      // here (not on every render) — see removeStudioBackground()'s own
+      // comments for how it works. Deliberately only affects the image
+      // used for the certificate itself (devoteePhotoImg/familyPhotoImg
+      // below) — the small thumbnail preview in this form and whatever
+      // gets uploaded/stored keep using the original compressed JPEG
+      // (dataUrl), unchanged, still guaranteed under 1MB. If the photo
+      // doesn't have a uniform backdrop, removeStudioBackground() safely
+      // returns the original untouched — this never makes a photo look
+      // worse, only better or unchanged.
+      const chromaKeyedDataUrl = await removeStudioBackground(dataUrl);
       const img = new Image();
       img.onload = () => {
         if (kind === "devotee") { setDevoteePhotoDataUrl(dataUrl); setDevoteePhotoImg(img); }
         else { setFamilyPhotoDataUrl(dataUrl); setFamilyPhotoImg(img); }
         setPhotoProcessing(null);
       };
-      img.src = dataUrl;
+      img.src = chromaKeyedDataUrl;
     } catch {
       setPhotoProcessing(null);
     }

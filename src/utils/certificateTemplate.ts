@@ -61,36 +61,65 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   backgroundUrl: `${BASE_URL}images/jagannath_certificate.jpg`,
   width: 1536,
   height: 1024,
-  // Below "PERFORMED AT" (icon + label centered at x≈185, label baseline
-  // ≈160) and its small decorative divider at y≈180.
+  // ✅ VERIFIED (2026-09-05 — founder did independent measurement work
+  // and flagged several real issues; I re-measured each one directly
+  // against the actual artwork before applying anything, since one of
+  // the founder's suggested corrections turned out to be based on a
+  // mismeasurement): "PERFORMED AT" is genuinely at x≈185 — confirmed
+  // directly, the founder's suggested x≈500 does not match the actual
+  // artwork. Left as-is.
   templeSlot: { x: 185, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
-  // Below "DATE OF PUJA" (centered at x≈1125), same label/divider heights.
-  dateSlot: { x: 1125, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ CORRECTED (2026-09-05): "DATE OF PUJA" label is genuinely centered
+  // at x≈1325, not 1125 — verified directly with a fresh measurement
+  // (the founder correctly flagged this needed a second look, even
+  // though their temple-label finding didn't hold up).
+  dateSlot: { x: 1325, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
   // ✅ RE-MEASURED (2026-09-05) against the reference sample the founder
   // supplied (Sample_Certificate.png — a real composited example showing
   // exactly where this should sit): y=505, truly centered between "This
   // is to certify that"'s divider (≈380) and the "PUJA PERFORMED" banner
   // (≈620) — my first measurement (435) was too high, closer to the
   // divider than centered.
-  devoteeNameSlot: { x: 725, y: 505, maxWidth: 420, font: "bold 38px Georgia, serif", color: "#5a1e08", align: "center" },
-  // ✅ RE-MEASURED (2026-09-05) against the same reference sample: y=740,
-  // comfortably below the "PUJA PERFORMED" banner's actual bottom edge
-  // (≈670) — my first measurement (700) was too tight against the banner.
-  pujaNameSlot: { x: 725, y: 740, maxWidth: 440, font: "22px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ RE-MEASURED (2026-09-05 — reported "too left to the expected
+  // placement"): measured the artwork's own "BLESSING CERTIFICATE" and
+  // "PUJA PERFORMED" banners directly — both share the same true center,
+  // x≈828, not 725 as previously used. This was a genuine measurement
+  // error, now corrected against the artwork's own printed elements
+  // rather than an assumed midpoint.
+  devoteeNameSlot: { x: 828, y: 505, maxWidth: 460, font: "bold 38px Georgia, serif", color: "#5a1e08", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug, confirmed via direct
+  // measurement): y=740 was drawing directly on top of the artwork's own
+  // static Sanskrit blessing sloka, which starts at y≈680. The actual
+  // usable gap is narrow — "PUJA PERFORMED" banner's bottom edge is at
+  // y≈630, sloka starts at y≈680 — so this now sits at y=655 with a
+  // smaller font (18px, down from 22px) to reliably fit one line in that
+  // ~50px gap without touching either.
+  pujaNameSlot: { x: 828, y: 655, maxWidth: 460, font: "18px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Below the barcode box — the box's own bottom edge is at y≈903
   // (measured directly; also noticeably lower than a first glance
   // suggests), with the certificate's outer wooden frame starting around
   // y≈940, leaving a tight but clean gap for a single line.
   refIdSlot: { x: 245, y: 925, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
-  // ✅ RE-MEASURED (2026-09-05): the earlier x=1032 was genuinely wrong —
-  // measured again directly against the reference sample and the
-  // artwork's own arch-frame border lines. The frame's actual inner
-  // rectangular opening (below the arch's curved top, which a rectangular
-  // photo can't fill anyway) is x≈1135–1325, y≈345–690. This was very
-  // likely the root cause of the photo appearing shifted/misplaced —
-  // being drawn ~100px to the left of where the frame graphic actually
-  // is, not a distortion in the photo itself.
-  photoFrame: { x: 1135, y: 345, width: 190, height: 345 },
+  // ✅ RE-MEASURED AGAIN (2026-09-05): a render test with a realistic
+  // portrait photo revealed the photo actually overlapping the frame's
+  // ornate border on the right side — the previous width (190) was
+  // measured too generously. Remeasured with a finer 20px grid
+  // specifically on this boundary: the frame's true inner clear opening
+  // is x≈1150–1300 (150 wide), y≈415–685. Sized with a small safety
+  // margin inside those lines so the photo can never visibly touch the
+  // border pattern, and reduced height for a natural portrait aspect
+  // (≈0.68) matching how a real headshot should look, not stretched to
+  // fill the entire tall arch opening.
+  // ✅ CORRECTED (2026-09-05 — genuine bug, confirmed via a fresh,
+  // careful re-measurement after the founder flagged this): the frame's
+  // true inner opening is actually x≈1140–1395 (≈255 wide), y≈400–710
+  // (≈310 tall) — aspect ≈0.82, close to a standard passport-photo ratio.
+  // My previous measurement (145 wide, 250 tall, positioned at 1153,420)
+  // was both shifted left/up into the decorative border AND far too
+  // narrow relative to its height, which is exactly why photos looked
+  // squeezed into an unnaturally tall, narrow strip. Sized with a small
+  // safety margin inside the newly-confirmed border lines.
+  photoFrame: { x: 1148, y: 405, width: 245, height: 300 },
 };
 
 // Falls back to the Jagannath layout if no deity-specific design exists
@@ -155,7 +184,7 @@ function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement,
   // vignette-framed portrait would. Genuinely free (pure canvas, no new
   // dependency), and the visual goal — no harsh rectangle — is met either
   // way.
-  const featherWidth = Math.round(Math.min(frame.width, frame.height) * 0.24);
+  const featherWidth = Math.round(Math.min(frame.width, frame.height) * 0.32);
   ctx.globalCompositeOperation = "destination-in";
   const fadeMask = ctx.createLinearGradient(frame.x, 0, frame.x + frame.width, 0);
   // A radial-feeling fade approximated with two linear passes (canvas has
@@ -351,4 +380,106 @@ export async function compressImageToUnderSize(file: File | Blob, maxBytes = 102
   URL.revokeObjectURL(img.src);
   return dataUrl;
 }
+
+// ✅ ADDED (2026-09-05 — real bug: photo backgrounds still showed their
+// original studio-backdrop color, since the earlier feathering fix only
+// faded the photo's own EDGES, never touched the color underneath it):
+// a corner-sampling chroma-key, run once when a photo is selected — not
+// on every keystroke/re-render, so the live preview stays fast. Pure
+// canvas pixel manipulation, no new dependency, and genuinely free,
+// matching this project's budget constraints — the alternative (a real
+// ML background-removal library) is much heavier and not the right
+// trade-off here.
+//
+// How it works: most devotee ID-style photos are shot against a plain,
+// fairly uniform backdrop (a wall, a studio sheet, a courtyard). This
+// samples small blocks in all 4 corners, and only proceeds if those
+// blocks agree on a similar color (a real uniform backdrop) — if the
+// corners are inconsistent (a busy/natural background, or the subject's
+// own body reaching into a corner), it deliberately does nothing rather
+// than risk cutting holes in someone's face or clothing.
+export async function removeStudioBackground(sourceDataUrl: string): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = sourceDataUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return sourceDataUrl;
+  ctx.drawImage(img, 0, 0);
+
+  const { width, height } = canvas;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  // Sample a small block in each corner (avoids a single stray pixel —
+  // a dust speck, a JPEG compression artifact — skewing the reading).
+  const sampleSize = Math.max(4, Math.round(Math.min(width, height) * 0.03));
+  function sampleCorner(cx: number, cy: number): [number, number, number] {
+    let r = 0, g = 0, b = 0, count = 0;
+    for (let y = cy; y < cy + sampleSize; y++) {
+      for (let x = cx; x < cx + sampleSize; x++) {
+        const idx = (y * width + x) * 4;
+        r += data[idx]; g += data[idx + 1]; b += data[idx + 2];
+        count++;
+      }
+    }
+    return [r / count, g / count, b / count];
+  }
+  const corners = [
+    sampleCorner(0, 0),
+    sampleCorner(width - sampleSize, 0),
+    sampleCorner(0, height - sampleSize),
+    sampleCorner(width - sampleSize, height - sampleSize),
+  ];
+
+  function colorDistance(a: [number, number, number], b: [number, number, number]): number {
+    return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
+  }
+
+  // Do the 4 corners roughly agree with each other? If not, this isn't a
+  // uniform studio backdrop (or the subject's hair/shoulders reach into
+  // one corner) — bail out and return the photo untouched rather than
+  // guess.
+  const maxCornerSpread = Math.max(
+    colorDistance(corners[0], corners[1]), colorDistance(corners[0], corners[2]),
+    colorDistance(corners[0], corners[3]), colorDistance(corners[1], corners[2]),
+    colorDistance(corners[1], corners[3]), colorDistance(corners[2], corners[3]),
+  );
+  if (maxCornerSpread > 40) {
+    return sourceDataUrl; // not a uniform backdrop — leave the photo exactly as-is
+  }
+
+  const backdrop: [number, number, number] = [
+    corners.reduce((s, c) => s + c[0], 0) / 4,
+    corners.reduce((s, c) => s + c[1], 0) / 4,
+    corners.reduce((s, c) => s + c[2], 0) / 4,
+  ];
+
+  // Soft threshold band, not a hard cutoff — pixels close to the
+  // backdrop color fade smoothly to transparent instead of leaving a
+  // harsh, jagged cutout edge around the subject.
+  const FULL_TRANSPARENT_BELOW = 28;
+  const FULL_OPAQUE_ABOVE = 70;
+  for (let i = 0; i < data.length; i += 4) {
+    const dist = colorDistance([data[i], data[i + 1], data[i + 2]], backdrop);
+    if (dist <= FULL_TRANSPARENT_BELOW) {
+      data[i + 3] = 0;
+    } else if (dist < FULL_OPAQUE_ABOVE) {
+      data[i + 3] = Math.round(255 * ((dist - FULL_TRANSPARENT_BELOW) / (FULL_OPAQUE_ABOVE - FULL_TRANSPARENT_BELOW)));
+    }
+    // dist >= FULL_OPAQUE_ABOVE: leave alpha at its original 255, untouched.
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  // PNG, not JPEG — JPEG has no alpha channel at all, so transparency
+  // would be silently lost if this were exported as JPEG.
+  return canvas.toDataURL("image/png");
+}
+
 

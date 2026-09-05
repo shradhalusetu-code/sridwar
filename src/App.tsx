@@ -13,6 +13,8 @@ import TempleExperience from "./components/TempleExperience";
 import ReferAndEarn from "./components/ReferAndEarn";
 import TrustBar from "./components/TrustBar";
 import DevoteeExperiences from "./components/DevoteeExperiences";
+// ✅ ADDED (2026-09-05): "Recognized By" carousel — see RecognizedBy.tsx.
+import RecognizedBy from "./components/RecognizedBy";
 import { StoneEngravingHomeSection } from "./components/StoneEngravingNote";
 import SriDwarLogo from "./components/SriDwarLogo";
 import OptimizedImage from "./components/OptimizedImage";
@@ -926,6 +928,10 @@ export default function App() {
 
             <DevoteeExperiences />
 
+            {/* ✅ ADDED (2026-09-05): "Recognized By" carousel, placed
+                directly below Devotee Experiences per explicit instruction. */}
+            <RecognizedBy />
+
             {/* Refer, Earn & Grow with Dharma — referral, affiliate, commission
                 and subscription ecosystem, shown below Divine Miracles &
                 Success Stories so the earning opportunity lands right after
@@ -1485,10 +1491,10 @@ export default function App() {
                   Government of India Initiatives
                 </p>
                 <p className="text-[13px] text-white/55 leading-relaxed">
-                  Recognized by <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">Digital India</strong>, and <strong className="text-white/75">FSSAI</strong>.
+                  Recognized by <strong className="text-white/75">DPIIT</strong>, <strong className="text-white/75">Startup India</strong>, <strong className="text-white/75">Startup Odisha</strong>, <strong className="text-white/75">Digital India</strong>, <strong className="text-white/75">FSSAI</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, and <strong className="text-white/75">GeM Registration</strong>.
                 </p>
                 <p className="text-[13px] text-white/55 leading-relaxed">
-                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">MSME / Udyam Registration</strong>, <strong className="text-white/75">GeM Registration</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
+                  We have also initiated applications for <strong className="text-white/75">ISO 9001:2015 Certification</strong>, <strong className="text-white/75">Trademark Registration</strong>, <strong className="text-white/75">12A Recognition</strong> (for charitable sevas), and <strong className="text-white/75">ISO 27001 Certification</strong> (data security). Other necessary certifications and registrations are currently <strong className="text-[#FFB347]">under process</strong>.
                 </p>
               </div>
               <div className="space-y-3 text-left lg:border-l lg:border-white/8 lg:pl-6">
