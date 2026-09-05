@@ -94,14 +94,13 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   // error, now corrected against the artwork's own printed elements
   // rather than an assumed midpoint.
   devoteeNameSlot: { x: 828, y: 505, maxWidth: 460, font: "bold 38px Georgia, serif", color: "#5a1e08", align: "center" },
-  // ✅ CORRECTED (2026-09-05 — real bug, confirmed via direct
-  // measurement): y=740 was drawing directly on top of the artwork's own
-  // static Sanskrit blessing sloka, which starts at y≈680. The actual
-  // usable gap is narrow — "PUJA PERFORMED" banner's bottom edge is at
-  // y≈630, sloka starts at y≈680 — so this now sits at y=655 with a
-  // smaller font (18px, down from 22px) to reliably fit one line in that
-  // ~50px gap without touching either.
-  pujaNameSlot: { x: 828, y: 655, maxWidth: 460, font: "18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ RE-CORRECTED (2026-09-05 — still overlapping the banner per a
+  // real screenshot): remeasured with a much finer 10px grid. The actual
+  // gap between "PUJA PERFORMED"'s bottom edge (y≈650) and the sloka's
+  // start (y≈690) is only ~40px — tighter than my previous measurement
+  // found. Moved to y=675 with a smaller 16px font for a safe margin on
+  // both sides.
+  pujaNameSlot: { x: 828, y: 675, maxWidth: 460, font: "16px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Below the barcode box — the box's own bottom edge is at y≈903
   // (measured directly; also noticeably lower than a first glance
   // suggests), with the certificate's outer wooden frame starting around
@@ -146,7 +145,7 @@ const MAHADEV_LAYOUT: CertificateLayout = {
   devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#0f2a3a", align: "center" },
   // Puja name sits ABOVE "PUJA PERFORMED" on this design (confirmed) —
   // reversed from Jagannath, correct as-is.
-  pujaNameSlot: { x: 730, y: 580, maxWidth: 460, font: "22px Georgia, serif", color: "#1a2a3a", align: "center" },
+  pujaNameSlot: { x: 730, y: 568, maxWidth: 460, font: "18px Georgia, serif", color: "#1a2a3a", align: "center" },
   refIdSlot: { x: 270, y: 798, maxWidth: 300, font: "600 15px Georgia, serif", color: "#2a3a4a", align: "center" },
   // Re-measured with a fine grid, then confirmed via an actual test
   // render: true inner opening x≈1150–1330, y≈370–690.
@@ -170,7 +169,7 @@ const GANESH_LAYOUT: CertificateLayout = {
   // "PUJA PERFORMED" banner top edge is at y≈685 — the sloka begins
   // almost immediately below it (y≈735), so this sits just above the
   // banner instead, with a smaller font for a safe, reliable fit.
-  pujaNameSlot: { x: 730, y: 652, maxWidth: 460, font: "18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  pujaNameSlot: { x: 730, y: 642, maxWidth: 460, font: "16px Georgia, serif", color: "#3a2a1a", align: "center" },
   // ✅ CORRECTED (2026-09-05 — real bug, caught via an actual test
   // render): my first estimate (y=815) rendered directly on top of the
   // deity illustration, nowhere near the barcode. Measured the actual
@@ -198,7 +197,7 @@ const HANUMAN_LAYOUT: CertificateLayout = {
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
   dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
   devoteeNameSlot: { x: 730, y: 455, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf8e8", align: "center" },
-  pujaNameSlot: { x: 730, y: 630, maxWidth: 460, font: "18px Georgia, serif", color: "#f5f0d8", align: "center" },
+  pujaNameSlot: { x: 730, y: 620, maxWidth: 460, font: "16px Georgia, serif", color: "#f5f0d8", align: "center" },
   // ✅ ADJUSTED (2026-09-05): applying the same correction confirmed on
   // Ganesh and Jagannath's barcode/refId position — genuinely sits lower
   // than a first-glance estimate suggests. Not individually re-measured
@@ -221,7 +220,7 @@ const MAA_DURGA_LAYOUT: CertificateLayout = {
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
   dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
   devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3d0", align: "center" },
-  pujaNameSlot: { x: 730, y: 615, maxWidth: 460, font: "18px Georgia, serif", color: "#f5e6a8", align: "center" },
+  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e6a8", align: "center" },
   // Same correction pattern as Ganesh/Jagannath/Hanuman above.
   refIdSlot: { x: 260, y: 895, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d494", align: "center" },
   // Re-measured with a fine grid: true inner opening x≈1180–1400,
@@ -243,7 +242,7 @@ const MAA_TARINI_LAYOUT: CertificateLayout = {
   templeSlot: { x: 195, y: 218, maxWidth: 280, font: "700 19px Georgia, serif", color: "#f5e6c8", align: "center" },
   dateSlot: { x: 1150, y: 218, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6c8", align: "center" },
   devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3e0", align: "center" },
-  pujaNameSlot: { x: 730, y: 620, maxWidth: 460, font: "18px Georgia, serif", color: "#f5e6c8", align: "center" },
+  pujaNameSlot: { x: 730, y: 610, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e6c8", align: "center" },
   // Same correction pattern as Ganesh/Jagannath/Hanuman/Durga above.
   refIdSlot: { x: 265, y: 908, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d4a8", align: "center" },
   // Re-measured with a fine grid: true inner opening x≈1120–1400,
@@ -650,30 +649,55 @@ export async function removeStudioBackground(sourceDataUrl: string): Promise<str
     return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
   }
 
-  // Do the 4 corners roughly agree with each other? If not, this isn't a
-  // uniform studio backdrop (or the subject's hair/shoulders reach into
-  // one corner) — bail out and return the photo untouched rather than
-  // guess.
-  const maxCornerSpread = Math.max(
-    colorDistance(corners[0], corners[1]), colorDistance(corners[0], corners[2]),
-    colorDistance(corners[0], corners[3]), colorDistance(corners[1], corners[2]),
-    colorDistance(corners[1], corners[3]), colorDistance(corners[2], corners[3]),
-  );
-  if (maxCornerSpread > 40) {
-    return sourceDataUrl; // not a uniform backdrop — leave the photo exactly as-is
+  // ✅ CHANGED (2026-09-05 — real bug: a genuine uploaded photo showed a
+  // bright white halo instead of a removed background, confirming
+  // chroma-key was bailing out and only the separate edge-feather was
+  // doing anything): requiring all 4 corners to agree was too strict for
+  // real photos — ordinary studio lighting often puts a slight shadow or
+  // vignette in ONE corner (or a shoulder/hair reaches into it), which
+  // easily exceeded the old threshold and skipped removal entirely on
+  // otherwise-uniform backdrops. Now finds the largest group of corners
+  // that agree closely (3-of-4, or all 4) and uses just that group's
+  // average as the backdrop color, only bailing out if even 3 can't
+  // agree — genuinely non-uniform/busy backgrounds still correctly skip
+  // removal, but ordinary lighting variance no longer blocks it.
+  const pairs: [number, number][] = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+  const distances = pairs.map(([i, j]) => ({ i, j, d: colorDistance(corners[i], corners[j]) }));
+  const AGREEMENT_THRESHOLD = 55;
+
+  // Try all 4 corners together first.
+  let backdropCorners = corners;
+  if (Math.max(...distances.map((p) => p.d)) > AGREEMENT_THRESHOLD) {
+    // Find the trio (3 of the 4 corners) whose worst-case internal spread
+    // is smallest — i.e. the most mutually-consistent group of 3.
+    const trios = [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]];
+    let bestTrio: number[] | null = null;
+    let bestTrioSpread = Infinity;
+    for (const trio of trios) {
+      const trioPairs = pairs.filter(([i, j]) => trio.includes(i) && trio.includes(j));
+      const spread = Math.max(...trioPairs.map((p) => distances.find((d) => d.i === p[0] && d.j === p[1])!.d));
+      if (spread < bestTrioSpread) { bestTrioSpread = spread; bestTrio = trio; }
+    }
+    if (!bestTrio || bestTrioSpread > AGREEMENT_THRESHOLD) {
+      return sourceDataUrl; // not even 3 corners agree — genuinely non-uniform background, leave untouched
+    }
+    backdropCorners = bestTrio.map((i) => corners[i]);
   }
 
   const backdrop: [number, number, number] = [
-    corners.reduce((s, c) => s + c[0], 0) / 4,
-    corners.reduce((s, c) => s + c[1], 0) / 4,
-    corners.reduce((s, c) => s + c[2], 0) / 4,
+    backdropCorners.reduce((s, c) => s + c[0], 0) / backdropCorners.length,
+    backdropCorners.reduce((s, c) => s + c[1], 0) / backdropCorners.length,
+    backdropCorners.reduce((s, c) => s + c[2], 0) / backdropCorners.length,
   ];
 
   // Soft threshold band, not a hard cutoff — pixels close to the
   // backdrop color fade smoothly to transparent instead of leaving a
-  // harsh, jagged cutout edge around the subject.
-  const FULL_TRANSPARENT_BELOW = 28;
-  const FULL_OPAQUE_ABOVE = 70;
+  // harsh, jagged cutout edge around the subject. Widened slightly
+  // alongside the corner-agreement change above, for the same reason —
+  // real backdrops have some natural shading, not one perfectly flat
+  // color.
+  const FULL_TRANSPARENT_BELOW = 35;
+  const FULL_OPAQUE_ABOVE = 85;
   for (let i = 0; i < data.length; i += 4) {
     const dist = colorDistance([data[i], data[i + 1], data[i + 2]], backdrop);
     if (dist <= FULL_TRANSPARENT_BELOW) {
