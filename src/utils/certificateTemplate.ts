@@ -132,7 +132,9 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
 // ✅ Verified via an actual render test earlier this session — every
 // value below was tested, not just measured once and assumed correct.
 const MAHADEV_LAYOUT: CertificateLayout = {
-  matchDeity: /shiva|mahadev/i,
+  // ✅ BROADENED (2026-09-05 — explicit mapping: "Lingraj, Shiva,
+  // Mahadev, and similar deities → Shiva Certificate"):
+  matchDeity: /lingaraj|lingraj|shiva|mahadev/i,
   backgroundUrl: `${BASE_URL}images/Mahadev-Certificate.jpg`,
   width: 1536,
   height: 1024,
@@ -213,7 +215,9 @@ const HANUMAN_LAYOUT: CertificateLayout = {
 // ✅ Photo frame fully re-measured with a fine grid. Same caveat on text
 // positions as Hanuman above.
 const MAA_DURGA_LAYOUT: CertificateLayout = {
-  matchDeity: /durga/i,
+  // ✅ BROADENED (2026-09-05 — explicit mapping: "Vaishno Devi, Durga,
+  // Kamakhya, and similar goddesses → Maa Durga Certificate"):
+  matchDeity: /vaishno|durga|kamakhya/i,
   backgroundUrl: `${BASE_URL}images/${encodeURIComponent("Maa Durga.jpg")}`,
   width: 1536,
   height: 1024,
@@ -235,7 +239,9 @@ const MAA_DURGA_LAYOUT: CertificateLayout = {
 // Mahadev (also sourced from a filled reference, and needed real
 // adjustment after a test render) rather than the raw eyeballed values.
 const MAA_TARINI_LAYOUT: CertificateLayout = {
-  matchDeity: /tarini/i,
+  // ✅ BROADENED (2026-09-05 — explicit mapping: "Tarini, Sarala, Maa
+  // Chandi, and similar goddesses → Tarini Certificate"):
+  matchDeity: /tarini|sarala|chandi/i,
   backgroundUrl: `${BASE_URL}images/${encodeURIComponent("Maa Tarini.jpg")}`,
   width: 1536,
   height: 1024,
@@ -253,8 +259,78 @@ const MAA_TARINI_LAYOUT: CertificateLayout = {
 // Falls back to null (a plain "coming soon" placeholder, never a
 // different deity's real artwork — see selectLayout() below) if the
 // selected deity has no matching design yet.
+// ── Krishna ───────────────────────────────────────────────────────────
+// ✅ ADDED (2026-09-05): fully measured with fine grids at every zone.
+const KRISHNA_LAYOUT: CertificateLayout = {
+  matchDeity: /krishna/i,
+  backgroundUrl: `${BASE_URL}images/Krishna.jpg`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f0d8a8", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f0d8a8", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf0d0", align: "center" },
+  // "PUJA PERFORMED" banner top edge is at y≈635 — sloka begins almost
+  // immediately below it, so this sits above the banner with a safe
+  // margin, smaller font per the lesson learned re-measuring Jagannath.
+  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f0d8a8", align: "center" },
+  refIdSlot: { x: 260, y: 918, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8c890", align: "center" },
+  photoFrame: { x: 1155, y: 395, width: 240, height: 300 },
+};
+
+// ── Vishnu ────────────────────────────────────────────────────────────
+// ✅ ADDED (2026-09-05): fully measured with fine grids at every zone.
+const VISHNU_LAYOUT: CertificateLayout = {
+  matchDeity: /vishnu|\brama\b|\bram\b|narasimha|vamana|parshuram|kalki/i,
+  backgroundUrl: `${BASE_URL}images/Vishnu.jpg`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8e8f0", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8e8f0", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdfaf0", align: "center" },
+  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#d8e8f0", align: "center" },
+  refIdSlot: { x: 260, y: 918, maxWidth: 300, font: "600 15px Georgia, serif", color: "#c8d8e8", align: "center" },
+  photoFrame: { x: 1155, y: 395, width: 240, height: 300 },
+};
+
+// ── Lakshmi ───────────────────────────────────────────────────────────
+// ✅ ADDED (2026-09-05): fully measured with fine grids at every zone.
+// Image filename uses "Laxmi" but the deity dropdown value is "Goddess
+// Lakshmi" — matchDeity below covers both spellings.
+const LAKSHMI_LAYOUT: CertificateLayout = {
+  matchDeity: /lakshmi|laxmi/i,
+  backgroundUrl: `${BASE_URL}images/${encodeURIComponent("Laxmi.jpg")}`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e0a0", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e0a0", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf5d8", align: "center" },
+  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e0a0", align: "center" },
+  refIdSlot: { x: 260, y: 918, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d090", align: "center" },
+  photoFrame: { x: 1160, y: 395, width: 235, height: 300 },
+};
+
+// ── Shani ─────────────────────────────────────────────────────────────
+// ✅ ADDED (2026-09-05): fully measured with fine grids at every zone.
+const SHANI_LAYOUT: CertificateLayout = {
+  matchDeity: /shani/i,
+  backgroundUrl: `${BASE_URL}images/Shani.jpg`,
+  width: 1536,
+  height: 1024,
+  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8c8a0", align: "center" },
+  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8c8a0", align: "center" },
+  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#f0e8d0", align: "center" },
+  // "PUJA PERFORMED" banner top edge is at y≈625 on this design (a touch
+  // higher than the others) — adjusted accordingly.
+  pujaNameSlot: { x: 730, y: 595, maxWidth: 460, font: "16px Georgia, serif", color: "#d8c8a0", align: "center" },
+  // Barcode sits a bit higher on this design (bottom edge ≈880, not
+  // ≈900) — refId adjusted to match.
+  refIdSlot: { x: 260, y: 898, maxWidth: 300, font: "600 15px Georgia, serif", color: "#c8b890", align: "center" },
+  photoFrame: { x: 1160, y: 395, width: 235, height: 295 },
+};
+
 const CERTIFICATE_LAYOUTS: CertificateLayout[] = [
   JAGANNATH_LAYOUT, MAHADEV_LAYOUT, MAA_TARINI_LAYOUT, GANESH_LAYOUT, HANUMAN_LAYOUT, MAA_DURGA_LAYOUT,
+  KRISHNA_LAYOUT, VISHNU_LAYOUT, LAKSHMI_LAYOUT, SHANI_LAYOUT,
 ];
 
 // ✅ CHANGED (2026-09-05 — explicit instruction: "If a user selects
@@ -301,40 +377,18 @@ function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement,
   const dw = img.width * scale, dh = img.height * scale;
   const dx = frame.x + (frame.width - dw) / 2, dy = frame.y + (frame.height - dh) / 2;
   ctx.drawImage(img, dx, dy, dw, dh);
-
-  // ✅ ADDED (2026-09-05 — "make sure the photo's background is removed
-  // or made clear... so the photo blends naturally with the certificate's
-  // background design"): true AI background removal (cutting out just
-  // the person) needs either a paid API or a heavy ML library — not the
-  // right trade-off for a bootstrapped budget, and risky to add untested.
-  // This instead feathers the photo's own edges into transparency with a
-  // soft gradient, so instead of a harsh rectangular photo sitting on the
-  // parchment, it fades naturally into the artwork the same way a
-  // vignette-framed portrait would. Genuinely free (pure canvas, no new
-  // dependency), and the visual goal — no harsh rectangle — is met either
-  // way.
-  const featherWidth = Math.round(Math.min(frame.width, frame.height) * 0.32);
-  ctx.globalCompositeOperation = "destination-in";
-  const fadeMask = ctx.createLinearGradient(frame.x, 0, frame.x + frame.width, 0);
-  // A radial-feeling fade approximated with two linear passes (canvas has
-  // no built-in "fade all four edges" gradient) — one horizontal, one
-  // vertical, multiplied together via two destination-in passes.
-  fadeMask.addColorStop(0, "rgba(0,0,0,0)");
-  fadeMask.addColorStop(Math.min(featherWidth / frame.width, 0.45), "rgba(0,0,0,1)");
-  fadeMask.addColorStop(Math.max(1 - featherWidth / frame.width, 0.55), "rgba(0,0,0,1)");
-  fadeMask.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = fadeMask;
-  ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
-
-  const fadeMaskV = ctx.createLinearGradient(0, frame.y, 0, frame.y + frame.height);
-  fadeMaskV.addColorStop(0, "rgba(0,0,0,0)");
-  fadeMaskV.addColorStop(Math.min(featherWidth / frame.height, 0.45), "rgba(0,0,0,1)");
-  fadeMaskV.addColorStop(Math.max(1 - featherWidth / frame.height, 0.55), "rgba(0,0,0,1)");
-  fadeMaskV.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = fadeMaskV;
-  ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
-
   ctx.restore();
+  // ✅ REMOVED (2026-09-05 — explicit instruction: "no white halo effect
+  // ... in the user photo"): this used to also feather the photo's own
+  // edges into transparency with a frame-based radial gradient, meant as
+  // a fallback softening for when removeStudioBackground() couldn't
+  // detect a clean backdrop. In practice it was fading real edge pixels
+  // (hair, shoulders, or a lightly-colored backdrop) into a soft
+  // whitish/blended ring that read as a glow, not a natural blend.
+  // Background removal is now handled ENTIRELY by
+  // removeStudioBackground() (actual chroma-key, content-aware) before
+  // this function ever runs — this just places the photo cleanly in its
+  // frame with a plain edge, no separate fade effect layered on top.
 }
 
 function wrapText(
@@ -370,54 +424,19 @@ function drawSlot(ctx: CanvasRenderingContext2D, slot: TextSlot, text: string) {
   if (!text) return;
   ctx.font = slot.font;
   ctx.textAlign = slot.align;
-  // ✅ ADDED (2026-09-05 — real legibility issue found via a test
-  // render): a few designs' puja-name slot sits over a busy scenic
-  // illustration (temple towers, sky) rather than plain parchment,
-  // making the text hard to read there. A soft shadow behind the text
-  // lifts it off a busy background without needing per-design special-
-  // casing — but the shadow has to contrast with the TEXT color, not
-  // assume dark text: Jagannath/Ganesh/Maa Durga use dark brown text (so
-  // a light shadow helps), while Mahadev/Hanuman/Maa Tarini use light
-  // cream/white text on darker themes (a light shadow there would be
-  // invisible or muddy — a dark shadow is what actually helps).
-  const isLightText = isLightColor(slot.color);
-  const haloColor = isLightText ? "rgba(20, 15, 5, 0.85)" : "rgba(253, 246, 224, 0.95)";
-  ctx.shadowColor = haloColor;
-  ctx.shadowBlur = 5;
-  const lineHeight = Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25);
-  // ✅ STRENGTHENED (2026-09-05 — repeated report: "some writing blends
-  // into the background and is hard to read"): a drop shadow alone can
-  // still wash out on artwork with similar tones right where a field
-  // sits (e.g. gold text on a gold-toned illustration). Adding a real
-  // stroked outline in the same halo color — drawn first, so the fill
-  // sits cleanly on top — guarantees contrast against ANY background
-  // pixel underneath, not just busier ones the shadow alone helped with.
-  ctx.lineJoin = "round";
-  ctx.miterLimit = 2;
-  ctx.strokeStyle = haloColor;
-  ctx.lineWidth = Math.max(2, Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 0.1));
-  // Long values (a long temple name, a long puja name) wrap onto a second
-  // centered line rather than overflowing past their column — same
-  // approach server.ts already uses for the email/acknowledgement JPGs.
-  // Stroke pass first (the outline sits underneath), then the shadowed
-  // fill pass on top — the outline alone guarantees contrast against any
-  // background pixel, and the shadow adds depth on top of that.
-  wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, lineHeight, slot.align, "stroke");
   ctx.fillStyle = slot.color;
+  const lineHeight = Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25);
+  // ✅ REMOVED (2026-09-05 — explicit instruction: "no hallow needed...
+  // no white halo effect for letter, alphabets"): the legibility shadow
+  // and stroke outline added across two earlier passes had compounded
+  // into a strong, clearly-visible white glow around every letter on
+  // every field — not the subtle legibility aid originally intended.
+  // Reverted to plain, flat text with no shadow and no stroke at all.
+  // Long values (a long temple name, a long puja name) still wrap onto a
+  // second centered line rather than overflowing past their column.
   wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, lineHeight, slot.align, "fill");
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = "transparent";
 }
 
-// Simple perceived-luminance check on a hex color — used only to decide
-// which direction drawSlot()'s legibility shadow should go.
-function isLightColor(hex: string): boolean {
-  const clean = hex.replace("#", "");
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) > 150;
-}
 
 // ✅ ADDED (2026-09-05 — explicit instruction):
 //   - no family members added -> just the devotee's name ("Kunu Rana")
