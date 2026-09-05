@@ -3,17 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// ✅ ADDED (2026-09-03): the certificate renderer, deliberately separated
-// from AdminCertificateGeneration.tsx (the form) entirely. This is the
-// piece meant to be swapped out once real certificate artwork is ready —
-// everything below reads from CERTIFICATE_LAYOUT, a plain config object
-// mapping each field to a position/size/style. Replacing the placeholder
-// background with real artwork and adjusting these coordinates to match
-// is the whole job; the form itself (member rows, dropdowns, photo
-// capture) never needs to change. Matches the exact pattern server.ts
-// already uses for the JPG certificates it composites server-side (e.g.
-// TXN_BILLTO_SLOT and friends) — same idea, just running client-side in a
-// <canvas> for a live preview instead of server-side with sharp/resvg.
+// ✅ CHANGED (2026-09-03): now draws the REAL supplied artwork
+// (jagannath_certificate.jpg) instead of the code-drawn placeholder —
+// exactly the swap this file's original design was built to make easy.
+// Everything below reads from CERTIFICATE_LAYOUTS, a plain config array
+// mapping each field to a precise pixel position measured directly
+// against the real artwork (not eyeballed) — adding a second design later
+// (a different temple/deity) is just adding another entry here with its
+// own coordinates; the form in AdminCertificateGeneration.tsx never needs
+// to change either way.
 
 export interface CertificateData {
   refId: string;
@@ -28,74 +26,105 @@ export interface CertificateData {
   familyPhoto: HTMLImageElement | null;
 }
 
-// Canvas size — a comfortable print-quality resolution at a standard
-// certificate aspect ratio (roughly A4 landscape). Real artwork, once
-// supplied, should be exported at this same resolution (or this constant
-// updated to match it) so nothing needs rescaling.
-export const CERTIFICATE_WIDTH = 1600;
-export const CERTIFICATE_HEIGHT = 1131;
-
-// ── Placeholder artwork ──────────────────────────────────────────────────
-// A tasteful, devotional-feeling background drawn entirely in code (warm
-// cream base, gold ornamental border, a subtle central motif) — used ONLY
-// until real artwork is supplied. No external image file needed for this,
-// which also means the live preview never depends on an asset that could
-// fail to load.
-function drawPlaceholderBackground(ctx: CanvasRenderingContext2D) {
-  const w = CERTIFICATE_WIDTH, h = CERTIFICATE_HEIGHT;
-
-  // Warm cream base with a very subtle radial vignette toward the edges.
-  const bg = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, w * 0.6);
-  bg.addColorStop(0, "#fdf8ee");
-  bg.addColorStop(1, "#f5ecd8");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-
-  // Ornamental double gold border.
-  ctx.strokeStyle = "#b8860b";
-  ctx.lineWidth = 6;
-  ctx.strokeRect(28, 28, w - 56, h - 56);
-  ctx.strokeStyle = "#d4a017";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(44, 44, w - 88, h - 88);
-
-  // Four corner motifs — simple concentric arcs, evoking a temple-carving
-  // feel without needing an actual decorative image asset yet.
-  const corner = (cx: number, cy: number, flipX: number, flipY: number) => {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.scale(flipX, flipY);
-    ctx.strokeStyle = "#c9971f";
-    ctx.lineWidth = 3;
-    for (let r = 18; r <= 54; r += 18) {
-      ctx.beginPath();
-      ctx.arc(0, 0, r, Math.PI, Math.PI * 1.5);
-      ctx.stroke();
-    }
-    ctx.restore();
-  };
-  corner(70, 70, 1, 1);
-  corner(w - 70, 70, -1, 1);
-  corner(70, h - 70, 1, -1);
-  corner(w - 70, h - 70, -1, -1);
+interface TextSlot {
+  x: number;
+  y: number;
+  maxWidth: number;
+  font: string;
+  color: string;
+  align: CanvasTextAlign;
 }
 
-function roundedPhotoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, size: number) {
+interface CertificateLayout {
+  /** Matched against CertificateData.deity — see selectLayout() below. */
+  matchDeity: RegExp;
+  backgroundUrl: string;
+  width: number;
+  height: number;
+  templeSlot: TextSlot;
+  dateSlot: TextSlot;
+  devoteeNameSlot: TextSlot;
+  pujaNameSlot: TextSlot;
+  refIdSlot: TextSlot;
+  photoFrame: { x: number; y: number; width: number; height: number };
+}
+
+const BASE_URL = import.meta.env.BASE_URL;
+
+// ── Real, measured layout for the Jagannath design ──────────────────────
+// Coordinates were measured directly against the actual 1536×1024 artwork
+// (overlaid with a pixel grid to read exact positions — not guessed) so
+// every field sits precisely centered under its own printed title/line,
+// matching the artwork's own alignment rather than an approximation.
+const JAGANNATH_LAYOUT: CertificateLayout = {
+  matchDeity: /jagannath/i,
+  backgroundUrl: `${BASE_URL}images/jagannath_certificate.jpg`,
+  width: 1536,
+  height: 1024,
+  // Below "PERFORMED AT" (icon + label centered at x≈185, label baseline
+  // ≈160) and its small decorative divider at y≈180.
+  templeSlot: { x: 185, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // Below "DATE OF PUJA" (centered at x≈1125), same label/divider heights.
+  dateSlot: { x: 1125, y: 212, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // Below "This is to certify that" and its decorative divider at y≈352 —
+  // the certificate's own largest open space (the "PUJA PERFORMED" banner
+  // doesn't start until y≈615, confirmed by direct measurement — this
+  // isn't the tight gap it first looked like), so this is the biggest
+  // text on the page, matching how every other Sri Dwar certificate
+  // treats the devotee's name.
+  devoteeNameSlot: { x: 725, y: 435, maxWidth: 420, font: "bold 38px Georgia, serif", color: "#5a1e08", align: "center" },
+  // Below the "PUJA PERFORMED" banner — banner spans y≈615–660 (measured
+  // directly; noticeably lower than it first appears at a glance).
+  pujaNameSlot: { x: 725, y: 700, maxWidth: 440, font: "22px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // Below the barcode box — the box's own bottom edge is at y≈903
+  // (measured directly; also noticeably lower than a first glance
+  // suggests), with the certificate's outer wooden frame starting around
+  // y≈940, leaving a tight but clean gap for a single line.
+  refIdSlot: { x: 245, y: 925, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
+  // The empty arched frame, top-right — inner clear area only (the frame
+  // border itself sits outside these bounds).
+  photoFrame: { x: 1032, y: 288, width: 190, height: 335 },
+};
+
+// Falls back to the Jagannath layout if no deity-specific design exists
+// yet — the certificate still generates correctly for every other deity,
+// it just visually looks like a Jagannath-temple design until a matching
+// one is supplied. Never fails to render entirely.
+const CERTIFICATE_LAYOUTS: CertificateLayout[] = [JAGANNATH_LAYOUT];
+
+function selectLayout(deity: string): CertificateLayout {
+  return CERTIFICATE_LAYOUTS.find((l) => l.matchDeity.test(deity)) || JAGANNATH_LAYOUT;
+}
+
+export const CERTIFICATE_WIDTH = JAGANNATH_LAYOUT.width;
+export const CERTIFICATE_HEIGHT = JAGANNATH_LAYOUT.height;
+
+// Background images are loaded once and reused — renderCertificate() runs
+// on every keystroke via the live preview, and re-fetching/re-decoding a
+// ~500KB JPEG that many times a second would be wasteful and could cause
+// visible flicker.
+const backgroundImageCache = new Map<string, HTMLImageElement>();
+function loadCachedImage(url: string): Promise<HTMLImageElement> {
+  const cached = backgroundImageCache.get(url);
+  if (cached) return Promise.resolve(cached);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => { backgroundImageCache.set(url, img); resolve(img); };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement, frame: { x: number; y: number; width: number; height: number }) {
   ctx.save();
   ctx.beginPath();
-  ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
-  ctx.closePath();
+  ctx.rect(frame.x, frame.y, frame.width, frame.height);
   ctx.clip();
-  // Cover-fit the image into the circle rather than stretching it.
-  const scale = Math.max(size / img.width, size / img.height);
+  // Cover-fit — fills the frame without distorting the photo's aspect ratio.
+  const scale = Math.max(frame.width / img.width, frame.height / img.height);
   const dw = img.width * scale, dh = img.height * scale;
-  ctx.drawImage(img, x + (size - dw) / 2, y + (size - dh) / 2, dw, dh);
+  ctx.drawImage(img, frame.x + (frame.width - dw) / 2, frame.y + (frame.height - dh) / 2, dw, dh);
   ctx.restore();
-  ctx.beginPath();
-  ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
-  ctx.strokeStyle = "#b8860b";
-  ctx.lineWidth = 4;
-  ctx.stroke();
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, align: CanvasTextAlign) {
@@ -117,113 +146,59 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
   return lineY;
 }
 
-export function renderCertificate(canvas: HTMLCanvasElement, data: CertificateData) {
-  canvas.width = CERTIFICATE_WIDTH;
-  canvas.height = CERTIFICATE_HEIGHT;
+function drawSlot(ctx: CanvasRenderingContext2D, slot: TextSlot, text: string) {
+  if (!text) return;
+  ctx.font = slot.font;
+  ctx.fillStyle = slot.color;
+  ctx.textAlign = slot.align;
+  // Long values (a long temple name, a long puja name) wrap onto a second
+  // centered line rather than overflowing past their column — same
+  // approach server.ts already uses for the email/acknowledgement JPGs.
+  wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25), slot.align);
+}
+
+export async function renderCertificate(canvas: HTMLCanvasElement, data: CertificateData) {
+  const layout = selectLayout(data.deity);
+  canvas.width = layout.width;
+  canvas.height = layout.height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  drawPlaceholderBackground(ctx);
+  try {
+    const bg = await loadCachedImage(layout.backgroundUrl);
+    ctx.drawImage(bg, 0, 0, layout.width, layout.height);
+  } catch {
+    // Background failed to load (bad path, offline, etc.) — fall back to
+    // a plain cream panel rather than leaving a blank/broken canvas, so
+    // the text fields are still legible and the devotee isn't staring at
+    // nothing.
+    ctx.fillStyle = "#f5ecd8";
+    ctx.fillRect(0, 0, layout.width, layout.height);
+  }
 
-  const w = CERTIFICATE_WIDTH;
-
-  // ── Devotee photo, top-center ──
   if (data.devoteePhoto) {
-    roundedPhotoFrame(ctx, data.devoteePhoto, w / 2 - 90, 70, 180);
+    fitPhotoIntoFrame(ctx, data.devoteePhoto, layout.photoFrame);
   }
 
-  // ── Title ──
-  ctx.fillStyle = "#7a2e0e";
-  ctx.font = "italic 34px Georgia, serif";
-  ctx.textAlign = "center";
-  ctx.fillText("Sri Dwar", w / 2, 300);
-  ctx.font = "bold 52px Georgia, serif";
-  ctx.fillStyle = "#5a1e08";
-  ctx.fillText("Sankalp Certificate", w / 2, 355);
+  drawSlot(ctx, layout.templeSlot, data.temple);
+  drawSlot(ctx, layout.dateSlot, data.pujaDate ? new Date(data.pujaDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "");
+  drawSlot(ctx, layout.devoteeNameSlot, data.devoteeName || "Devotee Name");
+  drawSlot(ctx, layout.pujaNameSlot, data.serviceType);
+  drawSlot(ctx, layout.refIdSlot, data.refId ? `Ref: ${data.refId}` : "");
 
-  // ── Devotional blessing line ──
-  ctx.font = "italic 22px Georgia, serif";
-  ctx.fillStyle = "#8a6d3b";
-  ctx.fillText("\u0950 May this sacred offering bring peace, prosperity, and divine grace \u0950", w / 2, 400);
-
-  // ── This confirms that ──
-  ctx.font = "20px Georgia, serif";
-  ctx.fillStyle = "#3a2a1a";
-  ctx.fillText("This is to certify that the sacred offering below has been performed in the name of", w / 2, 460);
-
-  // ── Devotee name — the largest, most prominent text on the certificate ──
-  ctx.font = "bold 46px Georgia, serif";
-  ctx.fillStyle = "#5a1e08";
-  ctx.fillText(data.devoteeName || "Devotee Name", w / 2, 520);
-
-  // ── Family members, names only — never relationships ──
+  // Family members, names only — never relationships — placed just below
+  // the devotee name, using whatever room remains before the "PUJA
+  // PERFORMED" banner.
   if (data.members.length > 0) {
-    ctx.font = "22px Georgia, serif";
-    ctx.fillStyle = "#5a4a2a";
     const names = data.members.map((m) => m.name).filter(Boolean).join("  \u2022  ");
-    wrapText(ctx, names, w / 2, 565, w - 400, 30, "center");
+    if (names) {
+      ctx.font = "18px Georgia, serif";
+      ctx.fillStyle = "#5a4a2a";
+      wrapText(ctx, names, layout.devoteeNameSlot.x, layout.devoteeNameSlot.y + 55, layout.devoteeNameSlot.maxWidth, 24, "center");
+    }
   }
-
-  // ── Service performed ──
-  ctx.font = "24px Georgia, serif";
-  ctx.fillStyle = "#3a2a1a";
-  ctx.textAlign = "center";
-  ctx.fillText(data.serviceType || "Sacred Offering", w / 2, 650);
-
-  // ── Detail row: Temple / Deity / City / Date ──
-  const detailY = 720;
-  const details = [
-    ["Temple", data.temple],
-    ["Deity", data.deity],
-    ["City", data.city],
-    ["Date", data.pujaDate ? new Date(data.pujaDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : ""],
-  ];
-  const colWidth = (w - 200) / details.length;
-  details.forEach(([label, value], i) => {
-    const x = 100 + colWidth * i + colWidth / 2;
-    ctx.font = "bold 14px Georgia, serif";
-    ctx.fillStyle = "#8a6d3b";
-    ctx.textAlign = "center";
-    ctx.fillText(label.toUpperCase(), x, detailY);
-    ctx.font = "20px Georgia, serif";
-    ctx.fillStyle = "#3a2a1a";
-    ctx.fillText(value || "—", x, detailY + 28);
-  });
-
-  // ── Family photo, if provided — smaller, lower-right ──
-  if (data.familyPhoto) {
-    roundedPhotoFrame(ctx, data.familyPhoto, w - 280, CERTIFICATE_HEIGHT - 260, 140);
-    ctx.font = "13px Georgia, serif";
-    ctx.fillStyle = "#8a6d3b";
-    ctx.textAlign = "center";
-    ctx.fillText("FAMILY", w - 210, CERTIFICATE_HEIGHT - 100);
-  }
-
-  // ── Footer: Reference ID, authenticity seal, issued-by ──
-  ctx.textAlign = "left";
-  ctx.font = "14px Georgia, serif";
-  ctx.fillStyle = "#8a6d3b";
-  ctx.fillText(`Reference: ${data.refId}`, 90, CERTIFICATE_HEIGHT - 90);
-  ctx.fillText("Issued by Shradhalu Private Limited, on behalf of Sri Dwar", 90, CERTIFICATE_HEIGHT - 66);
-
-  // Simple wax-seal-style circle (placeholder — a real seal graphic can
-  // replace this the same way the background can).
-  ctx.save();
-  ctx.translate(w - 160, CERTIFICATE_HEIGHT - 110);
-  ctx.beginPath();
-  ctx.arc(0, 0, 46, 0, Math.PI * 2);
-  ctx.fillStyle = "#7a1f1f";
-  ctx.fill();
-  ctx.strokeStyle = "#5a1414";
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.fillStyle = "#f5ecd8";
-  ctx.font = "bold 12px Georgia, serif";
-  ctx.textAlign = "center";
-  ctx.fillText("SRI", 0, -4);
-  ctx.fillText("DWAR", 0, 12);
-  ctx.restore();
 }
+
 
 // Every option this form currently offers for the single-select Service
 // dropdown — grouped for a friendlier <select>, per "Pujas, Sevas,

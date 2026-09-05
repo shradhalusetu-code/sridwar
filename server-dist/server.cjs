@@ -1956,6 +1956,10 @@ async function getAuthorizedCertificateUser(req) {
   if (adminEmails.includes(email.toLowerCase())) {
     return { userId, email, role: "staff" };
   }
+  const trialVendorEmails = (process.env.TRIAL_VENDOR_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (trialVendorEmails.includes(email.toLowerCase())) {
+    return { userId, email, role: "vendor" };
+  }
   const { data: profile } = await supabaseAdmin.from("referral_profiles").select("participant_type, subscription_tier, subscription_expires_at").eq("user_id", userId).maybeSingle();
   const p = profile;
   const isVendor = p && ["pujari", "mandal", "yogaguru", "expert", "seva"].includes(p.participant_type);

@@ -1734,6 +1734,19 @@ async function getAuthorizedCertificateUser(req: express.Request): Promise<{ use
     return { userId, email, role: "staff" };
   }
 
+  // ✅ ADDED (2026-09-03): trial access — lets a specific vendor account
+  // test the Live Certificate feature in their own temple WITHOUT an
+  // active paid subscription_tier. Same plain-email-allowlist pattern as
+  // ADMIN_EMAILS above, deliberately kept separate from it: a trial email
+  // gets the "vendor" role (the restricted experience — fill, photo,
+  // print, no edit/delete, no dropdown management), never "staff" full
+  // access, since the point is testing what a real paying vendor would
+  // see, not granting staff-level power.
+  const trialVendorEmails = (process.env.TRIAL_VENDOR_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (trialVendorEmails.includes(email.toLowerCase())) {
+    return { userId, email, role: "vendor" };
+  }
+
   const { data: profile } = await supabaseAdmin
     .from("referral_profiles")
     .select("participant_type, subscription_tier, subscription_expires_at")

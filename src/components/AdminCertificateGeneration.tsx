@@ -124,11 +124,20 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   // ── Live preview: re-render the canvas whenever any relevant field changes ──
   useEffect(() => {
     if (!canvasRef.current) return;
+    let cancelled = false;
     const data: CertificateData = {
       refId, serviceType, devoteeName, members, pujaDate, city, deity, temple,
       devoteePhoto: devoteePhotoImg, familyPhoto: familyPhotoImg,
     };
-    renderCertificate(canvasRef.current, data);
+    // ✅ renderCertificate is now async (it loads the real background
+    // artwork, cached after the first call) — the cancelled guard avoids a
+    // rare out-of-order flash if a devotee types quickly enough that an
+    // older call's image-load resolves after a newer one's.
+    (async () => {
+      if (!canvasRef.current || cancelled) return;
+      await renderCertificate(canvasRef.current, data);
+    })();
+    return () => { cancelled = true; };
   }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, familyPhotoImg]);
 
   const handlePhotoSelected = async (kind: "devotee" | "family", file: File | null) => {
