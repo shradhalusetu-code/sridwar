@@ -42,6 +42,7 @@ const OfferPopup = lazy(() => import("./components/OfferPopup"));
 const ReferralPlans = lazy(() => import("./components/ReferralPlans"));
 // ✅ ADDED (2026-09-03): the Admin Certificate Generation page.
 const AdminCertificateGeneration = lazy(() => import("./components/AdminCertificateGeneration"));
+const AdminPaymentLinks = lazy(() => import("./components/AdminPaymentLinks"));
 const CounsellingGuidance = lazy(() => import("./components/CounsellingGuidance"));
 // ✅ BUNDLE-SIZE FIX (2026-08-15): TempleRegister is a full registration
 // form/page (Add Temple / Temple Register), never part of the initial
@@ -1176,6 +1177,17 @@ export default function App() {
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
               <AdminCertificateGeneration onNavigate={handleNavigate} />
+            </Suspense>
+          </div>
+        )}
+
+        {/* ✅ ADDED (2026-09-05): "Generate a Razorpay payment link, or
+            show its QR code, directly from the website" — same
+            staff/vendor-only pattern as Live Certificate above. */}
+        {currentPage === "admin-payment-links" && (
+          <div className="animate-fadeIn">
+            <Suspense fallback={pageLoadingFallback}>
+              <AdminPaymentLinks onNavigate={handleNavigate} />
             </Suspense>
           </div>
         )}

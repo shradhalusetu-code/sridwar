@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Wallet, ShieldCheck, Sparkles, ChevronRight, ChevronLeft, Trophy,
-  Gift, TrendingUp, Check, Flame, Landmark, BookOpen, HeartHandshake, Users, Lock, Heart, ScrollText,
+  Gift, TrendingUp, Check, Flame, Landmark, BookOpen, HeartHandshake, Users, Lock, Heart, ScrollText, CreditCard,
 } from "lucide-react";
 import {
   COMMISSION_STRUCTURE, PLAN_CATEGORIES, PLAN_TIERS_BY_CATEGORY, isDevoteeTier,
@@ -573,11 +573,23 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
             <button
               type="button"
               onClick={() => onNavigate("admin-certificates")}
-              className="w-full mb-5 flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#FFB347] to-[#F27D26] hover:from-[#F27D26] hover:to-[#FFB347] text-[#021816] font-bold py-3.5 px-5 rounded-2xl shadow-lg transition-all"
+              className="w-full mb-3 flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#FFB347] to-[#F27D26] hover:from-[#F27D26] hover:to-[#FFB347] text-[#021816] font-bold py-3.5 px-5 rounded-2xl shadow-lg transition-all"
             >
               <Landmark className="w-4 h-4" />
               <span className="text-sm uppercase tracking-wider">Live Certificate</span>
               <ScrollText className="w-4 h-4" />
+            </button>
+          )}
+          {/* ✅ ADDED (2026-09-05): "Payment Links" — same placement
+              reasoning as Live Certificate above, right next to it. */}
+          {activeCategory !== "devotee" && (
+            <button
+              type="button"
+              onClick={() => onNavigate("admin-payment-links")}
+              className="w-full mb-5 flex items-center justify-center gap-2.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white font-bold py-3.5 px-5 rounded-2xl transition-all"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span className="text-sm uppercase tracking-wider">Payment Links</span>
             </button>
           )}
           <h2 className="font-serif text-lg font-bold text-white mb-3">{activeCategoryMeta.planLabel}</h2>

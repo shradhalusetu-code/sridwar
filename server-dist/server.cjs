@@ -1334,6 +1334,66 @@ app.post("/api/razorpay/create-payment-link", import_express.default.json(), asy
     res.status(500).json({ error: "Could not create a payment link right now." });
   }
 });
+app.post("/api/admin/payment-links", import_express.default.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    res.status(500).json({ error: "Razorpay is not configured on the server." });
+    return;
+  }
+  const { amount, name, email, phone, description } = req.body || {};
+  const amountNum = Number(amount);
+  if (!Number.isFinite(amountNum) || amountNum <= 0) {
+    res.status(400).json({ error: "A positive amount is required." });
+    return;
+  }
+  if (!email && !phone) {
+    res.status(400).json({ error: "At least an email or phone number is required, so Razorpay has somewhere to notify." });
+    return;
+  }
+  const refIdStr = `SDL-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  try {
+    const basicAuth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    const response = await fetch("https://api.razorpay.com/v1/payment_links/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Basic ${basicAuth}` },
+      body: JSON.stringify({
+        amount: Math.round(amountNum * 100),
+        currency: "INR",
+        accept_partial: false,
+        reference_id: refIdStr,
+        description: String(description || "Sri Dwar \u2014 Sankalp Offering").slice(0, 2048),
+        customer: {
+          name: String(name || "Devotee").slice(0, 120),
+          email: email ? String(email).slice(0, 120) : void 0,
+          contact: phone ? String(phone).slice(0, 20) : void 0
+        },
+        // Razorpay itself sends the SMS/email with the link — no need to
+        // build that separately.
+        notify: { sms: !!phone, email: !!email },
+        reminder_enable: true,
+        notes: { refId: refIdStr, source: "admin_website_payment_link", createdBy: user.email }
+      })
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.short_url) {
+      console.error("[Razorpay] Admin payment link creation failed:", response.status, data);
+      appendAuditLog("admin_payment_link_failed", { refId: refIdStr, status: response.status, error: data?.error?.description });
+      res.status(502).json({ error: data?.error?.description || "Could not create a payment link right now." });
+      return;
+    }
+    appendAuditLog("admin_payment_link_created", { refId: refIdStr, amount: amountNum, short_url: data.short_url, createdBy: user.email });
+    res.json({ short_url: data.short_url, id: data.id, refId: refIdStr });
+  } catch (err) {
+    console.error("[Razorpay] Admin payment link request threw:", err?.message);
+    res.status(500).json({ error: "Could not create a payment link right now." });
+  }
+});
 app.get("/api/config", (req, res) => {
   res.json({
     GOOGLE_FORM_ID_CERTIFICATE: process.env.GOOGLE_FORM_ID_CERTIFICATE || process.env.VITE_GOOGLE_FORM_ID_CERTIFICATE || "",
