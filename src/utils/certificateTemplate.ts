@@ -54,6 +54,13 @@ interface CertificateLayout {
   pujaNameSlot: TextSlot;
   refIdSlot: TextSlot;
   photoFrame: { x: number; y: number; width: number; height: number };
+  // ✅ ADDED (2026-09-05 — "photo border should blend naturally with the
+  // certificate background... match the certificate's colors"): the
+  // thin inset border drawn around each devotee's photo, tailored to
+  // each design's own palette rather than one fixed color for all —
+  // optional, defaults to warm gold (the tone most of these designs
+  // already share) when a design doesn't override it.
+  photoBorderColor?: string;
 }
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -134,7 +141,9 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
 const MAHADEV_LAYOUT: CertificateLayout = {
   // ✅ BROADENED (2026-09-05 — explicit mapping: "Lingraj, Shiva,
   // Mahadev, and similar deities → Shiva Certificate"):
-  matchDeity: /lingaraj|lingraj|shiva|mahadev/i,
+  // ✅ BROADENED (2026-09-05 — explicit mapping: "Shiva, Lingaraj,
+  // Baidyanath, Shiva Certificate"):
+  matchDeity: /lingaraj|lingraj|baidyanath|shiva|mahadev/i,
   backgroundUrl: `${BASE_URL}images/Mahadev-Certificate.jpg`,
   width: 1536,
   height: 1024,
@@ -144,14 +153,23 @@ const MAHADEV_LAYOUT: CertificateLayout = {
   // other design in this file puts it on its own line below the label.
   templeSlot: { x: 350, y: 138, maxWidth: 280, font: "700 20px Georgia, serif", color: "#1a2a3a", align: "left" },
   dateSlot: { x: 1165, y: 197, maxWidth: 260, font: "600 18px Georgia, serif", color: "#1a2a3a", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#0f2a3a", align: "center" },
+  devoteeNameSlot: { x: 925, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#0f2a3a", align: "center" },
   // Puja name sits ABOVE "PUJA PERFORMED" on this design (confirmed) —
   // reversed from Jagannath, correct as-is.
-  pujaNameSlot: { x: 730, y: 568, maxWidth: 460, font: "18px Georgia, serif", color: "#1a2a3a", align: "center" },
-  refIdSlot: { x: 270, y: 798, maxWidth: 300, font: "600 15px Georgia, serif", color: "#2a3a4a", align: "center" },
+  pujaNameSlot: { x: 925, y: 568, maxWidth: 460, font: "18px Georgia, serif", color: "#1a2a3a", align: "center" },
+  // ✅ RE-CORRECTED (2026-09-05 — individually remeasured with a fresh
+  // fine grid): the barcode box itself spans y≈790–920, so the previous
+  // y=798 was rendering INSIDE the box, not below it — a real bug my
+  // earlier "verified" render had missed. Also re-centered x to the
+  // box's true center (≈280, not 270).
+  refIdSlot: { x: 280, y: 940, maxWidth: 300, font: "600 15px Georgia, serif", color: "#2a3a4a", align: "center" },
   // Re-measured with a fine grid, then confirmed via an actual test
   // render: true inner opening x≈1150–1330, y≈370–690.
   photoFrame: { x: 1155, y: 390, width: 170, height: 290 },
+  // ✅ ADDED (2026-09-05): this design's icy blue/silver/steel palette
+  // would clash with the default warm gold border — matched to its own
+  // metallic steel-blue frame color instead.
+  photoBorderColor: "rgba(176, 196, 214, 0.75)",
 };
 
 // ── Ganesh ────────────────────────────────────────────────────────────
@@ -165,20 +183,20 @@ const GANESH_LAYOUT: CertificateLayout = {
   width: 1536,
   height: 1024,
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
-  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  dateSlot: { x: 1310, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Divider at y≈375; devotee name centered in the space below it.
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#5a1e08", align: "center" },
+  devoteeNameSlot: { x: 890, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#5a1e08", align: "center" },
   // "PUJA PERFORMED" banner top edge is at y≈685 — the sloka begins
   // almost immediately below it (y≈735), so this sits just above the
   // banner instead, with a smaller font for a safe, reliable fit.
-  pujaNameSlot: { x: 730, y: 642, maxWidth: 460, font: "16px Georgia, serif", color: "#3a2a1a", align: "center" },
+  pujaNameSlot: { x: 890, y: 642, maxWidth: 460, font: "16px Georgia, serif", color: "#3a2a1a", align: "center" },
   // ✅ CORRECTED (2026-09-05 — real bug, caught via an actual test
   // render): my first estimate (y=815) rendered directly on top of the
   // deity illustration, nowhere near the barcode. Measured the actual
   // barcode box directly: it sits much lower than assumed, y≈825–895 —
   // matching the same "lower than expected" pattern already confirmed on
   // Jagannath's barcode.
-  refIdSlot: { x: 260, y: 915, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
+  refIdSlot: { x: 260, y: 920, maxWidth: 300, font: "600 15px Georgia, serif", color: "#5a4a2a", align: "center" },
   // Re-measured with a fine grid: true inner opening x≈1150–1395,
   // y≈390–705.
   photoFrame: { x: 1155, y: 395, width: 235, height: 305 },
@@ -197,9 +215,9 @@ const HANUMAN_LAYOUT: CertificateLayout = {
   width: 1536,
   height: 1024,
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
-  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
-  devoteeNameSlot: { x: 730, y: 455, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf8e8", align: "center" },
-  pujaNameSlot: { x: 730, y: 620, maxWidth: 460, font: "16px Georgia, serif", color: "#f5f0d8", align: "center" },
+  dateSlot: { x: 1310, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5f0d8", align: "center" },
+  devoteeNameSlot: { x: 890, y: 455, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf8e8", align: "center" },
+  pujaNameSlot: { x: 890, y: 620, maxWidth: 460, font: "16px Georgia, serif", color: "#f5f0d8", align: "center" },
   // ✅ ADJUSTED (2026-09-05): applying the same correction confirmed on
   // Ganesh and Jagannath's barcode/refId position — genuinely sits lower
   // than a first-glance estimate suggests. Not individually re-measured
@@ -222,14 +240,22 @@ const MAA_DURGA_LAYOUT: CertificateLayout = {
   width: 1536,
   height: 1024,
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
-  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3d0", align: "center" },
-  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e6a8", align: "center" },
-  // Same correction pattern as Ganesh/Jagannath/Hanuman above.
-  refIdSlot: { x: 260, y: 895, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d494", align: "center" },
-  // Re-measured with a fine grid: true inner opening x≈1180–1400,
-  // y≈380–700.
-  photoFrame: { x: 1185, y: 385, width: 210, height: 310 },
+  dateSlot: { x: 1310, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6a8", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug, confirmed via direct
+  // measurement): the assumed center (730) was wrong — measured the
+  // artwork's own "BLESSING CERTIFICATE" banner directly and its true
+  // center is x≈890, matching the same class of error found and fixed
+  // on Jagannath earlier.
+  devoteeNameSlot: { x: 890, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3d0", align: "center" },
+  pujaNameSlot: { x: 890, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e6a8", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: the barcode box itself spans
+  // y≈845–925, so the previous y=895 was rendering literally INSIDE the
+  // box, not below it). Moved below the box's actual bottom edge, and
+  // x re-centered to the box's true center (measured at ≈290, not 260).
+  refIdSlot: { x: 290, y: 945, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d494", align: "center" },
+  // Re-measured: true inner opening x≈1200–1420, y≈380–700 (previous
+  // was shifted slightly left and narrow).
+  photoFrame: { x: 1205, y: 385, width: 210, height: 310 },
 };
 
 // ── Maa Tarini ────────────────────────────────────────────────────────
@@ -245,12 +271,15 @@ const MAA_TARINI_LAYOUT: CertificateLayout = {
   backgroundUrl: `${BASE_URL}images/${encodeURIComponent("Maa Tarini.jpg")}`,
   width: 1536,
   height: 1024,
-  templeSlot: { x: 195, y: 218, maxWidth: 280, font: "700 19px Georgia, serif", color: "#f5e6c8", align: "center" },
-  dateSlot: { x: 1150, y: 218, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6c8", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3e0", align: "center" },
-  pujaNameSlot: { x: 730, y: 610, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e6c8", align: "center" },
-  // Same correction pattern as Ganesh/Jagannath/Hanuman/Durga above.
-  refIdSlot: { x: 265, y: 908, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d4a8", align: "center" },
+  templeSlot: { x: 215, y: 218, maxWidth: 280, font: "700 19px Georgia, serif", color: "#f5e6c8", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — individually remeasured): "DATE OF PUJA"
+  // label is genuinely centered at x≈1330, not 1150.
+  dateSlot: { x: 1330, y: 218, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e6c8", align: "center" },
+  devoteeNameSlot: { x: 890, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf3e0", align: "center" },
+  pujaNameSlot: { x: 890, y: 610, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e6c8", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: barcode box spans y≈815–915, so
+  // the previous y=908 was rendering inside it, not below it).
+  refIdSlot: { x: 270, y: 935, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d4a8", align: "center" },
   // Re-measured with a fine grid: true inner opening x≈1120–1400,
   // y≈400–705.
   photoFrame: { x: 1125, y: 405, width: 270, height: 295 },
@@ -268,12 +297,12 @@ const KRISHNA_LAYOUT: CertificateLayout = {
   height: 1024,
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f0d8a8", align: "center" },
   dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f0d8a8", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf0d0", align: "center" },
+  devoteeNameSlot: { x: 888, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf0d0", align: "center" },
   // "PUJA PERFORMED" banner top edge is at y≈635 — sloka begins almost
   // immediately below it, so this sits above the banner with a safe
   // margin, smaller font per the lesson learned re-measuring Jagannath.
-  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f0d8a8", align: "center" },
-  refIdSlot: { x: 260, y: 918, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8c890", align: "center" },
+  pujaNameSlot: { x: 888, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f0d8a8", align: "center" },
+  refIdSlot: { x: 260, y: 925, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8c890", align: "center" },
   photoFrame: { x: 1155, y: 395, width: 240, height: 300 },
 };
 
@@ -284,11 +313,18 @@ const VISHNU_LAYOUT: CertificateLayout = {
   backgroundUrl: `${BASE_URL}images/Vishnu.jpg`,
   width: 1536,
   height: 1024,
-  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8e8f0", align: "center" },
-  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8e8f0", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdfaf0", align: "center" },
-  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#d8e8f0", align: "center" },
-  refIdSlot: { x: 260, y: 918, maxWidth: 300, font: "600 15px Georgia, serif", color: "#c8d8e8", align: "center" },
+  templeSlot: { x: 205, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8e8f0", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — individually remeasured): "DATE OF PUJA"
+  // label is genuinely centered at x≈1330, not 1155.
+  dateSlot: { x: 1330, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8e8f0", align: "center" },
+  devoteeNameSlot: { x: 893, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdfaf0", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: "PUJA PERFORMED" banner's top
+  // edge is at y≈605, exactly where this was drawing — moved up with a
+  // safe margin).
+  pujaNameSlot: { x: 893, y: 588, maxWidth: 460, font: "16px Georgia, serif", color: "#d8e8f0", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: barcode box bottom edge is at
+  // y≈920, leaving almost no clearance at the old y=918).
+  refIdSlot: { x: 260, y: 940, maxWidth: 300, font: "600 15px Georgia, serif", color: "#c8d8e8", align: "center" },
   photoFrame: { x: 1155, y: 395, width: 240, height: 300 },
 };
 
@@ -302,10 +338,16 @@ const LAKSHMI_LAYOUT: CertificateLayout = {
   width: 1536,
   height: 1024,
   templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e0a0", align: "center" },
-  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e0a0", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf5d8", align: "center" },
-  pujaNameSlot: { x: 730, y: 605, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e0a0", align: "center" },
-  refIdSlot: { x: 260, y: 918, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d090", align: "center" },
+  dateSlot: { x: 1320, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#f5e0a0", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — individually remeasured): this design's
+  // banner is narrower than most others — true center is x≈853, not 890.
+  devoteeNameSlot: { x: 853, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#fdf5d8", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: banner top edge is at y≈610,
+  // almost exactly where this was drawing).
+  pujaNameSlot: { x: 853, y: 590, maxWidth: 460, font: "16px Georgia, serif", color: "#f5e0a0", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: barcode box spans y≈815–925,
+  // so y=918 was rendering inside it).
+  refIdSlot: { x: 260, y: 945, maxWidth: 300, font: "600 15px Georgia, serif", color: "#e8d090", align: "center" },
   photoFrame: { x: 1160, y: 395, width: 235, height: 300 },
 };
 
@@ -316,15 +358,16 @@ const SHANI_LAYOUT: CertificateLayout = {
   backgroundUrl: `${BASE_URL}images/Shani.jpg`,
   width: 1536,
   height: 1024,
-  templeSlot: { x: 200, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8c8a0", align: "center" },
-  dateSlot: { x: 1155, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8c8a0", align: "center" },
-  devoteeNameSlot: { x: 730, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#f0e8d0", align: "center" },
-  // "PUJA PERFORMED" banner top edge is at y≈625 on this design (a touch
-  // higher than the others) — adjusted accordingly.
-  pujaNameSlot: { x: 730, y: 595, maxWidth: 460, font: "16px Georgia, serif", color: "#d8c8a0", align: "center" },
-  // Barcode sits a bit higher on this design (bottom edge ≈880, not
-  // ≈900) — refId adjusted to match.
-  refIdSlot: { x: 260, y: 898, maxWidth: 300, font: "600 15px Georgia, serif", color: "#c8b890", align: "center" },
+  templeSlot: { x: 210, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8c8a0", align: "center" },
+  dateSlot: { x: 1330, y: 220, maxWidth: 260, font: "600 18px Georgia, serif", color: "#d8c8a0", align: "center" },
+  devoteeNameSlot: { x: 890, y: 460, maxWidth: 460, font: "bold 36px Georgia, serif", color: "#f0e8d0", align: "center" },
+  // ✅ RE-CORRECTED (2026-09-05 — individually remeasured with a fresh
+  // grid): banner top edge is genuinely at y≈610, not 625 — moved up
+  // slightly further for a safer margin.
+  pujaNameSlot: { x: 890, y: 585, maxWidth: 460, font: "16px Georgia, serif", color: "#d8c8a0", align: "center" },
+  // ✅ CORRECTED (2026-09-05 — real bug: barcode box spans y≈805–910, so
+  // the previous y=898 was rendering inside it, not below it).
+  refIdSlot: { x: 260, y: 930, maxWidth: 300, font: "600 15px Georgia, serif", color: "#c8b890", align: "center" },
   photoFrame: { x: 1160, y: 395, width: 235, height: 295 },
 };
 
@@ -367,7 +410,7 @@ function loadCachedImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement, frame: { x: number; y: number; width: number; height: number }) {
+function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement, frame: { x: number; y: number; width: number; height: number }, borderColor: string) {
   ctx.save();
   ctx.beginPath();
   ctx.rect(frame.x, frame.y, frame.width, frame.height);
@@ -377,6 +420,21 @@ function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement,
   const dw = img.width * scale, dh = img.height * scale;
   const dx = frame.x + (frame.width - dw) / 2, dy = frame.y + (frame.height - dh) / 2;
   ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
+  // ✅ ADDED (2026-09-05 — "photo should blend naturally... match the
+  // certificate's colors, background, and overall design"): a thin inset
+  // border, drawn just inside the photo's edge, in a color tailored to
+  // EACH design's own palette (passed in as borderColor — see each
+  // layout's photoBorderColor) rather than one fixed tone for all of
+  // them. This gives the photo a finished, "framed" look matching the
+  // artwork it sits on — deliberately NOT a repeat of the earlier
+  // feather/glow approach (which caused the reported white halo); this
+  // is a plain, solid-color stroke, nothing transparent or gradient
+  // involved, so it can't reproduce that bug.
+  ctx.save();
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(frame.x + 1.5, frame.y + 1.5, frame.width - 3, frame.height - 3);
   ctx.restore();
   // ✅ REMOVED (2026-09-05 — explicit instruction: "no white halo effect
   // ... in the user photo"): this used to also feather the photo's own
@@ -501,7 +559,7 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
   }
 
   if (data.devoteePhoto) {
-    fitPhotoIntoFrame(ctx, data.devoteePhoto, layout.photoFrame);
+    fitPhotoIntoFrame(ctx, data.devoteePhoto, layout.photoFrame, layout.photoBorderColor || "rgba(184, 134, 11, 0.65)");
   }
 
   drawSlot(ctx, layout.templeSlot, data.temple);
