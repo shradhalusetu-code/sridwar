@@ -38,6 +38,8 @@ const HolisticWellness = lazy(() => import("./components/HolisticWellness"));
 const UPIPaymentModal = lazy(() => import("./components/UPIPaymentModal"));
 const OfferPopup = lazy(() => import("./components/OfferPopup"));
 const ReferralPlans = lazy(() => import("./components/ReferralPlans"));
+// ✅ ADDED (2026-09-03): the Admin Certificate Generation page.
+const AdminCertificateGeneration = lazy(() => import("./components/AdminCertificateGeneration"));
 const CounsellingGuidance = lazy(() => import("./components/CounsellingGuidance"));
 // ✅ BUNDLE-SIZE FIX (2026-08-15): TempleRegister is a full registration
 // form/page (Add Temple / Temple Register), never part of the initial
@@ -1157,6 +1159,17 @@ export default function App() {
                 userProfile={userProfile}
                 onOpenSetuYatra={() => setIsOfferPopupOpen(true)}
               />
+            </Suspense>
+          </div>
+        )}
+
+        {/* ✅ ADDED (2026-09-03): the "Live Certificate" button's
+            destination — see ReferralPlans.tsx for where it's triggered
+            from. */}
+        {currentPage === "admin-certificates" && (
+          <div className="animate-fadeIn">
+            <Suspense fallback={pageLoadingFallback}>
+              <AdminCertificateGeneration onNavigate={handleNavigate} />
             </Suspense>
           </div>
         )}

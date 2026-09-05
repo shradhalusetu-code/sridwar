@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Wallet, ShieldCheck, Sparkles, ChevronRight, ChevronLeft, Trophy,
-  Gift, TrendingUp, Check, Flame, Landmark, BookOpen, HeartHandshake, Users, Lock, Heart,
+  Gift, TrendingUp, Check, Flame, Landmark, BookOpen, HeartHandshake, Users, Lock, Heart, ScrollText,
 } from "lucide-react";
 import {
   COMMISSION_STRUCTURE, PLAN_CATEGORIES, PLAN_TIERS_BY_CATEGORY, isDevoteeTier,
@@ -560,6 +560,26 @@ export default function ReferralPlans({ onNavigate, onOpenLegalDoc, userProfile,
             so devotees can pick their circle/path before the deeper detail
             (cashback structure, milestones, campaigns) below. */}
         <div className="mb-8">
+          {/* ✅ ADDED (2026-09-03): "Live Certificate" — the entry point to
+              the Admin Certificate Generation page, per explicit
+              instruction that this be "clearly included across all
+              applicable paid tier plans." Placed here, right above the
+              shared category title, means it automatically appears for
+              every vendor category (Pujari, Puja Mandal, Yoga Guru,
+              Dharmic Expert, Seva Provider) without needing five separate
+              copies — only hidden for the "devotee" tab, since devotees
+              aren't vendors and were never meant to see this. */}
+          {activeCategory !== "devotee" && (
+            <button
+              type="button"
+              onClick={() => onNavigate("admin-certificates")}
+              className="w-full mb-5 flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#FFB347] to-[#F27D26] hover:from-[#F27D26] hover:to-[#FFB347] text-[#021816] font-bold py-3.5 px-5 rounded-2xl shadow-lg transition-all"
+            >
+              <Landmark className="w-4 h-4" />
+              <span className="text-sm uppercase tracking-wider">Live Certificate</span>
+              <ScrollText className="w-4 h-4" />
+            </button>
+          )}
           <h2 className="font-serif text-lg font-bold text-white mb-3">{activeCategoryMeta.planLabel}</h2>
 
           {/* Category tabs */}

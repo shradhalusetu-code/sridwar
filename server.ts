@@ -1661,6 +1661,417 @@ async function renderServiceCertificateJpeg(
 // route that does real work (a Supabase query, a certificate render)
 // would waste effort on every single ping, all day, forever, for no
 // reason — this one costs Render nothing to answer.
+// ✅ RE-ADDED (2026-09-03): this endpoint was built and delivered earlier
+// alongside src/utils/turnstile.ts and TurnstileWidget.tsx, but was lost
+// when a later, separate delivery of this same file (for the keep-alive
+// /api/ping route below) was generated from a base that predated this
+// endpoint — confirmed missing via a direct search before writing this,
+// not assumed. verifyHuman() in turnstile.ts already calls this exact
+// path and already fails open if it's missing, so nothing was actively
+// broken by the gap, but the feature was silently doing nothing.
+app.post("/api/verify-turnstile", express.json(), async (req, res) => {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  const { token } = req.body || {};
+
+  if (!secretKey) {
+    res.json({ success: true, note: "Turnstile not configured on server — verification skipped." });
+    return;
+  }
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ success: false, error: "Missing token." });
+    return;
+  }
+
+  try {
+    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret: secretKey, response: token }),
+    });
+    const data: any = await verifyRes.json();
+    res.json({ success: !!data.success });
+  } catch (err: any) {
+    console.error("[Turnstile] siteverify request failed:", err?.message);
+    res.json({ success: true, note: "Verification service unreachable — skipped." });
+  }
+});
+
+// ─── Admin Certificate Generation ───────────────────────────────────────
+// ✅ ADDED (2026-09-03): access control for the new Admin Certificate
+// Generation page. Two groups are authorized, with DIFFERENT capabilities:
+//   1. "staff" — Sri Dwar team, via a plain email allowlist (ADMIN_EMAILS
+//      env var, comma-separated). Full access: create, edit, and delete
+//      any certificate, and manage the shared City/Deity/Temple dropdown
+//      lists ("Add & Save").
+//   2. "vendor" — any pujari/mandal/yogaguru/expert/seva with an ACTIVE
+//      paid subscription_tier in referral_profiles. Deliberately
+//      restricted, per explicit instruction: they can fill in a
+//      certificate's details, attach a photo, and print/download it —
+//      but never edit "core" shared data (the dropdown option lists) or
+//      modify a certificate after it's been created. Enforced here,
+//      server-side, on every relevant route below — not just hidden
+//      behind a UI element, since a client-side-only restriction would be
+//      trivial to bypass.
+// Deliberately server-side and JWT-verified (not a client-side flag a
+// user's browser could fake) — the same trust boundary this project
+// already uses for payment_status and commission writes.
+type CertificateRole = "staff" | "vendor";
+async function getAuthorizedCertificateUser(req: express.Request): Promise<{ userId: string; email: string; role: CertificateRole } | null> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const token = authHeader.slice(7);
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) return null;
+
+  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+  if (userError || !userData?.user) return null;
+  const { id: userId, email } = userData.user;
+  if (!email) return null;
+
+  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (adminEmails.includes(email.toLowerCase())) {
+    return { userId, email, role: "staff" };
+  }
+
+  const { data: profile } = await supabaseAdmin
+    .from("referral_profiles")
+    .select("participant_type, subscription_tier, subscription_expires_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const p = profile as { participant_type: string; subscription_tier: string; subscription_expires_at: string | null } | null;
+  const isVendor = p && ["pujari", "mandal", "yogaguru", "expert", "seva"].includes(p.participant_type);
+  const hasPaidTier = p && p.subscription_tier !== "none";
+  const notExpired = !p?.subscription_expires_at || new Date(p.subscription_expires_at) > new Date();
+
+  if (isVendor && hasPaidTier && notExpired) {
+    return { userId, email, role: "vendor" };
+  }
+
+  return null;
+}
+
+app.get("/api/admin/certificates/access-check", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  res.json({ authorized: !!user, role: user?.role || null });
+});
+
+// City / Deity / Temple dropdown options, with "Add & Save" support.
+app.get("/api/admin/certificates/options/:type", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+
+  const optionType = String(req.params.type || "");
+  if (!["city", "deity", "temple"].includes(optionType)) {
+    res.status(400).json({ error: "Invalid option type." });
+    return;
+  }
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  const { data, error } = await supabaseAdmin
+    .from("admin_certificate_options")
+    .select("value")
+    .eq("option_type", optionType)
+    .order("value", { ascending: true });
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ options: (data || []).map((r: any) => r.value) });
+});
+
+app.post("/api/admin/certificates/options/:type", express.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+  // ✅ "vendors...can't edit core information" (explicit instruction):
+  // the shared City/Deity/Temple lists are exactly that — core, shared
+  // data every certificate draws from. Only staff may add to them, so one
+  // vendor's typo or unofficial entry can never pollute what every other
+  // vendor sees.
+  if (user.role !== "staff") { res.status(403).json({ error: "Only Sri Dwar staff can add new options." }); return; }
+
+  const optionType = String(req.params.type || "");
+  if (!["city", "deity", "temple"].includes(optionType)) {
+    res.status(400).json({ error: "Invalid option type." });
+    return;
+  }
+  const value = String(req.body?.value || "").trim().slice(0, 120);
+  if (!value) { res.status(400).json({ error: "A value is required." }); return; }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  const { error } = await supabaseAdmin
+    .from("admin_certificate_options")
+    // as any: Supabase's client types this table's insert shape as `never`
+    // since it has no generated Database type for a table this new — same
+    // category of harmless type-inference gap, not a runtime risk (the
+    // actual columns/constraint are enforced by Postgres itself either way).
+    .upsert({ option_type: optionType, value, created_by: user.userId } as any, { onConflict: "option_type,value" });
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ ok: true });
+});
+
+// Reference ID generation + uniqueness validation.
+function generateCertificateRefId(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I — avoids visual ambiguity on a printed certificate
+  let suffix = "";
+  for (let i = 0; i < 6; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+  return `SDC-${suffix}`;
+}
+
+app.get("/api/admin/certificates/new-ref-id", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  // Collision odds with a 6-character, 32-symbol alphabet are astronomically
+  // low, but this is a certificate someone keeps for life — check for real
+  // rather than assume, and retry the rare collision instead of trusting
+  // probability.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidate = generateCertificateRefId();
+    const { data } = await supabaseAdmin
+      .from("admin_certificates")
+      .select("ref_id")
+      .eq("ref_id", candidate)
+      .maybeSingle();
+    if (!data) {
+      res.json({ refId: candidate });
+      return;
+    }
+  }
+  res.status(500).json({ error: "Could not generate a unique reference ID — please try again." });
+});
+
+// ✅ ADDED (2026-09-03): devotee/family photo upload. Accepts a base64
+// data URL in a JSON body (client already compresses to <1MB before
+// sending — see AdminCertificateGeneration.tsx's compressImageToUnderSize)
+// rather than multipart/form-data, since base64 JSON is simple and more
+// than fast enough at this size. Needs its own explicit body-size limit —
+// the global express.json() above defaults to 100kb, far too small for
+// even a compressed ~1MB image once base64-inflated (~1.37MB) plus the
+// rest of the JSON payload.
+//
+// ✅ CHANGED (2026-09-03): saves to Google Drive via
+// docs/google_appscripts/certificatePhotoDrive.gs — NOT Supabase Storage
+// (deliberately reversed from the first version of this endpoint).
+// Supabase's free tier includes only 1GB of file storage, which real
+// usage could realistically exceed, risking either a pause or a bill —
+// not acceptable for a bootstrapped budget. Google Drive space you
+// already have (20GB, unused) via a free Apps Script Web App call costs
+// nothing either way, so this is the safer default until there's real
+// traction/revenue to justify paid storage — see
+// certificatePhotoDrive.gs's own comments for the full reasoning and
+// deployment steps.
+app.post("/api/admin/certificates/upload-photo", express.json({ limit: "3mb" }), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+
+  const { dataUrl, refId, kind } = req.body || {};
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) {
+    res.status(400).json({ error: "A valid image is required." });
+    return;
+  }
+  if (!refId || typeof refId !== "string") {
+    res.status(400).json({ error: "refId is required." });
+    return;
+  }
+  if (kind !== "devotee" && kind !== "family") {
+    res.status(400).json({ error: "kind must be 'devotee' or 'family'." });
+    return;
+  }
+
+  const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/);
+  if (!match) {
+    res.status(400).json({ error: "Unsupported image format. Use JPEG, PNG, or WEBP." });
+    return;
+  }
+  const [, ext, base64Data] = match;
+  const mimeType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+  const buffer = Buffer.from(base64Data, "base64");
+
+  // ✅ Server-side re-check, not just trusting the client — "Keep uploaded/
+  // captured photos under 1 MB" is a real requirement, and a client-side
+  // check alone could be bypassed (an old cached page, a modified
+  // request, etc.).
+  const ONE_MB = 1024 * 1024;
+  if (buffer.length > ONE_MB) {
+    res.status(400).json({ error: `Image is ${(buffer.length / 1024 / 1024).toFixed(2)}MB — must be under 1MB. Please try a photo again.` });
+    return;
+  }
+
+  const driveUploadUrl = process.env.GAS_DRIVE_UPLOAD_URL;
+  const driveUploadSecret = process.env.GAS_DRIVE_UPLOAD_SECRET;
+  if (!driveUploadUrl || !driveUploadSecret) {
+    res.status(500).json({ error: "Photo storage isn't configured yet (GAS_DRIVE_UPLOAD_URL / GAS_DRIVE_UPLOAD_SECRET). See certificatePhotoDrive.gs for setup steps." });
+    return;
+  }
+
+  // ✅ "preferably organized using Reference ID, name, date" — refId
+  // becomes the Drive folder (see _getOrCreateCertificatePhotoFolder_ in
+  // certificatePhotoDrive.gs), kind + today's date go in the filename.
+  const dateStamp = new Date().toISOString().slice(0, 10);
+  const fileName = `${kind}_${dateStamp}.${ext === "jpg" ? "jpeg" : ext}`;
+
+  try {
+    const driveRes = await fetch(driveUploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: driveUploadSecret, refId, kind, fileName, mimeType, base64Data }),
+    });
+    const driveData: any = await driveRes.json();
+    if (!driveRes.ok || driveData.error || !driveData.url) {
+      throw new Error(driveData.error || `Drive upload responded ${driveRes.status}`);
+    }
+    res.json({ url: driveData.url });
+  } catch (err: any) {
+    console.error("[Certificate Photo] Drive upload failed:", err?.message);
+    appendAuditLog("certificate_photo_drive_upload_failed", { refId, kind, message: err?.message });
+    res.status(500).json({ error: "Could not save the photo right now. Please try again shortly." });
+  }
+});
+
+// ✅ ADDED (2026-09-03): creates the actual certificate record, tying
+// together everything the form above collects. Re-validates ref_id
+// uniqueness one more time here (belt-and-suspenders against the rare
+// race condition between /new-ref-id being issued and this actually
+// saving — see the unique constraint on admin_certificates.ref_id too,
+// which is the real, final guarantee against a duplicate).
+app.post("/api/admin/certificates", express.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+
+  const { refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoUrl, familyPhotoUrl } = req.body || {};
+
+  const missing: string[] = [];
+  if (!refId) missing.push("refId");
+  if (!serviceType) missing.push("serviceType");
+  if (!devoteeName) missing.push("devoteeName");
+  if (!pujaDate) missing.push("pujaDate");
+  if (!city) missing.push("city");
+  if (!deity) missing.push("deity");
+  if (!temple) missing.push("temple");
+  if (missing.length) {
+    res.status(400).json({ error: `Missing required field(s): ${missing.join(", ")}` });
+    return;
+  }
+  if (members && (!Array.isArray(members) || members.length > 6)) {
+    res.status(400).json({ error: "members must be an array of at most 6 entries." });
+    return;
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  const { data: existing } = await supabaseAdmin
+    .from("admin_certificates")
+    .select("ref_id")
+    .eq("ref_id", refId)
+    .maybeSingle();
+  if (existing) {
+    res.status(409).json({ error: `Reference ID ${refId} already exists. Please generate a new one.` });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("admin_certificates")
+    .insert({
+      ref_id: refId,
+      service_type: serviceType,
+      devotee_name: devoteeName,
+      members: members || [],
+      puja_date: pujaDate,
+      city, deity, temple,
+      devotee_photo_url: devoteePhotoUrl || null,
+      family_photo_url: familyPhotoUrl || null,
+      created_by: user.userId,
+    } as any)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ certificate: data });
+});
+
+// ✅ ADDED (2026-09-03): list + edit + delete — completes "My team will
+// have full access to make the entire edit" (staff) vs. vendors who "just
+// fill details, take photo or upload and print the certificate, that's
+// all" (no edit access, per explicit instruction). A vendor can still see
+// their OWN past certificates (useful — e.g. to reprint one), just never
+// someone else's and never with edit/delete rights.
+app.get("/api/admin/certificates", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  let query = supabaseAdmin.from("admin_certificates").select("*").order("created_at", { ascending: false });
+  if (user.role === "vendor") {
+    query = query.eq("created_by", user.userId); // vendors only ever see their own
+  }
+  const { data, error } = await query;
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ certificates: data || [] });
+});
+
+app.put("/api/admin/certificates/:refId", express.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+  // ✅ "vendors...can't edit core information. They just fill details, take
+  // photo or upload and print the certificate, that's all" — editing an
+  // already-created certificate is exactly the "core information" this
+  // meant. Staff only, enforced here, not just hidden in the UI.
+  if (user.role !== "staff") { res.status(403).json({ error: "Only Sri Dwar staff can edit a saved certificate." }); return; }
+
+  const refId = String(req.params.refId || "");
+  const { serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoUrl, familyPhotoUrl } = req.body || {};
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+  if (serviceType !== undefined) updates.service_type = serviceType;
+  if (devoteeName !== undefined) updates.devotee_name = devoteeName;
+  if (members !== undefined) updates.members = members;
+  if (pujaDate !== undefined) updates.puja_date = pujaDate;
+  if (city !== undefined) updates.city = city;
+  if (deity !== undefined) updates.deity = deity;
+  if (temple !== undefined) updates.temple = temple;
+  if (devoteePhotoUrl !== undefined) updates.devotee_photo_url = devoteePhotoUrl;
+  if (familyPhotoUrl !== undefined) updates.family_photo_url = familyPhotoUrl;
+
+  const { data, error } = await (supabaseAdmin
+    .from("admin_certificates") as any)
+    .update(updates)
+    .eq("ref_id", refId)
+    .select()
+    .maybeSingle();
+
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  if (!data) { res.status(404).json({ error: `No certificate found for ${refId}.` }); return; }
+  res.json({ certificate: data });
+});
+
+app.delete("/api/admin/certificates/:refId", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+  if (user.role !== "staff") { res.status(403).json({ error: "Only Sri Dwar staff can delete a certificate." }); return; }
+
+  const refId = String(req.params.refId || "");
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) { res.status(500).json({ error: "Supabase not configured." }); return; }
+
+  const { error } = await supabaseAdmin.from("admin_certificates").delete().eq("ref_id", refId);
+  if (error) { res.status(500).json({ error: error.message }); return; }
+  res.json({ ok: true });
+});
+
+
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, time: new Date().toISOString() });
 });

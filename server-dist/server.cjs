@@ -1918,6 +1918,332 @@ async function renderServiceCertificateJpeg(name, serviceName, performedDate, ac
   const textLayer = await renderTextLayerPng(width, height, `${nameEl}${serviceEl}${dateEl}`);
   return base.composite([{ input: textLayer }]).jpeg({ quality: 90 }).toBuffer();
 }
+app.post("/api/verify-turnstile", import_express.default.json(), async (req, res) => {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  const { token } = req.body || {};
+  if (!secretKey) {
+    res.json({ success: true, note: "Turnstile not configured on server \u2014 verification skipped." });
+    return;
+  }
+  if (!token || typeof token !== "string") {
+    res.status(400).json({ success: false, error: "Missing token." });
+    return;
+  }
+  try {
+    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret: secretKey, response: token })
+    });
+    const data = await verifyRes.json();
+    res.json({ success: !!data.success });
+  } catch (err) {
+    console.error("[Turnstile] siteverify request failed:", err?.message);
+    res.json({ success: true, note: "Verification service unreachable \u2014 skipped." });
+  }
+});
+async function getAuthorizedCertificateUser(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const token = authHeader.slice(7);
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) return null;
+  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+  if (userError || !userData?.user) return null;
+  const { id: userId, email } = userData.user;
+  if (!email) return null;
+  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (adminEmails.includes(email.toLowerCase())) {
+    return { userId, email, role: "staff" };
+  }
+  const { data: profile } = await supabaseAdmin.from("referral_profiles").select("participant_type, subscription_tier, subscription_expires_at").eq("user_id", userId).maybeSingle();
+  const p = profile;
+  const isVendor = p && ["pujari", "mandal", "yogaguru", "expert", "seva"].includes(p.participant_type);
+  const hasPaidTier = p && p.subscription_tier !== "none";
+  const notExpired = !p?.subscription_expires_at || new Date(p.subscription_expires_at) > /* @__PURE__ */ new Date();
+  if (isVendor && hasPaidTier && notExpired) {
+    return { userId, email, role: "vendor" };
+  }
+  return null;
+}
+app.get("/api/admin/certificates/access-check", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  res.json({ authorized: !!user, role: user?.role || null });
+});
+app.get("/api/admin/certificates/options/:type", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  const optionType = String(req.params.type || "");
+  if (!["city", "deity", "temple"].includes(optionType)) {
+    res.status(400).json({ error: "Invalid option type." });
+    return;
+  }
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  const { data, error } = await supabaseAdmin.from("admin_certificate_options").select("value").eq("option_type", optionType).order("value", { ascending: true });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ options: (data || []).map((r) => r.value) });
+});
+app.post("/api/admin/certificates/options/:type", import_express.default.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  if (user.role !== "staff") {
+    res.status(403).json({ error: "Only Sri Dwar staff can add new options." });
+    return;
+  }
+  const optionType = String(req.params.type || "");
+  if (!["city", "deity", "temple"].includes(optionType)) {
+    res.status(400).json({ error: "Invalid option type." });
+    return;
+  }
+  const value = String(req.body?.value || "").trim().slice(0, 120);
+  if (!value) {
+    res.status(400).json({ error: "A value is required." });
+    return;
+  }
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  const { error } = await supabaseAdmin.from("admin_certificate_options").upsert({ option_type: optionType, value, created_by: user.userId }, { onConflict: "option_type,value" });
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ ok: true });
+});
+function generateCertificateRefId() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let suffix = "";
+  for (let i = 0; i < 6; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+  return `SDC-${suffix}`;
+}
+app.get("/api/admin/certificates/new-ref-id", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidate = generateCertificateRefId();
+    const { data } = await supabaseAdmin.from("admin_certificates").select("ref_id").eq("ref_id", candidate).maybeSingle();
+    if (!data) {
+      res.json({ refId: candidate });
+      return;
+    }
+  }
+  res.status(500).json({ error: "Could not generate a unique reference ID \u2014 please try again." });
+});
+app.post("/api/admin/certificates/upload-photo", import_express.default.json({ limit: "3mb" }), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  const { dataUrl, refId, kind } = req.body || {};
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) {
+    res.status(400).json({ error: "A valid image is required." });
+    return;
+  }
+  if (!refId || typeof refId !== "string") {
+    res.status(400).json({ error: "refId is required." });
+    return;
+  }
+  if (kind !== "devotee" && kind !== "family") {
+    res.status(400).json({ error: "kind must be 'devotee' or 'family'." });
+    return;
+  }
+  const match = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/);
+  if (!match) {
+    res.status(400).json({ error: "Unsupported image format. Use JPEG, PNG, or WEBP." });
+    return;
+  }
+  const [, ext, base64Data] = match;
+  const mimeType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+  const buffer = Buffer.from(base64Data, "base64");
+  const ONE_MB = 1024 * 1024;
+  if (buffer.length > ONE_MB) {
+    res.status(400).json({ error: `Image is ${(buffer.length / 1024 / 1024).toFixed(2)}MB \u2014 must be under 1MB. Please try a photo again.` });
+    return;
+  }
+  const driveUploadUrl = process.env.GAS_DRIVE_UPLOAD_URL;
+  const driveUploadSecret = process.env.GAS_DRIVE_UPLOAD_SECRET;
+  if (!driveUploadUrl || !driveUploadSecret) {
+    res.status(500).json({ error: "Photo storage isn't configured yet (GAS_DRIVE_UPLOAD_URL / GAS_DRIVE_UPLOAD_SECRET). See certificatePhotoDrive.gs for setup steps." });
+    return;
+  }
+  const dateStamp = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const fileName = `${kind}_${dateStamp}.${ext === "jpg" ? "jpeg" : ext}`;
+  try {
+    const driveRes = await fetch(driveUploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: driveUploadSecret, refId, kind, fileName, mimeType, base64Data })
+    });
+    const driveData = await driveRes.json();
+    if (!driveRes.ok || driveData.error || !driveData.url) {
+      throw new Error(driveData.error || `Drive upload responded ${driveRes.status}`);
+    }
+    res.json({ url: driveData.url });
+  } catch (err) {
+    console.error("[Certificate Photo] Drive upload failed:", err?.message);
+    appendAuditLog("certificate_photo_drive_upload_failed", { refId, kind, message: err?.message });
+    res.status(500).json({ error: "Could not save the photo right now. Please try again shortly." });
+  }
+});
+app.post("/api/admin/certificates", import_express.default.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  const { refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoUrl, familyPhotoUrl } = req.body || {};
+  const missing = [];
+  if (!refId) missing.push("refId");
+  if (!serviceType) missing.push("serviceType");
+  if (!devoteeName) missing.push("devoteeName");
+  if (!pujaDate) missing.push("pujaDate");
+  if (!city) missing.push("city");
+  if (!deity) missing.push("deity");
+  if (!temple) missing.push("temple");
+  if (missing.length) {
+    res.status(400).json({ error: `Missing required field(s): ${missing.join(", ")}` });
+    return;
+  }
+  if (members && (!Array.isArray(members) || members.length > 6)) {
+    res.status(400).json({ error: "members must be an array of at most 6 entries." });
+    return;
+  }
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  const { data: existing } = await supabaseAdmin.from("admin_certificates").select("ref_id").eq("ref_id", refId).maybeSingle();
+  if (existing) {
+    res.status(409).json({ error: `Reference ID ${refId} already exists. Please generate a new one.` });
+    return;
+  }
+  const { data, error } = await supabaseAdmin.from("admin_certificates").insert({
+    ref_id: refId,
+    service_type: serviceType,
+    devotee_name: devoteeName,
+    members: members || [],
+    puja_date: pujaDate,
+    city,
+    deity,
+    temple,
+    devotee_photo_url: devoteePhotoUrl || null,
+    family_photo_url: familyPhotoUrl || null,
+    created_by: user.userId
+  }).select().single();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ certificate: data });
+});
+app.get("/api/admin/certificates", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  let query = supabaseAdmin.from("admin_certificates").select("*").order("created_at", { ascending: false });
+  if (user.role === "vendor") {
+    query = query.eq("created_by", user.userId);
+  }
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ certificates: data || [] });
+});
+app.put("/api/admin/certificates/:refId", import_express.default.json(), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  if (user.role !== "staff") {
+    res.status(403).json({ error: "Only Sri Dwar staff can edit a saved certificate." });
+    return;
+  }
+  const refId = String(req.params.refId || "");
+  const { serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoUrl, familyPhotoUrl } = req.body || {};
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  const updates = { updated_at: (/* @__PURE__ */ new Date()).toISOString() };
+  if (serviceType !== void 0) updates.service_type = serviceType;
+  if (devoteeName !== void 0) updates.devotee_name = devoteeName;
+  if (members !== void 0) updates.members = members;
+  if (pujaDate !== void 0) updates.puja_date = pujaDate;
+  if (city !== void 0) updates.city = city;
+  if (deity !== void 0) updates.deity = deity;
+  if (temple !== void 0) updates.temple = temple;
+  if (devoteePhotoUrl !== void 0) updates.devotee_photo_url = devoteePhotoUrl;
+  if (familyPhotoUrl !== void 0) updates.family_photo_url = familyPhotoUrl;
+  const { data, error } = await supabaseAdmin.from("admin_certificates").update(updates).eq("ref_id", refId).select().maybeSingle();
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  if (!data) {
+    res.status(404).json({ error: `No certificate found for ${refId}.` });
+    return;
+  }
+  res.json({ certificate: data });
+});
+app.delete("/api/admin/certificates/:refId", async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) {
+    res.status(403).json({ error: "Not authorized." });
+    return;
+  }
+  if (user.role !== "staff") {
+    res.status(403).json({ error: "Only Sri Dwar staff can delete a certificate." });
+    return;
+  }
+  const refId = String(req.params.refId || "");
+  const supabaseAdmin = getSupabaseAdminClient();
+  if (!supabaseAdmin) {
+    res.status(500).json({ error: "Supabase not configured." });
+    return;
+  }
+  const { error } = await supabaseAdmin.from("admin_certificates").delete().eq("ref_id", refId);
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+  res.json({ ok: true });
+});
 app.get("/api/ping", (req, res) => {
   res.json({ ok: true, time: (/* @__PURE__ */ new Date()).toISOString() });
 });
