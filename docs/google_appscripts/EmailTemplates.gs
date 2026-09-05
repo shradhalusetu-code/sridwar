@@ -928,6 +928,13 @@ function buildCertificateReadyEmail_(d) {
 // _resolveAcknowledgementLabel_ in Triggers.gs) — instead of every one of
 // them silently reading as a generic "Inquiry" reply.
 const ACK_COPY = {
+  "Sacred Certificate Generated": {
+    greeting: (name) => `Jai Jagannath, ${name}! `,
+    intro: `Your Sri Dwar Blessing Certificate has been generated with devotion, commemorating your sacred
+      offering. This certificate is a keepsake of your Sankalp, ready to be preserved and cherished.`,
+    followUp: `If you'd like a fresh copy shared with you again at any time, simply reach out to our team —
+      we're glad to preserve this memory for you.`,
+  },
   "Temple Issue Report": {
     greeting: (name) => `Your Voice Has Been Heard, ${name}! `,
     intro: `Thank you for stepping forward to protect what our ancestors preserved. Your report about a

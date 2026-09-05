@@ -1918,10 +1918,19 @@ app.post("/api/admin/certificates/upload-photo", express.json({ limit: "3mb" }),
     return;
   }
 
-  const driveUploadUrl = process.env.GAS_DRIVE_UPLOAD_URL;
+  // ✅ CHANGED (2026-09-05): now reuses the EXISTING GAS_EMAIL_WEBHOOK_URL
+  // deployment with `route: "photo_upload"`, instead of a separate
+  // GAS_DRIVE_UPLOAD_URL. That earlier design asked for a second Web App
+  // deployment, but Apps Script shares one global function scope per
+  // project — a second doPost() there would have silently collided with
+  // webhook.gs's. Fixed at the source (see webhook.gs's dispatcher); this
+  // is the corresponding fix on the server side. GAS_DRIVE_UPLOAD_SECRET
+  // is still its own separate secret (defense in depth), just checked
+  // inside the same shared endpoint now.
+  const webhookUrl = process.env.GAS_EMAIL_WEBHOOK_URL;
   const driveUploadSecret = process.env.GAS_DRIVE_UPLOAD_SECRET;
-  if (!driveUploadUrl || !driveUploadSecret) {
-    res.status(500).json({ error: "Photo storage isn't configured yet (GAS_DRIVE_UPLOAD_URL / GAS_DRIVE_UPLOAD_SECRET). See certificatePhotoDrive.gs for setup steps." });
+  if (!webhookUrl || !driveUploadSecret) {
+    res.status(500).json({ error: "Photo storage isn't configured yet (GAS_EMAIL_WEBHOOK_URL / GAS_DRIVE_UPLOAD_SECRET). See certificatePhotoDrive.gs for setup steps." });
     return;
   }
 
@@ -1932,10 +1941,10 @@ app.post("/api/admin/certificates/upload-photo", express.json({ limit: "3mb" }),
   const fileName = `${kind}_${dateStamp}.${ext === "jpg" ? "jpeg" : ext}`;
 
   try {
-    const driveRes = await fetch(driveUploadUrl, {
+    const driveRes = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ secret: driveUploadSecret, refId, kind, fileName, mimeType, base64Data }),
+      body: JSON.stringify({ route: "photo_upload", secret: driveUploadSecret, refId, kind, fileName, mimeType, base64Data }),
     });
     const driveData: any = await driveRes.json();
     if (!driveRes.ok || driveData.error || !driveData.url) {
@@ -1955,11 +1964,50 @@ app.post("/api/admin/certificates/upload-photo", express.json({ limit: "3mb" }),
 // race condition between /new-ref-id being issued and this actually
 // saving — see the unique constraint on admin_certificates.ref_id too,
 // which is the real, final guarantee against a duplicate).
+// ✅ ADDED (2026-09-05): "Share This Certificate via Email" — separate
+// from the automatic acknowledgement email sent once at creation. This
+// can be called any time afterward, as often as needed. Needs its own
+// body-size limit (the global express.json() defaults to 100kb, far too
+// small for a full-resolution certificate PNG, base64-inflated).
+app.post("/api/admin/certificates/share-email", express.json({ limit: "5mb" }), async (req, res) => {
+  const user = await getAuthorizedCertificateUser(req);
+  if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
+
+  const { to, refId, devoteeName, base64Png } = req.body || {};
+  if (!to || !refId || !base64Png) {
+    res.status(400).json({ error: "to, refId, and base64Png are all required." });
+    return;
+  }
+
+  const webhookUrl = process.env.GAS_EMAIL_WEBHOOK_URL;
+  const certSyncSecret = process.env.GAS_CERTIFICATE_SYNC_SECRET;
+  if (!webhookUrl || !certSyncSecret) {
+    res.status(500).json({ error: "Sharing isn't configured yet (GAS_EMAIL_WEBHOOK_URL / GAS_CERTIFICATE_SYNC_SECRET)." });
+    return;
+  }
+
+  try {
+    const shareRes = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ route: "share_certificate", secret: certSyncSecret, to, refId, devoteeName, base64Png }),
+    });
+    const shareData: any = await shareRes.json();
+    if (!shareRes.ok || shareData.error) {
+      throw new Error(shareData.error || `Share responded ${shareRes.status}`);
+    }
+    res.json({ ok: true, sent: shareData.sent });
+  } catch (err: any) {
+    console.error("[Certificate Share] failed:", err?.message);
+    res.status(500).json({ error: "Could not send the email right now. Please try again shortly." });
+  }
+});
+
 app.post("/api/admin/certificates", express.json(), async (req, res) => {
   const user = await getAuthorizedCertificateUser(req);
   if (!user) { res.status(403).json({ error: "Not authorized." }); return; }
 
-  const { refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoUrl, familyPhotoUrl } = req.body || {};
+  const { refId, serviceType, devoteeName, devoteePhone, devoteeEmail, members, pujaDate, city, deity, temple, devoteePhotoUrl, familyPhotoUrl } = req.body || {};
 
   const missing: string[] = [];
   if (!refId) missing.push("refId");
@@ -1997,6 +2045,10 @@ app.post("/api/admin/certificates", express.json(), async (req, res) => {
       ref_id: refId,
       service_type: serviceType,
       devotee_name: devoteeName,
+      // ✅ ADDED (2026-09-05): optional, never drawn on the certificate
+      // itself — stored only so it can be shared with the devotee later.
+      devotee_phone: devoteePhone || null,
+      devotee_email: devoteeEmail || null,
       members: members || [],
       puja_date: pujaDate,
       city, deity, temple,
@@ -2008,6 +2060,28 @@ app.post("/api/admin/certificates", express.json(), async (req, res) => {
     .single();
 
   if (error) { res.status(500).json({ error: error.message }); return; }
+
+  // ✅ ADDED (2026-09-05): sync to the Certificate Generation Sheet +
+  // acknowledgement email — fire-and-forget, deliberately NOT awaited.
+  // The certificate is already safely saved in Supabase at this point;
+  // if Apps Script is slow (a cold Google-side delay) or briefly
+  // unreachable, that should never make the devotee-facing save request
+  // hang or fail — this is a secondary, best-effort sync, not the
+  // source of truth.
+  const webhookUrl = process.env.GAS_EMAIL_WEBHOOK_URL;
+  const certSyncSecret = process.env.GAS_CERTIFICATE_SYNC_SECRET;
+  if (webhookUrl && certSyncSecret) {
+    fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        route: "certificate_sync", secret: certSyncSecret,
+        refId, devoteeName, phone: devoteePhone, email: devoteeEmail,
+        serviceType, pujaDate, city, deity, temple, generatedByRole: user.role,
+      }),
+    }).catch((err) => console.error("[Certificate Sync] fire-and-forget call failed:", err?.message));
+  }
+
   res.json({ certificate: data });
 });
 

@@ -54,12 +54,23 @@
  *    version → Deploy) or the live URL keeps running the OLD code.
  */
 
+// ✅ CHANGED (2026-09-05): this is now a DISPATCHER, not a single-purpose
+// handler. Apps Script shares ONE global function scope across every .gs
+// file in a project — only one function named `doPost` can exist at all,
+// no matter how many separate "Web app" deployments you create pointing
+// at this same project. Two newer files (certificatePhotoDrive.gs,
+// certificateGenerationSync.gs) were each given their OWN `doPost`,
+// which would have silently collided with this one and each other —
+// caught before either was actually deployed. All three now share this
+// one entry point, routed by a `route` field in the request body. Any
+// request with NO `route` field falls through to the original
+// invoice-email behavour below, unchanged — so nothing that already
+// calls this webhook needs to change.
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
       return _webhookJsonResponse_({ ok: false, error: "No request body." });
     }
-
     var body;
     try {
       body = JSON.parse(e.postData.contents);
@@ -67,6 +78,32 @@ function doPost(e) {
       return _webhookJsonResponse_({ ok: false, error: "Body was not valid JSON." });
     }
 
+    if (body.route === "photo_upload") {
+      return _webhookJsonResponse_(_handleCertificatePhotoUpload_(body));
+    }
+    if (body.route === "certificate_sync") {
+      return _webhookJsonResponse_(_handleCertificateGenerationSync_(body));
+    }
+    if (body.route === "share_certificate") {
+      return _webhookJsonResponse_(_handleShareCertificateEmail_(body));
+    }
+    return _handleInvoiceEmailWebhook_(body);
+  } catch (err) {
+    try {
+      if (typeof logError_ === "function") {
+        logError_("Webhook.gs doPost", err);
+      }
+    } catch (logErr) {
+      // Never let a logging failure hide the real error from the response.
+    }
+    return _webhookJsonResponse_({ ok: false, error: String(err && err.message ? err.message : err) });
+  }
+}
+
+// The original webhook behaviour, unchanged in substance — only extracted
+// into its own named function so doPost above can dispatch to it.
+function _handleInvoiceEmailWebhook_(body) {
+  try {
     // ── Secret check FIRST — costs nothing and rejects everything else. ──
     var configuredSecret = PropertiesService.getScriptProperties().getProperty("EMAIL_WEBHOOK_SECRET");
     if (!configuredSecret) {
@@ -124,7 +161,7 @@ function doPost(e) {
   } catch (err) {
     try {
       if (typeof logError_ === "function") {
-        logError_("Webhook.gs doPost", err);
+        logError_("Webhook.gs _handleInvoiceEmailWebhook_", err);
       }
     } catch (logErr) {
       // Never let a logging failure hide the real error from the response.
@@ -132,6 +169,7 @@ function doPost(e) {
     return _webhookJsonResponse_({ ok: false, error: String(err && err.message ? err.message : err) });
   }
 }
+
 
 /**
  * GET requests always fail — this endpoint only accepts POST. Visiting the

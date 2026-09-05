@@ -12,24 +12,24 @@
  * already have (20GB, unused) via Apps Script, which runs entirely on
  * Google's free quotas — genuinely $0 either way.
  *
- * DEPLOYMENT — this file needs its own Web App deployment, separate from
- * webhook.gs's:
- *   1. In the Apps Script editor, Deploy -> New deployment
- *   2. Type: Web app
- *   3. Execute as: Me
- *   4. Who has access: Anyone
- *      (this sounds alarming, but note the shared-secret check in
- *      doPost() below — the same protection pattern already used for
- *      EMAIL_WEBHOOK_SECRET elsewhere in this project. "Anyone" here just
- *      means "reachable over the internet without a Google login," not
- *      "unprotected" — Render's server.ts is the only thing that knows
- *      the secret.)
- *   5. Copy the deployment URL into Render's environment as
- *      GAS_DRIVE_UPLOAD_URL
- *   6. Set GAS_DRIVE_UPLOAD_SECRET to any long random string, in BOTH
- *      Render's environment AND this Apps Script project's Script
- *      Properties (same value in both places, same pattern as
- *      RAZORPAY_LINK_SECRET)
+ * ✅ CORRECTED (2026-09-05): this file previously defined its own doPost()
+ * and asked you to deploy it as a separate Web App. That was wrong — Apps
+ * Script shares ONE global function scope across every .gs file in a
+ * project, so a second doPost() here would have silently collided with
+ * webhook.gs's, and only one of them would actually have run. This is now
+ * just a plain function (_handleCertificatePhotoUpload_), called from
+ * webhook.gs's single shared doPost dispatcher — see that file for the
+ * routing logic. No separate deployment needed: use your EXISTING
+ * EMAIL_WEBHOOK_SECRET-protected deployment URL for this too, just with
+ * GAS_DRIVE_UPLOAD_SECRET (a second, independent secret — still checked
+ * here, kept separate from EMAIL_WEBHOOK_SECRET so leaking one never
+ * exposes the other) and `route: "photo_upload"` in the request body
+ * (server.ts already sends this).
+ *
+ * SETUP (just the Script Property — the deployment already exists):
+ *   Project Settings -> Script Properties -> Add:
+ *     GAS_DRIVE_UPLOAD_SECRET = <a long random string you invent>
+ *   Set the SAME value as an environment variable on Render.
  * ============================================================================
  */
 
@@ -51,20 +51,17 @@ function _getOrCreateCertificatePhotoFolder_(refId) {
   return refFolders.hasNext() ? refFolders.next() : rootFolder.createFolder(refId);
 }
 
-function doPost(e) {
+function _handleCertificatePhotoUpload_(body) {
   try {
-    const body = JSON.parse(e.postData.contents);
     const { secret, refId, kind, fileName, base64Data, mimeType } = body;
 
     const configuredSecret = PropertiesService.getScriptProperties().getProperty("GAS_DRIVE_UPLOAD_SECRET");
     if (!configuredSecret || secret !== configuredSecret) {
-      return ContentService.createTextOutput(JSON.stringify({ error: "Unauthorized." }))
-        .setMimeType(ContentService.MimeType.JSON);
+      return { error: "Unauthorized." };
     }
 
     if (!refId || !kind || !base64Data || !mimeType) {
-      return ContentService.createTextOutput(JSON.stringify({ error: "Missing required fields." }))
-        .setMimeType(ContentService.MimeType.JSON);
+      return { error: "Missing required fields." };
     }
 
     const folder = _getOrCreateCertificatePhotoFolder_(refId);
@@ -79,13 +76,12 @@ function doPost(e) {
     // Supabase database and rendered certificates).
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    return ContentService.createTextOutput(JSON.stringify({
+    return {
       url: `https://drive.google.com/uc?export=view&id=${file.getId()}`,
       fileId: file.getId(),
-    })).setMimeType(ContentService.MimeType.JSON);
+    };
   } catch (err) {
     logError_("certificate_photo_drive_upload", String(err));
-    return ContentService.createTextOutput(JSON.stringify({ error: "Upload failed: " + err }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return { error: "Upload failed: " + err };
   }
 }

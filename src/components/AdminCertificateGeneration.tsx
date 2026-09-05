@@ -13,7 +13,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ScrollText, Landmark, ShieldCheck, Lock, ArrowLeft, Camera, Upload,
-  Plus, Trash2, Printer, Download, RefreshCw, Check, AlertTriangle,
+  Plus, Trash2, Printer, Download, RefreshCw, Check, AlertTriangle, Mail,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import {
@@ -40,6 +40,11 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const [refId, setRefId] = useState("");
   const [serviceType, setServiceType] = useState("");
   const [devoteeName, setDevoteeName] = useState("");
+  // ✅ ADDED (2026-09-05): optional, never drawn on the certificate —
+  // stored only so the finished certificate can be shared with the
+  // devotee later.
+  const [devoteePhone, setDevoteePhone] = useState("");
+  const [devoteeEmail, setDevoteeEmail] = useState("");
   const [members, setMembers] = useState<Member[]>([emptyMember()]);
   const [pujaDate, setPujaDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [city, setCity] = useState("");
@@ -69,6 +74,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [savedRefId, setSavedRefId] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<{ kind: "idle" | "sending" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const [refIdError, setRefIdError] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -242,7 +248,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          refId, serviceType, devoteeName,
+          refId, serviceType, devoteeName, devoteePhone, devoteeEmail,
           members: members.filter((m) => m.name.trim()),
           pujaDate, city, deity, temple,
           devoteePhotoUrl, familyPhotoUrl,
@@ -287,6 +293,37 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
       <body><img src="${dataUrl}" onload="window.print(); window.onafterprint = () => window.close();" /></body></html>
     `);
     printWindow.document.close();
+  };
+
+  // ✅ ADDED (2026-09-05): "Share This Certificate via Email" — sends the
+  // exact same PNG the Print/Download buttons use, to the email address
+  // stored on this certificate (from the optional Email field above). Can
+  // be used repeatedly, any time after saving — each request is
+  // independent (see certificateGenerationSync.gs's dedupe-key fix).
+  const handleShareEmail = async () => {
+    if (!canvasRef.current) return;
+    if (!devoteeEmail.trim()) {
+      setShareStatus({ kind: "error", message: "Enter the devotee's email address above first." });
+      return;
+    }
+    if (!savedRefId) {
+      setShareStatus({ kind: "error", message: "Save the certificate before sharing it." });
+      return;
+    }
+    setShareStatus({ kind: "sending", message: "" });
+    try {
+      const base64Png = canvasRef.current.toDataURL("image/png", 1.0).split(",")[1];
+      const res = await authFetch("/api/admin/certificates/share-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: devoteeEmail, refId: savedRefId, devoteeName, base64Png }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not send the email.");
+      setShareStatus({ kind: "success", message: `Sent to ${devoteeEmail}.` });
+    } catch (err: any) {
+      setShareStatus({ kind: "error", message: err?.message || "Something went wrong." });
+    }
   };
 
   // ── Render ──
@@ -378,6 +415,32 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                     placeholder="Enter devotee's full name"
                     className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                   />
+                </div>
+                {/* ✅ ADDED (2026-09-05): optional contact details — never
+                    drawn on the certificate itself (certificateTemplate.ts
+                    never reads either of these), stored only so the
+                    finished certificate can be shared with the devotee
+                    later on request, and synced to the Certificate
+                    Generation Google Form/Sheet below alongside everything
+                    else, exactly like every other intake form on this
+                    site. */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Phone Number (optional)</label>
+                    <input
+                      type="tel" value={devoteePhone} onChange={(e) => setDevoteePhone(e.target.value)}
+                      placeholder="For sharing only"
+                      className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Email Address (optional)</label>
+                    <input
+                      type="email" value={devoteeEmail} onChange={(e) => setDevoteeEmail(e.target.value)}
+                      placeholder="For sharing only"
+                      className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                    />
+                  </div>
                 </div>
                 {/* ✅ CHANGED (2026-09-05): Service is now the same
                     server-backed "Add & Save" dropdown as City/Deity/
@@ -485,6 +548,24 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                   <Download className="w-3.5 h-3.5" /> Download PNG
                 </button>
               </div>
+              {/* ✅ ADDED (2026-09-05): "Share This Certificate via Email" —
+                  below Print/Download, per explicit instruction. Sends the
+                  same PNG to whatever email was entered above; disabled
+                  until the certificate is saved and an email is present,
+                  so it can't be used on an incomplete/unsaved draft. */}
+              <button
+                type="button" onClick={handleShareEmail} disabled={shareStatus.kind === "sending"}
+                className="w-full flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wide py-3 rounded-xl"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                {shareStatus.kind === "sending" ? "Sending…" : "Share This Certificate via Email"}
+              </button>
+              {shareStatus.kind === "success" && (
+                <p className="flex items-center gap-1.5 text-[#5EEAD4] text-xs justify-center"><Check className="w-3.5 h-3.5" /> {shareStatus.message}</p>
+              )}
+              {shareStatus.kind === "error" && (
+                <p className="flex items-center gap-1.5 text-red-400 text-xs justify-center"><AlertTriangle className="w-3.5 h-3.5" /> {shareStatus.message}</p>
+              )}
               <p className="text-[11px] text-white/30 text-center">
                 Placeholder artwork shown — updates automatically to real certificate designs once supplied, no workflow changes needed.
               </p>
@@ -544,17 +625,26 @@ function OptionDropdown({
           <button type="button" onClick={() => { setAdding(null); setNewValue(""); }} className="px-3 text-white/40 text-xs">Cancel</button>
         </div>
       ) : (
-        <div className="flex gap-2">
+        <div className="space-y-1.5">
           <select
             value={value} onChange={(e) => setValue(e.target.value)}
-            className="flex-1 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white"
+            className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white"
           >
             <option value="">Select {label.toLowerCase()}…</option>
             {options.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
           {canAdd && (
-            <button type="button" onClick={() => setAdding(type)} className="px-3 bg-white/5 hover:bg-white/10 rounded-xl text-white/60" title={`Add a new ${label.toLowerCase()}`}>
-              <Plus className="w-4 h-4" />
+            // ✅ CHANGED (2026-09-05 — "I do not want a plus sign...
+            // options similar to: Add Your City, Add Your Temple..."):
+            // previously an icon-only "+" squeezed beside the dropdown,
+            // easy to miss and cramped on mobile with a long label. Now
+            // its own clearly labeled row underneath, full width, so it's
+            // never truncated or overlooked.
+            <button
+              type="button" onClick={() => setAdding(type)}
+              className="w-full text-left px-3.5 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[#5EEAD4] text-sm font-bold"
+            >
+              + Add Your {label === "Service" ? "Puja/Seva" : label}
             </button>
           )}
         </div>
