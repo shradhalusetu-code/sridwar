@@ -63,12 +63,15 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const [addingOption, setAddingOption] = useState<OptionType | null>(null);
   const [newOptionValue, setNewOptionValue] = useState("");
 
-  // ── Photos ──
+  // ── Photo ──
+  // ✅ CHANGED (2026-09-05 — explicit instruction: "Remove the separate
+  // Family Photo option. Only one Devotee/Family Photo section is
+  // needed"): the certificate template only ever had one photo frame —
+  // renderCertificate() never drew a separate family photo — so this
+  // collapses to the single field that was actually functional.
   const [devoteePhotoDataUrl, setDevoteePhotoDataUrl] = useState<string | null>(null);
-  const [familyPhotoDataUrl, setFamilyPhotoDataUrl] = useState<string | null>(null);
   const [devoteePhotoImg, setDevoteePhotoImg] = useState<HTMLImageElement | null>(null);
-  const [familyPhotoImg, setFamilyPhotoImg] = useState<HTMLImageElement | null>(null);
-  const [photoProcessing, setPhotoProcessing] = useState<"devotee" | "family" | null>(null);
+  const [photoProcessing, setPhotoProcessing] = useState<"devotee" | null>(null);
 
   // ── Save state ──
   const [isSaving, setIsSaving] = useState(false);
@@ -141,7 +144,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
     let cancelled = false;
     const data: CertificateData = {
       refId, serviceType, devoteeName, members, pujaDate, city, deity, temple,
-      devoteePhoto: devoteePhotoImg, familyPhoto: familyPhotoImg,
+      devoteePhoto: devoteePhotoImg,
     };
     // ✅ renderCertificate is now async (it loads the real background
     // artwork, cached after the first call) — the cancelled guard avoids a
@@ -152,28 +155,37 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
       await renderCertificate(canvasRef.current, data);
     })();
     return () => { cancelled = true; };
-  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, familyPhotoImg]);
+  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg]);
 
-  const handlePhotoSelected = async (kind: "devotee" | "family", file: File | null) => {
+  const handlePhotoSelected = async (kind: "devotee", file: File | null) => {
     if (!file) return;
     setPhotoProcessing(kind);
     try {
+      // Small JPEG copy — unaffected by any of the below, still guaranteed
+      // under 1MB — used only for the thumbnail preview and whatever gets
+      // uploaded/stored.
       const dataUrl = await compressImageToUnderSize(file);
-      // ✅ ADDED (2026-09-05): chroma-key background removal, run once
-      // here (not on every render) — see removeStudioBackground()'s own
-      // comments for how it works. Deliberately only affects the image
-      // used for the certificate itself (devoteePhotoImg/familyPhotoImg
-      // below) — the small thumbnail preview in this form and whatever
-      // gets uploaded/stored keep using the original compressed JPEG
-      // (dataUrl), unchanged, still guaranteed under 1MB. If the photo
-      // doesn't have a uniform backdrop, removeStudioBackground() safely
-      // returns the original untouched — this never makes a photo look
+      // ✅ ROOT-CAUSE FIX (2026-09-05 — "even a background-removed photo
+      // still shows a white background on the certificate"): a SEPARATE
+      // alpha-preserving (PNG) copy is made here specifically for the
+      // certificate render. Previously this step ran removeStudioBackground()
+      // on the JPEG `dataUrl` above — but JPEG has no alpha channel, so any
+      // transparency the vendor's photo already had (e.g. a photo someone
+      // had already background-removed elsewhere) was destroyed before
+      // removeStudioBackground() ever got to see it, which is exactly why
+      // the "white box" kept showing up even on pre-cut photos. This PNG
+      // copy carries transparency all the way through.
+      const alphaPreservingDataUrl = await compressImageToUnderSize(file, 1024 * 1024, true);
+      // Chroma-key background removal, run once here (not on every
+      // render) — see removeStudioBackground()'s own comments for how it
+      // works. If the photo doesn't have a uniform backdrop, it safely
+      // returns the source untouched — this never makes a photo look
       // worse, only better or unchanged.
-      const chromaKeyedDataUrl = await removeStudioBackground(dataUrl);
+      const chromaKeyedDataUrl = await removeStudioBackground(alphaPreservingDataUrl);
       const img = new Image();
       img.onload = () => {
-        if (kind === "devotee") { setDevoteePhotoDataUrl(dataUrl); setDevoteePhotoImg(img); }
-        else { setFamilyPhotoDataUrl(dataUrl); setFamilyPhotoImg(img); }
+        setDevoteePhotoDataUrl(dataUrl);
+        setDevoteePhotoImg(img);
         setPhotoProcessing(null);
       };
       img.src = chromaKeyedDataUrl;
@@ -232,7 +244,6 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
     setIsSaving(true);
     try {
       let devoteePhotoUrl: string | null = null;
-      let familyPhotoUrl: string | null = null;
 
       if (devoteePhotoDataUrl) {
         const res = await authFetch("/api/admin/certificates/upload-photo", {
@@ -241,20 +252,15 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
           body: JSON.stringify({ dataUrl: devoteePhotoDataUrl, refId, kind: "devotee" }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Devotee photo upload failed.");
+        if (!res.ok) throw new Error(data.error || "Photo upload failed.");
         devoteePhotoUrl = data.url;
       }
-      if (familyPhotoDataUrl) {
-        const res = await authFetch("/api/admin/certificates/upload-photo", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dataUrl: familyPhotoDataUrl, refId, kind: "family" }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Family photo upload failed.");
-        familyPhotoUrl = data.url;
-      }
 
+      // ✅ CHANGED (2026-09-05): the separate Family Photo upload/field is
+      // gone (see the state declarations above) — familyPhotoUrl is simply
+      // no longer sent. The backend column (family_photo_url) is untouched
+      // and optional, so this stays fully backward compatible with every
+      // certificate saved before this change.
       const res = await authFetch("/api/admin/certificates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -262,7 +268,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
           refId, serviceType, devoteeName, devoteePhone, devoteeEmail,
           members: members.filter((m) => m.name.trim()),
           pujaDate, city, deity, temple,
-          devoteePhotoUrl, familyPhotoUrl,
+          devoteePhotoUrl,
         }),
       });
       const data = await res.json();
@@ -397,24 +403,17 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                 {refIdError && <p className="text-red-400 text-xs mt-1">{refIdError}</p>}
               </div>
 
-              {/* Photos */}
-              <div className="bg-[#092320] border border-white/10 rounded-2xl p-4 grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-2">Devotee Photo</label>
-                  <PhotoPicker
-                    dataUrl={devoteePhotoDataUrl}
-                    processing={photoProcessing === "devotee"}
-                    onSelect={(file) => handlePhotoSelected("devotee", file)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-2">Family Photo (optional)</label>
-                  <PhotoPicker
-                    dataUrl={familyPhotoDataUrl}
-                    processing={photoProcessing === "family"}
-                    onSelect={(file) => handlePhotoSelected("family", file)}
-                  />
-                </div>
+              {/* Photo — ✅ CHANGED (2026-09-05): single "Devotee / Family
+                  Photo" section replaces the old two-field layout (see the
+                  state/handler changes above for why the second field was
+                  removed, not just hidden). */}
+              <div className="bg-[#092320] border border-white/10 rounded-2xl p-4">
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-2">Devotee / Family Photo</label>
+                <PhotoPicker
+                  dataUrl={devoteePhotoDataUrl}
+                  processing={photoProcessing === "devotee"}
+                  onSelect={(file) => handlePhotoSelected("devotee", file)}
+                />
               </div>
 
               {/* Devotee name + Service */}

@@ -22,8 +22,15 @@ export interface CertificateData {
   city: string;
   deity: string;
   temple: string;
+  // ✅ CHANGED (2026-09-05 — explicit instruction: "Remove the separate
+  // Family Photo option. Only one Devotee/Family Photo section is
+  // needed"): renderCertificate() only ever drew devoteePhoto in the
+  // first place (there is exactly one photoFrame per design) — the old
+  // familyPhoto field was collected by the admin form but never actually
+  // appeared on any certificate. Removed here since the field no longer
+  // exists anywhere in the pipeline; AdminCertificateGeneration.tsx now
+  // has a single "Devotee / Family Photo" upload that feeds this one field.
   devoteePhoto: HTMLImageElement | null;
-  familyPhoto: HTMLImageElement | null;
 }
 
 interface TextSlot {
@@ -331,29 +338,38 @@ function fitPhotoIntoFrame(ctx: CanvasRenderingContext2D, img: HTMLImageElement,
   ctx.restore();
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, align: CanvasTextAlign) {
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  align: CanvasTextAlign,
+  mode: "fill" | "stroke" = "fill",
+) {
   ctx.textAlign = align;
+  const draw = mode === "stroke" ? ctx.strokeText.bind(ctx) : ctx.fillText.bind(ctx);
   const words = text.split(" ");
   let line = "";
   let lineY = y;
   for (const word of words) {
     const test = line ? `${line} ${word}` : word;
     if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, lineY);
+      draw(line, x, lineY);
       line = word;
       lineY += lineHeight;
     } else {
       line = test;
     }
   }
-  if (line) ctx.fillText(line, x, lineY);
+  if (line) draw(line, x, lineY);
   return lineY;
 }
 
 function drawSlot(ctx: CanvasRenderingContext2D, slot: TextSlot, text: string) {
   if (!text) return;
   ctx.font = slot.font;
-  ctx.fillStyle = slot.color;
   ctx.textAlign = slot.align;
   // ✅ ADDED (2026-09-05 — real legibility issue found via a test
   // render): a few designs' puja-name slot sits over a busy scenic
@@ -366,12 +382,30 @@ function drawSlot(ctx: CanvasRenderingContext2D, slot: TextSlot, text: string) {
   // cream/white text on darker themes (a light shadow there would be
   // invisible or muddy — a dark shadow is what actually helps).
   const isLightText = isLightColor(slot.color);
-  ctx.shadowColor = isLightText ? "rgba(20, 15, 5, 0.7)" : "rgba(253, 246, 224, 0.85)";
-  ctx.shadowBlur = 4;
+  const haloColor = isLightText ? "rgba(20, 15, 5, 0.85)" : "rgba(253, 246, 224, 0.95)";
+  ctx.shadowColor = haloColor;
+  ctx.shadowBlur = 5;
+  const lineHeight = Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25);
+  // ✅ STRENGTHENED (2026-09-05 — repeated report: "some writing blends
+  // into the background and is hard to read"): a drop shadow alone can
+  // still wash out on artwork with similar tones right where a field
+  // sits (e.g. gold text on a gold-toned illustration). Adding a real
+  // stroked outline in the same halo color — drawn first, so the fill
+  // sits cleanly on top — guarantees contrast against ANY background
+  // pixel underneath, not just busier ones the shadow alone helped with.
+  ctx.lineJoin = "round";
+  ctx.miterLimit = 2;
+  ctx.strokeStyle = haloColor;
+  ctx.lineWidth = Math.max(2, Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 0.1));
   // Long values (a long temple name, a long puja name) wrap onto a second
   // centered line rather than overflowing past their column — same
   // approach server.ts already uses for the email/acknowledgement JPGs.
-  wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, Math.round(parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) * 1.25), slot.align);
+  // Stroke pass first (the outline sits underneath), then the shadowed
+  // fill pass on top — the outline alone guarantees contrast against any
+  // background pixel, and the shadow adds depth on top of that.
+  wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, lineHeight, slot.align, "stroke");
+  ctx.fillStyle = slot.color;
+  wrapText(ctx, text, slot.x, slot.y, slot.maxWidth, lineHeight, slot.align, "fill");
   ctx.shadowBlur = 0;
   ctx.shadowColor = "transparent";
 }
@@ -454,7 +488,13 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
 
   drawSlot(ctx, layout.templeSlot, data.temple);
   drawSlot(ctx, layout.dateSlot, data.pujaDate ? new Date(data.pujaDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "");
-  drawSlot(ctx, layout.devoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members));
+  // ✅ ADDED (2026-09-05 — explicit instruction: "Vendor-entered names
+  // should always appear in CAPITAL LETTERS"): applied only at the final
+  // draw step, so buildDisplayName()'s own "and Family"/"and Friends"
+  // logic keeps working on the original mixed-case name, and the admin
+  // form/inputs elsewhere are completely unaffected — this only changes
+  // what gets painted onto the certificate artwork itself.
+  drawSlot(ctx, layout.devoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members).toUpperCase());
   drawSlot(ctx, layout.pujaNameSlot, data.serviceType);
   drawSlot(ctx, layout.refIdSlot, data.refId ? `Ref: ${data.refId}` : "");
 }
@@ -479,7 +519,22 @@ export const RELATIONSHIP_OPTIONS = [
 // compresses client-side before anything is ever sent to the server, by
 // progressively downscaling and/or reducing JPEG quality until the result
 // fits. Runs entirely via <canvas>, no new dependency needed.
-export async function compressImageToUnderSize(file: File | Blob, maxBytes = 1024 * 1024): Promise<string> {
+//
+// ✅ ROOT-CAUSE FIX (2026-09-05 — "even a background-removed photo still
+// shows a white background on the certificate"): this function always
+// exported "image/jpeg". JPEG has no alpha channel, so the very first time
+// a vendor's already-transparent (background-removed) PNG passed through
+// here — BEFORE removeStudioBackground() ever got a chance to run — every
+// transparent pixel was silently flattened to an opaque one (rendered as a
+// solid white or black square depending on the browser's own JPEG
+// encoder). removeStudioBackground() was then chroma-keying an image that
+// had already lost its transparency, so it could never restore it. Adding
+// `preserveAlpha` lets the certificate-rendering path ask for a PNG
+// instead, so any transparency already present in the source photo (or
+// added afterward by removeStudioBackground()) survives all the way to
+// the canvas. The original JPEG path (used for the small upload/storage
+// copy, where transparency was never needed) is completely unchanged.
+export async function compressImageToUnderSize(file: File | Blob, maxBytes = 1024 * 1024, preserveAlpha = false): Promise<string> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
@@ -505,6 +560,7 @@ export async function compressImageToUnderSize(file: File | Blob, maxBytes = 102
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported.");
 
+  const format = preserveAlpha ? "image/png" : "image/jpeg";
   let quality = 0.9;
   let dataUrl = "";
   for (let attempt = 0; attempt < 8; attempt++) {
@@ -512,11 +568,15 @@ export async function compressImageToUnderSize(file: File | Blob, maxBytes = 102
     canvas.height = height;
     ctx.clearRect(0, 0, width, height);
     ctx.drawImage(img, 0, 0, width, height);
-    dataUrl = canvas.toDataURL("image/jpeg", quality);
+    // PNG ignores the quality argument entirely (it's lossless) — for the
+    // alpha-preserving path, size is brought down purely by the dimension
+    // shrink step below, never by a quality drop (which would do nothing
+    // on a PNG anyway and just waste loop iterations).
+    dataUrl = canvas.toDataURL(format, quality);
     // Base64 is ~4/3 the size of the raw bytes it encodes.
     const approxBytes = dataUrl.length * 0.75;
     if (approxBytes <= maxBytes) break;
-    if (quality > 0.5) {
+    if (!preserveAlpha && quality > 0.5) {
       quality -= 0.15; // first, try reducing quality — keeps full resolution longer
     } else {
       width = Math.round(width * 0.8); // then start shrinking dimensions too

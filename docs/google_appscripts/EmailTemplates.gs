@@ -189,8 +189,20 @@ function _wrapEmailHtml_(innerHtml, preheader) {
       <tr><td align="center">
         <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;">
 
-          <!-- Header: plain text wordmark, no image — can never misrender. -->
+          <!-- Header. -->
           <tr><td style="padding:8px 12px 20px;text-align:center;">
+            <!-- ✅ ADDED (2026-09-05 — explicit request to bring the real
+                 logo back, done as an isolated, easy-to-revert addition:
+                 delete just this <img> block to go back to text-only if
+                 any mail client renders it oddly). This is a PLAIN <img>
+                 tag — nothing is overlaid on top of it — which is exactly
+                 what the earlier "text-on-background-image" approach
+                 (removed 2026-08-29 for rendering garbled/overlapping in
+                 Gmail/Outlook) was NOT. The plain-text wordmark below is
+                 left completely untouched as a same-content fallback for
+                 the (uncommon) case where a mail client blocks images by
+                 default — so nothing regresses even then. -->
+            <img src="${b.logoUrl}" alt="${b.name}" width="160" style="display:block;margin:0 auto 10px;max-width:160px;height:auto;border:0;outline:none;text-decoration:none;" />
             <div style="font-size:28px;font-weight:bold;color:${b.gold};letter-spacing:2px;">${b.name.toUpperCase()}</div>
             <div style="font-size:11px;color:${b.gold};letter-spacing:2px;text-transform:uppercase;margin-top:4px;opacity:0.85;">${b.tagline}</div>
           </td></tr>
