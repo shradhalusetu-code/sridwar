@@ -31,6 +31,20 @@ export interface CertificateData {
   // exists anywhere in the pipeline; AdminCertificateGeneration.tsx now
   // has a single "Devotee / Family Photo" upload that feeds this one field.
   devoteePhoto: HTMLImageElement | null;
+  // ✅ ADDED (2026-09-06 — "make the content inside the Live Certificate
+  // image movable and adjustable... only the certificate background stays
+  // fixed"): optional per-deity manual adjustments made by the admin in
+  // the live preview. Both are additive/override-only — when absent,
+  // rendering is byte-for-byte identical to before this change, so no
+  // existing certificate or layout is affected unless the admin has
+  // actually dragged something for that specific deity.
+  // Shifts the devotee-name text away from its layout default (position
+  // only — the name's font size is never touched, per explicit
+  // instruction that only position and photo size are adjustable).
+  nameOffset?: { x: number; y: number };
+  // Fully replaces the layout's default photoFrame (position AND size)
+  // once the admin has dragged/resized the photo in the live preview.
+  photoOverride?: { x: number; y: number; width: number; height: number };
 }
 
 interface TextSlot {
@@ -411,6 +425,23 @@ function selectLayout(deity: string): CertificateLayout | null {
   return CERTIFICATE_LAYOUTS.find((l) => l.matchDeity.test(deity)) || null;
 }
 
+// ✅ ADDED (2026-09-06): read-only lookup of a deity's DEFAULT name
+// position and photo frame, so the admin UI can draw its drag/resize
+// handles at the correct starting spot (and offer a real "Reset to
+// default" that goes back to these exact values) without duplicating
+// any coordinates here. Returns null for a deity with no design yet,
+// same as selectLayout().
+export function getCertificateLayoutMeta(
+  deity: string,
+): { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number } } | null {
+  const layout = selectLayout(deity);
+  if (!layout) return null;
+  return {
+    namePosition: { x: layout.devoteeNameSlot.x, y: layout.devoteeNameSlot.y },
+    photoFrame: { ...layout.photoFrame },
+  };
+}
+
 export const CERTIFICATE_WIDTH = JAGANNATH_LAYOUT.width;
 export const CERTIFICATE_HEIGHT = JAGANNATH_LAYOUT.height;
 
@@ -607,8 +638,18 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
     ctx.fillRect(0, 0, layout.width, layout.height);
   }
 
+  // ✅ ADDED (2026-09-06): apply the admin's manual position/size
+  // adjustments, if any, on top of this deity's default layout — see
+  // CertificateData.nameOffset / photoOverride above. Absent either one,
+  // these are exactly layout.photoFrame / layout.devoteeNameSlot, so
+  // rendering is unchanged from before this feature existed.
+  const effectivePhotoFrame = data.photoOverride || layout.photoFrame;
+  const effectiveDevoteeNameSlot = data.nameOffset
+    ? { ...layout.devoteeNameSlot, x: layout.devoteeNameSlot.x + data.nameOffset.x, y: layout.devoteeNameSlot.y + data.nameOffset.y }
+    : layout.devoteeNameSlot;
+
   if (data.devoteePhoto) {
-    fitPhotoIntoFrame(ctx, data.devoteePhoto, layout.photoFrame, layout.photoBorderColor || "rgba(184, 134, 11, 0.65)");
+    fitPhotoIntoFrame(ctx, data.devoteePhoto, effectivePhotoFrame, layout.photoBorderColor || "rgba(184, 134, 11, 0.65)");
   }
 
   drawSlot(ctx, layout.templeSlot, data.temple);
@@ -619,7 +660,7 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
   // logic keeps working on the original mixed-case name, and the admin
   // form/inputs elsewhere are completely unaffected — this only changes
   // what gets painted onto the certificate artwork itself.
-  drawSlot(ctx, layout.devoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members).toUpperCase());
+  drawSlot(ctx, effectiveDevoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members).toUpperCase());
   drawSlot(ctx, layout.pujaNameSlot, data.serviceType);
   drawSlot(ctx, layout.refIdSlot, data.refId ? `Ref: ${data.refId}` : "");
 }

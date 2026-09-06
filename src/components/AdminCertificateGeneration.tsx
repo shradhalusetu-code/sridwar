@@ -10,16 +10,30 @@
 // artwork later, this file is the form/workflow that stays the same
 // either way).
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, RefObject, PointerEvent as ReactPointerEvent } from "react";
 import {
   ScrollText, Landmark, ShieldCheck, Lock, ArrowLeft, Camera, Upload,
   Plus, Trash2, Printer, Download, RefreshCw, Check, AlertTriangle, Mail,
+  Move, Maximize2, RotateCcw,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import {
   renderCertificate, compressImageToUnderSize, removeStudioBackground, RELATIONSHIP_OPTIONS,
+  getCertificateLayoutMeta, CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT,
   CertificateData,
 } from "../utils/certificateTemplate";
+
+// ✅ ADDED (2026-09-06 — "make the content inside the Live Certificate
+// image movable and adjustable... certificate background/design fixed,
+// non-editable, non-deletable"): a per-deity manual position/size
+// adjustment, saved locally so a correction made once for a deity's
+// design applies to every certificate generated for that deity
+// afterward, without needing to re-drag it each time.
+type CertAdjustment = {
+  nameOffset?: { x: number; y: number };
+  photoOverride?: { x: number; y: number; width: number; height: number };
+};
+const ADJUST_STORAGE_KEY = "sridwar_certificate_adjustments_v1";
 
 interface AdminCertificateGenerationProps {
   onNavigate: (page: string) => void;
@@ -81,6 +95,42 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const [refIdError, setRefIdError] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // ✅ ADDED (2026-09-06): the wrapper the canvas sits in — used to
+  // convert on-screen drag distances into certificate-coordinate
+  // distances (canvas is always drawn at a fixed 1536×1024 internally
+  // but displayed scaled to whatever width the device/screen gives it).
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+
+  // ── Live Certificate manual position/size adjustments ──
+  const [adjustMode, setAdjustMode] = useState(false);
+  const [allAdjustments, setAllAdjustments] = useState<Record<string, CertAdjustment>>({});
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ADJUST_STORAGE_KEY);
+      if (raw) setAllAdjustments(JSON.parse(raw));
+    } catch { /* ignore malformed/unavailable storage */ }
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem(ADJUST_STORAGE_KEY, JSON.stringify(allAdjustments)); } catch { /* storage may be unavailable (private mode, quota) — adjustments still work for this session */ }
+  }, [allAdjustments]);
+
+  const layoutMeta = deity ? getCertificateLayoutMeta(deity) : null;
+  const currentAdjustment: CertAdjustment = (deity && allAdjustments[deity]) || {};
+
+  const setNameOffset = useCallback((deityKey: string, offset: { x: number; y: number }) => {
+    setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], nameOffset: offset } }));
+  }, []);
+  const setPhotoOverride = useCallback((deityKey: string, frame: { x: number; y: number; width: number; height: number }) => {
+    setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], photoOverride: frame } }));
+  }, []);
+  const resetNamePosition = () => {
+    if (!deity) return;
+    setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], nameOffset: undefined }; return next; });
+  };
+  const resetPhotoFrame = () => {
+    if (!deity) return;
+    setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], photoOverride: undefined }; return next; });
+  };
 
   // ── Access check + initial data load ──
   useEffect(() => {
@@ -145,6 +195,8 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
     const data: CertificateData = {
       refId, serviceType, devoteeName, members, pujaDate, city, deity, temple,
       devoteePhoto: devoteePhotoImg,
+      nameOffset: currentAdjustment.nameOffset,
+      photoOverride: currentAdjustment.photoOverride,
     };
     // ✅ renderCertificate is now async (it loads the real background
     // artwork, cached after the first call) — the cancelled guard avoids a
@@ -155,7 +207,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
       await renderCertificate(canvasRef.current, data);
     })();
     return () => { cancelled = true; };
-  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg]);
+  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, currentAdjustment.nameOffset, currentAdjustment.photoOverride]);
 
   const handlePhotoSelected = async (kind: "devotee", file: File | null) => {
     if (!file) return;
@@ -570,8 +622,49 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                     same size renderCertificate() always uses) means the
                     layout is correctly sized from the very first paint,
                     with no dependency on JS execution timing. */}
-                <canvas ref={canvasRef} width={1536} height={1024} className="w-full h-auto rounded-lg" style={{ aspectRatio: "1536 / 1024" }} />
+                <div ref={canvasWrapperRef} className="relative">
+                  <canvas ref={canvasRef} width={1536} height={1024} className="w-full h-auto rounded-lg block" style={{ aspectRatio: "1536 / 1024" }} />
+                  {/* ✅ ADDED (2026-09-06): drag/resize handles for the
+                      devotee name position and the photo frame — only
+                      rendered in Adjust mode, only over the name/photo
+                      (never the background artwork, which stays fixed
+                      and cannot be moved, resized, or removed here). */}
+                  {adjustMode && layoutMeta && (
+                    <CertificateAdjustOverlay
+                      wrapperRef={canvasWrapperRef}
+                      layoutMeta={layoutMeta}
+                      adjustment={currentAdjustment}
+                      onNameOffsetChange={(o) => setNameOffset(deity, o)}
+                      onPhotoFrameChange={(f) => setPhotoOverride(deity, f)}
+                    />
+                  )}
+                </div>
               </div>
+              <div className="flex gap-2">
+                <button
+                  type="button" onClick={() => setAdjustMode((v) => !v)} disabled={!deity}
+                  className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wide py-3 rounded-xl border disabled:opacity-40 ${
+                    adjustMode ? "bg-[#FFB347]/20 border-[#FFB347]/50 text-[#FFB347]" : "bg-white/5 hover:bg-white/10 border-white/15 text-white"
+                  }`}
+                >
+                  <Move className="w-3.5 h-3.5" /> {adjustMode ? "Done Adjusting" : "Adjust Position & Size"}
+                </button>
+              </div>
+              {adjustMode && layoutMeta && (
+                <div className="flex gap-2">
+                  <button type="button" onClick={resetNamePosition} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
+                    <RotateCcw className="w-3 h-3" /> Reset Name
+                  </button>
+                  <button type="button" onClick={resetPhotoFrame} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
+                    <RotateCcw className="w-3 h-3" /> Reset Photo
+                  </button>
+                </div>
+              )}
+              {adjustMode && (
+                <p className="text-[11px] text-white/40 text-center">
+                  Drag the teal name label to reposition it. Drag the photo box to move it, or its corner handle to resize. Saved automatically for every "{deity}" certificate — the certificate artwork itself can't be moved or edited.
+                </p>
+              )}
               <div className="flex gap-2">
                 <button type="button" onClick={handlePrint} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs font-bold uppercase tracking-wide py-3 rounded-xl">
                   <Printer className="w-3.5 h-3.5" /> Print
@@ -604,6 +697,116 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ✅ ADDED (2026-09-06): the drag/resize layer for the Live Certificate
+// preview. Positioned in an absolutely-positioned wrapper the same
+// pixel size as the on-screen (scaled-down) canvas; every coordinate is
+// converted between "certificate space" (the fixed 1536×1024 the canvas
+// always renders at internally) and "screen space" (whatever width the
+// canvas is actually displayed at on this device) via a single scale
+// factor, so this works identically at any zoom/screen size — desktop,
+// tablet, or phone.
+function CertificateAdjustOverlay({
+  wrapperRef, layoutMeta, adjustment, onNameOffsetChange, onPhotoFrameChange,
+}: {
+  wrapperRef: RefObject<HTMLDivElement | null>;
+  layoutMeta: { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number } };
+  adjustment: CertAdjustment;
+  onNameOffsetChange: (offset: { x: number; y: number }) => void;
+  onPhotoFrameChange: (frame: { x: number; y: number; width: number; height: number }) => void;
+}) {
+  const namePos = {
+    x: layoutMeta.namePosition.x + (adjustment.nameOffset?.x || 0),
+    y: layoutMeta.namePosition.y + (adjustment.nameOffset?.y || 0),
+  };
+  const photoFrame = adjustment.photoOverride || layoutMeta.photoFrame;
+
+  const getScale = () => (wrapperRef.current ? wrapperRef.current.clientWidth / CERTIFICATE_WIDTH : 1);
+
+  // Generic drag handler: onPointerDown captures the pointer on the
+  // handle itself, so onPointerMove/onPointerUp fire on that same
+  // element without needing window-level listeners — works the same
+  // for mouse and touch.
+  function startDrag(
+    e: ReactPointerEvent,
+    startValue: { x: number; y: number; width?: number; height?: number },
+    onChange: (v: { x: number; y: number; width?: number; height?: number }) => void,
+    mode: "move" | "resize",
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+    const scale = getScale() || 1;
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
+
+    // Pointer capture means these native events keep firing on `target`
+    // even once the finger/cursor moves outside it — so a plain
+    // element-level listener (no window listener needed) reliably
+    // tracks the whole drag, mouse or touch, until pointerup.
+    const handleMove = (ev: PointerEvent) => {
+      const dx = (ev.clientX - startClientX) / scale;
+      const dy = (ev.clientY - startClientY) / scale;
+      if (mode === "move") {
+        onChange({ x: startValue.x + dx, y: startValue.y + dy });
+      } else {
+        const MIN = 40; // certificate-space px — keeps the photo from being dragged to nothing
+        onChange({
+          x: startValue.x,
+          y: startValue.y,
+          width: Math.max(MIN, (startValue.width || MIN) + dx),
+          height: Math.max(MIN, (startValue.height || MIN) + dy),
+        });
+      }
+    };
+    const handleUp = () => {
+      target.removeEventListener("pointermove", handleMove);
+      target.removeEventListener("pointerup", handleUp);
+      target.removeEventListener("pointercancel", handleUp);
+    };
+    target.addEventListener("pointermove", handleMove);
+    target.addEventListener("pointerup", handleUp);
+    target.addEventListener("pointercancel", handleUp);
+  }
+
+  return (
+    <div className="absolute inset-0" style={{ touchAction: "none" }}>
+      {/* Photo frame — drag to move, corner handle to resize */}
+      <div
+        onPointerDown={(e) => startDrag(e, photoFrame, (v) => onPhotoFrameChange({ x: v.x, y: v.y, width: photoFrame.width, height: photoFrame.height }), "move")}
+        className="absolute border-2 border-dashed border-[#5EEAD4] bg-[#5EEAD4]/10 cursor-move flex items-start justify-center"
+        style={{
+          left: `${(photoFrame.x / CERTIFICATE_WIDTH) * 100}%`,
+          top: `${(photoFrame.y / CERTIFICATE_HEIGHT) * 100}%`,
+          width: `${(photoFrame.width / CERTIFICATE_WIDTH) * 100}%`,
+          height: `${(photoFrame.height / CERTIFICATE_HEIGHT) * 100}%`,
+        }}
+      >
+        <span className="text-[10px] font-bold text-[#021816] bg-[#5EEAD4] px-1.5 py-0.5 rounded mt-1 pointer-events-none">PHOTO</span>
+        <div
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            startDrag(e, { x: photoFrame.x, y: photoFrame.y, width: photoFrame.width, height: photoFrame.height }, (v) => onPhotoFrameChange({ x: photoFrame.x, y: photoFrame.y, width: v.width!, height: v.height! }), "resize");
+          }}
+          className="absolute -right-2 -bottom-2 w-5 h-5 bg-[#5EEAD4] rounded-full border-2 border-[#021816] cursor-nwse-resize flex items-center justify-center"
+          title="Drag to resize the photo"
+        >
+          <Maximize2 className="w-2.5 h-2.5 text-[#021816]" />
+        </div>
+      </div>
+
+      {/* Devotee-name handle — drag only (no resize; font size is fixed by design) */}
+      <div
+        onPointerDown={(e) => startDrag(e, namePos, (v) => onNameOffsetChange({ x: v.x - layoutMeta.namePosition.x, y: v.y - layoutMeta.namePosition.y }), "move")}
+        className="absolute -translate-x-1/2 -translate-y-full cursor-move flex items-center gap-1 bg-[#FFB347] text-[#021816] text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
+        style={{ left: `${(namePos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(namePos.y / CERTIFICATE_HEIGHT) * 100}%` }}
+      >
+        <Move className="w-2.5 h-2.5" /> NAME
       </div>
     </div>
   );
