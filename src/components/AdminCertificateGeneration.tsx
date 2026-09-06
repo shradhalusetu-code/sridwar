@@ -22,6 +22,20 @@ import {
   getCertificateLayoutMeta, CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT,
   CertificateData,
 } from "../utils/certificateTemplate";
+// ✅ ADDED (2026-09-06 — "Android app... header is missing, the
+// certificate content is squeezed"): root cause found in App.tsx — the
+// shared <main> wrapper uses `pt-0` (no top clearance at all) specifically
+// inside the Capacitor Android app, versus `pt-28` on the website, because
+// the fixed-position Navbar is taller there (safe-area/status-bar inset
+// stacked on top of its own padding) and several pages (Home, Seva, Puja,
+// Products, Counselling) already compensate internally via this exact
+// `sectionTopPadding()` helper — this page never did, so on Android its
+// content (including the "Live Certificate" heading itself) rendered
+// directly underneath the fixed header, invisible/clipped by it. This
+// reuses the project's own existing, already-verified fix for that exact
+// bug class rather than inventing a new one or touching the shared
+// <main>/Navbar (which would risk every other page).
+import { sectionTopPadding } from "../utils/androidSpacing";
 
 // ✅ ADDED (2026-09-06 — "make the content inside the Live Certificate
 // image movable and adjustable... certificate background/design fixed,
@@ -32,11 +46,16 @@ import {
 type CertAdjustment = {
   nameOffset?: { x: number; y: number };
   photoOverride?: { x: number; y: number; width: number; height: number };
+  refIdOffset?: { x: number; y: number };
 };
 const ADJUST_STORAGE_KEY = "sridwar_certificate_adjustments_v1";
 
 interface AdminCertificateGenerationProps {
   onNavigate: (page: string) => void;
+  // ✅ ADDED (2026-09-06): see the androidSpacing import comment above —
+  // needed to compensate for the Android app's fixed-header overlap.
+  // Optional + defaulted so nothing breaks for any other caller.
+  isAndroidApp?: boolean;
 }
 
 type AccessState = "checking" | "staff" | "vendor" | "denied";
@@ -46,7 +65,7 @@ type OptionType = "city" | "deity" | "temple" | "service";
 const MAX_MEMBERS = 6;
 const emptyMember = (): Member => ({ name: "", relationship: "" });
 
-export default function AdminCertificateGeneration({ onNavigate }: AdminCertificateGenerationProps) {
+export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = false }: AdminCertificateGenerationProps) {
   const [access, setAccess] = useState<AccessState>("checking");
   const [sessionToken, setSessionToken] = useState<string | null>(null);
 
@@ -123,6 +142,9 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const setPhotoOverride = useCallback((deityKey: string, frame: { x: number; y: number; width: number; height: number }) => {
     setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], photoOverride: frame } }));
   }, []);
+  const setRefIdOffset = useCallback((deityKey: string, offset: { x: number; y: number }) => {
+    setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], refIdOffset: offset } }));
+  }, []);
   const resetNamePosition = () => {
     if (!deity) return;
     setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], nameOffset: undefined }; return next; });
@@ -130,6 +152,10 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
   const resetPhotoFrame = () => {
     if (!deity) return;
     setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], photoOverride: undefined }; return next; });
+  };
+  const resetRefIdPosition = () => {
+    if (!deity) return;
+    setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], refIdOffset: undefined }; return next; });
   };
 
   // ── Access check + initial data load ──
@@ -197,6 +223,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
       devoteePhoto: devoteePhotoImg,
       nameOffset: currentAdjustment.nameOffset,
       photoOverride: currentAdjustment.photoOverride,
+      refIdOffset: currentAdjustment.refIdOffset,
     };
     // ✅ renderCertificate is now async (it loads the real background
     // artwork, cached after the first call) — the cancelled guard avoids a
@@ -207,7 +234,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
       await renderCertificate(canvasRef.current, data);
     })();
     return () => { cancelled = true; };
-  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, currentAdjustment.nameOffset, currentAdjustment.photoOverride]);
+  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, currentAdjustment.nameOffset, currentAdjustment.photoOverride, currentAdjustment.refIdOffset]);
 
   const handlePhotoSelected = async (kind: "devotee", file: File | null) => {
     if (!file) return;
@@ -397,7 +424,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
 
   // ── Render ──
   return (
-    <div className="min-h-screen bg-[#021816] text-white px-4 py-10">
+    <div className="min-h-screen bg-[#021816] text-white px-4 py-10" style={sectionTopPadding(isAndroidApp)}>
       <div className="max-w-6xl mx-auto">
         <button
           type="button"
@@ -636,6 +663,7 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                       adjustment={currentAdjustment}
                       onNameOffsetChange={(o) => setNameOffset(deity, o)}
                       onPhotoFrameChange={(f) => setPhotoOverride(deity, f)}
+                      onRefIdOffsetChange={(o) => setRefIdOffset(deity, o)}
                     />
                   )}
                 </div>
@@ -658,11 +686,14 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
                   <button type="button" onClick={resetPhotoFrame} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
                     <RotateCcw className="w-3 h-3" /> Reset Photo
                   </button>
+                  <button type="button" onClick={resetRefIdPosition} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
+                    <RotateCcw className="w-3 h-3" /> Reset Ref ID
+                  </button>
                 </div>
               )}
               {adjustMode && (
                 <p className="text-[11px] text-white/40 text-center">
-                  Drag the teal name label to reposition it. Drag the photo box to move it, or its corner handle to resize. Saved automatically for every "{deity}" certificate — the certificate artwork itself can't be moved or edited.
+                  Drag the teal name label to reposition it. Drag the photo box to move it, or its corner handle to resize. Drag the amber "REF" label to move the Reference ID — including inside the barcode box, if it fits on this design. Saved automatically for every "{deity}" certificate — the certificate artwork itself can't be moved or edited.
                 </p>
               )}
               <div className="flex gap-2">
@@ -711,17 +742,22 @@ export default function AdminCertificateGeneration({ onNavigate }: AdminCertific
 // factor, so this works identically at any zoom/screen size — desktop,
 // tablet, or phone.
 function CertificateAdjustOverlay({
-  wrapperRef, layoutMeta, adjustment, onNameOffsetChange, onPhotoFrameChange,
+  wrapperRef, layoutMeta, adjustment, onNameOffsetChange, onPhotoFrameChange, onRefIdOffsetChange,
 }: {
   wrapperRef: RefObject<HTMLDivElement | null>;
-  layoutMeta: { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number } };
+  layoutMeta: { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number }; refIdPosition: { x: number; y: number } };
   adjustment: CertAdjustment;
   onNameOffsetChange: (offset: { x: number; y: number }) => void;
   onPhotoFrameChange: (frame: { x: number; y: number; width: number; height: number }) => void;
+  onRefIdOffsetChange: (offset: { x: number; y: number }) => void;
 }) {
   const namePos = {
     x: layoutMeta.namePosition.x + (adjustment.nameOffset?.x || 0),
     y: layoutMeta.namePosition.y + (adjustment.nameOffset?.y || 0),
+  };
+  const refIdPos = {
+    x: layoutMeta.refIdPosition.x + (adjustment.refIdOffset?.x || 0),
+    y: layoutMeta.refIdPosition.y + (adjustment.refIdOffset?.y || 0),
   };
   const photoFrame = adjustment.photoOverride || layoutMeta.photoFrame;
 
@@ -807,6 +843,18 @@ function CertificateAdjustOverlay({
         style={{ left: `${(namePos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(namePos.y / CERTIFICATE_HEIGHT) * 100}%` }}
       >
         <Move className="w-2.5 h-2.5" /> NAME
+      </div>
+
+      {/* Reference-ID handle — drag only, same as Name. Lets the admin
+          decide "inside the barcode box" vs "below it" per design,
+          instead of one hardcoded guess that risks overlapping the
+          barcode on some certificates (see refIdSlot's own comments). */}
+      <div
+        onPointerDown={(e) => startDrag(e, refIdPos, (v) => onRefIdOffsetChange({ x: v.x - layoutMeta.refIdPosition.x, y: v.y - layoutMeta.refIdPosition.y }), "move")}
+        className="absolute -translate-x-1/2 -translate-y-full cursor-move flex items-center gap-1 bg-[#F27D26] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
+        style={{ left: `${(refIdPos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(refIdPos.y / CERTIFICATE_HEIGHT) * 100}%` }}
+      >
+        <Move className="w-2.5 h-2.5" /> REF
       </div>
     </div>
   );

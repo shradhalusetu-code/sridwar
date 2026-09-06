@@ -45,6 +45,15 @@ export interface CertificateData {
   // Fully replaces the layout's default photoFrame (position AND size)
   // once the admin has dragged/resized the photo in the live preview.
   photoOverride?: { x: number; y: number; width: number; height: number };
+  // ✅ ADDED (2026-09-06): same as nameOffset, for the Reference ID text —
+  // position only. Added specifically because "inside the barcode box"
+  // vs "below it" turned out to be a real per-design trade-off (an
+  // earlier attempt at "inside" overlapped the barcode bars on some
+  // designs — see refIdSlot's own comments) rather than one fixed
+  // answer, so the admin can now nudge it themselves per deity and see
+  // immediately whether it fits, instead of another blind coordinate
+  // guess here.
+  refIdOffset?: { x: number; y: number };
 }
 
 interface TextSlot {
@@ -433,12 +442,13 @@ function selectLayout(deity: string): CertificateLayout | null {
 // same as selectLayout().
 export function getCertificateLayoutMeta(
   deity: string,
-): { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number } } | null {
+): { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number }; refIdPosition: { x: number; y: number } } | null {
   const layout = selectLayout(deity);
   if (!layout) return null;
   return {
     namePosition: { x: layout.devoteeNameSlot.x, y: layout.devoteeNameSlot.y },
     photoFrame: { ...layout.photoFrame },
+    refIdPosition: { x: layout.refIdSlot.x, y: layout.refIdSlot.y },
   };
 }
 
@@ -647,6 +657,9 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
   const effectiveDevoteeNameSlot = data.nameOffset
     ? { ...layout.devoteeNameSlot, x: layout.devoteeNameSlot.x + data.nameOffset.x, y: layout.devoteeNameSlot.y + data.nameOffset.y }
     : layout.devoteeNameSlot;
+  const effectiveRefIdSlot = data.refIdOffset
+    ? { ...layout.refIdSlot, x: layout.refIdSlot.x + data.refIdOffset.x, y: layout.refIdSlot.y + data.refIdOffset.y }
+    : layout.refIdSlot;
 
   if (data.devoteePhoto) {
     fitPhotoIntoFrame(ctx, data.devoteePhoto, effectivePhotoFrame, layout.photoBorderColor || "rgba(184, 134, 11, 0.65)");
@@ -662,7 +675,7 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
   // what gets painted onto the certificate artwork itself.
   drawSlot(ctx, effectiveDevoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members).toUpperCase());
   drawSlot(ctx, layout.pujaNameSlot, data.serviceType);
-  drawSlot(ctx, layout.refIdSlot, data.refId ? `Ref: ${data.refId}` : "");
+  drawSlot(ctx, effectiveRefIdSlot, data.refId ? `Ref: ${data.refId}` : "");
 }
 
 // ✅ REMOVED (2026-09-05): SERVICE_TYPE_OPTIONS (the old hardcoded,

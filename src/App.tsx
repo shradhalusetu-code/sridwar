@@ -1176,7 +1176,7 @@ export default function App() {
         {currentPage === "admin-certificates" && (
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
-              <AdminCertificateGeneration onNavigate={handleNavigate} />
+              <AdminCertificateGeneration onNavigate={handleNavigate} isAndroidApp={isAndroidApp} />
             </Suspense>
           </div>
         )}
