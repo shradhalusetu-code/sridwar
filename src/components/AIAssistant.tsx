@@ -31,8 +31,10 @@ interface AIAssistantProps {
 
 // ─── Margadarshak AI — local preset knowledge base ───────────────────────────
 // The assistant answers from this curated set of devotional/spiritual
-// questions instead of calling a remote AI endpoint, so it always responds
-// instantly and never depends on a server-side secret key being configured.
+// questions first, instantly and for free. Only when nothing here matches
+// does it fall through to the server's /api/assistant (Gemini-backed, with
+// its own free local fallback if no key is configured) — see
+// handleSendMessage below.
 interface PresetQA {
   keywords: string[];
   question: string;
@@ -149,8 +151,20 @@ const suggestionPills = [
   "What kinds of Seva can I sponsor?",
 ];
 
+// The message shown when neither the local knowledge base nor the server
+// API could answer (server unreachable, network error, etc). Kept as a
+// named constant so both the local-miss offline case (if ever needed) and
+// the network-error catch below stay in sync with the same wording.
+const FALLBACK_MESSAGE =
+  "Hari Om! 🙏 My guidance is currently limited to Sri Dwar's devotional services — Puja booking, Seva sponsorship, Live Darshan, Prasad delivery, Vedic astrology, and temple/priest registration. Could you try asking a related devotional question? For anything else, our Devotee Care team on the Contact Us page would love to help.";
+
 // ─── Simple keyword-overlap matcher ───────────────────────────────────────────
-function findBestAnswer(userText: string): string {
+// ✅ CHANGE: now returns whether a confident local match was found, instead
+// of always returning a string. This lets handleSendMessage tell "answered
+// from the local knowledge base" apart from "found nothing" — previously
+// both cases returned a string and looked identical to the caller, which is
+// why the server's /api/assistant endpoint was never actually reached.
+function findBestAnswer(userText: string): { text: string; matched: boolean } {
   const normalized = userText.toLowerCase();
   let bestMatch: PresetQA | null = null;
   let bestScore = 0;
@@ -167,10 +181,10 @@ function findBestAnswer(userText: string): string {
   }
 
   if (bestMatch && bestScore > 0) {
-    return bestMatch.answer;
+    return { text: bestMatch.answer, matched: true };
   }
 
-  return "Hari Om! 🙏 My guidance is currently limited to Sri Dwar's devotional services — Puja booking, Seva sponsorship, Live Darshan, Prasad delivery, Vedic astrology, and temple/priest registration. Could you try asking a related devotional question? For anything else, our Devotee Care team on the Contact Us page would love to help.";
+  return { text: "", matched: false };
 }
 
 export default function AIAssistant({ currentLanguage, isAndroidApp = false }: AIAssistantProps) {
@@ -189,13 +203,43 @@ export default function AIAssistant({ currentLanguage, isAndroidApp = false }: A
     setInputText("");
     setIsLoading(true);
 
-    // Answer instantly from the local devotional knowledge base — a brief
-    // delay keeps the "thinking" indicator feeling natural rather than jarring.
-    const replyText = findBestAnswer(userText);
-    setTimeout(() => {
+    // 1. Try the local devotional knowledge base first — instant, free,
+    // works even if the server is down. A brief delay keeps the "thinking"
+    // indicator feeling natural rather than jarring.
+    const local = findBestAnswer(userText);
+    if (local.matched) {
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { role: "model" as const, text: local.text }]);
+        setIsLoading(false);
+      }, 450);
+      return;
+    }
+
+    // 2. No confident local match — fall through to the server's
+    // /api/assistant endpoint. That endpoint itself already has its own
+    // free rule-based fallback if GEMINI_API_KEY isn't configured, so this
+    // call degrades gracefully either way.
+    try {
+      const response = await fetch("/api/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userText,
+          history: updatedMessages.map((m) => ({ role: m.role, text: m.text })),
+        }),
+      });
+
+      const data = await response.json();
+      const replyText = response.ok && data.text ? data.text : (data.error || FALLBACK_MESSAGE);
+
       setMessages((prev) => [...prev, { role: "model" as const, text: replyText }]);
+    } catch {
+      // Network error (server unreachable, offline, etc) — same graceful
+      // fallback message as before this change.
+      setMessages((prev) => [...prev, { role: "model" as const, text: FALLBACK_MESSAGE }]);
+    } finally {
       setIsLoading(false);
-    }, 450);
+    }
   };
 
   return (
