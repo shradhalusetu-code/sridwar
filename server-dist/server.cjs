@@ -979,6 +979,9 @@ var import_supabase_js2 = require("@supabase/supabase-js");
 var import_dotenv = __toESM(require("dotenv"), 1);
 var import_pdf_lib2 = require("pdf-lib");
 import_dotenv.default.config();
+console.log(
+  `[Startup] GEMINI_API_KEY: ${process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "MY_GEMINI_API_KEY" ? `present (${process.env.GEMINI_API_KEY.length} chars)` : "NOT SET \u2014 Margadarshak AI will run in free local rule-based fallback mode"}`
+);
 var app = (0, import_express.default)();
 var PORT = 3e3;
 var REF_SUFFIX_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -1050,16 +1053,36 @@ function getGeminiClient() {
     return null;
   }
   if (!aiClient) {
-    aiClient = new import_genai.GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build"
-        }
-      }
-    });
+    aiClient = new import_genai.GoogleGenAI({ apiKey });
   }
   return aiClient;
+}
+var GEMINI_MODEL_CANDIDATES = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.0-flash"];
+async function callGeminiWithFallback(ai, chatContents, systemPrompt) {
+  let lastError = null;
+  for (const model of GEMINI_MODEL_CANDIDATES) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: chatContents,
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.7
+        }
+      });
+      if (response.text) {
+        return response.text;
+      }
+      lastError = new Error(`Model "${model}" returned an empty response.`);
+    } catch (error) {
+      lastError = error;
+      const status = error?.status ?? error?.response?.status;
+      const retryableStatus = status === 404 || status === 503;
+      console.error(`[Margadarshak AI] "${model}" failed${status ? ` (status ${status})` : ""}:`, error);
+      if (!retryableStatus) break;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("All Gemini model candidates failed.");
 }
 var ASSISTANT_RATE_LIMIT = 20;
 var ASSISTANT_RATE_WINDOW_MS = 10 * 60 * 1e3;
@@ -1126,7 +1149,7 @@ app.post("/api/assistant", validateBody(assistantRequestSchema), async (req, res
     } else if (query.includes("cert") || query.includes("darshan")) {
       reply += "To receive a premium Darshan Certificate, utilize the 'Receive Darshan Certificate' button in the header modal, submit the details of your recent temple visit, and our coordinators will deliver a handcrafted, blessed certificate.";
     } else {
-      reply += "Welcome to Sri Dwar. We facilitate secure remote pujas, sacred offerings, local artisan crafts, and direct live darshan flows. To experience live AI replies, please configure the required secret key in the Settings > Secrets menu!";
+      reply += "Welcome to Sri Dwar. We facilitate secure remote pujas, sacred offerings, local artisan crafts, and direct live darshan flows. Deeper guided answers are on their way soon \u2014 for now, do ask about Puja booking, Seva sponsorship, Live Darshan, or Prasad delivery!";
     }
     res.json({ text: reply, status: "offline-rule-based-fallback" });
     return;
@@ -1148,18 +1171,13 @@ Always close with a brief warm greeting (e.g. "May Lord Jagannath bless your hom
       }
     }
     chatContents.push({ role: "user", parts: [{ text: message }] });
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: chatContents,
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.7
-      }
-    });
-    res.json({ text: response.text || "May peace be with you." });
+    const replyText = await callGeminiWithFallback(ai, chatContents, systemPrompt);
+    res.json({ text: replyText || "May peace be with you." });
   } catch (error) {
-    console.error("Gemini Assistant Error:", error);
-    res.status(500).json({ error: "Failed to generate spiritual response", details: error.message });
+    console.error("[Margadarshak AI] /api/assistant failed:", error);
+    res.status(500).json({
+      error: "Hari Om \u{1F64F} Margadarshak AI is unable to offer guidance on this just yet \u2014 our spiritual guide is resting for a moment. Our team is working to bring you the right answer soon, so please try again shortly, or reach our Devotee Care team via the Contact Us page."
+    });
   }
 });
 var refundRequestSchema = import_zod.z.object({

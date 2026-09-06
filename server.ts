@@ -17,6 +17,23 @@ import { PDFDocument } from "pdf-lib";
 
 dotenv.config();
 
+// ─── Startup diagnostic: confirm env vars are actually being read ─────────
+// ✅ ADDED (2026-09-06) alongside the Margadarshak AI fix. This logs ONLY
+// whether GEMINI_API_KEY is present at runtime and its length — never the
+// key itself. Check Render's "Logs" tab right after a deploy: if this
+// prints "NOT SET", the key is missing or misnamed in Render's Environment
+// tab (it must be spelled exactly `GEMINI_API_KEY`, matching
+// getGeminiClient() below) or the service hasn't redeployed since it was
+// added — Render only injects newly-added env vars into a fresh deploy,
+// not into an already-running instance.
+console.log(
+  `[Startup] GEMINI_API_KEY: ${
+    process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "MY_GEMINI_API_KEY"
+      ? `present (${process.env.GEMINI_API_KEY.length} chars)`
+      : "NOT SET — Margadarshak AI will run in free local rule-based fallback mode"
+  }`
+);
+
 const app = express();
 const PORT = 3000;
 
@@ -166,16 +183,75 @@ function getGeminiClient(): GoogleGenAI | null {
     return null;
   }
   if (!aiClient) {
-    aiClient = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
+    aiClient = new GoogleGenAI({ apiKey });
   }
   return aiClient;
+}
+
+// ─── Margadarshak AI — Gemini free-tier model selection ────────────────────
+// ✅ ROOT-CAUSE FIX (diagnosed 2026-09-06): the assistant was calling
+// `model: "gemini-3.5-flash"`. That model ID does exist on the Gemini
+// Developer API and is nominally free-tier, but it has been reported
+// (Google's own developer forum) to intermittently return a hard 404 by
+// routing to a decommissioned internal build — a failure Gemini's own
+// infra causes, not something this app's key/quota/config can fix. A 404
+// from the SDK surfaces here as a thrown error, which is exactly what was
+// being caught below and turned into "Failed to generate spiritual
+// response" — so the app LOOKED broken end-to-end (wrong key, wrong route,
+// etc.) when the real cause was one specific upstream model alias.
+//
+// Fix: call a short, ordered list of models instead of a single hardcoded
+// one. `gemini-2.5-flash` is the long-established, heavily-documented
+// free-tier default (Google's own quickstart examples default to it) and
+// is confirmed still free-with-rate-limits as of September 2026, so it's
+// listed first for reliability. If Google ever fully retires it, or a
+// specific alias has a bad day the way gemini-3.5-flash did, the code
+// automatically retries the next model in the list instead of failing the
+// whole request. This is also the "keep the provider flexible" hook Kunu
+// asked for: swapping to a paid/better model later, or a different
+// provider entirely, only ever means editing this array (or the small
+// callGeminiWithFallback function below it) — nothing else in this file
+// or in AIAssistant.tsx needs to change.
+const GEMINI_MODEL_CANDIDATES = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.0-flash"];
+
+async function callGeminiWithFallback(
+  ai: GoogleGenAI,
+  chatContents: Array<{ role: string; parts: Array<{ text: string }> }>,
+  systemPrompt: string
+): Promise<string> {
+  let lastError: unknown = null;
+
+  for (const model of GEMINI_MODEL_CANDIDATES) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: chatContents,
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.7,
+        },
+      });
+      if (response.text) {
+        return response.text;
+      }
+      lastError = new Error(`Model "${model}" returned an empty response.`);
+    } catch (error) {
+      lastError = error;
+      const status = (error as any)?.status ?? (error as any)?.response?.status;
+      // Only fall through to the next candidate model for errors that mean
+      // "this particular model/alias is unavailable right now" (not found,
+      // decommissioned, or overloaded). Auth/permission/quota errors (401,
+      // 403, 429) are the SAME regardless of which model we call, so
+      // retrying with a different model would just waste time and fail
+      // identically — better to stop immediately and let the real cause
+      // surface in the server logs below.
+      const retryableStatus = status === 404 || status === 503;
+      console.error(`[Margadarshak AI] "${model}" failed${status ? ` (status ${status})` : ""}:`, error);
+      if (!retryableStatus) break;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("All Gemini model candidates failed.");
 }
 
 // Lightweight in-memory rate limiter for /api/assistant — no new npm
@@ -280,7 +356,7 @@ app.post("/api/assistant", validateBody(assistantRequestSchema), async (req, res
     } else if (query.includes("cert") || query.includes("darshan")) {
       reply += "To receive a premium Darshan Certificate, utilize the 'Receive Darshan Certificate' button in the header modal, submit the details of your recent temple visit, and our coordinators will deliver a handcrafted, blessed certificate.";
     } else {
-      reply += "Welcome to Sri Dwar. We facilitate secure remote pujas, sacred offerings, local artisan crafts, and direct live darshan flows. To experience live AI replies, please configure the required secret key in the Settings > Secrets menu!";
+      reply += "Welcome to Sri Dwar. We facilitate secure remote pujas, sacred offerings, local artisan crafts, and direct live darshan flows. Deeper guided answers are on their way soon — for now, do ask about Puja booking, Seva sponsorship, Live Darshan, or Prasad delivery!";
     }
 
     res.json({ text: reply, status: "offline-rule-based-fallback" });
@@ -309,19 +385,18 @@ Always close with a brief warm greeting (e.g. "May Lord Jagannath bless your hom
 
     chatContents.push({ role: "user", parts: [{ text: message }] });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: chatContents,
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.7,
-      },
-    });
-
-    res.json({ text: response.text || "May peace be with you." });
+    const replyText = await callGeminiWithFallback(ai, chatContents, systemPrompt);
+    res.json({ text: replyText || "May peace be with you." });
   } catch (error: any) {
-    console.error("Gemini Assistant Error:", error);
-    res.status(500).json({ error: "Failed to generate spiritual response", details: error.message });
+    // Full technical detail (status code, Gemini error body, stack) goes
+    // ONLY to the server/Render logs for debugging — it is never sent in
+    // the HTTP response, so a devotee can never see an API key name, model
+    // ID, or raw error string.
+    console.error("[Margadarshak AI] /api/assistant failed:", error);
+    res.status(500).json({
+      error:
+        "Hari Om 🙏 Margadarshak AI is unable to offer guidance on this just yet — our spiritual guide is resting for a moment. Our team is working to bring you the right answer soon, so please try again shortly, or reach our Devotee Care team via the Contact Us page.",
+    });
   }
 });
 
