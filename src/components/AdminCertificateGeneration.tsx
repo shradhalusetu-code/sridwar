@@ -10,7 +10,7 @@
 // artwork later, this file is the form/workflow that stays the same
 // either way).
 
-import { useState, useEffect, useRef, useCallback, RefObject, PointerEvent as ReactPointerEvent } from "react";
+import { useState, useEffect, useRef, useCallback, RefObject, PointerEvent as ReactPointerEvent, ChangeEvent } from "react";
 import {
   ScrollText, Landmark, ShieldCheck, Lock, ArrowLeft, Camera, Upload,
   Plus, Trash2, Printer, Download, RefreshCw, Check, AlertTriangle, Mail,
@@ -1021,7 +1021,18 @@ function CertificateAdjustOverlay({
           below. Position-only (no resize handle) — font size is
           adjusted separately via the "Font Size" control, not by
           dragging, since a drag-resize would also distort where the
-          text sits relative to its label. */}
+          text sits relative to its label.
+          ✅ FIXED (vendor report — pills covered the actual certificate
+          text/photo/barcode): previously centered directly ABOVE the
+          field (`-translate-x-1/2 -translate-y-full`), which sat right
+          on top of the real content for anything positioned near the
+          top of its own text (Devotee Name, Puja Performed, Reference
+          ID all had this problem — see screenshot). Now placed to the
+          LEFT of the field instead, vertically centered on it
+          (`translate(calc(-100% - 8px), -50%)`): the pill's own right
+          edge sits a small 8px gap short of the field's x position, so
+          the label and the real content are both visible at the same
+          time, with no overlap, for every field. */}
       {TEXT_SLOTS.map(({ key, label, bg, fg }) => {
         const base = layoutMeta[key];
         const offset = adjustment.textOverrides?.[key]?.offset;
@@ -1030,8 +1041,14 @@ function CertificateAdjustOverlay({
           <div
             key={key}
             onPointerDown={(e) => startDrag(e, pos, (v) => onTextOffsetChange(key, { x: v.x - base.x, y: v.y - base.y }), "move")}
-            className="absolute -translate-x-1/2 -translate-y-full cursor-move flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full shadow-lg whitespace-nowrap"
-            style={{ left: `${(pos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(pos.y / CERTIFICATE_HEIGHT) * 100}%`, background: bg, color: fg }}
+            className="absolute cursor-move flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full shadow-lg whitespace-nowrap"
+            style={{
+              left: `${(pos.x / CERTIFICATE_WIDTH) * 100}%`,
+              top: `${(pos.y / CERTIFICATE_HEIGHT) * 100}%`,
+              transform: "translate(calc(-100% - 8px), -50%)",
+              background: bg,
+              color: fg,
+            }}
           >
             <Move className="w-2.5 h-2.5" /> {label}
           </div>
@@ -1041,18 +1058,39 @@ function CertificateAdjustOverlay({
   );
 }
 
+// ✅ CHANGED (vendor report — needs both "Upload Photo" and "Capture
+// Photo" as clear, separate options): previously a single file input
+// carried the `capture="user"` attribute, which on several mobile
+// browsers/WebViews (including Android in-app WebViews like this
+// project's Capacitor build) forces the camera to open directly and
+// silently removes the "choose from gallery" option — so uploading an
+// existing photo wasn't reliably possible. Now there are two entirely
+// separate <input type="file"> elements, each behind its own clearly
+// labeled button: one plain (no `capture`, always opens the gallery/file
+// picker) and one with `capture="user"` (always opens the camera).
+// Background removal, compression, and fitting into the certificate's
+// photo frame (see handlePhotoSelected / removeStudioBackground /
+// fitPhotoIntoFrame) are unchanged and run identically no matter which
+// button supplied the file.
 function PhotoPicker({ dataUrl, processing, onSelect }: { dataUrl: string | null; processing: boolean; onSelect: (file: File | null) => void }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const captureInputRef = useRef<HTMLInputElement>(null);
+
+  // Resetting the input's value after each pick means selecting the same
+  // file again (e.g. Capture, then Upload the same photo) still fires
+  // onChange — without this, a repeat pick from the same input silently
+  // does nothing.
+  const handlePicked = (e: ChangeEvent<HTMLInputElement>) => {
+    onSelect(e.target.files?.[0] || null);
+    e.target.value = "";
+  };
+
   return (
-    <div>
-      <input
-        ref={inputRef} type="file" accept="image/*" capture="user" className="hidden"
-        onChange={(e) => onSelect(e.target.files?.[0] || null)}
-      />
-      <button
-        type="button" onClick={() => inputRef.current?.click()} disabled={processing}
-        className="w-full aspect-square rounded-xl bg-black/30 border border-dashed border-white/20 flex flex-col items-center justify-center gap-1.5 overflow-hidden disabled:opacity-50"
-      >
+    <div className="space-y-2">
+      <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onChange={handlePicked} />
+      <input ref={captureInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handlePicked} />
+
+      <div className="w-full aspect-square rounded-xl bg-black/30 border border-dashed border-white/20 flex flex-col items-center justify-center gap-1.5 overflow-hidden">
         {dataUrl ? (
           <img src={dataUrl} alt="" className="w-full h-full object-cover" />
         ) : processing ? (
@@ -1060,10 +1098,25 @@ function PhotoPicker({ dataUrl, processing, onSelect }: { dataUrl: string | null
         ) : (
           <>
             <Camera className="w-5 h-5 text-white/30" />
-            <span className="text-[10px] text-white/30 flex items-center gap-1"><Upload className="w-3 h-3" /> Capture / Upload</span>
+            <span className="text-[10px] text-white/30">No photo yet</span>
           </>
         )}
-      </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button" onClick={() => uploadInputRef.current?.click()} disabled={processing}
+          className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-2 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 disabled:opacity-50"
+        >
+          <Upload className="w-3.5 h-3.5" /> Upload Photo
+        </button>
+        <button
+          type="button" onClick={() => captureInputRef.current?.click()} disabled={processing}
+          className="flex items-center justify-center gap-1.5 text-[11px] font-bold px-2 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/80 disabled:opacity-50"
+        >
+          <Camera className="w-3.5 h-3.5" /> Capture Photo
+        </button>
+      </div>
     </div>
   );
 }
