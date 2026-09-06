@@ -45,6 +45,19 @@ console.log(
 );
 
 const app = express();
+// ✅ FIXED (2026-09-06 QA audit): this was documented in the comment
+// below but never actually applied — Render (this project's host)
+// terminates TLS at its own reverse proxy and forwards the real visitor
+// IP via X-Forwarded-For, so without this, every visitor's req.ip
+// resolved to Render's proxy address instead of their own. The
+// /api/assistant rate limiter above keys entirely on req.ip, so in
+// production every visitor was sharing ONE rate-limit bucket — a
+// handful of people using the Devotee Assistant at the same time could
+// have exhausted the 20-requests/10-min limit for every other visitor
+// on the site, not just themselves. `1` (not `true`) trusts exactly the
+// one hop Render's own proxy represents, per Express's own guidance
+// against trusting an unbounded/spoofable header chain.
+app.set("trust proxy", 1);
 const PORT = 3000;
 
 // ─── Shared ref-suffix generator (server side) ─────────────────────────────
@@ -93,14 +106,10 @@ app.use(
   })
 );
 
-// NOTE on the rate limiter below: if you deploy behind a reverse proxy/load
-// balancer (most hosting platforms — Render, Railway, Vercel, etc. — do
-// this), Express needs `app.set('trust proxy', ...)` configured correctly
-// for `req.ip` to reflect the real visitor IP instead of the proxy's IP.
-// Without it, every visitor may appear to share one IP and get rate-limited
-// together. Set this to match your specific host's guidance (e.g.
-// `app.set('trust proxy', 1)` for "one hop behind a proxy") rather than
-// `true`, which trusts any X-Forwarded-For header and can be spoofed.
+// NOTE on the rate limiter below: it keys on req.ip, which requires
+// `app.set('trust proxy', 1)` (set right after `const app = express()`
+// above) to reflect the real visitor's IP instead of Render's proxy —
+// see that line's comment for what was wrong before this was added.
 
 // Middleware to parse JSON payloads
 app.use(express.json());
@@ -275,15 +284,23 @@ async function callGeminiWithFallback(
 // Groq's free tier (console.groq.com, no card required) is used via its
 // OpenAI-compatible REST endpoint with plain `fetch` — no new npm
 // dependency, same approach already used for Razorpay elsewhere in this
-// file. `llama-3.3-70b-versatile` is Groq's current recommended
-// general-purpose free-tier model as of September 2026.
+// file. See the GROQ_MODEL constant below for the actual model in use
+// and why.
 //
 // Env var expected: GROQ_API_KEY (set this in Render's Environment tab,
 // exactly like GEMINI_API_KEY — see the startup log above to confirm it
 // was read). If it's not set, this fallback is silently skipped and the
 // request falls through to the local rule-based reply below, same as
 // today.
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+// ✅ FIXED (2026-09-06 QA audit): the model this fallback was written
+// against — llama-3.3-70b-versatile — was decommissioned by Groq on
+// August 16, 2026 (see console.groq.com/docs/deprecations), three weeks
+// before this fallback was even added. Every call to it was failing
+// with a "model_decommissioned" error, silently (logged to Render's
+// console only), making the whole Groq backup a no-op from day one.
+// Replaced with Groq's own recommended 1:1 replacement for that exact
+// model, still free-tier (console.groq.com, no card required).
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 function hasGroqKey(): boolean {
   const key = process.env.GROQ_API_KEY;

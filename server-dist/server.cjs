@@ -986,6 +986,7 @@ console.log(
   `[Startup] GROQ_API_KEY: ${process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim() !== "" ? `present (${process.env.GROQ_API_KEY.length} chars)` : "NOT SET \u2014 no backup AI provider configured if Gemini fails"}`
 );
 var app = (0, import_express.default)();
+app.set("trust proxy", 1);
 var PORT = 3e3;
 var REF_SUFFIX_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function randomRefSuffix(length = 6) {
@@ -1087,7 +1088,7 @@ async function callGeminiWithFallback(ai, chatContents, systemPrompt) {
   }
   throw lastError instanceof Error ? lastError : new Error("All Gemini model candidates failed.");
 }
-var GROQ_MODEL = "llama-3.3-70b-versatile";
+var GROQ_MODEL = "openai/gpt-oss-120b";
 function hasGroqKey() {
   const key = process.env.GROQ_API_KEY;
   return !!key && key.trim() !== "";
