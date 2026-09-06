@@ -20,7 +20,7 @@ import { supabase } from "../lib/supabaseClient";
 import {
   renderCertificate, compressImageToUnderSize, removeStudioBackground, RELATIONSHIP_OPTIONS,
   getCertificateLayoutMeta, CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT,
-  CertificateData,
+  CertificateData, TextSlotKey, TextSlotOverride,
 } from "../utils/certificateTemplate";
 // ✅ ADDED (2026-09-06 — "Android app... header is missing, the
 // certificate content is squeezed"): root cause found in App.tsx — the
@@ -35,20 +35,55 @@ import {
 // reuses the project's own existing, already-verified fix for that exact
 // bug class rather than inventing a new one or touching the shared
 // <main>/Navbar (which would risk every other page).
-import { sectionTopPadding } from "../utils/androidSpacing";
+import { sectionTopPadding, sectionBottomPadding } from "../utils/androidSpacing";
 
-// ✅ ADDED (2026-09-06 — "make the content inside the Live Certificate
-// image movable and adjustable... certificate background/design fixed,
-// non-editable, non-deletable"): a per-deity manual position/size
-// adjustment, saved locally so a correction made once for a deity's
-// design applies to every certificate generated for that deity
-// afterward, without needing to re-drag it each time.
+// ✅ CHANGED (2026-09-06 — "Performed At, Date of Puja, Puja Performed...
+// these too need adjustment... color change will be applicable to each
+// content and same with the font size adjustment too have to be each
+// specific contents"): generalized from the earlier nameOffset/
+// photoOverride/refIdOffset trio into one textOverrides map covering all
+// 5 text fields, each with its own position/color/font-size — mirrors
+// certificateTemplate.ts's CertificateData shape exactly (single source
+// of truth for what an "override" looks like).
 type CertAdjustment = {
-  nameOffset?: { x: number; y: number };
+  textOverrides?: Partial<Record<TextSlotKey, TextSlotOverride>>;
   photoOverride?: { x: number; y: number; width: number; height: number };
-  refIdOffset?: { x: number; y: number };
 };
-const ADJUST_STORAGE_KEY = "sridwar_certificate_adjustments_v1";
+const ADJUST_STORAGE_KEY = "sridwar_certificate_adjustments_v2";
+
+// The 5 draggable/colorable/resizable-font text fields, in the order
+// shown as tabs in the adjust panel and as labeled pills on the canvas —
+// each gets a distinct color so the tab and its on-canvas handle are
+// visually easy to match up.
+const TEXT_SLOTS: { key: TextSlotKey; label: string; bg: string; fg: string }[] = [
+  { key: "temple", label: "Performed At", bg: "#60A5FA", fg: "#021816" },
+  { key: "date", label: "Date of Puja", bg: "#C084FC", fg: "#021816" },
+  { key: "devoteeName", label: "Devotee Name", bg: "#FFB347", fg: "#021816" },
+  { key: "pujaName", label: "Puja Performed", bg: "#86EFAC", fg: "#021816" },
+  { key: "refId", label: "Reference ID", bg: "#F27D26", fg: "#ffffff" },
+];
+
+// A small curated palette (dark ↔ light, warm ↔ cool) covering the
+// common cases where a design's default text color doesn't read well
+// against a particular field's background — plus a native color input
+// for anything else.
+const COLOR_PRESETS = ["#000000", "#ffffff", "#3a2a1a", "#5a1e08", "#b8860b", "#8B0000", "#0F766E", "#f5e6c8"];
+const MIN_FONT_SIZE = 10;
+const MAX_FONT_SIZE = 72;
+
+// ✅ ADDED (2026-09-06 — explicit instruction: add these Puja names
+// "under services in the top order first" and default the Service field
+// to the first one): shown ahead of every other (alphabetically-sorted)
+// service option, in exactly this order.
+const PRIORITY_SERVICES = ["Basic Sankalp Puja", "Raksha Puja", "Mansik Ichha Puja", "Samaj Kavach Puja", "Sampoorna Bhog & Deep Puja"];
+const DEFAULT_SERVICE = PRIORITY_SERVICES[0];
+// ✅ ADDED (2026-09-06 — explicit instruction): "Alway show defalut
+// jaganath certificate and later vendor can select any certificate they
+// want" + explicit City/Deity/Temple defaults.
+const DEFAULT_CITY = "Puri";
+const DEFAULT_DEITY = "Jagannath";
+const DEFAULT_TEMPLE = "Jagannath Puri";
+const DEFAULT_RELATIONSHIP = "Mother";
 
 interface AdminCertificateGenerationProps {
   onNavigate: (page: string) => void;
@@ -63,7 +98,7 @@ type Member = { name: string; relationship: string };
 type OptionType = "city" | "deity" | "temple" | "service";
 
 const MAX_MEMBERS = 6;
-const emptyMember = (): Member => ({ name: "", relationship: "" });
+const emptyMember = (): Member => ({ name: "", relationship: DEFAULT_RELATIONSHIP });
 
 export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = false }: AdminCertificateGenerationProps) {
   const [access, setAccess] = useState<AccessState>("checking");
@@ -71,7 +106,7 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
 
   // ── Form state ──
   const [refId, setRefId] = useState("");
-  const [serviceType, setServiceType] = useState("");
+  const [serviceType, setServiceType] = useState(DEFAULT_SERVICE);
   const [devoteeName, setDevoteeName] = useState("");
   // ✅ ADDED (2026-09-05): optional, never drawn on the certificate —
   // stored only so the finished certificate can be shared with the
@@ -80,9 +115,14 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
   const [devoteeEmail, setDevoteeEmail] = useState("");
   const [members, setMembers] = useState<Member[]>([emptyMember()]);
   const [pujaDate, setPujaDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [city, setCity] = useState("");
-  const [deity, setDeity] = useState("");
-  const [temple, setTemple] = useState("");
+  // ✅ ADDED (2026-09-06 — "Alway show defalut jaganath certificate...":
+  // City/Deity/Temple default to Puri/Jagannath/Jagannath Puri so the
+  // live preview shows the Jagannath design immediately on open, before
+  // the vendor picks anything — they can still freely change any of the
+  // three afterward.
+  const [city, setCity] = useState(DEFAULT_CITY);
+  const [deity, setDeity] = useState(DEFAULT_DEITY);
+  const [temple, setTemple] = useState(DEFAULT_TEMPLE);
 
   // ── Dropdown option lists (server-backed, "Add & Save") ──
   // ✅ CHANGED (2026-09-05): Service is now ALSO server-backed here, same
@@ -135,27 +175,49 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
 
   const layoutMeta = deity ? getCertificateLayoutMeta(deity) : null;
   const currentAdjustment: CertAdjustment = (deity && allAdjustments[deity]) || {};
+  // Which of the 5 text fields the color/font-size controls currently apply to.
+  const [activeSlot, setActiveSlot] = useState<TextSlotKey>("devoteeName");
 
-  const setNameOffset = useCallback((deityKey: string, offset: { x: number; y: number }) => {
-    setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], nameOffset: offset } }));
+  const setTextOverride = useCallback((deityKey: string, slot: TextSlotKey, patch: Partial<TextSlotOverride>) => {
+    setAllAdjustments((prev) => ({
+      ...prev,
+      [deityKey]: {
+        ...prev[deityKey],
+        textOverrides: { ...prev[deityKey]?.textOverrides, [slot]: { ...prev[deityKey]?.textOverrides?.[slot], ...patch } },
+      },
+    }));
   }, []);
   const setPhotoOverride = useCallback((deityKey: string, frame: { x: number; y: number; width: number; height: number }) => {
     setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], photoOverride: frame } }));
   }, []);
-  const setRefIdOffset = useCallback((deityKey: string, offset: { x: number; y: number }) => {
-    setAllAdjustments((prev) => ({ ...prev, [deityKey]: { ...prev[deityKey], refIdOffset: offset } }));
-  }, []);
-  const resetNamePosition = () => {
+  const resetTextSlot = (slot: TextSlotKey) => {
     if (!deity) return;
-    setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], nameOffset: undefined }; return next; });
+    setAllAdjustments((prev) => {
+      if (!prev[deity]?.textOverrides) return prev;
+      const nextOverrides = { ...prev[deity].textOverrides };
+      delete nextOverrides[slot];
+      return { ...prev, [deity]: { ...prev[deity], textOverrides: nextOverrides } };
+    });
   };
   const resetPhotoFrame = () => {
     if (!deity) return;
     setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], photoOverride: undefined }; return next; });
   };
-  const resetRefIdPosition = () => {
-    if (!deity) return;
-    setAllAdjustments((prev) => { const next = { ...prev }; if (next[deity]) next[deity] = { ...next[deity], refIdOffset: undefined }; return next; });
+
+  // Current effective color/font-size for whichever field is active —
+  // combines the design's own default (from layoutMeta) with any
+  // override already saved for this deity, so the controls always show
+  // what's actually on the certificate right now, not a stale default.
+  const activeSlotBase = layoutMeta ? layoutMeta[activeSlot] : null;
+  const activeSlotOverride = currentAdjustment.textOverrides?.[activeSlot];
+  const activeColor = activeSlotOverride?.color || activeSlotBase?.color || "#000000";
+  const activeFontSize = activeSlotOverride?.fontSize || activeSlotBase?.fontSize || 20;
+
+  const setActiveColor = (color: string) => { if (deity) setTextOverride(deity, activeSlot, { color }); };
+  const bumpActiveFontSize = (delta: number) => {
+    if (!deity || !activeSlotBase) return;
+    const next = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, activeFontSize + delta));
+    setTextOverride(deity, activeSlot, { fontSize: next });
   };
 
   // ── Access check + initial data load ──
@@ -204,15 +266,56 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
           refRes.json(), cityRes.json(), deityRes.json(), templeRes.json(), serviceRes.json(),
         ]);
         if (refData.refId) setRefId(refData.refId);
-        if (cityData.options) setCityOptions(cityData.options);
-        if (deityData.options) setDeityOptions(deityData.options);
-        if (templeData.options) setTempleOptions(templeData.options);
-        if (serviceData.options) setServiceOptions(serviceData.options);
+
+        // ✅ ADDED (2026-09-06): ensure the Jagannath default (city/deity/
+        // temple) and the 5 priority Puja names actually exist as real,
+        // saved options — via the same add-option endpoint "+Add Your
+        // City/Deity/..." already uses (upsert-based, so re-adding one
+        // that already exists is a harmless no-op) — rather than only
+        // defaulting the form fields client-side, so the dropdowns show
+        // them as properly selected instead of a value with no matching
+        // option, and every other admin/vendor sees them too.
+        const ensureOptions = async (type: OptionType, existing: string[], required: string[]) => {
+          const missing = required.filter((v) => !existing.includes(v));
+          if (missing.length === 0) return existing;
+          await Promise.all(missing.map((value) =>
+            authFetch(`/api/admin/certificates/options/${type}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ value }),
+            }).catch(() => null)
+          ));
+          return [...existing, ...missing];
+        };
+
+        const [cityFinal, deityFinal, templeFinal, serviceFinal] = await Promise.all([
+          ensureOptions("city", cityData.options || [], [DEFAULT_CITY]),
+          ensureOptions("deity", deityData.options || [], [DEFAULT_DEITY]),
+          ensureOptions("temple", templeData.options || [], [DEFAULT_TEMPLE]),
+          ensureOptions("service", serviceData.options || [], PRIORITY_SERVICES),
+        ]);
+        setCityOptions(cityFinal);
+        setDeityOptions(deityFinal);
+        setTempleOptions(templeFinal);
+        setServiceOptions(serviceFinal);
       } catch {
         setRefIdError("Could not load starting data. Please refresh the page.");
       }
     })();
   }, [access, authFetch]);
+
+  // ✅ ADDED (2026-09-06 — "Add these under services in the top order
+  // first... show Basic Sankalp Puja as default"): the server always
+  // returns options alphabetically (see server.ts's admin_certificate_
+  // options query) — there's no ordering column to seed instead — so the
+  // 5 priority Puja names are placed first, in this exact order, ahead of
+  // every other (still alphabetical) service, purely for display. The
+  // underlying serviceOptions state (used for dedupe/sort when adding a
+  // new one) is untouched.
+  const orderedServiceOptions = [
+    ...PRIORITY_SERVICES.filter((s) => serviceOptions.includes(s)),
+    ...serviceOptions.filter((s) => !PRIORITY_SERVICES.includes(s)),
+  ];
 
   // ── Live preview: re-render the canvas whenever any relevant field changes ──
   useEffect(() => {
@@ -221,9 +324,8 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
     const data: CertificateData = {
       refId, serviceType, devoteeName, members, pujaDate, city, deity, temple,
       devoteePhoto: devoteePhotoImg,
-      nameOffset: currentAdjustment.nameOffset,
+      textOverrides: currentAdjustment.textOverrides,
       photoOverride: currentAdjustment.photoOverride,
-      refIdOffset: currentAdjustment.refIdOffset,
     };
     // ✅ renderCertificate is now async (it loads the real background
     // artwork, cached after the first call) — the cancelled guard avoids a
@@ -234,7 +336,7 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
       await renderCertificate(canvasRef.current, data);
     })();
     return () => { cancelled = true; };
-  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, currentAdjustment.nameOffset, currentAdjustment.photoOverride, currentAdjustment.refIdOffset]);
+  }, [refId, serviceType, devoteeName, members, pujaDate, city, deity, temple, devoteePhotoImg, currentAdjustment.textOverrides, currentAdjustment.photoOverride]);
 
   const handlePhotoSelected = async (kind: "devotee", file: File | null) => {
     if (!file) return;
@@ -424,7 +526,7 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
 
   // ── Render ──
   return (
-    <div className="min-h-screen bg-[#021816] text-white px-4 py-10" style={sectionTopPadding(isAndroidApp)}>
+    <div className="min-h-screen bg-[#021816] text-white px-4 py-10" style={{ ...sectionTopPadding(isAndroidApp), ...sectionBottomPadding(isAndroidApp) }}>
       <div className="max-w-6xl mx-auto">
         <button
           type="button"
@@ -460,9 +562,26 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
         )}
 
         {(access === "staff" || access === "vendor") && (
+          // ✅ FIXED (2026-09-06 — "Android app layout is currently
+          // squeezed... cut off or only partially visible... nothing
+          // should be... stretched outside the screen, hidden, or
+          // inaccessible"): root cause was CSS Grid's default
+          // `min-width: auto` on a grid item — the right-hand column
+          // below contains a <canvas> with an explicit 1536×1024
+          // intrinsic size, and without `min-w-0` a grid item won't
+          // shrink narrower than that intrinsic size no matter what CSS
+          // width the canvas itself is given. On a ~360-400px phone
+          // screen this forced the WHOLE grid (both columns) far wider
+          // than the viewport; combined with App.tsx's root
+          // `overflowX: hidden`, the excess width was silently clipped
+          // rather than scrollable — exactly matching "cut off,
+          // inaccessible, can't recover by scrolling". `min-w-0` on both
+          // grid items is the standard fix and changes nothing on
+          // screens wide enough to already fit everything (desktop,
+          // tablets, the working website layout).
           <div className="grid lg:grid-cols-2 gap-6">
             {/* ── LEFT: the form ── */}
-            <div className="space-y-5">
+            <div className="space-y-5 min-w-0">
               <div className="flex items-center gap-2 bg-[#092320] border border-[#5EEAD4]/30 rounded-xl px-4 py-2.5">
                 <ShieldCheck className="w-4 h-4 text-[#5EEAD4]" />
                 <span className="text-[#5EEAD4] text-xs font-bold uppercase tracking-wider">
@@ -474,7 +593,7 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
               <div className="bg-[#092320] border border-white/10 rounded-2xl p-4">
                 <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-2">Reference ID</label>
                 <div className="flex items-center gap-2">
-                  <span className="flex-1 font-mono text-lg text-[#FFB347] font-bold">{refId || "Generating…"}</span>
+                  <span className="flex-1 min-w-0 truncate font-mono text-lg text-[#FFB347] font-bold">{refId || "Generating…"}</span>
                   <button type="button" onClick={regenerateRefId} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg" title="Generate a new Reference ID">
                     <RefreshCw className="w-4 h-4 text-white/60" />
                   </button>
@@ -514,20 +633,20 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
                     else, exactly like every other intake form on this
                     site. */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Phone Number (optional)</label>
                     <input
                       type="tel" value={devoteePhone} onChange={(e) => setDevoteePhone(e.target.value)}
-                      placeholder="For sharing only"
-                      className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                      placeholder="For certificate sharing only"
+                      className="w-full min-w-0 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Email Address (optional)</label>
                     <input
                       type="email" value={devoteeEmail} onChange={(e) => setDevoteeEmail(e.target.value)}
-                      placeholder="For sharing only"
-                      className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                      placeholder="For certificate sharing only"
+                      className="w-full min-w-0 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                     />
                   </div>
                 </div>
@@ -537,7 +656,7 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
                     seeded (per explicit instruction to not show every
                     service type), and anyone can add a Puja name that
                     isn't listed yet. */}
-                <OptionDropdown label="Service" value={serviceType} setValue={setServiceType} options={serviceOptions} type="service"
+                <OptionDropdown label="Service" value={serviceType} setValue={setServiceType} options={orderedServiceOptions} type="service"
                   canAdd adding={addingOption === "service"} setAdding={setAddingOption}
                   newValue={newOptionValue} setNewValue={setNewOptionValue} onAdd={() => handleAddOption("service")} />
                 <div>
@@ -582,20 +701,20 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
                     ever reads member.name). */}
                 <div className="space-y-2">
                   {members.map((m, i) => (
-                    <div key={i} className="flex gap-2">
+                    <div key={i} className="flex gap-1.5 sm:gap-2">
                       <input
                         type="text" value={m.name} onChange={(e) => updateMember(i, "name", e.target.value)}
                         placeholder={`Member ${i + 1} name`}
-                        className="flex-1 text-sm px-3 py-2 rounded-lg bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                        className="flex-1 min-w-0 text-sm px-3 py-2 rounded-lg bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                       />
                       <select
                         value={m.relationship} onChange={(e) => updateMember(i, "relationship", e.target.value)}
-                        className="w-40 text-sm px-2 py-2 rounded-lg bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white"
+                        className="w-24 sm:w-40 shrink-0 text-sm px-1.5 sm:px-2 py-2 rounded-lg bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white"
                       >
                         <option value="">Relationship</option>
                         {RELATIONSHIP_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
-                      <button type="button" onClick={() => removeMemberRow(i)} className="p-2 text-white/30 hover:text-red-400">
+                      <button type="button" onClick={() => removeMemberRow(i)} className="p-2 shrink-0 text-white/30 hover:text-red-400">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -638,7 +757,7 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
                 risk entirely on any Android WebView where sticky
                 positioning miscalculates and breaks the surrounding
                 layout, which matches exactly what was reported. */}
-            <div className="self-start space-y-3">
+            <div className="self-start space-y-3 min-w-0">
               <div className="bg-white rounded-2xl p-3 shadow-2xl">
                 {/* ✅ ADDED: explicit width/height attributes (not just
                     CSS) — a canvas with no HTML width/height defaults to
@@ -651,19 +770,18 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
                     with no dependency on JS execution timing. */}
                 <div ref={canvasWrapperRef} className="relative">
                   <canvas ref={canvasRef} width={1536} height={1024} className="w-full h-auto rounded-lg block" style={{ aspectRatio: "1536 / 1024" }} />
-                  {/* ✅ ADDED (2026-09-06): drag/resize handles for the
-                      devotee name position and the photo frame — only
-                      rendered in Adjust mode, only over the name/photo
-                      (never the background artwork, which stays fixed
-                      and cannot be moved, resized, or removed here). */}
+                  {/* ✅ CHANGED (2026-09-06): drag handles for all 5 text
+                      fields plus the photo box — only rendered in Adjust
+                      mode, only over these movable elements (never the
+                      background artwork, which stays fixed and cannot be
+                      moved, resized, or removed here). */}
                   {adjustMode && layoutMeta && (
                     <CertificateAdjustOverlay
                       wrapperRef={canvasWrapperRef}
                       layoutMeta={layoutMeta}
                       adjustment={currentAdjustment}
-                      onNameOffsetChange={(o) => setNameOffset(deity, o)}
+                      onTextOffsetChange={(slot, o) => setTextOverride(deity, slot, { offset: o })}
                       onPhotoFrameChange={(f) => setPhotoOverride(deity, f)}
-                      onRefIdOffsetChange={(o) => setRefIdOffset(deity, o)}
                     />
                   )}
                 </div>
@@ -679,29 +797,80 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
                 </button>
               </div>
               {adjustMode && layoutMeta && (
-                <div className="flex gap-2">
-                  <button type="button" onClick={resetNamePosition} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
-                    <RotateCcw className="w-3 h-3" /> Reset Name
-                  </button>
-                  <button type="button" onClick={resetPhotoFrame} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
-                    <RotateCcw className="w-3 h-3" /> Reset Photo
-                  </button>
-                  <button type="button" onClick={resetRefIdPosition} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
-                    <RotateCcw className="w-3 h-3" /> Reset Ref ID
-                  </button>
+                <div className="bg-[#092320] border border-white/10 rounded-2xl p-3 space-y-3">
+                  {/* Which field the color/font-size controls below apply to */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {TEXT_SLOTS.map((s) => (
+                      <button
+                        key={s.key} type="button" onClick={() => setActiveSlot(s.key)}
+                        className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-lg border transition-all"
+                        style={
+                          activeSlot === s.key
+                            ? { background: s.bg, color: s.fg, borderColor: s.bg }
+                            : { background: "transparent", color: "rgba(255,255,255,0.5)", borderColor: "rgba(255,255,255,0.15)" }
+                        }
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Color — a curated palette plus a full custom picker,
+                      for when a design's default text color doesn't read
+                      well against a particular field's spot. */}
+                  <div>
+                    <span className="block text-[10px] font-bold text-white/50 uppercase tracking-wide mb-1.5">Color — {TEXT_SLOTS.find((s) => s.key === activeSlot)?.label}</span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {COLOR_PRESETS.map((c) => (
+                        <button
+                          key={c} type="button" onClick={() => setActiveColor(c)}
+                          className="w-6 h-6 rounded-full border-2"
+                          style={{ background: c, borderColor: activeColor.toLowerCase() === c.toLowerCase() ? "#5EEAD4" : "rgba(255,255,255,0.25)" }}
+                          title={c}
+                        />
+                      ))}
+                      <input
+                        type="color" value={activeColor} onChange={(e) => setActiveColor(e.target.value)}
+                        className="w-7 h-7 rounded-full border-2 border-white/25 bg-transparent cursor-pointer p-0"
+                        title="Custom color"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Font size — same field-scoped pattern; each of the 5
+                      fields keeps its own size independently. */}
+                  <div>
+                    <span className="block text-[10px] font-bold text-white/50 uppercase tracking-wide mb-1.5">Font Size — {activeFontSize}px</span>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => bumpActiveFontSize(-2)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/15 rounded-lg text-white font-bold text-xs">A-</button>
+                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#5EEAD4]" style={{ width: `${((activeFontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)) * 100}%` }} />
+                      </div>
+                      <button type="button" onClick={() => bumpActiveFontSize(2)} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/15 rounded-lg text-white font-bold text-base">A+</button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <button type="button" onClick={() => resetTextSlot(activeSlot)} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl truncate">
+                      <RotateCcw className="w-3 h-3 shrink-0" /> <span className="truncate">Reset {TEXT_SLOTS.find((s) => s.key === activeSlot)?.label}</span>
+                    </button>
+                    <button type="button" onClick={resetPhotoFrame} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white/70 text-[11px] font-bold uppercase tracking-wide py-2 rounded-xl">
+                      <RotateCcw className="w-3 h-3 shrink-0" /> Reset Photo
+                    </button>
+                  </div>
                 </div>
               )}
               {adjustMode && (
                 <p className="text-[11px] text-white/40 text-center">
-                  Drag the teal name label to reposition it. Drag the photo box to move it, or its corner handle to resize. Drag the amber "REF" label to move the Reference ID — including inside the barcode box, if it fits on this design. Saved automatically for every "{deity}" certificate — the certificate artwork itself can't be moved or edited.
+                  Drag any colored label on the certificate to reposition it, or the photo box to move/resize it. Pick a field above to change its color or font size. Saved automatically for every "{deity}" certificate — the certificate artwork itself can't be moved or edited.
                 </p>
               )}
               <div className="flex gap-2">
-                <button type="button" onClick={handlePrint} className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs font-bold uppercase tracking-wide py-3 rounded-xl">
-                  <Printer className="w-3.5 h-3.5" /> Print
+                <button type="button" onClick={handlePrint} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs font-bold uppercase tracking-wide py-3 rounded-xl">
+                  <Printer className="w-3.5 h-3.5 shrink-0" /> Print
                 </button>
-                <button type="button" onClick={handleDownloadPng} className="flex-1 flex items-center justify-center gap-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] text-xs font-bold uppercase tracking-wide py-3 rounded-xl">
-                  <Download className="w-3.5 h-3.5" /> Download PNG
+                <button type="button" onClick={handleDownloadPng} className="flex-1 min-w-0 flex items-center justify-center gap-1.5 bg-[#0F766E]/20 hover:bg-[#0F766E]/40 border border-[#5EEAD4]/30 text-[#5EEAD4] text-xs font-bold uppercase tracking-wide py-3 rounded-xl truncate">
+                  <Download className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">Download PNG</span>
                 </button>
               </div>
               {/* ✅ ADDED (2026-09-05): "Share This Certificate via Email" —
@@ -742,23 +911,14 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
 // factor, so this works identically at any zoom/screen size — desktop,
 // tablet, or phone.
 function CertificateAdjustOverlay({
-  wrapperRef, layoutMeta, adjustment, onNameOffsetChange, onPhotoFrameChange, onRefIdOffsetChange,
+  wrapperRef, layoutMeta, adjustment, onTextOffsetChange, onPhotoFrameChange,
 }: {
   wrapperRef: RefObject<HTMLDivElement | null>;
-  layoutMeta: { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number }; refIdPosition: { x: number; y: number } };
+  layoutMeta: NonNullable<ReturnType<typeof getCertificateLayoutMeta>>;
   adjustment: CertAdjustment;
-  onNameOffsetChange: (offset: { x: number; y: number }) => void;
+  onTextOffsetChange: (slot: TextSlotKey, offset: { x: number; y: number }) => void;
   onPhotoFrameChange: (frame: { x: number; y: number; width: number; height: number }) => void;
-  onRefIdOffsetChange: (offset: { x: number; y: number }) => void;
 }) {
-  const namePos = {
-    x: layoutMeta.namePosition.x + (adjustment.nameOffset?.x || 0),
-    y: layoutMeta.namePosition.y + (adjustment.nameOffset?.y || 0),
-  };
-  const refIdPos = {
-    x: layoutMeta.refIdPosition.x + (adjustment.refIdOffset?.x || 0),
-    y: layoutMeta.refIdPosition.y + (adjustment.refIdOffset?.y || 0),
-  };
   const photoFrame = adjustment.photoOverride || layoutMeta.photoFrame;
 
   const getScale = () => (wrapperRef.current ? wrapperRef.current.clientWidth / CERTIFICATE_WIDTH : 1);
@@ -836,26 +996,28 @@ function CertificateAdjustOverlay({
         </div>
       </div>
 
-      {/* Devotee-name handle — drag only (no resize; font size is fixed by design) */}
-      <div
-        onPointerDown={(e) => startDrag(e, namePos, (v) => onNameOffsetChange({ x: v.x - layoutMeta.namePosition.x, y: v.y - layoutMeta.namePosition.y }), "move")}
-        className="absolute -translate-x-1/2 -translate-y-full cursor-move flex items-center gap-1 bg-[#FFB347] text-[#021816] text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
-        style={{ left: `${(namePos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(namePos.y / CERTIFICATE_HEIGHT) * 100}%` }}
-      >
-        <Move className="w-2.5 h-2.5" /> NAME
-      </div>
-
-      {/* Reference-ID handle — drag only, same as Name. Lets the admin
-          decide "inside the barcode box" vs "below it" per design,
-          instead of one hardcoded guess that risks overlapping the
-          barcode on some certificates (see refIdSlot's own comments). */}
-      <div
-        onPointerDown={(e) => startDrag(e, refIdPos, (v) => onRefIdOffsetChange({ x: v.x - layoutMeta.refIdPosition.x, y: v.y - layoutMeta.refIdPosition.y }), "move")}
-        className="absolute -translate-x-1/2 -translate-y-full cursor-move flex items-center gap-1 bg-[#F27D26] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
-        style={{ left: `${(refIdPos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(refIdPos.y / CERTIFICATE_HEIGHT) * 100}%` }}
-      >
-        <Move className="w-2.5 h-2.5" /> REF
-      </div>
+      {/* One draggable pill per text field — Performed At, Date of Puja,
+          Devotee Name, Puja Performed, Reference ID. Each carries its own
+          TEXT_SLOTS color so it's easy to match to its tab in the panel
+          below. Position-only (no resize handle) — font size is
+          adjusted separately via the "Font Size" control, not by
+          dragging, since a drag-resize would also distort where the
+          text sits relative to its label. */}
+      {TEXT_SLOTS.map(({ key, label, bg, fg }) => {
+        const base = layoutMeta[key];
+        const offset = adjustment.textOverrides?.[key]?.offset;
+        const pos = { x: base.x + (offset?.x || 0), y: base.y + (offset?.y || 0) };
+        return (
+          <div
+            key={key}
+            onPointerDown={(e) => startDrag(e, pos, (v) => onTextOffsetChange(key, { x: v.x - base.x, y: v.y - base.y }), "move")}
+            className="absolute -translate-x-1/2 -translate-y-full cursor-move flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full shadow-lg whitespace-nowrap"
+            style={{ left: `${(pos.x / CERTIFICATE_WIDTH) * 100}%`, top: `${(pos.y / CERTIFICATE_HEIGHT) * 100}%`, background: bg, color: fg }}
+          >
+            <Move className="w-2.5 h-2.5" /> {label}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -898,14 +1060,14 @@ function OptionDropdown({
     <div>
       <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">{label} *</label>
       {adding ? (
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 sm:gap-2">
           <input
             type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} autoFocus
             placeholder={`New ${label.toLowerCase()}…`}
-            className="flex-1 text-sm px-3 py-2 rounded-lg bg-black/30 border border-[#5EEAD4]/40 focus:outline-none text-white"
+            className="flex-1 min-w-0 text-sm px-3 py-2 rounded-lg bg-black/30 border border-[#5EEAD4]/40 focus:outline-none text-white"
           />
-          <button type="button" onClick={onAdd} className="px-3 bg-[#5EEAD4]/20 text-[#5EEAD4] rounded-lg text-xs font-bold">Save</button>
-          <button type="button" onClick={() => { setAdding(null); setNewValue(""); }} className="px-3 text-white/40 text-xs">Cancel</button>
+          <button type="button" onClick={onAdd} className="px-3 shrink-0 bg-[#5EEAD4]/20 text-[#5EEAD4] rounded-lg text-xs font-bold">Save</button>
+          <button type="button" onClick={() => { setAdding(null); setNewValue(""); }} className="px-3 shrink-0 text-white/40 text-xs">Cancel</button>
         </div>
       ) : (
         <div className="space-y-1.5">

@@ -16,14 +16,26 @@ import { useState, useEffect, useCallback } from "react";
 import { CreditCard, ShieldCheck, Lock, ArrowLeft, Copy, Check, AlertTriangle, Send } from "lucide-react";
 import QRCode from "qrcode";
 import { supabase } from "../lib/supabaseClient";
+// ✅ ADDED (2026-09-06 — "Payment Links button/section... header is
+// hidden or not properly visible"): same root cause and same fix already
+// verified on AdminCertificateGeneration.tsx — this page's fixed
+// `min-h-screen ... py-10` wrapper never compensated for the Capacitor
+// Android app's fixed-position Navbar (which is taller there, due to the
+// status-bar safe-area), so its own heading rendered underneath the
+// fixed header. Reusing the project's existing helper rather than
+// inventing a second fix for the same bug class.
+import { sectionTopPadding, sectionBottomPadding } from "../utils/androidSpacing";
 
 interface AdminPaymentLinksProps {
   onNavigate: (page: string) => void;
+  // ✅ ADDED (2026-09-06): see the androidSpacing import comment above.
+  // Optional + defaulted so nothing breaks for any other caller.
+  isAndroidApp?: boolean;
 }
 
 type AccessState = "checking" | "staff" | "vendor" | "denied";
 
-export default function AdminPaymentLinks({ onNavigate }: AdminPaymentLinksProps) {
+export default function AdminPaymentLinks({ onNavigate, isAndroidApp = false }: AdminPaymentLinksProps) {
   const [access, setAccess] = useState<AccessState>("checking");
   const [sessionToken, setSessionToken] = useState<string | null>(null);
 
@@ -119,7 +131,7 @@ export default function AdminPaymentLinks({ onNavigate }: AdminPaymentLinksProps
   };
 
   return (
-    <div className="min-h-screen bg-[#021816] text-white px-4 py-10">
+    <div className="min-h-screen bg-[#021816] text-white px-4 py-10" style={{ ...sectionTopPadding(isAndroidApp), ...sectionBottomPadding(isAndroidApp) }}>
       <div className="max-w-2xl mx-auto">
         <button
           type="button" onClick={() => onNavigate("plans")}
@@ -165,20 +177,20 @@ export default function AdminPaymentLinks({ onNavigate }: AdminPaymentLinksProps
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="min-w-0">
                   <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Phone Number</label>
                   <input
                     type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
                     placeholder="For SMS notification"
-                    className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                    className="w-full min-w-0 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                   />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Email Address</label>
                   <input
                     type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="For email notification"
-                    className="w-full text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
+                    className="w-full min-w-0 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 focus:outline-none focus:border-[#5EEAD4] text-white placeholder-white/35"
                   />
                 </div>
               </div>
@@ -221,7 +233,7 @@ export default function AdminPaymentLinks({ onNavigate }: AdminPaymentLinksProps
                 <div>
                   <p className="text-xs font-bold text-white/50 uppercase tracking-wide mb-1">Payment Link</p>
                   <div className="flex gap-2">
-                    <input readOnly value={result.shortUrl} className="flex-1 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white/80" />
+                    <input readOnly value={result.shortUrl} className="flex-1 min-w-0 text-sm px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white/80" />
                     <button type="button" onClick={handleCopy} className="shrink-0 flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/15 text-white text-xs font-bold uppercase px-4 rounded-xl">
                       {copyStatus === "copied" ? <Check className="w-3.5 h-3.5 text-[#5EEAD4]" /> : <Copy className="w-3.5 h-3.5" />}
                       {copyStatus === "copied" ? "Copied" : "Copy"}

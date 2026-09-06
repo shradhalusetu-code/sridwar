@@ -31,29 +31,34 @@ export interface CertificateData {
   // exists anywhere in the pipeline; AdminCertificateGeneration.tsx now
   // has a single "Devotee / Family Photo" upload that feeds this one field.
   devoteePhoto: HTMLImageElement | null;
-  // ✅ ADDED (2026-09-06 — "make the content inside the Live Certificate
-  // image movable and adjustable... only the certificate background stays
-  // fixed"): optional per-deity manual adjustments made by the admin in
-  // the live preview. Both are additive/override-only — when absent,
-  // rendering is byte-for-byte identical to before this change, so no
-  // existing certificate or layout is affected unless the admin has
-  // actually dragged something for that specific deity.
-  // Shifts the devotee-name text away from its layout default (position
-  // only — the name's font size is never touched, per explicit
-  // instruction that only position and photo size are adjustable).
-  nameOffset?: { x: number; y: number };
+  // ✅ CHANGED (2026-09-06 — explicit instruction: "Performed At, Date of
+  // Puja, Puja Performed... these too need adjustment... color change
+  // will be applicable to each content and same with the font size
+  // adjustment too have to be each specific contents"): generalizes the
+  // earlier one-off nameOffset/refIdOffset fields into a single
+  // per-text-element override covering all 5 text fields on a
+  // certificate (position, color, AND font size — each independently
+  // adjustable per element), instead of adding a 4th/5th near-duplicate
+  // field. Absent entirely, rendering is identical to before this
+  // change — every certificate already generated keeps working exactly
+  // as-is.
+  textOverrides?: Partial<Record<TextSlotKey, TextSlotOverride>>;
   // Fully replaces the layout's default photoFrame (position AND size)
   // once the admin has dragged/resized the photo in the live preview.
   photoOverride?: { x: number; y: number; width: number; height: number };
-  // ✅ ADDED (2026-09-06): same as nameOffset, for the Reference ID text —
-  // position only. Added specifically because "inside the barcode box"
-  // vs "below it" turned out to be a real per-design trade-off (an
-  // earlier attempt at "inside" overlapped the barcode bars on some
-  // designs — see refIdSlot's own comments) rather than one fixed
-  // answer, so the admin can now nudge it themselves per deity and see
-  // immediately whether it fits, instead of another blind coordinate
-  // guess here.
-  refIdOffset?: { x: number; y: number };
+}
+
+// The 5 text fields every certificate design has, in no particular order
+// — this is a lookup key, not a draw order (draw order is still fixed by
+// renderCertificate() below, matching each design's own layering).
+export type TextSlotKey = "temple" | "date" | "devoteeName" | "pujaName" | "refId";
+
+export interface TextSlotOverride {
+  offset?: { x: number; y: number };
+  /** Any valid CSS color string (hex, rgb(), etc.) — replaces the design's default text color for this one field. */
+  color?: string;
+  /** Replaces only the numeric px size inside the design's default font string — weight/family are untouched. */
+  fontSize?: number;
 }
 
 interface TextSlot {
@@ -135,7 +140,15 @@ const JAGANNATH_LAYOUT: CertificateLayout = {
   // gap below the banner to the more spacious area above it instead —
   // verified there's genuine room between the devotee name (y=505) and
   // the banner's top edge (y≈600).
-  pujaNameSlot: { x: 828, y: 575, maxWidth: 460, font: "18px Georgia, serif", color: "#3a2a1a", align: "center" },
+  // ✅ FIXED (2026-09-06 — explicit report: "puja performed size to be
+  // big enough to be visible, currently it is not visible in the
+  // jagannath certificate"): 18px on a 1536px-wide certificate is
+  // genuinely hard to read/notice — bumped to 24px and bolded to match
+  // the visibility of every other label field on this design (temple/
+  // date are 18px but short, all-caps labels; this holds a full puja
+  // name and needs more presence). The admin can still fine-tune this
+  // further per certificate via the live-preview font-size adjuster.
+  pujaNameSlot: { x: 828, y: 575, maxWidth: 460, font: "700 24px Georgia, serif", color: "#3a2a1a", align: "center" },
   // Below the barcode box — the box's own bottom edge is at y≈903
   // (measured directly; also noticeably lower than a first glance
   // suggests), with the certificate's outer wooden frame starting around
@@ -434,21 +447,41 @@ function selectLayout(deity: string): CertificateLayout | null {
   return CERTIFICATE_LAYOUTS.find((l) => l.matchDeity.test(deity)) || null;
 }
 
-// ✅ ADDED (2026-09-06): read-only lookup of a deity's DEFAULT name
-// position and photo frame, so the admin UI can draw its drag/resize
-// handles at the correct starting spot (and offer a real "Reset to
-// default" that goes back to these exact values) without duplicating
-// any coordinates here. Returns null for a deity with no design yet,
-// same as selectLayout().
+// ✅ ADDED (2026-09-06): read-only lookup of a deity's DEFAULT position,
+// color, and font size for every adjustable field, so the admin UI can
+// draw drag handles at the right spot and initialize its color/font
+// controls from the design's own current values (and offer a real
+// "Reset to default" that goes back to these exact values) without
+// duplicating any of this data. Returns null for a deity with no design
+// yet, same as selectLayout().
+export interface SlotMeta { x: number; y: number; color: string; fontSize: number }
 export function getCertificateLayoutMeta(
   deity: string,
-): { namePosition: { x: number; y: number }; photoFrame: { x: number; y: number; width: number; height: number }; refIdPosition: { x: number; y: number } } | null {
+): { temple: SlotMeta; date: SlotMeta; devoteeName: SlotMeta; pujaName: SlotMeta; refId: SlotMeta; photoFrame: { x: number; y: number; width: number; height: number } } | null {
   const layout = selectLayout(deity);
   if (!layout) return null;
+  const toMeta = (slot: TextSlot): SlotMeta => ({ x: slot.x, y: slot.y, color: slot.color, fontSize: parseInt(slot.font.match(/(\d+)px/)?.[1] || "20", 10) });
   return {
-    namePosition: { x: layout.devoteeNameSlot.x, y: layout.devoteeNameSlot.y },
+    temple: toMeta(layout.templeSlot),
+    date: toMeta(layout.dateSlot),
+    devoteeName: toMeta(layout.devoteeNameSlot),
+    pujaName: toMeta(layout.pujaNameSlot),
+    refId: toMeta(layout.refIdSlot),
     photoFrame: { ...layout.photoFrame },
-    refIdPosition: { x: layout.refIdSlot.x, y: layout.refIdSlot.y },
+  };
+}
+
+// Applies one field's manual override (position/color/font-size) on top
+// of its design default. Absent override, returns the base slot
+// untouched — same rendering as before this feature existed.
+function applyTextOverride(base: TextSlot, override?: TextSlotOverride): TextSlot {
+  if (!override) return base;
+  return {
+    ...base,
+    x: base.x + (override.offset?.x || 0),
+    y: base.y + (override.offset?.y || 0),
+    color: override.color || base.color,
+    font: override.fontSize ? base.font.replace(/\d+px/, `${override.fontSize}px`) : base.font,
   };
 }
 
@@ -648,25 +681,25 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
     ctx.fillRect(0, 0, layout.width, layout.height);
   }
 
-  // ✅ ADDED (2026-09-06): apply the admin's manual position/size
-  // adjustments, if any, on top of this deity's default layout — see
-  // CertificateData.nameOffset / photoOverride above. Absent either one,
-  // these are exactly layout.photoFrame / layout.devoteeNameSlot, so
-  // rendering is unchanged from before this feature existed.
+  // ✅ CHANGED (2026-09-06): applies the admin's manual per-field
+  // overrides (position/color/font-size), if any, on top of this
+  // deity's default layout — see CertificateData.textOverrides above.
+  // Absent an override for a given field, it's exactly that field's
+  // layout default, so rendering is unchanged from before this feature
+  // existed for any certificate that doesn't use it.
   const effectivePhotoFrame = data.photoOverride || layout.photoFrame;
-  const effectiveDevoteeNameSlot = data.nameOffset
-    ? { ...layout.devoteeNameSlot, x: layout.devoteeNameSlot.x + data.nameOffset.x, y: layout.devoteeNameSlot.y + data.nameOffset.y }
-    : layout.devoteeNameSlot;
-  const effectiveRefIdSlot = data.refIdOffset
-    ? { ...layout.refIdSlot, x: layout.refIdSlot.x + data.refIdOffset.x, y: layout.refIdSlot.y + data.refIdOffset.y }
-    : layout.refIdSlot;
+  const effectiveTempleSlot = applyTextOverride(layout.templeSlot, data.textOverrides?.temple);
+  const effectiveDateSlot = applyTextOverride(layout.dateSlot, data.textOverrides?.date);
+  const effectiveDevoteeNameSlot = applyTextOverride(layout.devoteeNameSlot, data.textOverrides?.devoteeName);
+  const effectivePujaNameSlot = applyTextOverride(layout.pujaNameSlot, data.textOverrides?.pujaName);
+  const effectiveRefIdSlot = applyTextOverride(layout.refIdSlot, data.textOverrides?.refId);
 
   if (data.devoteePhoto) {
     fitPhotoIntoFrame(ctx, data.devoteePhoto, effectivePhotoFrame, layout.photoBorderColor || "rgba(184, 134, 11, 0.65)");
   }
 
-  drawSlot(ctx, layout.templeSlot, data.temple);
-  drawSlot(ctx, layout.dateSlot, data.pujaDate ? new Date(data.pujaDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "");
+  drawSlot(ctx, effectiveTempleSlot, data.temple);
+  drawSlot(ctx, effectiveDateSlot, data.pujaDate ? new Date(data.pujaDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "");
   // ✅ ADDED (2026-09-05 — explicit instruction: "Vendor-entered names
   // should always appear in CAPITAL LETTERS"): applied only at the final
   // draw step, so buildDisplayName()'s own "and Family"/"and Friends"
@@ -674,7 +707,7 @@ export async function renderCertificate(canvas: HTMLCanvasElement, data: Certifi
   // form/inputs elsewhere are completely unaffected — this only changes
   // what gets painted onto the certificate artwork itself.
   drawSlot(ctx, effectiveDevoteeNameSlot, buildDisplayName(data.devoteeName || "Devotee Name", data.members).toUpperCase());
-  drawSlot(ctx, layout.pujaNameSlot, data.serviceType);
+  drawSlot(ctx, effectivePujaNameSlot, data.serviceType);
   drawSlot(ctx, effectiveRefIdSlot, data.refId ? `Ref: ${data.refId}` : "");
 }
 

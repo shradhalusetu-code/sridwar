@@ -1187,7 +1187,7 @@ export default function App() {
         {currentPage === "admin-payment-links" && (
           <div className="animate-fadeIn">
             <Suspense fallback={pageLoadingFallback}>
-              <AdminPaymentLinks onNavigate={handleNavigate} />
+              <AdminPaymentLinks onNavigate={handleNavigate} isAndroidApp={isAndroidApp} />
             </Suspense>
           </div>
         )}

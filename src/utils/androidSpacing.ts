@@ -69,6 +69,29 @@ export function sectionTopPadding(isAndroid: boolean): CSSProperties {
 }
 
 /**
+ * Returns an inline style that pads the BOTTOM of a full-page section so
+ * its own last elements (a final button, the end of a form) clear the
+ * app's fixed bottom tab bar (Home/Puja/Seva/Shop/Profile — see
+ * App.tsx's `isAndroidApp && <nav style={{ position: 'fixed', bottom: 0,
+ * ... }}>`), instead of being covered by it.
+ *
+ * That tab bar renders as a page-independent sibling after <main> and
+ * <footer>, fixed at the viewport bottom, on every Android-app page —
+ * the shared <footer> already reserves this exact amount of extra
+ * bottom padding for itself (see its own paddingBottom comment in
+ * App.tsx) so its links/copyright row isn't hidden underneath it. Any
+ * individual page rendered inside <main> needs the same reservation for
+ * its own trailing content (a final "Save"/"Download" button, etc.) —
+ * this uses the identical calc() so the two stay in sync.
+ */
+export function sectionBottomPadding(isAndroid: boolean): CSSProperties {
+  if (!isAndroid) return {};
+  return {
+    paddingBottom: "calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 96px)",
+  };
+}
+
+/**
  * Reduced vertical padding for sections on Android mobile.
  * Maps common Tailwind py values to mobile-friendly equivalents.
  */
