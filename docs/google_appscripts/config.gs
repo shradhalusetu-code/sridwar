@@ -14,14 +14,28 @@ const CONFIG = {
 
   // ✅ ROOT-CAUSE FIX: a booking used to get an immediate "payment pending"
   // email the moment the row landed (paid or not), then this same delay
-  // (previously 6 hours) queued a SECOND pending-flavoured email later. That
-  // is what produced repeated "payment pending"-style mail for one booking.
-  // Triggers.gs no longer sends anything immediately for a still-pending
-  // row — the ONLY pending-payment email now comes from this delay, sent
-  // at most once (see PAYMENT_REMINDER_MAX_SENDS) and only if payment is
-  // still not confirmed by then. 0.5 = 30 minutes, as requested.
-  PAYMENT_REMINDER_DELAY_HOURS: 0.5,
-  PAYMENT_REMINDER_MAX_SENDS: 1,
+  // (previously 6 hours, then briefly 30 minutes) queued a SECOND
+  // pending-flavoured email later. That is what produced repeated
+  // "payment pending"-style mail for one booking. Triggers.gs no longer
+  // sends anything immediately for a still-pending row — pending-payment
+  // emails only ever come from the delay/interval below, hard-capped at
+  // PAYMENT_REMINDER_MAX_SENDS total.
+  //
+  // ✅ UPDATED (requested behaviour change — max 2 reminders, 24h apart):
+  // PAYMENT_REMINDER_DELAY_HOURS is the wait before the FIRST reminder
+  // (24h since the payment was still pending), and
+  // PAYMENT_REMINDER_INTERVAL_HOURS is the minimum gap enforced before the
+  // SECOND reminder can go out — 24h after the FIRST reminder actually
+  // sent, read from its own logged send time (see
+  // scanForPaymentReminders() in Triggers.gs and
+  // scanForPendingPaymentsUniversal() in PendingPaymentReminder.gs), not
+  // just assumed — so a late-running first reminder still gets a full 24h
+  // before the second one goes out. PAYMENT_REMINDER_MAX_SENDS hard-caps
+  // the total number of reminders per booking at 2 — a third reminder can
+  // never be sent no matter how long a payment stays pending.
+  PAYMENT_REMINDER_DELAY_HOURS: 24,
+  PAYMENT_REMINDER_INTERVAL_HOURS: 24,
+  PAYMENT_REMINDER_MAX_SENDS: 2,
 
   BRAND: {
     name: "Sri Dwar",

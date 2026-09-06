@@ -36,6 +36,13 @@ import {
 // bug class rather than inventing a new one or touching the shared
 // <main>/Navbar (which would risk every other page).
 import { sectionTopPadding, sectionBottomPadding } from "../utils/androidSpacing";
+// ✅ ADDED (2026-09-06): mirrors every certificate staff generate here into
+// the same Inquiry Google Sheet the team already monitors for devotee
+// submissions — see the syncToGoogleForm("customer_contact", ...) call in
+// handleSave below. Purely additive logging; does not touch the actual
+// certificate save/render pipeline (/api/admin/certificates) at all, so a
+// Google Forms outage can never block a real certificate from saving.
+import { syncToGoogleForm } from "../utils/googleFormSync";
 
 // ✅ CHANGED (2026-09-06 — "Performed At, Date of Puja, Puja Performed...
 // these too need adjustment... color change will be applicable to each
@@ -455,6 +462,18 @@ export default function AdminCertificateGeneration({ onNavigate, isAndroidApp = 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not save this certificate.");
       setSavedRefId(refId);
+
+      // Mirror into the Inquiry Google Sheet so the team has one shared
+      // place to see this alongside devotee-submitted inquiries — see the
+      // import comment above. Fire-and-forget: never blocks the certificate
+      // save itself, and never surfaces its own errors to the staff member.
+      syncToGoogleForm("customer_contact", {
+        name: devoteeName,
+        email: devoteeEmail,
+        phone: devoteePhone,
+        type: "Admin: Live Certificate Generated",
+        details: `Service: ${serviceType} | Temple: ${temple} | Deity: ${deity} | City: ${city} | Puja Date: ${pujaDate} | Ref: ${refId}`,
+      }).catch((err) => console.error("Admin Certificate Inquiry sync error:", err));
     } catch (err: any) {
       setSaveError(err?.message || "Something went wrong while saving.");
     } finally {

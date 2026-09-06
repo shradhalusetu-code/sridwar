@@ -25,6 +25,13 @@ import { supabase } from "../lib/supabaseClient";
 // fixed header. Reusing the project's existing helper rather than
 // inventing a second fix for the same bug class.
 import { sectionTopPadding, sectionBottomPadding } from "../utils/androidSpacing";
+// ✅ ADDED (2026-09-06): mirrors every payment link staff create here into
+// the same Inquiry Google Sheet the team already monitors for devotee
+// submissions — see the syncToGoogleForm("customer_contact", ...) call in
+// handleCreate below. Purely additive logging; does not touch the actual
+// Razorpay link creation (/api/admin/payment-links) at all, so a Google
+// Forms outage can never block a real payment link from being generated.
+import { syncToGoogleForm } from "../utils/googleFormSync";
 
 interface AdminPaymentLinksProps {
   onNavigate: (page: string) => void;
@@ -104,6 +111,18 @@ export default function AdminPaymentLinks({ onNavigate, isAndroidApp = false }: 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not create the payment link.");
       setResult({ shortUrl: data.short_url, refId: data.refId });
+
+      // Mirror into the Inquiry Google Sheet so the team has one shared
+      // place to see this alongside devotee-submitted inquiries — see the
+      // import comment above. Fire-and-forget: never blocks the payment
+      // link itself, and never surfaces its own errors to the staff member.
+      syncToGoogleForm("customer_contact", {
+        name: name || "Staff-Generated Payment Link",
+        email,
+        phone,
+        type: "Admin: Payment Link Created",
+        details: `Amount: ₹${amountNum} | Description: ${description || "N/A"} | Link: ${data.short_url} | Ref: ${data.refId}`,
+      }).catch((err) => console.error("Admin Payment Link Inquiry sync error:", err));
       // Same client-side QR generation already used for UPI — no network
       // call, nothing that can be "down".
       const qr = await QRCode.toDataURL(data.short_url, {

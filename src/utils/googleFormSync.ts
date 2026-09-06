@@ -24,6 +24,13 @@ interface SyncConfig {
     // config; those forms keep folding location into detailsKey exactly as
     // before, so nothing about them changes.
     geographyKey?: string;
+    // ✅ ADDED 2026-09-06 — optional, only used by forms that have their own
+    // dedicated divine-contribution/amount column (currently just the
+    // Prayer Wall's real dedicated form below). Left undefined for every
+    // other config; those forms keep folding contribution amount into
+    // detailsKey's free text exactly as before, so nothing about them
+    // changes.
+    contributionKey?: string;
   };
   isEnabled: boolean;
 }
@@ -145,27 +152,37 @@ const DEFAULT_CONFIGS: Record<string, SyncConfig> = {
     },
     isEnabled: true
   },
-  // ✅ FIX 5: Prayer Wall offerings (Seva Hub → "Sacred Moments" → Prayer Wall).
-  // Previously this reused the darshan_certificate form/entry IDs as a
-  // placeholder (flagged with a "👉 IMPORTANT" comment), so every Prayer Wall
-  // submission landed mixed into the Darshan Certificate sheet instead of
-  // having a home of its own.
-  // Fixed: Prayer Wall now syncs to the same dedicated Prasad & Prayer
-  // Testimony form/sheet as `prasad_testimony` above — Prayer Wall messages
-  // are devotee testimonials in spirit, and that form already has its own
-  // Name / Location / Service / Story / Rating fields, so this is a real
-  // destination rather than a placeholder borrowed from an unrelated flow.
-  // The `type` field ("Prayer Wall Offering", set by the caller in
-  // SevaExperience.tsx) lands in the Rating column, so Prayer Wall rows are
-  // easy to tell apart from actual testimonials when reviewing the sheet.
+  // ✅ FIX (2026-09-06): Prayer Wall now has its own real, dedicated Google
+  // Form — previously it reused the Prasad & Prayer Testimony form/sheet
+  // (see prasad_testimony above) as a placeholder, so every Prayer Wall row
+  // landed mixed into the Testimony sheet, with the free-text "type" label
+  // ("Prayer Wall Offering" / "Prayer Wall Divine Contribution") getting
+  // stuffed into that sheet's numeric Rating column. This form also adds a
+  // real Divine Contribution column the old borrowed form never had, which
+  // is why contribution amount could previously only ever be embedded as
+  // text inside the message (see the "prayer_wall" branch below).
+  // Entry IDs decoded from the user-supplied prefilled link, in the same
+  // order-based method already used for every other form in this file:
+  //   entry.1260448735 = Name
+  //   entry.702388422  = Location
+  //   entry.422199965  = Email
+  //   entry.842698075  = Phone
+  //   entry.278471389  = Divine Contribution (₹)
+  //   entry.1831966550 = Prayer Message
   prayer_wall: {
-    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeLY5EcxgxlSAszhg9cxLLAvCIfBXKTJuCIkvnLNPV5zyuNKQ/formResponse",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSePH_2M3uATAC2-dxIM_sF7AQQOpPskTq7kZX5aO02zWC2Z0g/formResponse",
     mappedFields: {
-      nameKey: "entry.2059814953",
-      emailKey: "entry.1921900509",
-      phoneKey: "entry.151571055",
-      detailsKey: "entry.1483989486",
-      typeKey: "entry.1243420"
+      nameKey: "entry.1260448735",
+      geographyKey: "entry.702388422",
+      emailKey: "entry.422199965",
+      phoneKey: "entry.842698075",
+      contributionKey: "entry.278471389",
+      detailsKey: "entry.1831966550",
+      // This form has no separate "type" column — Name/Location/Email/
+      // Phone/Contribution/Message account for all 6 fields — so typeKey
+      // is left blank and the syncToGoogleForm("prayer_wall", ...) branch
+      // below simply skips it instead of overwriting another column.
+      typeKey: ""
     },
     isEnabled: true
   },
@@ -922,6 +939,31 @@ export async function syncToGoogleForm(
       if (data.mp) formData.append(mpKey, data.mp);
       if (data.whatsapp) formData.append(whatsappKey, data.whatsapp);
       if (data.authorityLevel) formData.append(authorityKey, data.authorityLevel);
+
+    } else if (formType === "prayer_wall") {
+      // Dedicated Prayer Wall Google Form (see DEFAULT_CONFIGS.prayer_wall
+      // above for the entry-ID derivation). Location and Divine Contribution
+      // now have real columns of their own via geographyKey/contributionKey
+      // — previously both were only ever embedded as text inside the
+      // message when this shared the Testimony form's 5 plain fields.
+      formData.append(config.mappedFields.nameKey, data.name || "Devotee (Prayer Wall)");
+      if (config.mappedFields.geographyKey && data.city) {
+        formData.append(config.mappedFields.geographyKey, data.city);
+      }
+      if (data.email) formData.append(config.mappedFields.emailKey, data.email);
+      if (data.phone) formData.append(config.mappedFields.phoneKey, data.phone);
+      if (config.mappedFields.contributionKey && data.contribution !== undefined) {
+        const contributionVal =
+          typeof data.contribution === "number" || /^\d+(\.\d+)?$/.test(String(data.contribution))
+            ? `₹${data.contribution}`
+            : String(data.contribution); // already-formatted, e.g. "Pending — Awaiting Decision (₹100)" or "₹100 via UPI"
+        formData.append(config.mappedFields.contributionKey, contributionVal);
+      }
+      // No dedicated "type" column on this form (see typeKey note above) —
+      // the type label is folded in as a bracket tag ahead of the message
+      // text instead, the same convention already used for [Ref: ...] by
+      // the callers in SacredMoments.tsx.
+      formData.append(config.mappedFields.detailsKey, data.type ? `[${data.type}] ${data.details}` : data.details);
 
     } else if (formType === "devotee_support" || formType === "customer_contact") {
       const nameKey = formatEntryKey(env.ENTRY_INQUIRY_NAME) || formatEntryKey(env.ENTRY_SUPPORT_NAME) || config.mappedFields.nameKey;

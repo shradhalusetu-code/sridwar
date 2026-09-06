@@ -35,9 +35,13 @@
  *      and bypassed dedupe entirely.
  * Fix: a booking now sends AT MOST two emails ever — one confirmation
  * (immediately if already paid, or the moment payment is detected later)
- * and, only if payment is still not confirmed 30 minutes after submission
- * (Config.gs: PAYMENT_REMINDER_DELAY_HOURS), exactly one pending-payment
- * reminder. The fallback ref is now content-based so a resubmitted/synced
+ * and, only if payment is still not confirmed CONFIG.PAYMENT_REMINDER_
+ * DELAY_HOURS after submission, a pending-payment reminder (originally
+ * "30 minutes... exactly one" reminder as described when this fix was
+ * written; ✅ UPDATED since — see the "max 2 reminders, 24h apart" note
+ * on scanForPaymentReminders() further below and on PAYMENT_REMINDER_
+ * DELAY_HOURS/PAYMENT_REMINDER_INTERVAL_HOURS/PAYMENT_REMINDER_MAX_SENDS
+ * in Config.gs for current behaviour). The fallback ref is now content-based so a resubmitted/synced
  * duplicate of the same booking collapses onto the same dedupe key instead
  * of restarting the whole flow. See diagnoseSriDwarEmailTriggers() below
  * for a related, NOT-automatically-detectable risk: this project having
@@ -914,8 +918,9 @@ function scanForMissedBookingEmails() {
         const paymentSubmittedPending = _isPaymentSubmittedPendingStatus_(ctx.paymentStatus);
         const pending = _isPendingStatus_(ctx.paymentStatus);
         // ✅ FIX: a genuinely never-attempted-payment row (Row 1) is still
-        // skipped here entirely — the one "please pay" notice for that case
-        // comes only from scanForPaymentReminders, 30 minutes later. A
+        // skipped here entirely — the "please pay" notice(s) for that case
+        // come only from scanForPaymentReminders, per its own timing (see
+        // Config.gs's PAYMENT_REMINDER_DELAY_HOURS / _INTERVAL_HOURS). A
         // payment-SUBMITTED-pending row (Row 2 — "I Have Paid" already
         // tapped) is no longer skipped: if the instant onFormSubmit trigger
         // ever missed it (e.g. a website/API write with no Google Forms
@@ -978,13 +983,19 @@ function scanForMissedBookingEmails() {
 // ─── 3. Payment Reminder (time-driven scan) ────────────────────────────────
 // Walks each booking sheet's rows every hour looking for Ref IDs whose
 // LATEST row is still "Pending" and at least PAYMENT_REMINDER_DELAY_HOURS
-// old (Config.gs: 0.5 = 30 minutes, per the requested behaviour), with no
-// "Paid — Confirmed" row yet for that same booking. This is now the ONLY
-// place a "payment pending" email is ever sent — see the ✅ ROOT-CAUSE FIX
-// notes in _handleBookingSheetSubmit_ and scanForMissedBookingEmails above.
-// Dedupe is per-refId via emailType "payment_reminder_1" (capped at
-// CONFIG.PAYMENT_REMINDER_MAX_SENDS, currently 1), so this can run hourly
-// forever without ever re-sending the same reminder for the same booking.
+// old (Config.gs: 24h before the FIRST reminder), with no "Paid —
+// Confirmed" row yet for that same booking. This is now the ONLY place a
+// "payment pending" email is ever sent — see the ✅ ROOT-CAUSE FIX notes in
+// _handleBookingSheetSubmit_ and scanForMissedBookingEmails above.
+//
+// ✅ UPDATED (requested behaviour change — max 2 reminders, 24h apart):
+// dedupe is per-refId via emailType "payment_reminder_1" / "payment_
+// reminder_2", hard-capped at CONFIG.PAYMENT_REMINDER_MAX_SENDS (2) — a
+// third reminder can never be sent. Reminder 2 additionally requires that
+// reminder 1 was ALREADY sent AND that CONFIG.PAYMENT_REMINDER_INTERVAL_
+// HOURS (24h) have passed since reminder 1's own logged send time (read
+// via _getSentAt_, not just assumed) — so this can run hourly forever
+// without ever re-sending a reminder early or beyond the 2-email cap.
 
 function scanForPaymentReminders() {
   const sheetsToScan = [
@@ -1055,12 +1066,24 @@ function scanForPaymentReminders() {
         // payment_under_review email for the same refId in this same run.
         if (hasAlreadySent_(refId, "payment_under_review")) return;
 
-        const hoursSince = (Date.now() - ts.getTime()) / 36e5;
-        if (hoursSince < CONFIG.PAYMENT_REMINDER_DELAY_HOURS) return;
-
         for (let attempt = 1; attempt <= CONFIG.PAYMENT_REMINDER_MAX_SENDS; attempt++) {
           const emailType = `payment_reminder_${attempt}`;
-          if (hasAlreadySent_(refId, emailType)) continue;
+          if (hasAlreadySent_(refId, emailType)) continue; // this attempt already sent — check the next one
+
+          // Work out the earliest moment THIS attempt is allowed to go out.
+          let earliestAllowedMs;
+          if (attempt === 1) {
+            earliestAllowedMs = ts.getTime() + CONFIG.PAYMENT_REMINDER_DELAY_HOURS * 36e5;
+          } else {
+            const prevSentAt = _getSentAt_(refId, `payment_reminder_${attempt - 1}`);
+            // Previous reminder hasn't actually gone out yet (shouldn't
+            // normally happen since attempts are sent in order and this
+            // loop `continue`s past already-sent ones, but guards against
+            // any future reordering) — never skip ahead of it.
+            if (!prevSentAt) break;
+            earliestAllowedMs = prevSentAt.getTime() + CONFIG.PAYMENT_REMINDER_INTERVAL_HOURS * 36e5;
+          }
+          if (Date.now() < earliestAllowedMs) break; // not due yet — try again on a later scan
 
           const bookingKind = forcedKind || _bookingKindFromFormType_(ctx.itemName || ctx.formType);
           const resolvedLabel = _bookingLabelFromKind_(bookingKind, label);
@@ -1281,6 +1304,26 @@ function _sendAcknowledgementForRow_(spreadsheetId, headers, row) {
   if (spreadsheetId === _prasadTestimonyPrayerWallSheetId_()) return false;
 
   const ctx = extractRowContext_(headers, row);
+
+  // ✅ ADDED (requested — extended from payment links to cover every
+  // staff/admin action synced into this Inquiry sheet purely for team
+  // visibility, not as a devotee inquiry): Razorpay already notifies the
+  // devotee itself when staff generate a Payment Link (AdminPaymentLinks.tsx
+  // / server.ts's /api/admin/payment-links, via `notify`/`reminder_enable`),
+  // and AdminCertificateGeneration.tsx's own save/share flow is what
+  // actually tells the devotee about a staff-generated certificate — see
+  // its syncToGoogleForm("customer_contact", ...) calls, type: "Admin:
+  // Payment Link Created" / "Admin: Live Certificate Generated". Neither
+  // row is a devotee inquiry, so neither should also get Sri Dwar's own
+  // "We've received your Inquiry" acknowledgement email on top of
+  // whatever notice the originating admin action already sent. Matched
+  // generically on the "Admin: " prefix both call sites use (and any
+  // future admin-authored sync to this sheet, as long as it follows the
+  // same naming convention), rather than one hardcoded string per case —
+  // the row still lands in the sheet for staff visibility either way,
+  // only the devotee-facing email is skipped.
+  if (/^admin\s*:/i.test(String(ctx.formType || ""))) return false;
+
   if (!ctx.email || !ctx.refId) return false;
 
   const match = CONFIG.SHEETS.ACKNOWLEDGEMENT_SHEETS.find((s) => s.spreadsheetId === spreadsheetId);

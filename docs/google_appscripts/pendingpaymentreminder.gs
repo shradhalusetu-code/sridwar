@@ -25,13 +25,25 @@
  *
  * DEDUPE / SEND LIMIT
  * ----------------------------------------------------------------------
- * Sends AT MOST ONE reminder per booking, ever — via the SAME
- * Email_Send_Log dedupe every other email in this project already uses
- * (hasAlreadySent_ / sendBrandedEmail_'s own internal check). Uses its own
- * namespaced emailType, "webhook_pending_payment_reminder", so it can never
- * collide with scanForPaymentReminders()'s own "payment_reminder_1" /
- * "payment_reminder_2" values in the same shared log — both systems can run
- * against the same booking without either one double-sending.
+ * ✅ UPDATED (requested behaviour change — max 2 reminders, 24h apart):
+ * sends AT MOST CONFIG.PAYMENT_REMINDER_MAX_SENDS (2) reminders per
+ * booking, ever, via the SAME Email_Send_Log dedupe every other email in
+ * this project already uses (hasAlreadySent_ / sendBrandedEmail_'s own
+ * internal check). Reminder 2 additionally requires that reminder 1 was
+ * already sent AND that CONFIG.PAYMENT_REMINDER_INTERVAL_HOURS (24h) have
+ * passed since reminder 1's own logged send time (_getSentAt_) — the same
+ * gating scanForPaymentReminders() in Triggers.gs uses. Uses its own
+ * namespaced emailType per attempt, "webhook_pending_payment_reminder_1" /
+ * "webhook_pending_payment_reminder_2", so it can never collide with
+ * scanForPaymentReminders()'s own "payment_reminder_1" / "payment_
+ * reminder_2" values in the same shared log — both systems can run against
+ * the same booking without either one double-sending.
+ * (Note: rows that already received a reminder under the old, pre-update
+ * single emailType "webhook_pending_payment_reminder" are unaffected by
+ * this rename — that exact key is simply never dedupe-checked again, so
+ * such a row is treated as not-yet-sent-attempt-1 and may receive one
+ * fresh reminder under the new numbered key before this 2-reminder cap
+ * applies going forward.)
  *
  * WHAT IT SENDS
  * ----------------------------------------------------------------------
@@ -66,8 +78,10 @@ function scanForPendingPaymentsUniversal() {
     return;
   }
 
+  // Fetches everything old enough for AT LEAST the first reminder;
+  // eligibility for a specific attempt (1 or 2) and its own 24h gap is
+  // then decided per-row, per-attempt below.
   const cutoffIso = new Date(Date.now() - CONFIG.PAYMENT_REMINDER_DELAY_HOURS * 60 * 60 * 1000).toISOString();
-  const emailType = "webhook_pending_payment_reminder";
 
   const activitiesUrl =
     supabaseUrl.replace(/\/$/, "") +
@@ -99,10 +113,35 @@ function scanForPendingPaymentsUniversal() {
 
   rows.forEach(function (row) {
     try {
-      // Cheap skip before the extra network round-trip below — sendBrandedEmail_
-      // would also catch this via its own internal dedupe check either way, this
-      // just avoids the wasted form_submissions lookup for rows already handled.
-      if (typeof hasAlreadySent_ === "function" && hasAlreadySent_(row.ref_id, emailType)) return;
+      const createdAtMs = new Date(row.created_at).getTime();
+
+      // Work out which attempt (if any) is due for this row right now.
+      // Mirrors scanForPaymentReminders()'s per-attempt gating in
+      // Triggers.gs: attempt 1 is gated off the row's own age, attempt 2
+      // is gated off attempt 1's REAL logged send time (24h later), and
+      // the loop never sends more than CONFIG.PAYMENT_REMINDER_MAX_SENDS
+      // total for the same ref_id.
+      let dueEmailType = null;
+      for (let attempt = 1; attempt <= CONFIG.PAYMENT_REMINDER_MAX_SENDS; attempt++) {
+        const candidateType = "webhook_pending_payment_reminder_" + attempt;
+        if (typeof hasAlreadySent_ === "function" && hasAlreadySent_(row.ref_id, candidateType)) continue;
+
+        let earliestAllowedMs;
+        if (attempt === 1) {
+          earliestAllowedMs = isNaN(createdAtMs) ? 0 : createdAtMs + CONFIG.PAYMENT_REMINDER_DELAY_HOURS * 36e5;
+        } else {
+          const prevSentAt = _getSentAt_(row.ref_id, "webhook_pending_payment_reminder_" + (attempt - 1));
+          if (!prevSentAt) break; // previous reminder hasn't gone out yet — don't skip ahead
+          earliestAllowedMs = prevSentAt.getTime() + CONFIG.PAYMENT_REMINDER_INTERVAL_HOURS * 36e5;
+        }
+        if (Date.now() < earliestAllowedMs) break; // not due yet — try again on a later scan
+
+        dueEmailType = candidateType;
+        break;
+      }
+      if (!dueEmailType) return; // nothing due for this row this pass
+
+      const emailType = dueEmailType;
 
       const subRes = UrlFetchApp.fetch(
         supabaseUrl.replace(/\/$/, "") +

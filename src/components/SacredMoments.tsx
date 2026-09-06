@@ -129,6 +129,8 @@ export default function SacredMoments() {
 
     syncToGoogleForm("prayer_wall", {
       name: prayerContribName, email: prayerContribEmail, phone: prayerContribPhone,
+      city: "Sacred Moments — Live Darshan",
+      contribution: `Pending — Awaiting Decision (₹${prayerContribAmount})`,
       type: "Prayer Wall Divine Contribution",
       details: `Prayer Wall devotee wishes to support Sri Dwar's temples. [Contribution: Pending — Awaiting Decision, Amount: ₹${prayerContribAmount}] [Ref: ${newRefId}]`,
     }).catch((err) => console.error("Prayer Wall contribution pending sync error:", err));
@@ -139,6 +141,8 @@ export default function SacredMoments() {
   const handlePrayerContributionPaid = (details: { amount: number; method: "UPI" | "WhatsApp Pay" }) => {
     syncToGoogleForm("prayer_wall", {
       name: prayerContribName, email: prayerContribEmail, phone: prayerContribPhone,
+      city: "Sacred Moments — Live Darshan",
+      contribution: `₹${details.amount} via ${details.method}`,
       type: "Prayer Wall Divine Contribution",
       details: `Prayer Wall devotee wishes to support Sri Dwar's temples. [Contribution: ₹${details.amount} via ${details.method}] [Ref: ${prayerContribRefId}]`,
     }).catch((err) => console.error("Prayer Wall contribution final sync error:", err));
@@ -188,8 +192,9 @@ export default function SacredMoments() {
     const prayerRefId = makeSubmissionRef("PRAY");
     syncToGoogleForm("prayer_wall", {
       name: "Devotee (Prayer Wall)",
-      email: "Live Darshan — Prayer Wall",
+      email: "",
       phone: "",
+      city: "Live Darshan — Prayer Wall",
       details: `${offeredPrayer} [Ref: ${prayerRefId}]`,
       type: "Prayer Wall Offering"
     }).catch((err) => console.error("Prayer Wall sync error:", err));

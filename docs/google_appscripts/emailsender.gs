@@ -356,6 +356,27 @@ function hasAlreadySent_(refId, emailType) {
   return false;
 }
 
+/**
+ * Returns the Date a given refId+emailType was actually sent (per
+ * Email_Send_Log's own SentAt column), or null if it was never sent.
+ * Used to enforce a true 24h gap between reminder 1 and reminder 2 based
+ * on when reminder 1 really went out — not just assumed on schedule —
+ * so a late-running scan still leaves a full 24h before the next
+ * reminder is allowed.
+ */
+function _getSentAt_(refId, emailType) {
+  const sheet = getTrackingSheet_();
+  const data = sheet.getDataRange().getValues();
+  const key = _refKey_(refId);
+  for (let i = 1; i < data.length; i++) {
+    if (_refKey_(data[i][0]) === key && data[i][1] === emailType) {
+      const d = data[i][3] instanceof Date ? data[i][3] : new Date(data[i][3]);
+      return isNaN(d.getTime()) ? null : d;
+    }
+  }
+  return null;
+}
+
 function markSent_(refId, emailType, toEmail) {
   const sheet = getTrackingSheet_();
   sheet.appendRow([String(refId), emailType, toEmail, new Date()]);
