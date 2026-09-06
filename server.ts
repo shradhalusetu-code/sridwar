@@ -33,6 +33,16 @@ console.log(
       : "NOT SET — Margadarshak AI will run in free local rule-based fallback mode"
   }`
 );
+// ✅ ADDED alongside the Groq fallback below: same presence-only check, so
+// you can confirm from Render's Logs tab whether the backup provider is
+// actually wired up, without ever printing the key itself.
+console.log(
+  `[Startup] GROQ_API_KEY: ${
+    process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim() !== ""
+      ? `present (${process.env.GROQ_API_KEY.length} chars)`
+      : "NOT SET — no backup AI provider configured if Gemini fails"
+  }`
+);
 
 const app = express();
 const PORT = 3000;
@@ -254,6 +264,81 @@ async function callGeminiWithFallback(
   throw lastError instanceof Error ? lastError : new Error("All Gemini model candidates failed.");
 }
 
+// ─── Margadarshak AI — Groq backup provider ────────────────────────────────
+// ✅ ADDED (2026-09-06) as insurance, at Kunu's request, alongside the
+// Gemini fix above — NOT because Gemini itself is currently broken (it's
+// confirmed working with the fresh "SriDwar" free-tier project/key). This
+// gives the assistant a second, independent, genuinely-free provider to
+// fall back to if Gemini ever has a bad day again (quota, an account
+// flag, an outage) without waiting on a fix here.
+//
+// Groq's free tier (console.groq.com, no card required) is used via its
+// OpenAI-compatible REST endpoint with plain `fetch` — no new npm
+// dependency, same approach already used for Razorpay elsewhere in this
+// file. `llama-3.3-70b-versatile` is Groq's current recommended
+// general-purpose free-tier model as of September 2026.
+//
+// Env var expected: GROQ_API_KEY (set this in Render's Environment tab,
+// exactly like GEMINI_API_KEY — see the startup log above to confirm it
+// was read). If it's not set, this fallback is silently skipped and the
+// request falls through to the local rule-based reply below, same as
+// today.
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+
+function hasGroqKey(): boolean {
+  const key = process.env.GROQ_API_KEY;
+  return !!key && key.trim() !== "";
+}
+
+async function callGroqFallback(
+  message: string,
+  history: Array<{ role?: string; text?: string }> | undefined,
+  systemPrompt: string
+): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY is not configured.");
+  }
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...(Array.isArray(history)
+      ? history
+          .filter((h) => typeof h.text === "string" && h.text.trim() !== "")
+          .map((h) => ({
+            role: h.role === "user" ? "user" : "assistant",
+            content: h.text as string,
+          }))
+      : []),
+    { role: "user", content: message },
+  ];
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const bodyText = await response.text().catch(() => "");
+    throw new Error(`Groq API responded with ${response.status}: ${bodyText.slice(0, 300)}`);
+  }
+
+  const data: any = await response.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) {
+    throw new Error("Groq API returned an empty response.");
+  }
+  return text;
+}
+
 // Lightweight in-memory rate limiter for /api/assistant — no new npm
 // dependency required. This endpoint is the only one that costs real money
 // per call (Gemini API usage), and it previously had zero limits, meaning
@@ -340,8 +425,13 @@ app.post("/api/assistant", validateBody(assistantRequestSchema), async (req, res
 
   const ai = getGeminiClient();
 
-  // If Gemini secret key is missing or invalid, execute an authentic local rule-based fallback guide
-  if (!ai) {
+  // The same warm, devotional local knowledge fallback used when NO AI
+  // provider (Gemini or Groq) is available or all of them failed. Kept as
+  // its own function (rather than inline) so both the "no key configured"
+  // path and the "every provider errored" path in the catch block below
+  // can share the exact same wording — nothing duplicated, nothing drifts
+  // out of sync.
+  const localRuleBasedReply = (): string => {
     const query = message.toLowerCase();
     let reply = "Hari Om! 🙏 Our AI Devotee Assistant is in localized mode. ";
 
@@ -358,46 +448,70 @@ app.post("/api/assistant", validateBody(assistantRequestSchema), async (req, res
     } else {
       reply += "Welcome to Sri Dwar. We facilitate secure remote pujas, sacred offerings, local artisan crafts, and direct live darshan flows. Deeper guided answers are on their way soon — for now, do ask about Puja booking, Seva sponsorship, Live Darshan, or Prasad delivery!";
     }
+    return reply;
+  };
 
-    res.json({ text: reply, status: "offline-rule-based-fallback" });
-    return;
-  }
-
-  try {
-    const systemPrompt = `You are the divine, highly knowledgeable digital guide of Sri Dwar (a premium faith-tech ecosystem).
+  const systemPrompt = `You are the divine, highly knowledgeable digital guide of Sri Dwar (a premium faith-tech ecosystem).
 Speak with peace, warmth, profound spiritual wisdom, and cultural authenticity. Your name is 'Dharmic Margadarshak'.
 Help devotees choose temples, understand mantras, sevas, pujas, and explain spiritual Concepts from Vedas, Upanishads, and Gita elegantly.
 Format your responses beautifully with clear paragraphs or structured points.
 If asked about the platform founder, proudly mention Kunu Rana who built Sri Dwar with a vision of merging ancient tradition with modern technology.
 Always close with a brief warm greeting (e.g. "May Lord Jagannath bless your home" or "Om Namah Shivaya").`;
 
-    const chatContents = [];
-
-    // Convert history formatted for Gemini SDK if provided
-    if (history && Array.isArray(history)) {
-      for (const h of history) {
-        chatContents.push({
-          role: h.role === "user" ? "user" : "model",
-          parts: [{ text: h.text }]
-        });
+  // ─── Provider chain: Gemini (primary) → Groq (free backup) → local ────────
+  // ✅ ADDED (2026-09-06): previously a missing/failed Gemini key/call meant
+  // either the instant local rule-based reply (if no key at all) or a hard
+  // error (if the key existed but the call failed). Now a failed Gemini
+  // call also gets one genuinely-free second attempt via Groq before
+  // giving up — Gemini stays the primary/preferred provider (it's what's
+  // currently configured and working), Groq is purely insurance.
+  if (ai) {
+    try {
+      const chatContents = [];
+      if (history && Array.isArray(history)) {
+        for (const h of history) {
+          chatContents.push({
+            role: h.role === "user" ? "user" : "model",
+            parts: [{ text: h.text }],
+          });
+        }
       }
+      chatContents.push({ role: "user", parts: [{ text: message }] });
+
+      const replyText = await callGeminiWithFallback(ai, chatContents, systemPrompt);
+      res.json({ text: replyText || "May peace be with you." });
+      return;
+    } catch (error) {
+      console.error("[Margadarshak AI] Gemini failed, trying Groq backup:", error);
     }
-
-    chatContents.push({ role: "user", parts: [{ text: message }] });
-
-    const replyText = await callGeminiWithFallback(ai, chatContents, systemPrompt);
-    res.json({ text: replyText || "May peace be with you." });
-  } catch (error: any) {
-    // Full technical detail (status code, Gemini error body, stack) goes
-    // ONLY to the server/Render logs for debugging — it is never sent in
-    // the HTTP response, so a devotee can never see an API key name, model
-    // ID, or raw error string.
-    console.error("[Margadarshak AI] /api/assistant failed:", error);
-    res.status(500).json({
-      error:
-        "Hari Om 🙏 Margadarshak AI is unable to offer guidance on this just yet — our spiritual guide is resting for a moment. Our team is working to bring you the right answer soon, so please try again shortly, or reach our Devotee Care team via the Contact Us page.",
-    });
   }
+
+  if (hasGroqKey()) {
+    try {
+      const replyText = await callGroqFallback(message, history, systemPrompt);
+      res.json({ text: replyText || "May peace be with you.", status: "groq-backup" });
+      return;
+    } catch (error) {
+      console.error("[Margadarshak AI] Groq backup also failed:", error);
+    }
+  }
+
+  // Both AI providers are unavailable or failed — fall back to the free
+  // local rule-based reply rather than a hard error, exactly like the
+  // "no key configured" case always has.
+  if (!ai && !hasGroqKey()) {
+    res.json({ text: localRuleBasedReply(), status: "offline-rule-based-fallback" });
+    return;
+  }
+
+  // At least one provider was configured but every attempt still failed
+  // (auth/quota/outage on both sides). Full technical detail already went
+  // to the server/Render logs above via console.error — never sent to the
+  // devotee.
+  res.status(500).json({
+    error:
+      "Hari Om 🙏 Margadarshak AI is unable to offer guidance on this just yet — our spiritual guide is resting for a moment. Our team is working to bring you the right answer soon, so please try again shortly, or reach our Devotee Care team via the Contact Us page.",
+  });
 });
 
 const refundRequestSchema = z
